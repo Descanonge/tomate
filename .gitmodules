@@ -1,0 +1,3 @@
+[submodule "myPack"]
+	path = myPack
+	url = https://github.com/Descanonges/python-pack.git
