@@ -23,15 +23,27 @@ class IterDict(dict):
 
     Created as a typical dictionnary. The order the
     items are initialized will be kept.
-    """
 
-    def __init__(self, d):
-        super().__init__(d)
+    Methods
+    -------
+
+    enum
+        Enumerate values
+
+    __getitem__
+        Return value from a string or an integer
+    """
 
     def __getitem__(self, y):
         """Return value.
 
-        For str, int, slice or list (of int or str),
+        Parameters
+        ----------
+        y: int, str, slice, List[int], List[str]
+            key
+
+        Notes
+        -----
         For index and slices, python3.7 ordered dict abalities are used
         """
 
@@ -43,6 +55,7 @@ class IterDict(dict):
                 return getitem(i)
             if isinstance(i, int):
                 return list(self.values())[i]
+            return None
 
         if isinstance(y, slice):
             start, stop, step = y.start, y.stop, y.step
