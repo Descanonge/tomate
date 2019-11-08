@@ -1,13 +1,15 @@
 
 from setuptools import setup
 
+import data_loader
+
 
 with open('README.rst') as file:
     long_description = file.read()
 
 
 setup(name='data_loader',
-      version='0.2',
+      version=data_loader.__version__,
       description='Load data from a multitude of files.',
       long_description=long_description,
       keywords='data file netcdf load',
@@ -15,5 +17,11 @@ setup(name='data_loader',
       author='Clément HAËCK',
       author_email='clement.haeck@posteo.net',
       license='',
-      install_requires=['mypack-descanonges @ git+git://github.com/Descanonges/myPack.git'],
+      install_requires=[
+          'numpy',
+          'scipy',
+          'cartopy',
+          'shapely',
+          'matplotlib'
+      ],
       packages=['data_loader'])

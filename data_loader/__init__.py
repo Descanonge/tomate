@@ -16,9 +16,9 @@ Data:
     Stores info on variables, coordinates, files on disk.
     Load the data.
     Once loaded store the data.
-An abstract class (_DataBase) can be subclassed for different
-types or arrangements of files.
-DataNetCDF is such an implementation for NetCDF files.
+    An abstract class (_DataBase) can be subclassed for different
+    types or arrangements of files.
+    DataNetCDF is such an implementation for NetCDF files.
 
 Filegroup:
     Holds information on a grouping of files sharing the
@@ -41,16 +41,18 @@ IterDict:
 
 
 from data_loader.coord import Coord
-from data_loader.iter_dict import IterDict
-from data_loader.data_netcdf import DataNetCDF
-from data_loader.filegroup import Filegroup
 from data_loader.time import Time
+from data_loader.iter_dict import IterDict
 from data_loader.variables_info import VariablesInfo
+from data_loader.filegroup import Filegroup
 
 
-__all__ = ['Coord',
-           'IterDict',
-           'DataNetCDF',
-           'Filegroup',
-           'Time',
-           'VariablesInfo']
+__version__ = "0.2"
+
+__all__ = [
+    'Coord',
+    'Time',
+    'IterDict',
+    'VariablesInfo',
+    'Filegroup'
+]

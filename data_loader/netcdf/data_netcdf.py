@@ -2,15 +2,9 @@
 
 Basic support fillValue
 
-Computation of land mask from Natural Earth using cartopy.
-
 Contains
 --------
 DataNetCDF
-
-Routines
---------
-compute_land_mask
 """
 
 from typing import List
@@ -18,9 +12,8 @@ from typing import List
 import numpy as np
 import netCDF4 as nc
 
-import mypack.analysis as mpa
-
-from ._data_base import _DataBase
+from data_loader._data_base import _DataBase
+import data_loader.netcdf.mask
 
 
 class DataNetCDF(_DataBase):
@@ -156,7 +149,7 @@ class DataNetCDF(_DataBase):
         if inland:
             m = self.get_land_mask()
             if coast > 0:
-                m = mpa.enlarge_mask(m, coast)
+                m = data_loader.netcdf.mask.enlarge_mask(m, coast)
             self.data.mask |= m
 
         if chla:
@@ -168,7 +161,9 @@ class DataNetCDF(_DataBase):
     def compute_land_mask(self):
         """Compute land mask and save to disk."""
         # TODO: alt names
-        compute_land_mask(self.root, self['lat'], self['lon'])
+        data_loader.netcdf.mask.compute_land_mask(
+            self.root, self['lat'], self['lon']
+        )
 
     def get_land_mask(self, keys=None):
         # FIXME
@@ -190,35 +185,3 @@ class DataNetCDF(_DataBase):
         return mask
 
 
-def compute_land_mask(root, lat, lon):
-    """Compute land mask.
-
-    According to Cartopy data (from naturalearthdata.com)
-    for a regular grid save it in wd
-
-    Parameters
-    ----------
-    root: str
-        Directory
-    lat: List[float]
-    lon: List[float]
-    """
-    from shapely.ops import unary_union
-    from cartopy.feature import LAND
-    from shapely.geometry.polygon import Polygon
-
-    # Extent
-    d = (lon[-1]-lon[0])/10.
-    lon_min = np.min(lon) - d
-    lon_max = np.max(lon) + d
-    lat_min = np.min(lat) - d
-    lat_max = np.max(lat) + d
-    extent = [(lon_min, lat_min), (lon_max, lat_min),
-              (lon_max, lat_max), (lon_min, lat_max)]
-
-    P = Polygon(extent)
-    global_land = unary_union(tuple(LAND.geometries()))
-    land = global_land.intersection(P)
-
-    mask = mpa.rasterize(land, lon, lat)
-    np.save(root + 'land_mask.npy', mask)

@@ -22,10 +22,9 @@ select_overlap()
 """
 
 from typing import List
+import bisect
 
 import numpy as np
-
-import mypack.analysis as mpa
 
 from data_loader.stubs import NpIdx
 
@@ -181,12 +180,51 @@ class Coord():
 
         C = self._array[::[1, -1][self._descending]]
 
-        idx = mpa.get_closest(C, value, loc_)
+        idx = get_closest(C, value, loc_)
 
         if self._descending:
             idx = self.size-idx - 1
 
         return idx
+
+
+def get_closest(L, elt, loc='closest'):
+    """Return index closest to elt in L.
+
+    L is a ascending sorted list
+    loc: 'closest' -> take closest elt
+          'left' -> take closest to the left
+          'right' -> take closest to the right
+    If two numbers are equally close, return the smallest number.
+    """
+
+    loc_opt = ['left', 'right', 'closest']
+    if loc not in loc_opt:
+        raise ValueError(
+            "Invalid loc type. Expected one of: %s" % loc_opt)
+
+    pos = bisect.bisect_left(L, elt)
+    if pos == 0:
+        out = pos
+    elif pos == len(L):
+        out = len(L)-1
+
+    elif loc == 'closest':
+        if elt - L[pos-1] <= L[pos] - elt:
+            out = pos-1
+        else:
+            out = pos
+
+    elif loc == 'left':
+        if elt == L[pos]:
+            out = pos
+        else:
+            out = pos-1
+
+    elif loc == 'right':
+        out = pos
+
+    return out
 
 
 def select_overlap(*coords: List[Coord]) -> List[List[int]]:

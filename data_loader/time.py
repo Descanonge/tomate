@@ -27,8 +27,8 @@ class Time(Coord):
     Values are stored as floats, and can be converted
     to datetime objects.
 
-    Attribute
-    ---------
+    Attributes
+    ----------
     unit: str = "seconds since 1970-01-01 00:00:00"
         Time unit
     """

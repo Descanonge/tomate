@@ -156,9 +156,9 @@ class Filegroup():
         ----------
         func: Callable[[CoordScan, re.match], values: List[float]]
             Function that recover values from filename
-        *coords: List[Coord]
+        coords: List[Coord]
             Coordinate to apply this function for.
-            If None, all coordinates with flag *out.
+            If None, all coordinates with flag \*out.
 
         Raises
         ------
