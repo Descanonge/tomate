@@ -219,8 +219,11 @@ class FGConstructor():
 
         Raises
         ------
+        IndexError
+            If coordinates have different lengthes across filegroup.
         ValueError
-            If coordinates have different values across filegroups.
+            If coordinates have different values across filegroups
+            (above `threshold`).
         """
         for name, coord in self.coords.items():
             coords = []
@@ -285,6 +288,7 @@ class FGConstructor():
         -------
         filegroups: List[Filegroup]
         """
+        self.check_regex()
         self.scan_files()
         self.check_values()
 

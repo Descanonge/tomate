@@ -136,7 +136,7 @@ class _DataBase():
             if name in coord.name_alt:
                 return coord
 
-        raise AttributeError(str(name) + "not found")
+        raise AttributeError(str(name) + " not found")
 
     def get_lim(self, *coords, order=False):
         """Return limits of coordinates.

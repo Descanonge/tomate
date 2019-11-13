@@ -60,7 +60,7 @@ def get_date_from_matches(cs):
 
     # TODO: add hours
 
-    if match is not None:
+    if match:
         return nc.date2num(datetime(**date), cs.unit)
 
     return None
@@ -77,6 +77,7 @@ def scan_in_file_nc(cs, filename):
             else:
                 break
 
+    values = list(values)
     return values
 
 
@@ -88,6 +89,10 @@ def scan_inout_file_nc(cs, filename, values):
                 in_values = dt[name][:]
             except IndexError:
                 in_values = None
+                in_idx = None
+            else:
+                in_values = list(in_values)
+                in_idx = list(range(len(in_values)))
+                break
 
-    in_idx = list(range(len(in_values)))
-    return values, in_idx
+    return in_values, in_idx
