@@ -53,8 +53,13 @@ class VIConstructor():
         """
         self.var_list.append([name, infos])
 
-    def make_vi(self):
+    def make_vi(self, **kwargs):
         """Create the vi.
+
+        Parameters
+        ----------
+        kwargs:
+            Passed to vi init.
 
         Returns
         -------
@@ -63,7 +68,7 @@ class VIConstructor():
         names = [z[0] for z in self.var_list]
         infos = {z[0]: z[1] for z in self.var_list}
 
-        vi = VariablesInfo(names, infos)
+        vi = VariablesInfo(names, infos, **kwargs)
 
         return vi
 

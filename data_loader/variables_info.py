@@ -52,8 +52,11 @@ class VariablesInfo():
         for var, info in infos.items():
             self.add_infos_per_variable(var, info)
 
-        self.__dict__.update(kwargs)
-        self._kwargs = list(kwargs.keys())
+        # TODO: No dynamic arguments
+        self._kwargs = []
+        for k, z in kwargs.items():
+            self.__setattr__(k, z)
+            self._kwargs.append(k)
 
     def __iter__(self) -> Iterator:
         # TODO: enumerate over idx ?
