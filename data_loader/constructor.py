@@ -230,27 +230,50 @@ class FGConstructor():
                         coords.append(cs)
 
             overlap = select_overlap(*coords)
+            cut = ""
             for i, cs in enumerate(coords):
                 sl = overlap[i]
                 if sl[0] != 0 or sl[1] != len(cs.values):
-                    mess = ("({:s}) does not have the same range across"
-                            " all filegroups. A common range is taken. "
-                            "{:g} - {:g}").format(cs.name,
-                                                  cs.values[sl[0]],
-                                                  cs.values[sl[1]-1])
-                    warnings.warn(mess, stacklevel=2)
-
+                    cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
                 coords[i].slice(slice(*overlap[i]))
 
             # Select the first coordinate found in the filegroups
             # with that name
             coords[0].assign_values()
 
+            if len(cut) > 0:
+                mess = ("({:s}) does not have the same range across"
+                        " all filegroups. A common range is taken. ").format(name)
+                mess += coord.get_extent_str()
+                warnings.warn(mess+cut, stacklevel=2)
+
+            # Check length
+            for cs in coords:
+                if cs.size != cs.coord.size:
+                    raise IndexError(("({:s}) has different lengthes across "
+                                      "filegroup.").format(name))
+
             # Check that all filegroups have same values
             for cs in coords:
-                if np.any(cs.values - cs.coord[:] > threshold):
+                if np.any(cs[:] - cs.coord[:] > threshold):
                     raise ValueError(("({:s}) has different values across "
-                                      "filegroups.".format(name)))
+                                      "filegroups.").format(name))
+
+    def check_regex(self):
+        """Check if a pregex has been added where needed.
+
+        Raises
+        ------
+        RuntimeError:
+            If regex is empty and there is at least a out coordinate.
+        """
+        for fg in self.filegroups:
+            coords = list(fg.enum("*out"))
+            if len(coords) > 0 and fg.regex == '':
+                mess = ("Filegroup is missing a regex.\n"
+                        "Contains: {0}\nCoordinates: {1}").format(
+                            fg.contains, coords)
+                raise RuntimeError(mess)
 
     def make_filegroups(self):
         """Retrieve the list of filegroups.

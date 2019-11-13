@@ -25,10 +25,7 @@ from typing import List, Dict
 import numpy as np
 
 from data_loader.coord import Coord
-from data_loader.coord_scan import (CoordScan,
-                                    CoordScanIn,
-                                    CoordScanInOut,
-                                    Matcher)
+import data_loader.coord_scan as dlcs
 
 
 class Filegroup():
@@ -87,12 +84,19 @@ class Filegroup():
         """Add CoordScan objects."""
         self.cs = {}
         for coord, inout in coords:
+            #TODO: Move RB in coord_scan.py
+            CoordScanRB = type('CoordScanRB', (type(coord),), dict(dlcs.CoordScan.__dict__))
+
             if inout.endswith("out"):
-                self.cs.update({coord.name: CoordScanInOut(coord, inout)})
+                CoordScanInOutRB = type('CoordScanInOutRB', (CoordScanRB,),
+                                        dict(dlcs.CoordScanInOut.__dict__))
+                self.cs.update({coord.name: CoordScanInOutRB(self, CoordScanRB, coord, inout)})
             elif inout == "in":
-                self.cs.update({coord.name: CoordScanIn(coord)})
+                CoordScanInRB = type('CoordScanInRB', (CoordScanRB,),
+                                        dict(dlcs.CoordScanIn.__dict__))
+                self.cs.update({coord.name: CoordScanInRB(self, CoordScanRB, coord)})
             else:
-                self.cs.update({coord.name: CoordScan(coord, inout)})
+                self.cs.update({coord.name: CoordScanRB(self, CoordScanRB, coord, inout)})
 
     def enum(self, inout: str = "*") -> Dict:
         """Iter through CoordScan objects.
@@ -205,7 +209,7 @@ class Filegroup():
         idx = 0
         for idx, match in enumerate(m):
             string = match.group()
-            matcher = Matcher(string[2:-1], idx)
+            matcher = dlcs.Matcher(string[2:-1], idx)
 
             self.cs[matcher.coord].add_matcher(matcher)
             regex = regex.replace(string, matcher.get_regex())

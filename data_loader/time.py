@@ -33,6 +33,11 @@ class Time(Coord):
         Time unit
     """
 
+    def get_extent_str(self) -> str:
+        """Return extent as str."""
+        return "{0} - {1}".format(*[z.strftime("%x %X")
+                                    for z in self.index2date([0, -1])])
+
     def update_values(self, values: List[float]):
         if self.unit == "":
             self.unit = "seconds since 1970-01-01 00:00:00"

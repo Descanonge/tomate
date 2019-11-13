@@ -121,9 +121,13 @@ class Coord():
     def __str__(self):
         s = str(type(self)) + '\n'
         s += 'name: ' + self.name + '\n'
-        s += 'extent: ' + str(self.get_extent()) + '\n'
+        s += 'extent: ' + self.print_range() + '\n'
         s += 'size: ' + str(self.size) + '\n'
         return s
+
+    def get_extent_str(self) -> str:
+        """Return the extent as str."""
+        return "{0} - {1}".format(*self.get_extent())
 
     def copy(self):
         """Return a copy of itself"""

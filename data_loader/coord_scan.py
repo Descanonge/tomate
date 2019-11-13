@@ -60,11 +60,12 @@ class Matcher():
     ELT_RGX = {"idx": r"\d*",
                "Y": r"\d\d\d\d",
                "yy": r"\d\d",
-               "M": r"[a-zA-Z]",
+               "M": r"[a-zA-Z]*",
                "mm": r"\d+\d",
-               "D": r"[a-zA-Z]",
+               "D": r"[a-zA-Z]*",
                "dd": r"\d+\d",
-               "doy": r"\d+\d+\d"}
+               "doy": r"\d+\d+\d",
+               "text": r"[a-zA-Z]*"}
 
     def __init__(self, pregex, idx):
 
@@ -94,15 +95,17 @@ class Matcher():
 
 
 class CoordScan(Coord):
+    # TODO: keep overlap in memory to load the slice in file.
     """Abstract Coord used for scanning of one variable.
 
     Parameters
     ----------
+    filegroup: Filegroup
+        Corresponding filegroup
     coord: Coord
         Parent coordinate
     inout: str
         inout flag
-    NOTE: rename loc ?
 
     Attributes
     ----------
@@ -114,12 +117,13 @@ class CoordScan(Coord):
         list of values found for this coordinate
     """
 
-    def __init__(self, coord: Coord, inout: str):
+    def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
+        self.filegroup = filegroup
         self.coord = coord
         self.inout = inout
         self.values = []
 
-        super().__init__(coord.name, coord._array, coord.unit, coord.name_alt)
+        super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
 
     def set_values(self, values: List):
         """Manually set values"""
@@ -127,17 +131,13 @@ class CoordScan(Coord):
 
     def assign_values(self):
         """Update parent coord with found values."""
-        self.coord.update_values(self.values)
+        self.coord.update_values(self._array)
 
     def sort_values(self):
         """Sort by values."""
         order = np.argsort(self.values)
         self.values = np.array(self.values)
         self.values = self.values[order]
-
-    def slice(self, key: NpIdx):
-        """Slice values."""
-        self.values = self.values[key]
 
 
 class CoordScanInOut(CoordScan):
@@ -149,6 +149,8 @@ class CoordScanInOut(CoordScan):
 
     Parameters
     ----------
+    filegroup: Filegroup
+        Corresponding filegroup
     coord: Coord
         Parent coordinate object
     inout: str
@@ -164,8 +166,8 @@ class CoordScanInOut(CoordScan):
         matchers for this coordinate
     """
 
-    def __init__(self, coord: Coord, inout: str):
-        super().__init__(coord, inout)
+    def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
+        super(type(self), self).__init__(filegroup, CSRB, coord, inout)
 
         self.matches = []
         self.in_idx = []
@@ -288,9 +290,8 @@ class CoordScanInOut(CoordScan):
 
     def slice(self, key: NpIdx):
         """Slice values."""
-        self.values = self.values[key]
         self.matches = self.matches[key]
-        self.in_idx = self.in_idx[key]
+        super(type(self), self).slice(key)
 
 
 class CoordScanIn(CoordScan):
@@ -301,6 +302,8 @@ class CoordScanIn(CoordScan):
 
     Parameters
     ----------
+    filegroup: Filegroup
+        Corresponding filegroup
     coord: Coord
         Parent Coord object
 
@@ -310,9 +313,9 @@ class CoordScanIn(CoordScan):
         If the coordinate has been scanned
     """
 
-    def __init__(self, coord):
+    def __init__(self, filegroup, CSRB, coord):
         inout = "in"
-        super().__init__(coord, inout)
+        super(type(self), self).__init__(filegroup, CSRB, coord, inout)
 
         self.scanned = False
 
@@ -334,7 +337,7 @@ class CoordScanIn(CoordScan):
         NotImplementedError
             If scan if file was not set.
         """
-        raise NotImplementedError("scan_in_file was not set for {self.name}")
+        raise NotImplementedError("scan_in_file was not set for {0}".format(self.name))
 
     def set_scan_in_file_func(self, func):
         """Set function for scanning values in file.
