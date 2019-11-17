@@ -8,7 +8,7 @@ DataNetCDF
 """
 
 import warnings
-from typing import List
+import logging
 
 import numpy as np
 import netCDF4 as nc
@@ -50,6 +50,8 @@ class DataNetCDF(_DataBase):
             Keys to load in file
         """
         with nc.Dataset(filename, 'r') as dt:
+            logging.info("Opening %s, asking %s in file, placing it in %s.",
+                         filename, str(keys_in), str(list(keys_slice.values())))
             for var in var_list:
                 ncname = self.get_ncname(var)
 
