@@ -1,13 +1,14 @@
 
-from data_loader import Coord, Time, DataNetCDF
+from data_loader import Coord, Time
+from data_loader.netcdf import DataNetCDF
 import data_loader.constructor as dlc
 import data_loader.scan_library as scanlib
-
 
 
 root = "/home/clement/Documents/Stage/Data/Data_SOM/Data/8days/"
 
 
+# Coordinates
 time = Time("time", None,
             unit="hours since 1970-01-01 00:00:00",
             name_alt="",
@@ -23,6 +24,7 @@ lon = Coord("lon", None,
 coords = [time, lat, lon]
 
 
+# Variables
 vic = dlc.VIConstructor()
 
 name = "Chla_OC5"
@@ -51,6 +53,7 @@ vic.add_var(name, infos)
 vi = vic.make_vi()
 
 
+# Filegroups
 fgc = dlc.FGConstructor(root, coords, vi)
 
 contains = ["SST"]
