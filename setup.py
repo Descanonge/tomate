@@ -1,5 +1,5 @@
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import data_loader
 
@@ -24,4 +24,4 @@ setup(name='data_loader',
           'shapely',
           'matplotlib'
       ],
-      packages=['data_loader'])
+      packages=find_packages())
