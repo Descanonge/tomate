@@ -248,11 +248,12 @@ class Filegroup():
 
         for cs in self.enum(inout="scan").values():
             if len(cs.values) == 0:
-                raise Exception("No values detected ({:s})".format(cs.name))
+                raise Exception("No values detected ({0}, {1})".format(
+                    cs.name, cs.filegroup.contains))
             cs.sort_values()
             cs.update_values(cs.values)
 
-    def get_filenames(self, var_list, keys):
+    def get_commands(self, var_list, keys):
         """Retrieve filenames.
 
         Recreate filenames from matches.
@@ -260,42 +261,78 @@ class Filegroup():
         Parameters
         ----------
         var_list: List[str]
-            list of variables names
+            List of variables names
         keys: Dict[str, NpIdx]
-            dict of coord keys to load
+            Dict of coord keys to load from the data
+            available
             Keys are passed to numpy arrays
+
+        Returns
+        -------
+        filename: str
+            Filename to load
+        var_list: List[str]
+        keys: Dict[str, NpIdx]
+            Keys for the whole data
+        keys_in: Dict[str, NpIdx]
+            Keys to load in the filename
+        keys_slice: Dict[str, NpIdx]
+            Keys of the slice that is going to be loaded, for
+            that filename, and in order.
         """
-        files = []
+        # Retrieve matches, indexes of regexes, and
+        # in-file indexes.
         matches = []
+        rgx_idxs = []
         in_idxs = []
-        idxs = []
-        for coord, cs in self.enum("*out").items():
-            cs = self.cs[coord]
-            key = keys[coord]
+        for name, cs in self.enum("*out").items():
+            key = keys[name]
             match = []
-            idx = []
+            rgx_idx_matches = []
             for i, rgx in enumerate(cs.matchers):
                 match.append(cs.matches[key, i])
-                idx.append(rgx.idx)
+                rgx_idx_matches.append(rgx.idx)
+
+            # Matches are stored by regex index, we
+            # need to transpose to have a list by filename
             match = np.array(match)
             matches.append(match.T)
             in_idxs.append(cs.in_idx[key])
-            idxs.append(idx)
+            rgx_idxs.append(rgx_idx_matches)
 
-        L = []
+        # Number of matches by out coordinate for looping
+        lengths = []
         for i_c, _ in enumerate(matches):
-            L.append(len(matches[i_c]))
+            lengths.append(len(matches[i_c]))
 
-        for m in itertools.product(*(range(z) for z in L)):
+        commands = []
+        # Imbricked for loops for all out coords
+        for m in itertools.product(*(range(z) for z in lengths)):
+
+            # Reconstruct filename
             seg = self.segments.copy()
-            keys_ = keys.copy()
-            for i_c, coord in enumerate(self.enum("*out").keys()):
-                idx = idxs[i_c]
-                for i in range(len(idx)):
-                    seg[2*idx[i]+1] = matches[i_c][m[i_c]][i]
-                keys_.update({coord: in_idxs[i_c][m[i_c]]})
+            for i_c, cs in enumerate(self.enum("*out").keys()):
+                idx_rgx_matches = rgx_idxs[i_c]
+                for i, rgx_idx in enumerate(idx_rgx_matches):
+                    seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
+            filename = "".join(seg)
 
-            file = "".join(seg)
-            files.append([file, var_list, keys_])
+            # Find keys
+            keys_slice = {}
+            keys_in = {}
+            i_c = 0
+            for name, cs in self.enum().items():
+                if cs.inout == "in":
+                    keys_slice[name] = slice(None, None)
+                    keys_in[name] = keys[name]
+                elif cs.inout.endswith("out"):
+                    keys_slice[name] = m[i_c]
+                    keys_in[name] = in_idxs[i_c][m[i_c]]
+                    i_c += 1
 
-        return files
+            commands.append([filename, var_list, keys_in, keys_slice])
+
+        return commands
+
+    # TODO: no out coords ?
+    # TODO: inout: pb if coords ends mid file

@@ -7,6 +7,7 @@ Contains
 DataNetCDF
 """
 
+import warnings
 from typing import List
 
 import numpy as np
@@ -27,14 +28,16 @@ class DataNetCDF(_DataBase):
     Data is loaded from disk with load_data
     """
 
-    def _allocate_memory(self, n_var: int, shape: List[int]):
+    def _allocate_memory(self):
         """Allocate data variable.
 
         Data is storred as a masked array
         """
-        self.data = np.ma.zeros([n_var, *shape])
+        self.data = np.ma.zeros(self.shape)
+        # TODO: Better api from numpy ?
+        self.data.mask = np.ma.make_mask_none(self.shape)
 
-    def _load_cmd(self, filename, var_list, keys):
+    def _load_cmd(self, filename, var_list, keys_in, keys_slice):
         """Load data from one file using a command.
 
         Parameters
@@ -50,11 +53,11 @@ class DataNetCDF(_DataBase):
             for var in var_list:
                 ncname = self.get_ncname(var)
 
-                order = self._get_order(dt, ncname)
-                D = self._load_slice_single_var(dt, keys, order, ncname)
+                D = self._load_slice_single_var(dt, keys_in, ncname)
 
                 i_var = self.vi.idx[var]
-                self.data[i_var] = D
+                self.data[i_var][tuple(keys_slice.values())] = D
+                self.data.mask[i_var][tuple(keys_slice.values())] = D.mask
 
                 # Make sure it is correctly masked
                 try:
@@ -62,7 +65,7 @@ class DataNetCDF(_DataBase):
                 except AttributeError:
                     self.data.mask[i_var] = ~np.isfinite(self.data[i_var].data)
 
-    def _load_slice_single_var(self, dt, keys, order, ncname):
+    def _load_slice_single_var(self, dt, keys, ncname):
         """Load data for a single variable.
 
         The data is reordered
@@ -77,17 +80,14 @@ class DataNetCDF(_DataBase):
             Name of the variable in file
         """
 
-        # Reorder keys
-        # Suppose the name of order are in the asked keys
-        keys_ = [keys[z] for z in order]
+        order, keys_ = self._get_order(dt, ncname, keys)
 
         D = dt[ncname][keys_]
 
+        # If we ask for keys that are not in the file.
         # Add None keys to create axis in the array where needed
         for k in keys:
             if k not in order:
-                keys_.append(None)
-                order.append(k)
                 D = np.expand_dims(D, -1)
 
         # Reorder array
@@ -96,22 +96,40 @@ class DataNetCDF(_DataBase):
 
         return D
 
-    def _get_order(self, dt, ncname):
-        """Get order from netcdf file.
+    def _get_order(self, dt, ncname, keys):
+        """Get order from netcdf file, reorder keys.
 
         Parameters
         ----------
         dt: nc.Dataset
         ncname: str
+        keys: List[NpIdx]
 
         Returns
         -------
         order: List[str]
             Coordinate names in order
         """
-        order = list(dt[ncname].dimensions)
-        order = [self.get_coord(z).name for z in order]
-        return order
+        order_nc = list(dt[ncname].dimensions)
+        order = []
+        keys_ = []
+        for coord_nc in order_nc:
+            try:
+                coord = self.get_coord(coord_nc)
+            except KeyError:
+                dim = dt.dimensions[coord_nc].size
+                if dim > 1:
+                    warnings.warn("Additional dimension {0} in file of "
+                                  "size > 1. The first index will be used".format(coord))
+                k = 0
+                # We do not keep the coord name in order, with a key equal to zero,
+                # numpy will squeeze the axis.
+            else:
+                k = keys[coord.name]
+                order.append(coord.name)
+
+            keys_.append(k)
+        return order, keys_
 
     def get_ncname(self, var: str) -> str:
         """Get the infile name."""
@@ -160,13 +178,10 @@ class DataNetCDF(_DataBase):
 
     def compute_land_mask(self):
         """Compute land mask and save to disk."""
-        # TODO: alt names
         data_loader.netcdf.mask.compute_land_mask(
-            self.root, self['lat'], self['lon']
-        )
+            self.root, self._coords_orr['lat'], self._coords_orr['lon'])
 
     def get_land_mask(self, keys=None):
-        # FIXME
         """Return land mask.
 
         Parameters
@@ -178,10 +193,55 @@ class DataNetCDF(_DataBase):
         mask: np.array(dtype=bool)
         """
         if keys is None:
-            keys = slice(None, None)
+            keys = [self.slices[c] for c in ['lat', 'lon']]
 
-        mask = np.load(self.root + 'land_mask.npy',
-                       mmap_mode='r')[tuple(keys)]
+        try:
+            mask = np.load(self.root + 'land_mask.npy',
+                           mmap_mode='r')[tuple(keys)]
+        except FileNotFoundError:
+            self.compute_land_mask()
+            self.get_land_mask()
+
         return mask
 
+    def write(self, filename, wd=None, variables=None):
+        """Write variables to disk.
 
+        Write to a netcdf file.
+        Coordinates are written too.
+
+        Parameters
+        ----------
+        wd: str
+            Directory. If None, `self.root` is used.
+        variables: Union[List[str], str]
+        filename: str
+            If None, the first value of time is used.
+        """
+
+        if wd is None:
+            wd = self.root
+
+        if variables is None:
+            variables = self.vi.var
+
+        with nc.Dataset(wd + filename, 'w') as dt:
+            for name, coord in self.coords.items():
+                dt.createDimension(name, coord.size)
+                dt.createVariable(name, 'f', [name])
+                dt[name][:] = coord[:]
+
+                dt[name].setncattr('fullname', coord.fullname)
+                dt[name].setncattr('unit', coord.unit)
+
+            for var in variables:
+                name = self.get_ncname(var)
+                try:
+                    t = self.vi.type[var]
+                except AttributeError:
+                    t = 'f'
+                dt.createVariable(var, t, self.coords_name)
+                dt[var][:] = self[var]
+
+                for info in self.vi._infos:
+                    dt[var].setncattr(info, self.vi.__getattribute__(info)[var])

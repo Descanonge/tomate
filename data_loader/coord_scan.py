@@ -116,6 +116,9 @@ class CoordScan(Coord):
         inout flag
     values: List[float]
         list of values found for this coordinate
+    slice_total: Slice
+        Slice that is used (migth be less that what is available
+        on disk)
     """
 
     def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
@@ -123,6 +126,8 @@ class CoordScan(Coord):
         self.coord = coord
         self.inout = inout
         self.values = []
+        self._size_total = None
+        self.slice_total = slice(None, None)
 
         super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
 
@@ -133,12 +138,32 @@ class CoordScan(Coord):
     def assign_values(self):
         """Update parent coord with found values."""
         self.coord.update_values(self._array)
+        self._size_total = self._size
 
     def sort_values(self):
         """Sort by values."""
         order = np.argsort(self.values)
         self.values = np.array(self.values)
         self.values = self.values[order]
+
+    def get_slice(self, key):
+        # TODO: doc
+        """Return key of what is available.
+
+        Parameters
+        ----------
+        key: Slice or List[int]
+        """
+        if isinstance(key, slice):
+            start, stop, step = key.indices(self.size)
+            key_data = slice(start + self.slice_total.start,
+                             stop + self.slice_total.start,
+                             step)
+
+        if isinstance(key, list):
+            key_data = [z + self.slice_total.start for z in key]
+
+        return key_data
 
 
 class CoordScanInOut(CoordScan):

@@ -74,6 +74,7 @@ class VIConstructor():
 
 
 class FGConstructor():
+    # TODO: custom regexes
     """Helps creating Filegroup objects.
 
     Parameters
@@ -195,6 +196,7 @@ class FGConstructor():
             warnings.warn("{cs.name} has a scannable flag. "
                           "Values set manually could be overwritten.")
 
+
         self.current_fg.cs[coord].set_values(values)
 
     def scan_files(self):
@@ -243,7 +245,8 @@ class FGConstructor():
                 sl = overlap[i]
                 if sl[0] != 0 or sl[1] != len(cs.values):
                     cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
-                coords[i].slice(slice(*overlap[i]))
+                cs.slice(slice(*overlap[i]))
+                cs.slice_total = slice(*overlap[i])
 
             # Select the first coordinate found in the filegroups
             # with that name

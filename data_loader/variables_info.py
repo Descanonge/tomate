@@ -149,39 +149,33 @@ class VariablesInfo():
         for k, z in infos.items():
             self.add_info(k, {var: z})
 
-    def add_variable(self, var, **kwargs):
+    def add_variable(self, variables, infos):
         """Add a variable with corresponding info.
 
         Parameters
         ----------
-        var: str
+        variables: str
             Variable name
-        **kwargs: Dict[str, Any]
+        infos: List[Dict[str, Any]]
             Infos name and values
             {name: value, ...}
 
         If info is not provided, it is filled with None
         """
+        if isinstance(variables, str):
+            variables = [variables]
 
-        var_list = list(self.var) + [var]
+        if isinstance(infos, dict):
+            infos = [infos]
+
+        var_list = list(self.var) + variables
         self.var = tuple(var_list)
 
-        self.n += 1
+        for i, var in enumerate(variables):
+            self.n += 1
+            self.idx.update({var: self.n-1})
+            self.add_infos_per_variable(var, infos[i])
 
-        self.idx.update({var: self.n-1})
-        d = self.__dict__
-        keys = self._infos
-
-        for k in keys:
-            if k not in list(kwargs.keys()):
-                kwargs.update({k: None})
-        for k, z in kwargs.items():
-            if k in d:
-                d[k].update({var: z})
-            else:   # The info is new
-                L = [None]*self.n
-                L[-1] = z
-                d.update({k: IterDict(zip(self.var, L))})
 
     def pop_variables(self, variables: List[str]):
         """Remove variables from vi."""

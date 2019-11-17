@@ -33,6 +33,7 @@ from data_loader.iter_dict import IterDict
 
 
 class _DataBase():
+    # TODO: slice by value
     """Encapsulate data array and info about the variables.
 
     Data and coordinates can be accessed with subscript
@@ -65,7 +66,7 @@ class _DataBase():
         Coordinates by name
     dim: int
         Number of coordinates
-    slices: List[NpIdx]
+    slices: Dict[NpIdx]
         Selected part of each coord
 
     shape: List[int]
@@ -84,11 +85,13 @@ class _DataBase():
         self.vi = vi
         self._vi_orr = vi.copy()
 
-        self.coords_name = [z.name for z in coords]
-        self.coords = IterDict(dict(zip(self.coords_name, coords)))
-        self._coords_orr = [c.copy() for c in self.coords.values()]
+        names, coords_orr = self._get_coords(coords)
+        self.coords_name = names
+        self._coords_orr = coords_orr
+        self.coords = self.get_coords_from_backup()
         self.dim = len(coords)
-        self.slices = [slice(None, None) for _ in range(self.dim)]
+        self.slices = dict(zip(self.coords_name,
+                               [slice(None, None) for _ in range(self.dim)]))
 
         self.data = None
 
@@ -106,10 +109,37 @@ class _DataBase():
         if isinstance(y, str):
             if y in self.coords_name:
                 return self.coords[y]
-            elif y in self.vi.var:
+            if y in self.vi.var:
                 y = self.vi.idx[y]
-        else:
-            return self.data[y]
+
+        return self.data[y]
+
+    def _get_coords(self, coords):
+        """Make an IterDict from a list of coords.
+
+        Parameters
+        ----------
+        coords: List[Coord]
+
+        Returns
+        -------
+        coords: IterDict[Coord]
+        """
+        names = [c.name for c in coords]
+        coords = IterDict(dict(zip(names, coords)))
+        return names, coords
+
+    def get_coords_from_backup(self):
+        """Remake coordinates from backup.
+
+        Returns
+        -------
+        coords: IterDict[Coord]
+        """
+        coords_orr = self._coords_orr.values()
+        copy = [c.copy() for c in coords_orr]
+        _, coords = self._get_coords(copy)
+        return coords
 
     @property
     def shape(self) -> List[int]:
@@ -123,7 +153,7 @@ class _DataBase():
 
         Raises
         ------
-        AttributeError
+        KeyError
             If the name is not found.
         """
         # First check name
@@ -136,9 +166,9 @@ class _DataBase():
             if name in coord.name_alt:
                 return coord
 
-        raise AttributeError(str(name) + " not found")
+        raise KeyError(str(name) + " not found")
 
-    def get_lim(self, *coords, order=False):
+    def get_limits(self, *coords, order=False):
         """Return limits of coordinates.
 
         Parameters
@@ -199,11 +229,84 @@ class _DataBase():
             dt.get_lim() = [first, last, first, last, ...]
             dt.get_lim("time", order=True) = [min, max]
         """
-        limits = self.get_lim(*coords, order=order)
+        limits = self.get_limits(*coords, order=order)
         extent = []
         for lim in limits:
             extent += lim
         return extent
+
+    def _get_coords_kwargs(self, *coords, **kw_coords):
+        """Make standard, full kwargs.
+
+        From a mix of positional and keyword argument,
+        make a list of keywords, containing all coords.
+        Missing coord key is taken as None.
+        Are ordered as in self.coords
+
+        Parameters
+        ----------
+        coords: List[NpIdx]
+            Key for subsetting coordinates, position is that
+            of self.coords.
+        kw_coords: Dict[NpIdx]
+            Key for subsetting coordinates.
+
+        Exemples
+        --------
+        self._get_coords_kwargs([0, 1], lat=slice(0, 10))
+        """
+
+        if not coords:
+            coords = []
+
+        if not kw_coords:
+            kw_coords = {}
+
+        for i, key in enumerate(coords):
+            kw_coords.update({self.coords_name[i]: key})
+
+        for coord in self.coords_name:
+            if coord not in kw_coords:
+                kw_coords.update({coord: slice(None, None)})
+
+        kw_coords = self._sort_by_coords(kw_coords)
+
+        return kw_coords
+
+    def _sort_by_coords(self, dic):
+        """Sort dictionnary.
+
+        The order is that of `self.coords_name`.
+        """
+        keys = {}
+        for key, value in dic.items():
+            c = self.get_coord(key)
+            keys[c.name] = [key, value]
+
+        keys_ord = {}
+        for name in self.coords_name:
+            key, value = keys[name]
+            keys_ord[key] = value
+
+        return keys_ord
+
+    def _slice_coords(self, **kw_coords):
+        """Slice coordinates by index.
+
+        This slice is reset if data is reloaded.
+        """
+        for name, key in kw_coords.items():
+            self.coords[name].slice(key)
+
+        self.slices = kw_coords
+
+    def slice_coords(self, *coords, **kw_coords):
+        """Slice coordinates by index.
+
+        This slice is reset if data is reloaded.
+        """
+        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
+        self._slice_coords(**kw_coords)
 
     def load_data(self, var_load, *coords, **kw_coords):
         """Load part of data from disk into memory.
@@ -242,52 +345,49 @@ class _DataBase():
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
 
-        if not coords:
-            coords = []
-
-        if not kw_coords:
-            kw_coords = {}
-
-        for i, key in enumerate(coords):
-            kw_coords.update({self.coords_name[i]: key})
-
-        for coord in self.coords_name:
-            if coord not in kw_coords:
-                kw_coords.update({coord: None})
+        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
 
         if var_load is None:
             var_load = slice(None, None, None)
 
         for coord, key in kw_coords.items():
-            if key is None:
-                kw_coords[coord] = slice(None, None, None)
-            elif isinstance(key, int):
+            if isinstance(key, int):
                 kw_coords[coord] = [key]
 
-        shape = self._find_shape(kw_coords)
-        self._load_data(var_load, kw_coords, shape)
+        # Slice coordinates
+        self.coords = self.get_coords_from_backup()
+        self._slice_coords(**kw_coords)
+
+        self.vi = self._vi_orr.copy()[var_load]
+        self._allocate_memory()
+
+        self._load_data(kw_coords)
 
     def _find_shape(self, kw_coords) -> List[int]:
         """Find the shape of the data to load.
 
         Excluding the number of variables.
+
+        Parameters
+        ----------
+        kw_coords: Dict[coord: str, key: NpIdx]
+            Asked index for each coord, not in order
         """
         shape = [0 for _ in range(self.dim)]
-        i = 0
         for coord, key in kw_coords.items():
+            i = self.coords_name.index(coord)
             if isinstance(key, list):
                 shape[i] = len(key)
             elif isinstance(key, slice):
                 shape[i] = len(range(*key.indices(self.shape[i+1])))
-            i += 1
 
         return shape
 
-    def _allocate_memory(self, n_var: int, shape: List[int]):
+    def _allocate_memory(self):
         """Allocate data member."""
-        self.data = np.zeros([n_var, *shape])
+        self.data = np.zeros(self.shape)
 
-    def _load_data(self, variables, keys, shape):
+    def _load_data(self, keys):
         # TODO: kwargs
         """Load data.
 
@@ -300,10 +400,6 @@ class _DataBase():
         shape: List[int]
             Shape of data to load excluting number of variables.
         """
-        self.vi = self._vi_orr.copy()[variables]
-        self.slices = keys
-        self._allocate_memory(self.vi.n, shape)
-
         # find the filegroups we need to load
         filegroups = []
         for i, var in self.vi:
@@ -319,13 +415,16 @@ class _DataBase():
         # [file, [var], [keys]]
         toload = []
         for fg, varList in filegroups:
-            toload += fg.get_filenames(varList, keys)
+            keys_ = {}
+            for name, key in keys.items():
+                keys_[name] = fg.cs[name].get_slice(key)
+            toload += fg.get_commands(varList, keys_)
 
         for cmd in toload:
             cmd = self._preprocess_load_command(*cmd)
             self._load_cmd(*cmd)
 
-    def _preprocess_load_command(self, filename, var_list, keys):
+    def _preprocess_load_command(self, filename, var_list, keys_in, keys_slice):
         """Preprocess the load command.
 
         Join root and filename
@@ -349,11 +448,13 @@ class _DataBase():
         """
         filename = os.path.join(self.root, filename)
 
-        for coord, key in keys.items():
+        for coord, key in keys_in.items():
             if isinstance(key, np.integer):
-                keys[coord] = [key]
+                keys_in[coord] = [key]
 
-        return filename, var_list, keys
+        keys_in = self._sort_by_coords(keys_in)
+        keys_slice = self._sort_by_coords(keys_slice)
+        return filename, var_list, keys_in, keys_slice
 
     def _load_cmd(self, filename, var_list, keys):
         """Load data from one file using a command.
@@ -379,7 +480,21 @@ class _DataBase():
         """
         raise NotImplementedError
 
-    def add_variable(self, variables, data, **kwargs):
+    def set_data(self, var, data):
+        """Set the data for a single variable."""
+
+        data = np.expand_dims(data, 0)
+
+        if self.data is None:
+            self.data = data
+            self.vi = self._vi_orr[var]
+        elif var in self.vi.var:
+            self[var][:] = data[0]
+        else:
+            self.vi = self._vi_orr[self.vi.var + [var]]
+            self.data = np.concatenate((self.data, data), axis=0)
+
+    def add_variable(self, variables, data, infos):
         """Concatenante new_data to data, and add kwargs to vi.
 
         Parameters
@@ -388,15 +503,17 @@ class _DataBase():
             Variables to add
         data: Array
             Corresponding data
-        **kwargs:
+        infos: List[Dict[name: str, Any]]
             Passed to VariablesInfo.add_variable
         """
+        self.vi.add_variable(variables, infos)
+
         if self.data is not None:
             self.data = np.ma.concatenate((self.data, data), axis=0)
         else:
             self.data = data
+            self.vi = self.vi[variables]
 
-        self.vi.add_variable(variables, **kwargs)
 
     def pop_variables(self, variables: List[str]):
         """Remove variables from data and vi."""
