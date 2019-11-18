@@ -467,11 +467,13 @@ class _DataBase():
             if isinstance(key, np.integer):
                 keys_in[coord] = [key]
 
+        keys_in = self._get_coords_kwargs(**keys_in)
         keys_in = self._sort_by_coords(keys_in)
+        keys_slice = self._get_coords_kwargs(**keys_slice)
         keys_slice = self._sort_by_coords(keys_slice)
         return filename, var_list, keys_in, keys_slice
 
-    def _load_cmd(self, filename, var_list, keys):
+    def _load_cmd(self, filename, var_list, keys_in, keys_slice):
         """Load data from one file using a command.
 
         Parameters

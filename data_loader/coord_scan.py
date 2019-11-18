@@ -155,10 +155,14 @@ class CoordScan(Coord):
         key: Slice or List[int]
         """
         if isinstance(key, slice):
-            start, stop, step = key.indices(self.size)
-            key_data = slice(start + self.slice_total.start,
-                             stop + self.slice_total.start,
-                             step)
+            try:
+                start, stop, step = key.indices(self.size)
+            except TypeError:
+                key_data = slice(None, None)
+            else:
+                key_data = slice(start + self.slice_total.start,
+                                 stop + self.slice_total.start,
+                                 step)
 
         if isinstance(key, list):
             key_data = [z + self.slice_total.start for z in key]
