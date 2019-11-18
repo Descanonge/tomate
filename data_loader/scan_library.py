@@ -5,6 +5,21 @@ from datetime import datetime, timedelta
 import netCDF4 as nc
 
 
+def scan_filename_null(cs):
+    """Null."""
+    return None
+
+
+def scan_in_file_null(cs, filename):
+    """Null."""
+    return None
+
+
+def scan_inout_file_null(cs, filename, values):
+    """Null."""
+    return None, None
+
+
 def get_value_from_matches(cs):
     """Retrieve value from matches.
 
@@ -96,3 +111,4 @@ def scan_inout_file_nc(cs, filename, values):
                 break
 
     return in_values, in_idx
+

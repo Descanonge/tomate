@@ -291,6 +291,20 @@ class _DataBase():
 
         return keys_ord
 
+    def _slice_data(self, variables, **kw_coords):
+        """Slice data and coordinates by index."""
+        if self.data is not None:
+            key = tuple([variables] + list(kw_coords.values()))
+            self.data = self.data[key]
+
+    def slice_data(self, variables=None, *coords, **kw_coords):
+        """Slice data and coordinates by index."""
+        if variables is None:
+            variables = slice(None, None)
+        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
+
+        self._slice_data(variables, **kw_coords)
+
     def _slice_coords(self, **kw_coords):
         """Slice coordinates by index.
 
