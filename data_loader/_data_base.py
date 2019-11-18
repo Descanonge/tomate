@@ -22,6 +22,7 @@ merge_data(dt1, dt2)
 change_variable()
 """
 
+from types import MethodType
 from typing import List
 
 import os
@@ -479,6 +480,18 @@ class _DataBase():
             Coordinate names, in the order of the file.
         """
         raise NotImplementedError
+
+    def _post_load(self):
+        """Do operations after load."""
+
+    def set_post_load_func(self, func):
+        """Set function for post loading treatements.
+
+        Parameters
+        ----------
+        func: Callable[[]]
+        """
+        self._post_load = MethodType(func, self)
 
     def set_data(self, var, data):
         """Set the data for a single variable."""
