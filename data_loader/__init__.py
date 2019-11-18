@@ -39,6 +39,7 @@ IterDict:
     is preserved (in python 3.7+)
 """
 
+import logging
 
 from data_loader.coord import Coord
 from data_loader.time import Time
@@ -54,5 +55,15 @@ __all__ = [
     'Time',
     'IterDict',
     'VariablesInfo',
-    'Filegroup'
+    'Filegroup',
+    'set_logging'
 ]
+
+
+def set_logging(level='INFO'):
+    """Set package-wide logging level."""
+    level_num = getattr(logging, level.upper())
+    logging.getLogger(__name__).setLevel(level_num)
+
+logging.basicConfig()
+set_logging()

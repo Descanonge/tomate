@@ -7,14 +7,16 @@ Contains
 DataNetCDF
 """
 
-import warnings
 import logging
+import warnings
 
 import numpy as np
 import netCDF4 as nc
 
 from data_loader._data_base import _DataBase
 import data_loader.netcdf.mask
+
+log = logging.getLogger(__name__)
 
 
 class DataNetCDF(_DataBase):
@@ -50,8 +52,8 @@ class DataNetCDF(_DataBase):
             Keys to load in file
         """
         with nc.Dataset(filename, 'r') as dt:
-            logging.info("Opening %s, asking %s in file, placing it in %s.",
-                         filename, str(keys_in), str(list(keys_slice.values())))
+            log.info("Opening %s, asking %s in file, placing it in %s.",
+                     filename, str(keys_in), str(list(keys_slice.values())))
             for var in var_list:
                 ncname = self.get_ncname(var)
 

@@ -30,8 +30,11 @@ check thorougly that the correct files are opened, and that the correct slices
 of data are taken from thoses files.
 Info messages are used to this end for now, and will be limited to debuging in
 the future, when the code will have been more closely reviewed. If you really
-don't want those messages ((ง •̀_•́)ง), launch your python interpreter with the
-option `--log-level=WARN`.
+don't want those messages ((ง •̀_•́)ง), use the following code::
+
+  from data_loader import set_logging
+  set_logging("WARN")
+
 More logging information is also to come in the near future.
 
 If data coming from different sources does not have the same range, a warning
