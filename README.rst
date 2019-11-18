@@ -81,3 +81,4 @@ An API reference can be build with sphinx.
 In doc/::
 
    sphinx-apidoc -fe -o source/references ../data_loader
+   make html
