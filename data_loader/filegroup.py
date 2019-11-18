@@ -201,10 +201,10 @@ class Filegroup():
         for k, z in replacements.items():
             pregex = pregex.replace("%({:s})".format(k), z)
 
-        m = re.finditer(r"%\([a-zA-Z]*(:[a-zA-Z]*)?(:dummy)?\)", pregex)
+        m = self.scan_pregex(pregex)
 
         # Separations between segments
-        sep = [0]
+        # TODO: use first file to obtain segments
         regex = pregex
         idx = 0
         for idx, match in enumerate(m):
@@ -214,15 +214,30 @@ class Filegroup():
             self.cs[matcher.coord].add_matcher(matcher)
             regex = regex.replace(string, matcher.get_regex())
 
-            sep.append(match.start())
-            sep.append(match.end())
-
-        self.segments = [pregex.replace('\\', '')[i:j]
-                         for i, j in zip(sep, sep[1:]+[None])]
-
         self.n_matcher = idx + 1
         self.regex = regex
         self.pregex = pregex
+
+    def scan_pregex(self, pregex):
+        """Scan pregex for matchers."""
+        # TODO: custom regex
+        m = re.finditer(r"%\([a-zA-Z]*(:[a-zA-Z]*)?(:dummy)?\)", pregex)
+        return m
+
+    def find_segments(self, m):
+        """Find segments in filename.
+
+        Store result.
+        """
+        sep = [0]
+        n = len(m.groups())
+        for i in range(n):
+            sep.append(m.start(i+1))
+            sep.append(m.end(i+1))
+
+        s = m.string
+        self.segments = [s[i:j]
+                         for i, j in zip(sep, sep[1:]+[None])]
 
     def scan_file(self, filename: str):
         # TODO: pass file instead of filename if necessary
@@ -235,6 +250,9 @@ class Filegroup():
         if m is None:
             return
 
+        if len(self.segments) == 0:
+            self.find_segments(m)
+
         for cs in self.enum("scan").values():
             cs.scan_file(m, filename)
 
@@ -243,6 +261,9 @@ class Filegroup():
 
         files: list of strings
         """
+
+        # TODO: warning if no file is found
+
         for file in files:
             self.scan_file(file)
 
