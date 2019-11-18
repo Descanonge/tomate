@@ -135,7 +135,7 @@ class Coord():
             a = self._array[:]
         else:
             a = None
-        return Coord(self.name, a, self.unit, self.name_alt)
+        return self.__class__(self.name, a, self.unit, self.name_alt)
 
     def slice(self, key: NpIdx):
         """Subset the coordinate."""
