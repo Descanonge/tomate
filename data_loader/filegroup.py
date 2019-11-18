@@ -275,6 +275,7 @@ class Filegroup():
             cs.update_values(cs.values)
 
     def get_commands(self, var_list, keys):
+        # FIXME: Files are opened multiple times
         """Retrieve filenames.
 
         Recreate filenames from matches.

@@ -275,6 +275,7 @@ class _DataBase():
         return kw_coords
 
     def _sort_by_coords(self, dic):
+        # TODO: review
         """Sort dictionnary.
 
         The order is that of `self.coords_name`.

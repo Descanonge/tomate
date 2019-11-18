@@ -140,6 +140,9 @@ class DataNetCDF(_DataBase):
         try:
             ncname = self.vi.ncname[var]
         except AttributeError:
+            ncname = None
+
+        if ncname is None:
             ncname = var
         return ncname
 
