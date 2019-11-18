@@ -137,8 +137,9 @@ class DataNetCDF(_DataBase):
 
     def get_ncname(self, var: str) -> str:
         """Get the infile name."""
-        ncname = self.vi.ncname[var]
-        if ncname is None:
+        try:
+            ncname = self.vi.ncname[var]
+        except AttributeError:
             ncname = var
         return ncname
 
