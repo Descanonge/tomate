@@ -66,33 +66,29 @@ class Matcher():
                "D": r"[a-zA-Z]*",
                "dd": r"\d+\d",
                "doy": r"\d+\d+\d",
-               "text": r"[a-zA-Z]*"}
+               "text": r"[a-zA-Z]*",
+               "char": r"\S*"}
 
-    def __init__(self, pregex, idx):
+    def __init__(self, m, idx):
 
-        sep = pregex.split(':')
+        coord = m.group(1)
+        elt = m.group(2)
+        custom = m.group('cus')
+        rgx = m.group(4)[:-1]
+        dummy = m.group(5)
 
-        coord = sep[0]
-        elt = "idx"
-        dummy = False
+        if elt == '':
+            elt = 'idx'
 
-        if len(sep) > 1:
-            elt = sep[1]
-        if len(sep) > 2:
-            dummy = True
-
-        self.idx = idx
         self.coord = coord
         self.elt = elt
-        self.dummy = dummy
+        self.idx = idx
+        self.dummy = dummy is not None
 
-    def get_regex(self):
-        """Transform pre-regex in regex"""
-        if self.coord == "dummy":
-            regex = self.elt
+        if custom is not None:
+            self.rgx = rgx
         else:
-            regex = "({:s})".format(self.ELT_RGX[self.elt])
-        return regex
+            self.rgx = self.ELT_RGX[elt]
 
 
 class CoordScan(Coord):

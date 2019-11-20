@@ -205,14 +205,12 @@ class Filegroup():
 
         # Separations between segments
         # TODO: use first file to obtain segments
-        regex = pregex
         idx = 0
+        regex = pregex
         for idx, match in enumerate(m):
-            string = match.group()
-            matcher = dlcs.Matcher(string[2:-1], idx)
-
+            matcher = dlcs.Matcher(match, idx)
             self.cs[matcher.coord].add_matcher(matcher)
-            regex = regex.replace(string, matcher.get_regex())
+            regex = regex.replace(match.group(), '(' + matcher.rgx + ')')
 
         self.n_matcher = idx + 1
         self.regex = regex
@@ -221,7 +219,8 @@ class Filegroup():
     def scan_pregex(self, pregex):
         """Scan pregex for matchers."""
         # TODO: custom regex
-        m = re.finditer(r"%\([a-zA-Z]*(:[a-zA-Z]*)?(:dummy)?\)", pregex)
+        regex = r"%\(([a-zA-Z]*):([a-zA-Z]*)(?P<cus>:custom=)?((?(cus)[^:]+:))(:?dummy)?\)"
+        m = re.finditer(regex, pregex)
         return m
 
     def find_segments(self, m):
@@ -357,4 +356,3 @@ class Filegroup():
         return commands
 
     # TODO: no out coords ?
-    # TODO: inout: pb if coords ends mid file
