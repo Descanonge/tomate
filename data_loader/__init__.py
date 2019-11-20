@@ -39,7 +39,7 @@ IterDict:
     is preserved (in python 3.7+)
 """
 
-import logging
+import data_loader.log
 
 from data_loader.coord import Coord
 from data_loader.time import Time
@@ -59,11 +59,3 @@ __all__ = [
     'set_logging'
 ]
 
-
-def set_logging(level='INFO'):
-    """Set package-wide logging level."""
-    level_num = getattr(logging, level.upper())
-    logging.getLogger(__name__).setLevel(level_num)
-
-logging.basicConfig()
-set_logging()
