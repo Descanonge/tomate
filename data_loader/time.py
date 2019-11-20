@@ -4,6 +4,8 @@ Time class stores timestamps as tuple.
 Also stores the unit, and methods using
 datetime objects.
 
+Use user settings to set locales.
+
 Contains
 --------
 Time
@@ -11,6 +13,7 @@ Time
 
 """
 
+import locale
 from typing import List
 
 from datetime import datetime
@@ -19,6 +22,9 @@ from netCDF4 import date2num, num2date
 
 from data_loader.coord import Coord
 from data_loader.stubs import NpIdx
+
+
+locale.setlocale(locale.LC_ALL, '')
 
 
 class Time(Coord):
@@ -39,6 +45,7 @@ class Time(Coord):
                                     for z in self.index2date([0, -1])])
 
     def update_values(self, values: List[float]):
+        # TODO: raise if no unit ?
         if self.unit == "":
             self.unit = "seconds since 1970-01-01 00:00:00"
 
