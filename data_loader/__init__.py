@@ -39,13 +39,11 @@ IterDict:
     is preserved (in python 3.7+)
 """
 
-import data_loader.log
-
-from data_loader.coord import Coord
-from data_loader.time import Time
-from data_loader.iter_dict import IterDict
-from data_loader.variables_info import VariablesInfo
-from data_loader.filegroup import Filegroup
+from .coord import Coord
+from .time import Time
+from .iter_dict import IterDict
+from .variables_info import VariablesInfo
+from .filegroup import Filegroup
 
 
 __version__ = "0.2"
@@ -55,7 +53,5 @@ __all__ = [
     'Time',
     'IterDict',
     'VariablesInfo',
-    'Filegroup',
-    'set_logging'
+    'Filegroup'
 ]
-
