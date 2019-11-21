@@ -74,7 +74,6 @@ class VIConstructor():
 
 
 class FGConstructor():
-    # TODO: custom regexes
     """Helps creating Filegroup objects.
 
     Parameters

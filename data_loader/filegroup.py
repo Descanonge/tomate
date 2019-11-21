@@ -204,7 +204,6 @@ class Filegroup():
         m = self.scan_pregex(pregex)
 
         # Separations between segments
-        # TODO: use first file to obtain segments
         idx = 0
         regex = pregex
         for idx, match in enumerate(m):
@@ -218,7 +217,6 @@ class Filegroup():
 
     def scan_pregex(self, pregex):
         """Scan pregex for matchers."""
-        # TODO: custom regex
         regex = r"%\(([a-zA-Z]*):([a-zA-Z]*)(?P<cus>:custom=)?((?(cus)[^:]+:))(:?dummy)?\)"
         m = re.finditer(regex, pregex)
         return m

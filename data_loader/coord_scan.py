@@ -28,7 +28,6 @@ import numpy as np
 
 from data_loader.stubs import NpIdx
 from data_loader.coord import Coord
-from data_loader.time import Time
 
 
 class Matcher():
