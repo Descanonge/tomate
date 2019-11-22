@@ -6,7 +6,7 @@ Computation of land mask from Natural Earth using cartopy.
 import numpy as np
 import scipy.ndimage as ndimage
 
-from data_loader.netcdf._rasterize_polygon import shp_mask
+from data_loader.masked._rasterize_polygon import shp_mask
 
 
 def compute_land_mask(root, lat, lon):
@@ -47,6 +47,7 @@ def compute_land_mask(root, lat, lon):
 
 
 def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
+    # TODO: wtf is this doing here ?
     """Apply func over certain axes of array. Loop over remaining axes.
 
     func: function which takes args and kwargs

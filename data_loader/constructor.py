@@ -15,7 +15,6 @@ import os
 import numpy as np
 
 from data_loader.variables_info import VariablesInfo
-from data_loader.filegroup import Filegroup
 from data_loader.coord import select_overlap
 
 
@@ -93,7 +92,8 @@ class FGConstructor():
     filegroups: List[Filegroup]
     """
 
-    def __init__(self, root, coords, vi):
+    def __init__(self, fg_type, root, coords, vi):
+        self.fg_type = fg_type
         self.root = root
         self.coords = dict(zip([c.name for c in coords], coords))
         self.vi = vi
@@ -112,6 +112,7 @@ class FGConstructor():
         return self.filegroups[-1]
 
     def add_fg(self, contains, coords):
+        # TODO: args and kwargs
         """Add filegroup.
 
         Parameters
@@ -123,7 +124,7 @@ class FGConstructor():
             coordinates used in this grouping of files.
             list of tuples of the coordinate name and a inout flag
         """
-        fg = Filegroup(self.root, contains, self.vi, coords)
+        fg = self.fg_type(self.root, contains, None, coords)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
@@ -152,14 +153,8 @@ class FGConstructor():
                        values: List[float], in_idx: List[int]]
         *coords: List[Coord]
             Coordinate to apply this function for.
-            If None, all coordinates with flag in*.
         """
-
         fg = self.current_fg
-
-        if not coords:
-            coords = list(fg.enum(inout="in*"))
-
         self.current_fg.set_scan_in_file_func(func, *coords)
 
     def set_scan_filename(self, func, *coords):
@@ -171,13 +166,8 @@ class FGConstructor():
             Function that recover values from filename
         *coords: List[Coord]
             Coordinate to apply this function for.
-        If None, all coordinates with flag *out.
         """
         fg = self.current_fg
-
-        if not coords:
-            coords = list(fg.enum(inout="*out"))
-
         self.current_fg.set_scan_filename_func(func, *coords)
 
     def set_coord_const_values(self, coord, values):
@@ -191,10 +181,9 @@ class FGConstructor():
         """
         fg = self.current_fg
         cs = fg.cs[coord]
-        if cs.inout in cs.SCAN:
+        if cs.scan:
             warnings.warn("{cs.name} has a scannable flag. "
                           "Values set manually could be overwritten.")
-
 
         self.current_fg.cs[coord].set_values(values)
 
@@ -254,6 +243,7 @@ class FGConstructor():
                     cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
                 cs.slice(slice(*overlap[i]))
                 cs.slice_total = slice(*overlap[i])
+                # TODO: slice(a, b, -1) if coord is reversed
 
             # Select the first coordinate found in the filegroups
             # with that name

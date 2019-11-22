@@ -39,11 +39,12 @@ IterDict:
     is preserved (in python 3.7+)
 """
 
+from .log import set_logging
+
 from .coord import Coord
 from .time import Time
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo
-from .filegroup import Filegroup
 
 
 __version__ = "0.2"
@@ -53,5 +54,6 @@ __all__ = [
     'Time',
     'IterDict',
     'VariablesInfo',
-    'Filegroup'
 ]
+
+set_logging()

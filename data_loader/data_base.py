@@ -25,7 +25,6 @@ change_variable()
 from types import MethodType
 from typing import List
 
-import os
 import numpy as np
 
 from data_loader.coord import Coord
@@ -33,7 +32,7 @@ from data_loader.variables_info import VariablesInfo
 from data_loader.iter_dict import IterDict
 
 
-class _DataBase():
+class DataBase():
     # TODO: slice by value
     """Encapsulate data array and info about the variables.
 
@@ -96,6 +95,8 @@ class _DataBase():
 
         self.data = None
 
+        self.link_filegroups()
+
     def __getitem__(self, y):
         """Return slice of data or variable, or coordinate.
 
@@ -114,6 +115,11 @@ class _DataBase():
                 y = self.vi.idx[y]
 
         return self.data[y]
+
+    def link_filegroups(self):
+        """Link filegroups and data."""
+        for fg in self.filegroups:
+            fg.db = self
 
     def _get_coords(self, coords):
         """Make an IterDict from a list of coords.
@@ -236,7 +242,7 @@ class _DataBase():
             extent += lim
         return extent
 
-    def _get_coords_kwargs(self, *coords, **kw_coords):
+    def get_coords_kwargs(self, *coords, **kw_coords):
         """Make standard, full kwargs.
 
         From a mix of positional and keyword argument,
@@ -270,11 +276,11 @@ class _DataBase():
             if coord not in kw_coords:
                 kw_coords.update({coord: slice(None, None)})
 
-        kw_coords = self._sort_by_coords(kw_coords)
+        kw_coords = self.sort_by_coords(kw_coords)
 
         return kw_coords
 
-    def _sort_by_coords(self, dic):
+    def sort_by_coords(self, dic):
         # TODO: review
         """Sort dictionnary.
 
@@ -298,11 +304,11 @@ class _DataBase():
             key = tuple([variables] + list(kw_coords.values()))
             self.data = self.data[key]
 
-    def slice_data(self, variables=None, *coords, **kw_coords):
+    def slice_data(self, variables, *coords, **kw_coords):
         """Slice data and coordinates by index."""
         if variables is None:
             variables = slice(None, None)
-        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
+        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
 
         self._slice_data(variables, **kw_coords)
 
@@ -321,7 +327,7 @@ class _DataBase():
 
         This slice is reset if data is reloaded.
         """
-        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
+        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         self._slice_coords(**kw_coords)
 
     def load_data(self, var_load, *coords, **kw_coords):
@@ -361,7 +367,7 @@ class _DataBase():
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
 
-        kw_coords = self._get_coords_kwargs(*coords, **kw_coords)
+        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
 
         if var_load is None:
             var_load = slice(None, None, None)
@@ -377,7 +383,7 @@ class _DataBase():
         self.vi = self._vi_orr.copy()[var_load]
         self._allocate_memory()
 
-        self._load_data(kw_coords)
+        self._load_data(self.vi.var, kw_coords)
 
     def _find_shape(self, kw_coords) -> List[int]:
         """Find the shape of the data to load.
@@ -403,100 +409,30 @@ class _DataBase():
         """Allocate data member."""
         self.data = np.zeros(self.shape)
 
-    def _load_data(self, keys):
+    def _load_data(self, var_list, keys):
         # TODO: kwargs
         """Load data.
 
         Parameters
         ----------
-        variables: List[str] or str
+        varList: List[str] or str
             Passed to VariablesInfo.__getitem__
         keys: Dict[coord name, key]
             Passed to Coord.__getitem__
-        shape: List[int]
-            Shape of data to load excluting number of variables.
         """
         # find the filegroups we need to load
-        filegroups = []
-        for i, var in self.vi:
+        fg_var = []
+        for var in var_list:
             fg = self.filegroups[self.fg_idx[var]]
             try:
-                idx = filegroups.index(fg)
+                idx = fg_var.index(fg)
             except ValueError:
-                filegroups.append([fg, []])
+                fg_var.append([fg, []])
                 idx = -1
-            filegroups[idx][1].append(var)
+            fg_var[idx][1].append(var)
 
-        # find the files to load
-        # [file, [var], [keys]]
-        toload = []
-        for fg, varList in filegroups:
-            keys_ = {}
-            for name, key in keys.items():
-                keys_[name] = fg.cs[name].get_slice(key)
-            toload += fg.get_commands(varList, keys_)
-
-        for cmd in toload:
-            cmd = self._preprocess_load_command(*cmd)
-            self._load_cmd(*cmd)
-
-    def _preprocess_load_command(self, filename, var_list, keys_in, keys_slice):
-        """Preprocess the load command.
-
-        Join root and filename
-        Replace int keys with list, as keys is then typically
-        passed to a numpy array, we will thus retain the right
-        number of dimensions.
-
-        Parameters
-        ----------
-        filename: str
-            Filename to open
-        var_list: List[str]
-            Variables to load
-        keys: Dict[coord name, key]
-            Keys to load in file
-
-        Returns
-        -------
-        cmd: [filename: str, var_list: List[str], keys]
-            Command passed to self._load_cmd
-        """
-        filename = os.path.join(self.root, filename)
-
-        for coord, key in keys_in.items():
-            if isinstance(key, np.integer):
-                keys_in[coord] = [key]
-
-        keys_in = self._get_coords_kwargs(**keys_in)
-        keys_in = self._sort_by_coords(keys_in)
-        keys_slice = self._get_coords_kwargs(**keys_slice)
-        keys_slice = self._sort_by_coords(keys_slice)
-        return filename, var_list, keys_in, keys_slice
-
-    def _load_cmd(self, filename, var_list, keys_in, keys_slice):
-        """Load data from one file using a command.
-
-        Parameters
-        ----------
-        filename: str
-            Filename to open
-        var_list: List[str]
-            Variables to load
-        keys: Dict[coord name, key]
-            Keys to load in file
-        """
-        raise NotImplementedError
-
-    def _get_order(self, *args) -> List[str]:
-        """Get order of dimensions in file.
-
-        Returns
-        -------
-        order: List[str]
-            Coordinate names, in the order of the file.
-        """
-        raise NotImplementedError
+        for fg, variables in fg_var:
+            fg.load_data(variables, keys)
 
     def _post_load(self):
         """Do operations after load."""
@@ -544,7 +480,6 @@ class _DataBase():
             self.data = data
             self.vi = self.vi[variables]
 
-
     def pop_variables(self, variables: List[str]):
         """Remove variables from data and vi."""
         if not isinstance(variables, (list, tuple)):
@@ -555,74 +490,3 @@ class _DataBase():
             self.data = np.delete(self.data, [keys], axis=0)
         self.vi.pop_variables(variables)
 
-
-def merge_data(dt1, dt2, varList1=None, varList2=None):
-    """Merge two sets of data.
-
-    d1 and d2 are the two Data instances to merge
-    varList1 and varList2 are the list of variables to keep in each dataset
-    """
-    array1, vi1 = dt1.data, dt1.vi
-    array2, vi2 = dt2.data, dt2.vi
-
-    # If not variable list are given, all variables are kept
-    if not varList1:
-        varList1 = vi1.var
-    if not varList2:
-        varList2 = vi2.var
-    varList1 = list(varList1)
-    varList2 = list(varList2)
-
-    n = len(varList1) + len(varList2)
-    shape = array1.shape[1:]
-    assert (array2.shape[1:] == shape), "data should have same shape"
-
-    # Merge Data
-    data = np.concatenate((array1[vi1.idx[varList1]],
-                           array2[vi2.idx[varList2]]), axis=0)
-
-    # Merge attributes
-    fields1 = list(vi1._infos)
-    fields2 = list(vi2._infos)
-
-    d = dict(zip(fields1 + fields2,
-                 [[None]*n for _ in range(len(fields1+fields2))]))
-
-    for i, var in enumerate(varList1):
-        for key in fields1:
-            d[key][i] = vi1.__dict__[key][vi1.idx[var]]
-    for i, var in enumerate(varList2):
-        for key in fields2:
-            d[key][len(varList1)+i] = vi2.__dict__[key][vi2.idx[var]]
-
-    kwargs1 = {k: vi1.__dict__[k] for k in vi1._kwargs}
-    kwargs2 = {k: vi2.__dict__[k] for k in vi2._kwargs}
-    kwargs1.update(kwargs2)
-
-    vi = VariablesInfo(tuple(varList1+varList2), d, **kwargs1)
-
-    return dt1.duplicate_meta(data=data, vi=vi)
-
-
-def change_variable(data, new_data, old_var, new_var, vi, **kwargs):
-    """Change a variable in data."""
-    # REVIEW: review
-
-    # Change data
-    data[vi.idx[old_var]] = new_data
-
-    # Change var key
-    varList = list(vi.var)
-    varList[vi.idx[old_var]] = new_var
-    vi.var = tuple(varList)
-
-    fields = vi.__dict__.copy()
-    for z in ['n', 'var'] + vi._infos:
-        fields.pop(z)
-
-    # Use advantage of shallow copy
-    for d in fields.values():
-        d[new_var] = d.pop(old_var)
-
-    for k, z in kwargs.items():
-        vi.__dict__[k][new_var] = z

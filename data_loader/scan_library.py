@@ -111,4 +111,3 @@ def scan_inout_file_nc(cs, filename, values):
                 break
 
     return in_values, in_idx
-

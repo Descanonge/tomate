@@ -18,17 +18,14 @@ Filegroup:
 
 import os
 import re
-import itertools
 
 from typing import List, Dict
-
-import numpy as np
 
 from data_loader.coord import Coord
 import data_loader.coord_scan as dlcs
 
 
-class Filegroup():
+class FilegroupScan():
     """An ensemble of files.
 
     File which share the same variables, and filename structure.
@@ -49,7 +46,7 @@ class Filegroup():
         Data directory
     contains: List[str]
         Variables contained in this filegroup
-    coords: List[Coord]
+    cs: List[Coord]
         Parent coordinates objects
     n_matcher: int
         Number of matchers in pre-regex
@@ -60,17 +57,12 @@ class Filegroup():
     segments: List[str]
         Fragments of filename used for reconstruction,
         pair indices are replaced with matches
-    SCAN: List[str]
-        Inout flags to be scanned
     """
 
-    # List of inout flag to be scanned
-    SCAN = ["in", "inout", "out"]
-
-    def __init__(self, root, contains, vi, coords):
+    def __init__(self, root, contains, db, coords):
         self.root = root
         self.contains = contains
-        self._vi = vi
+        self.db = db
 
         self.n_matcher = 0
         self.segments = []
@@ -93,12 +85,13 @@ class Filegroup():
                 self.cs.update({coord.name: CoordScanInOutRB(self, CoordScanRB, coord, inout)})
             elif inout == "in":
                 CoordScanInRB = type('CoordScanInRB', (CoordScanRB,),
-                                        dict(dlcs.CoordScanIn.__dict__))
+                                     dict(dlcs.CoordScanIn.__dict__))
                 self.cs.update({coord.name: CoordScanInRB(self, CoordScanRB, coord)})
             else:
                 self.cs.update({coord.name: CoordScanRB(self, CoordScanRB, coord, inout)})
 
     def enum(self, inout: str = "*") -> Dict:
+        # TODO: remove inout
         """Iter through CoordScan objects.
 
         Parameters
@@ -119,7 +112,7 @@ class Filegroup():
                 if c.inout.endswith("out"):
                     add = True
             elif inout == "scan":
-                if c.inout in self.SCAN:
+                if c.scan:
                     add = True
             else:
                 if c.inout == inout:
@@ -137,9 +130,8 @@ class Filegroup():
         ----------
         func: Callable[[CoordScan, filename: str, values: List[float]],
                        values: List[float], in_idx: List[int]]
-        *coords: List[Coord]
+        coords: List[Coord]
             Coordinate to apply this function for.
-            If None, all coordinates with flag in*.
 
         Raises
         ------
@@ -152,6 +144,7 @@ class Filegroup():
                 raise AttributeError(("{:s} has flag {:s}, ").format(
                     name, cs.inout))
             cs.set_scan_in_file_func(func)
+            cs.scan = True
 
     def set_scan_filename_func(self, func, *coords):
         """Set the function used for scanning filenames.
@@ -162,7 +155,6 @@ class Filegroup():
             Function that recover values from filename
         coords: List[Coord]
             Coordinate to apply this function for.
-            If None, all coordinates with flag \*out.
 
         Raises
         ------
@@ -175,6 +167,7 @@ class Filegroup():
                 raise AttributeError(("{:s} has flag {:s}, ").format(
                     name, cs.inout))
             cs.set_scan_filename_func(func)
+            cs.scan = True
 
     def add_scan_regex(self, pregex, replacements):
         """Specify the regex for scanning.
@@ -258,9 +251,6 @@ class Filegroup():
 
         files: list of strings
         """
-
-        # TODO: warning if no file is found
-
         for file in files:
             self.scan_file(file)
 
@@ -270,87 +260,3 @@ class Filegroup():
                     cs.name, cs.filegroup.contains))
             cs.sort_values()
             cs.update_values(cs.values)
-
-    def get_commands(self, var_list, keys):
-        # FIXME: Files are opened multiple times
-        """Retrieve filenames.
-
-        Recreate filenames from matches.
-
-        Parameters
-        ----------
-        var_list: List[str]
-            List of variables names
-        keys: Dict[str, NpIdx]
-            Dict of coord keys to load from the data
-            available
-            Keys are passed to numpy arrays
-
-        Returns
-        -------
-        filename: str
-            Filename to load
-        var_list: List[str]
-        keys: Dict[str, NpIdx]
-            Keys for the whole data
-        keys_in: Dict[str, NpIdx]
-            Keys to load in the filename
-        keys_slice: Dict[str, NpIdx]
-            Keys of the slice that is going to be loaded, for
-            that filename, and in order.
-        """
-        # Retrieve matches, indexes of regexes, and
-        # in-file indexes.
-        matches = []
-        rgx_idxs = []
-        in_idxs = []
-        for name, cs in self.enum("*out").items():
-            key = keys[name]
-            match = []
-            rgx_idx_matches = []
-            for i, rgx in enumerate(cs.matchers):
-                match.append(cs.matches[key, i])
-                rgx_idx_matches.append(rgx.idx)
-
-            # Matches are stored by regex index, we
-            # need to transpose to have a list by filename
-            match = np.array(match)
-            matches.append(match.T)
-            in_idxs.append(cs.in_idx[key])
-            rgx_idxs.append(rgx_idx_matches)
-
-        # Number of matches by out coordinate for looping
-        lengths = []
-        for i_c, _ in enumerate(matches):
-            lengths.append(len(matches[i_c]))
-
-        commands = []
-        # Imbricked for loops for all out coords
-        for m in itertools.product(*(range(z) for z in lengths)):
-
-            # Reconstruct filename
-            seg = self.segments.copy()
-            for i_c, cs in enumerate(self.enum("*out").keys()):
-                idx_rgx_matches = rgx_idxs[i_c]
-                for i, rgx_idx in enumerate(idx_rgx_matches):
-                    seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
-            filename = "".join(seg)
-
-            # Find keys
-            keys_slice = {}
-            keys_in = {}
-            i_c = 0
-            for name, cs in self.enum().items():
-                if cs.inout == "in":
-                    keys_slice[name] = slice(None, None)
-                    keys_in[name] = keys[name]
-                elif cs.inout.endswith("out"):
-                    keys_slice[name] = m[i_c]
-                    keys_in[name] = in_idxs[i_c][m[i_c]]
-                    i_c += 1
-
-            commands.append([filename, var_list, keys_in, keys_slice])
-
-        return commands
-
-    # TODO: no out coords ?

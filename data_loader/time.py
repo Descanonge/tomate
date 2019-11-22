@@ -21,7 +21,6 @@ from datetime import datetime
 from netCDF4 import date2num, num2date
 
 from data_loader.coord import Coord
-from data_loader.stubs import NpIdx
 
 
 locale.setlocale(locale.LC_ALL, '')
@@ -51,12 +50,23 @@ class Time(Coord):
 
         super().update_values(values)
 
-    def index2date(self, indices: NpIdx = None) -> List[datetime]:
-        """Return a list of datetime objects corresponding to indices."""
+    def index2date(self, indices):
+        """Return a list of datetime objects corresponding to indices.
+
+        Parameters
+        ----------
+        indices: Slice, List of int, List of slice, int
+
+        Returns
+        -------
+        List of datetime
+        """
         if indices is None:
             indices = range(self.size)
         if isinstance(indices, slice):
             indices = list(range(*indices.indices(self.size)))
+        if isinstance(indices, int):
+            indices = [indices]
         dates = num2date([self[i] for i in indices], self.unit)
 
         for i in range(len(dates)):

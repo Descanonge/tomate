@@ -1,10 +1,6 @@
-"""Data class for netCDF files.
+"""Filegroup class for netCDF files.
 
 Basic support fillValue
-
-Contains
---------
-DataNetCDF
 """
 
 import logging
@@ -13,31 +9,16 @@ import warnings
 import numpy as np
 import netCDF4 as nc
 
-from data_loader._data_base import _DataBase
-import data_loader.netcdf.mask
+from data_loader.filegroup.filegroup_load import FilegroupLoad
 
 log = logging.getLogger(__name__)
 
 
-class DataNetCDF(_DataBase):
-    """Encapsulate data array and info about the variables.
+class FilegroupNetCDF(FilegroupLoad):
+    """An ensemble of files.
 
     For NetCDF files.
-
-    Data and coordinates can be accessed with subscript
-    Data[{name of variable | name of coordinate}]
-
-    Data is loaded from disk with load_data
     """
-
-    def _allocate_memory(self):
-        """Allocate data variable.
-
-        Data is storred as a masked array
-        """
-        self.data = np.ma.zeros(self.shape)
-        # TODO: Better api from numpy ?
-        self.data.mask = np.ma.make_mask_none(self.shape)
 
     def _load_cmd(self, filename, var_list, keys_in, keys_slice):
         """Load data from one file using a command.
@@ -51,25 +32,29 @@ class DataNetCDF(_DataBase):
         keys: Dict[coord name, key]
             Keys to load in file
         """
-        with nc.Dataset(filename, 'r') as dt:
+        with nc.Dataset(filename, 'r') as data_file:
             log.info("Opening %s, asking %s in file, placing it in %s.",
                      filename, str(keys_in), str(list(keys_slice.values())))
             for var in var_list:
                 ncname = self.get_ncname(var)
 
-                D = self._load_slice_single_var(dt, keys_in, ncname)
+                D = self._load_slice_single_var(data_file, keys_in, ncname)
 
-                i_var = self.vi.idx[var]
-                self.data[i_var][tuple(keys_slice.values())] = D
-                self.data.mask[i_var][tuple(keys_slice.values())] = D.mask
+                i_var = self.db.vi.idx[var]
+                self.db.data[i_var][tuple(keys_slice.values())] = D
 
-                # Make sure it is correctly masked
+                # TODO: call a specialized function of self.db
+                # to account for different db types
+                self.db.data.mask[i_var][tuple(keys_slice.values())] = D.mask
+
+            # Make sure it is correctly masked
                 try:
-                    dt[ncname]._FillValue
+                    # TODO: getattr
+                    data_file[ncname]._FillValue
                 except AttributeError:
-                    self.data.mask[i_var] = ~np.isfinite(self.data[i_var].data)
+                    self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
 
-    def _load_slice_single_var(self, dt, keys, ncname):
+    def _load_slice_single_var(self, data_file, keys, ncname):
         """Load data for a single variable.
 
         The data is reordered
@@ -84,9 +69,9 @@ class DataNetCDF(_DataBase):
             Name of the variable in file
         """
 
-        order, keys_ = self._get_order(dt, ncname, keys)
+        order, keys_ = self._get_order(data_file, ncname, keys)
 
-        D = dt[ncname][keys_]
+        D = data_file[ncname][keys_]
 
         # If we ask for keys that are not in the file.
         # Add None keys to create axis in the array where needed
@@ -95,12 +80,12 @@ class DataNetCDF(_DataBase):
                 D = np.expand_dims(D, -1)
 
         # Reorder array
-        target = [self.coords_name.index(z) for z in order]
+        target = [self.db.coords_name.index(z) for z in order]
         D = np.moveaxis(D, range(len(order)), target)
 
         return D
 
-    def _get_order(self, dt, ncname, keys):
+    def _get_order(self, data_file, ncname, keys):
         """Get order from netcdf file, reorder keys.
 
         Parameters
@@ -114,14 +99,14 @@ class DataNetCDF(_DataBase):
         order: List[str]
             Coordinate names in order
         """
-        order_nc = list(dt[ncname].dimensions)
+        order_nc = list(data_file[ncname].dimensions)
         order = []
         keys_ = []
         for coord_nc in order_nc:
             try:
-                coord = self.get_coord(coord_nc)
+                coord = self.db.get_coord(coord_nc)
             except KeyError:
-                dim = dt.dimensions[coord_nc].size
+                dim = data_file.dimensions[coord_nc].size
                 if dim > 1:
                     warnings.warn("Additional dimension {0} in file of "
                                   "size > 1. The first index will be used".format(coord))
@@ -138,79 +123,13 @@ class DataNetCDF(_DataBase):
     def get_ncname(self, var: str) -> str:
         """Get the infile name."""
         try:
-            ncname = self.vi.ncname[var]
+            ncname = self.db.vi.ncname[var]
         except AttributeError:
             ncname = None
 
         if ncname is None:
             ncname = var
         return ncname
-
-    def mask_nan(self, missing=True, inland=True, coast=5, chla=True):
-        """Replace sst and chla-OC5 fill values by nan.
-
-        Parameters
-        ----------
-        missing: bool, True
-            Mask not valid
-        inland: bool, True
-            Mask in land
-        coast: int, 5
-            If inland, mask `coast` neighbooring pixels
-        chla: bool, True
-            Clip Chlorophyll above 3mg.m-3 and under 0
-
-        Raises
-        ------
-        RuntimeError
-            If data was not previously loaded
-        """
-        if self.data is None:
-            raise RuntimeError("Data has not been previously loaded.")
-
-        if missing:
-            m = ~np.isfinite(self.data)
-            self.data.mask |= m
-
-        if inland:
-            m = self.get_land_mask()
-            if coast > 0:
-                m = data_loader.netcdf.mask.enlarge_mask(m, coast)
-            self.data.mask |= m
-
-        if chla:
-            A = self.data[self.vi.idx['Chla_OC5']]
-            A = np.clip(A, 0, 3)
-            self.data[self.vi.idx['Chla_OC5']] = A
-            # A[A > 3] = np.nan
-
-    def compute_land_mask(self):
-        """Compute land mask and save to disk."""
-        data_loader.netcdf.mask.compute_land_mask(
-            self.root, self._coords_orr['lat'], self._coords_orr['lon'])
-
-    def get_land_mask(self, keys=None):
-        """Return land mask.
-
-        Parameters
-        ----------
-        keys: List[NpIdx]
-
-        Returns
-        -------
-        mask: np.array(dtype=bool)
-        """
-        if keys is None:
-            keys = [self.slices[c] for c in ['lat', 'lon']]
-
-        try:
-            mask = np.load(self.root + 'land_mask.npy',
-                           mmap_mode='r')[tuple(keys)]
-        except FileNotFoundError:
-            self.compute_land_mask()
-            self.get_land_mask()
-
-        return mask
 
     def write(self, filename, wd=None, variables=None):
         """Write variables to disk.
@@ -226,7 +145,6 @@ class DataNetCDF(_DataBase):
         filename: str
             If None, the first value of time is used.
         """
-
         if wd is None:
             wd = self.root
 
@@ -234,10 +152,12 @@ class DataNetCDF(_DataBase):
             variables = self.vi.var
 
         with nc.Dataset(wd + filename, 'w') as dt:
+            log.info("in %s", filename)
             for name, coord in self.coords.items():
                 dt.createDimension(name, coord.size)
                 dt.createVariable(name, 'f', [name])
                 dt[name][:] = coord[:]
+                log.info("laying %s values, extent %s", name, coord.get_extent_str())
 
                 dt[name].setncattr('fullname', coord.fullname)
                 dt[name].setncattr('unit', coord.unit)
@@ -249,7 +169,7 @@ class DataNetCDF(_DataBase):
                 except AttributeError:
                     t = 'f'
                 dt.createVariable(var, t, self.coords_name)
-                dt[var][:] = self[var]
+                dt[var][:] = self.data[self.vi.idx[var]]
 
                 for info in self.vi._infos:
                     dt[var].setncattr(info, self.vi.__getattribute__(info)[var])

@@ -26,7 +26,6 @@ from typing import List
 
 import numpy as np
 
-from data_loader.stubs import NpIdx
 from data_loader.coord import Coord
 
 
@@ -114,6 +113,8 @@ class CoordScan(Coord):
     slice_total: Slice
         Slice that is used (migth be less that what is available
         on disk)
+    scan: bool
+        If the values of the coordinate are to be scanned
     """
 
     def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
@@ -121,7 +122,6 @@ class CoordScan(Coord):
         self.coord = coord
         self.inout = inout
         self.values = []
-        self._size_total = None
         self.slice_total = slice(None, None)
 
         super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
@@ -133,7 +133,6 @@ class CoordScan(Coord):
     def assign_values(self):
         """Update parent coord with found values."""
         self.coord.update_values(self._array)
-        self._size_total = self._size
 
     def sort_values(self):
         """Sort by values."""
@@ -313,7 +312,7 @@ class CoordScanInOut(CoordScan):
         self.matches = self.matches[order]
         self.in_idx = self.in_idx[order]
 
-    def slice(self, key: NpIdx):
+    def slice(self, key):
         """Slice values."""
         self.matches = self.matches[key]
         super(type(self), self).slice(key)

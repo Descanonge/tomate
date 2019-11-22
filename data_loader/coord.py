@@ -26,8 +26,6 @@ import bisect
 
 import numpy as np
 
-from data_loader.stubs import NpIdx
-
 
 class Coord():
     """Coordinate object.
@@ -114,8 +112,18 @@ class Coord():
         """Length of coordinate."""
         return self._size
 
-    def __getitem__(self, y: NpIdx):
-        """Use numpy getitem for the array."""
+    def __getitem__(self, y):
+        """Use numpy getitem for the array.
+
+        Parameters
+        ----------
+        y: Numpy access
+            Keys asked, passed to a numpy array
+
+        Returns
+        -------
+        Numpy array
+        """
         return self._array.__getitem__(y)
 
     def __str__(self):
@@ -137,7 +145,7 @@ class Coord():
             a = None
         return self.__class__(self.name, a, self.unit, self.name_alt)
 
-    def slice(self, key: NpIdx):
+    def slice(self, key):
         """Subset the coordinate."""
         self._array = self._array[key]
         self._descending = np.all(np.diff(self._array) < 0)

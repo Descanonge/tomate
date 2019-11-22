@@ -25,5 +25,5 @@ def set_file_log(filename: str, no_stdout=False):
     if no_stdout:
         logger.propagate = False
 
+
 logging.basicConfig()
-set_logging()
