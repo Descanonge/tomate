@@ -92,8 +92,7 @@ class FGConstructor():
     filegroups: List[Filegroup]
     """
 
-    def __init__(self, fg_type, root, coords, vi):
-        self.fg_type = fg_type
+    def __init__(self, root, coords, vi):
         self.root = root
         self.coords = dict(zip([c.name for c in coords], coords))
         self.vi = vi
@@ -111,7 +110,7 @@ class FGConstructor():
         """
         return self.filegroups[-1]
 
-    def add_fg(self, contains, coords):
+    def add_fg(self, fg_type, contains, coords):
         # TODO: args and kwargs
         """Add filegroup.
 
@@ -124,7 +123,7 @@ class FGConstructor():
             coordinates used in this grouping of files.
             list of tuples of the coordinate name and a inout flag
         """
-        fg = self.fg_type(self.root, contains, None, coords)
+        fg = fg_type(self.root, contains, None, coords)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
@@ -231,6 +230,7 @@ class FGConstructor():
         for name, coord in self.coords.items():
             coords = []
             for fg in self.filegroups:
+                # TODO: status of manually set coords values ?
                 for name_cs, cs in fg.enum("scan").items():
                     if name == name_cs:
                         coords.append(cs)
@@ -283,18 +283,14 @@ class FGConstructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_filegroups(self):
-        """Retrieve the list of filegroups.
+    def make_database(self, db_type):
+        """Create database instance.
 
         Scan files
         Select overlap coordinates
-
-        Returns
-        -------
-        filegroups: List[Filegroup]
         """
         self.check_regex()
         self.scan_files()
         self.check_values()
-
-        return self.filegroups
+        dt = db_type(self.root, self.filegroups, self.vi, *self.coords.values())
+        return dt
