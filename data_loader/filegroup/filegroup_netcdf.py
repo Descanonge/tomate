@@ -20,7 +20,7 @@ class FilegroupNetCDF(FilegroupLoad):
     For NetCDF files.
     """
 
-    def _load_cmd(self, filename, var_list, keys_in, keys_slice):
+    def _load_cmd(self, cmd):
         """Load data from one file using a command.
 
         Parameters
@@ -32,20 +32,21 @@ class FilegroupNetCDF(FilegroupLoad):
         keys: Dict[coord name, key]
             Keys to load in file
         """
-        with nc.Dataset(filename, 'r') as data_file:
-            log.info("Opening %s, asking %s in file, placing it in %s.",
-                     filename, str(keys_in), str(list(keys_slice.values())))
-            for var in var_list:
+        with nc.Dataset(cmd.filename, 'r') as data_file:
+            log.info("Opening %s", cmd.filename)
+            for var in cmd.var_list:
                 ncname = self.get_ncname(var)
-
-                D = self._load_slice_single_var(data_file, keys_in, ncname)
-
                 i_var = self.db.vi.idx[var]
-                self.db.data[i_var][tuple(keys_slice.values())] = D
 
-                # TODO: call a specialized function of self.db
-                # to account for different db types
-                self.db.data.mask[i_var][tuple(keys_slice.values())] = D.mask
+                for key_in, key_slice in cmd:
+                    log.info("taking %s, placing it in %s",
+                             str(key_in), str(key_slice))
+                    D = self._load_slice_single_var(data_file, key_in, ncname)
+                    self.db.data[i_var][tuple(key_slice.values())] = D
+
+                    # TODO: call a specialized function of self.db
+                    # to account for different db types
+                    self.db.data.mask[i_var][tuple(key_slice.values())] = D.mask
 
             # Make sure it is correctly masked
                 try:
@@ -73,6 +74,8 @@ class FilegroupNetCDF(FilegroupLoad):
 
         D = data_file[ncname][keys_]
 
+
+        print(D.shape)
         # If we ask for keys that are not in the file.
         # Add None keys to create axis in the array where needed
         for k in keys:

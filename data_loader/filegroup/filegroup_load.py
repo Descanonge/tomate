@@ -11,6 +11,7 @@ from typing import List
 import numpy as np
 
 from data_loader.filegroup.filegroup_scan import FilegroupScan
+from data_loader.filegroup.command import Command, merge_cmd_per_file
 
 
 class FilegroupLoad(FilegroupScan):
@@ -44,15 +45,18 @@ class FilegroupLoad(FilegroupScan):
             that filename, and in order.
         """
         commands = self._get_commands_inout(keys)
-        commands_new = []
         for cmd in commands:
             # Add variables to load in the command
-            cmd.insert(1, var_list)
+            cmd.var_list = var_list
             # Add keys_in for in coordinates
             self._get_command_in(cmd, keys)
-            cmd = self._preprocess_load_command(*cmd)
-            commands_new.append(cmd)
 
+        commands_merged = merge_cmd_per_file(commands)
+
+        commands_new = []
+        for cmd in commands_merged:
+            cmd = self._preprocess_load_command(cmd)
+            commands_new.append(cmd)
         return commands_new
 
     def _get_commands_inout(self, keys):
@@ -102,7 +106,10 @@ class FilegroupLoad(FilegroupScan):
                 keys_in[name] = in_idxs[i_c][m[i_c]]
                 i_c += 1
 
-            commands.append([filename, keys_in, keys_slice])
+            cmd = Command()
+            cmd.filename = filename
+            cmd.add_key(keys_in, keys_slice)
+            commands.append(cmd)
 
         return commands
 
@@ -116,14 +123,13 @@ class FilegroupLoad(FilegroupScan):
             # TODO: slice(None, None, -1) if reversed ?
             keys_slice[name] = slice(None, None)
 
-        cmd[2].update(keys_in)
-        cmd[3].update(keys_slice)
+        cmd.set_key(keys_in, keys_slice)
 
     def load_data(self, var_list, keys):
         """Load data."""
         commands = self.get_commands(var_list, keys)
         for cmd in commands:
-            self._load_cmd(*cmd)
+            self._load_cmd(cmd)
 
     def _load_cmd(self, filename, var_list, keys_in, keys_slice):
         """Load data from one file using a command.
@@ -149,7 +155,7 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def _preprocess_load_command(self, filename, var_list, keys_in, keys_slice):
+    def _preprocess_load_command(self, cmd):
         """Preprocess the load command.
 
         Join root and filename
@@ -171,14 +177,29 @@ class FilegroupLoad(FilegroupScan):
         cmd: [filename: str, var_list: List[str], keys]
             Command passed to self._load_cmd
         """
-        filename = os.path.join(self.root, filename)
+        filename = os.path.join(self.root, cmd.filename)
+        cmd.filename = filename
 
-        for coord, key in keys_in.items():
-            if isinstance(key, np.integer):
-                keys_in[coord] = [key]
+        for i, key_in, key_slice in cmd.enum():
+            for coord, key in key_in.items():
+                if isinstance(key, np.integer):
+                    key = [key]
+                key_in[coord] = key
 
-        keys_in = self.db.get_coords_kwargs(**keys_in)
-        keys_in = self.db.sort_by_coords(keys_in)
-        keys_slice = self.db.get_coords_kwargs(**keys_slice)
-        keys_slice = self.db.sort_by_coords(keys_slice)
-        return filename, var_list, keys_in, keys_slice
+            cmd.set_key(key_in, key_slice, i)
+
+        return cmd
+
+        # TODO: redo
+        keys_new = self.db.get_coords_kwargs(**keys_new)
+        keys_new = self.db.sort_by_coords(keys_new)
+        keys_in_new.append(keys_new)
+
+        keys_slice_new = []
+        for keys in keys_slice:
+            keys_new = keys
+            keys_new = self.db.get_coords_kwargs(**keys_new)
+            keys_new = self.db.sort_by_coords(keys_new)
+            keys_slice_new.append(keys_new)
+
+        return cmd
