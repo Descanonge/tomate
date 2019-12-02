@@ -39,9 +39,9 @@ class FilegroupNetCDF(FilegroupLoad):
                 i_var = self.db.vi.idx[var]
 
                 for key_in, key_slice in cmd:
-                    log.info("taking %s, placing it in %s",
-                             str(key_in), str(key_slice))
                     D = self._load_slice_single_var(data_file, key_in, ncname)
+
+                    log.info("placing it in %s, (%s)", key_slice.values(), self.db.coords_name)
                     self.db.data[i_var][tuple(key_slice.values())] = D
 
                     # TODO: call a specialized function of self.db
@@ -72,10 +72,9 @@ class FilegroupNetCDF(FilegroupLoad):
 
         order, keys_ = self._get_order(data_file, ncname, keys)
 
+        log.info("taking keys %s", keys_)
         D = data_file[ncname][keys_]
 
-
-        print(D.shape)
         # If we ask for keys that are not in the file.
         # Add None keys to create axis in the array where needed
         for k in keys:
@@ -84,6 +83,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         # Reorder array
         target = [self.db.coords_name.index(z) for z in order]
+        log.info("reordering %s", target)
         D = np.moveaxis(D, range(len(order)), target)
 
         return D
