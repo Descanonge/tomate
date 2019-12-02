@@ -50,7 +50,7 @@ class Time(Coord):
 
         super().update_values(values)
 
-    def index2date(self, indices):
+    def index2date(self, indices=None):
         """Return a list of datetime objects corresponding to indices.
 
         Parameters
