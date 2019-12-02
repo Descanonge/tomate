@@ -409,6 +409,32 @@ class DataBase():
         """Allocate data member."""
         self.data = np.zeros(self.shape)
 
+    def _get_filegroups_for_variables(self, variables):
+        """Find the filegroups corresponding to variables.
+
+        Parameters
+        ----------
+        variables: List of str
+
+        Returns
+        -------
+        fg_var: [[Filegroup, List of str]]
+            A list of the filegroups with the corresponding variables
+        """
+
+        # find the filegroups we need to load
+        fg_var = []
+        for var in variables:
+            fg = self.filegroups[self.fg_idx[var]]
+            try:
+                idx = fg_var.index(fg)
+            except ValueError:
+                fg_var.append([fg, []])
+                idx = -1
+            fg_var[idx][1].append(var)
+
+        return fg_var
+
     def _load_data(self, var_list, keys):
         # TODO: kwargs
         """Load data.
@@ -420,16 +446,7 @@ class DataBase():
         keys: Dict[coord name, key]
             Passed to Coord.__getitem__
         """
-        # find the filegroups we need to load
-        fg_var = []
-        for var in var_list:
-            fg = self.filegroups[self.fg_idx[var]]
-            try:
-                idx = fg_var.index(fg)
-            except ValueError:
-                fg_var.append([fg, []])
-                idx = -1
-            fg_var[idx][1].append(var)
+        fg_var = self._get_filegroups_for_variables(var_list)
 
         for fg, variables in fg_var:
             fg.load_data(variables, keys)
