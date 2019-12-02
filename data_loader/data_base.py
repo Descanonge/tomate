@@ -507,3 +507,29 @@ class DataBase():
             self.data = np.delete(self.data, [keys], axis=0)
         self.vi.pop_variables(variables)
 
+    def write(self, filename, wd=None, variables=None, *coords, **kwcoords):
+        """Write variables to disk.
+
+        Write to a netcdf file.
+        Coordinates are written too.
+
+        Parameters
+        ----------
+        wd: str
+            Directory. If None, `self.root` is used.
+        variables: Union[List[str], str]
+        filename: str
+            If None, the first value of time is used.
+        """
+        if wd is None:
+            wd = self.root
+
+        if variables is None:
+            variables = self.vi.var
+
+        keys = self.get_coords_kwargs(*coords, **kwcoords)
+
+        fg_var = self._get_filegroups_for_variables(variables)
+
+        for fg, var_list in fg_var:
+            fg.write(filename, wd, var_list, keys)

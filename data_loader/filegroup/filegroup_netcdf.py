@@ -134,29 +134,13 @@ class FilegroupNetCDF(FilegroupLoad):
             ncname = var
         return ncname
 
-    def write(self, filename, wd=None, variables=None):
-        """Write variables to disk.
-
-        Write to a netcdf file.
-        Coordinates are written too.
-
-        Parameters
-        ----------
-        wd: str
-            Directory. If None, `self.root` is used.
-        variables: Union[List[str], str]
-        filename: str
-            If None, the first value of time is used.
-        """
-        if wd is None:
-            wd = self.root
-
-        if variables is None:
-            variables = self.vi.var
-
+    def write(self, filename, wd, variables, keys):
+        """Write data to disk."""
+        log.warning("Writing a subset not implemented, writing all data.")
+       
         with nc.Dataset(wd + filename, 'w') as dt:
             log.info("in %s", filename)
-            for name, coord in self.coords.items():
+            for name, coord in self.db.coords.items():
                 dt.createDimension(name, coord.size)
                 dt.createVariable(name, 'f', [name])
                 dt[name][:] = coord[:]
@@ -168,11 +152,11 @@ class FilegroupNetCDF(FilegroupLoad):
             for var in variables:
                 name = self.get_ncname(var)
                 try:
-                    t = self.vi.type[var]
+                    t = self.db.vi.type[var]
                 except AttributeError:
                     t = 'f'
-                dt.createVariable(var, t, self.coords_name)
-                dt[var][:] = self.data[self.vi.idx[var]]
+                dt.createVariable(var, t, self.db.coords_name)
+                dt[var][:] = self.db.data[self.db.vi.idx[var]]
 
-                for info in self.vi._infos:
-                    dt[var].setncattr(info, self.vi.__getattribute__(info)[var])
+                for info in self.db.vi._infos:
+                    dt[var].setncattr(info, self.db.vi.__getattribute__(info)[var])
