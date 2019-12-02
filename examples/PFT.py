@@ -1,6 +1,8 @@
 
 from data_loader import Coord, Time
-from data_loader.netcdf import DataNetCDF
+from data_loader.masked import DataMasked
+from data_loader.filegroup import FilegroupNetCDF
+
 import data_loader.constructor as dlc
 import data_loader.scan_library as scanlib
 
@@ -62,10 +64,10 @@ pregex = r"%(dir)/A%(time:Y)%(time:doy)%(time:Y:dummy)%(time:doy:dummy)%(suffix)
 replacements = {"dir": "SST",
                 "suffix": r"\.L3m_8D_SST_sst_4km\.nc"}
 
-fgc.add_fg(contains, coords_fg)
+fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
 fgc.set_fg_regex(pregex, replacements)
-fgc.set_scan_filename(scanlib.get_date_from_matches)
-fgc.set_scan_in_file(scanlib.scan_in_file_nc)
+fgc.set_scan_filename(scanlib.get_date_from_matches, 'time')
+fgc.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon')
 
 contains = ["dtom"]
 coords_fg = [[lat, "null"], [lon, "null"], [time, "out"]]
@@ -73,10 +75,8 @@ pregex = r"%(dir)/%(prefix)_%(time:Y)%(time:mm)%(time:dd)\.nc"
 replacements = {"dir": "PFT/dtom",
                 "prefix": "dtom"}
 
-fgc.add_fg(contains, coords_fg)
+fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
 fgc.set_fg_regex(pregex, replacements)
-fgc.set_scan_filename(scanlib.get_date_from_matches)
+fgc.set_scan_filename(scanlib.get_date_from_matches, 'time')
 
-filegroups = fgc.make_filegroups()
-
-dt = DataNetCDF(root, filegroups, vi, *coords)
+dt = fgc.make_database(DataMasked)
