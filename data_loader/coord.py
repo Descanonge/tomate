@@ -129,7 +129,7 @@ class Coord():
     def __str__(self):
         s = str(type(self)) + '\n'
         s += 'name: ' + self.name + '\n'
-        s += 'extent: ' + self.print_range() + '\n'
+        s += 'extent: ' + self.get_extent_str() + '\n'
         s += 'size: ' + str(self.size) + '\n'
         return s
 
