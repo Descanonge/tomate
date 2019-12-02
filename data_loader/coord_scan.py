@@ -123,6 +123,7 @@ class CoordScan(Coord):
         self.inout = inout
         self.values = []
         self.slice_total = slice(None, None)
+        self.scan = False
 
         super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
 
@@ -148,15 +149,15 @@ class CoordScan(Coord):
         ----------
         key: Slice or List[int]
         """
-        if isinstance(key, slice):
-            try:
-                start, stop, step = key.indices(self.size)
-            except TypeError:
-                key_data = slice(None, None)
-            else:
-                key_data = slice(start + self.slice_total.start,
-                                 stop + self.slice_total.start,
-                                 step)
+        if self.size is not None:
+            start, stop, step = key.indices(self.size)
+            key_data = slice(start + self.slice_total.start,
+                             stop + self.slice_total.start,
+                             step)
+        else:
+            # If cs has no values, to be removed ?
+            # TODO: remove ?
+            key_data = key
 
         if isinstance(key, list):
             key_data = [z + self.slice_total.start for z in key]
@@ -266,6 +267,9 @@ class CoordScanInOut(CoordScan):
                        values: List[float], in_idx: List[int]]
         """
         self.scan_in_file = MethodType(func, self)
+
+    # TODO: set_manual
+    # TODO: set from other filegroup
 
     def scan_file(self, m, filename):
         """Find values for a file.
