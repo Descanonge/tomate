@@ -241,6 +241,7 @@ class FGConstructor():
                 sl = overlap[i]
                 if sl[0] != 0 or sl[1] != len(cs.values):
                     cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
+
                 cs.slice(slice(*overlap[i]))
                 cs.slice_total = slice(*overlap[i])
                 # TODO: slice(a, b, -1) if coord is reversed
@@ -258,8 +259,10 @@ class FGConstructor():
             # Check length
             for cs in coords:
                 if cs.size != cs.coord.size:
-                    raise IndexError(("({:s}) has different lengthes across "
-                                      "filegroup.").format(name))
+                    raise IndexError(("({0}) has different lengthes across "
+                                      "filegroups. ({1} has {2}, expected {3})").format(
+                                          name,
+                                          cs.filegroup.contains, cs.size, cs.coord.size))
 
             # Check that all filegroups have same values
             for cs in coords:
