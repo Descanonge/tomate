@@ -64,6 +64,7 @@ class FilegroupScan():
         self.contains = contains
         self.db = db
 
+        self.found_file = False
         self.n_matcher = 0
         self.segments = []
 
@@ -233,12 +234,15 @@ class FilegroupScan():
         # TODO: pass file instead of filename if necessary
         """Scan a single filename."""
         m = re.match(self.regex, filename)
+        # TODO: message to debug the regex
 
         filename = os.path.join(self.root, filename)
 
         # Discard completely non matching files
         if m is None:
             return
+
+        self.found_file = True
 
         if len(self.segments) == 0:
             self.find_segments(m)
@@ -254,9 +258,13 @@ class FilegroupScan():
         for file in files:
             self.scan_file(file)
 
+        if not self.found_file:
+            raise Exception("No file matching the regex found ({0}, regex={1})".format(
+                self.contains, self.regex))
+
         for cs in self.enum(inout="scan").values():
             if len(cs.values) == 0:
                 raise Exception("No values detected ({0}, {1})".format(
-                    cs.name, cs.filegroup.contains))
+                    cs.name, self.contains))
             cs.sort_values()
             cs.update_values(cs.values)
