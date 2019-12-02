@@ -186,20 +186,11 @@ class FilegroupLoad(FilegroupScan):
                     key = [key]
                 key_in[coord] = key
 
+            key_in = self.db.get_coords_kwargs(**key_in)
+            key_in = self.db.sort_by_coords(key_in)
+            key_slice = self.db.get_coords_kwargs(**key_slice)
+            key_slice = self.db.sort_by_coords(key_slice)
+
             cmd.set_key(key_in, key_slice, i)
-
-        return cmd
-
-        # TODO: redo
-        keys_new = self.db.get_coords_kwargs(**keys_new)
-        keys_new = self.db.sort_by_coords(keys_new)
-        keys_in_new.append(keys_new)
-
-        keys_slice_new = []
-        for keys in keys_slice:
-            keys_new = keys
-            keys_new = self.db.get_coords_kwargs(**keys_new)
-            keys_new = self.db.sort_by_coords(keys_new)
-            keys_slice_new.append(keys_new)
 
         return cmd
