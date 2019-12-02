@@ -258,3 +258,4 @@ After loading data, the coords of the data will be also sliced.
 
 Incoming: More on coords slicing when loading
 Incoming: Possible slicing keys
+Incoming: What happens when creating database (scanning and checking)

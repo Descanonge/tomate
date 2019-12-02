@@ -18,8 +18,8 @@ The data object needs three other classes:
   find the data files, and how to load data.
 
 To help construct these complex objects, classes are available in the
-:doc:`constructor<constructor>` module. These objects act as
+constructor module. These objects act as
 configuration tools. Examples can be found in /examples.
 
 To jump right into using the package, one can immediatly go read the
-:doc:`constructor<constructor>` doc page.
+:doc:`quick user guide<tutorial>` doc page.
