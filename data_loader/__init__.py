@@ -45,6 +45,7 @@ from .coord import Coord
 from .time import Time
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo
+from .data_base import DataBase
 
 
 __version__ = "0.2"
@@ -54,6 +55,7 @@ __all__ = [
     'Time',
     'IterDict',
     'VariablesInfo',
+    'DataBase'
 ]
 
 set_logging()
