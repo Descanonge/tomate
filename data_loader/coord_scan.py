@@ -60,10 +60,10 @@ class Matcher():
                "Y": r"\d\d\d\d",
                "yy": r"\d\d",
                "M": r"[a-zA-Z]*",
-               "mm": r"\d+\d",
+               "mm": r"\d?\d",
                "D": r"[a-zA-Z]*",
-               "dd": r"\d+\d",
-               "doy": r"\d+\d+\d",
+               "dd": r"\d?\d",
+               "doy": r"\d?\d?\d",
                "text": r"[a-zA-Z]*",
                "char": r"\S*"}
 
