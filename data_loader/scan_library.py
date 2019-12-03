@@ -111,3 +111,9 @@ def scan_inout_file_nc(cs, filename, values):
                 break
 
     return in_values, in_idx
+
+
+def scan_inout_file_nc_idx_only(cs, filename, values):
+    """Scan netCDF for inout index only."""
+    _, in_idx = scan_inout_file_nc(cs, filename, values)
+    return values, in_idx
