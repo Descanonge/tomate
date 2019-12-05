@@ -48,10 +48,9 @@ class FilegroupNetCDF(FilegroupLoad):
                     # to account for different db types
                     self.db.data.mask[i_var][tuple(key_slice.values())] = D.mask
 
-            # Make sure it is correctly masked
+                # Make sure it is correctly masked
                 try:
-                    # TODO: getattr
-                    data_file[ncname]._FillValue
+                    data_file[ncname].getncattr("_FillValue")
                 except AttributeError:
                     self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
 
