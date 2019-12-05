@@ -161,6 +161,7 @@ class FilegroupLoad(FilegroupScan):
         Replace int keys with list, as keys is then typically
         passed to a numpy array, we will thus retain the right
         number of dimensions.
+        Merge successive keys
 
         Parameters
         ----------
@@ -179,17 +180,20 @@ class FilegroupLoad(FilegroupScan):
         filename = os.path.join(self.root, cmd.filename)
         cmd.filename = filename
 
-        for i, key_in, key_slice in cmd.enum():
-            for coord, key in key_in.items():
-                if isinstance(key, np.integer):
-                    key = [key]
-                key_in[coord] = key
+        for i, key_in, key_sl in cmd.enum():
+            for coord in key_in.keys():
+                if isinstance(key_in[coord], (np.integer, int)):
+                    key_in[coord] = [key_in[coord]]
+                if isinstance(key_sl[coord], (np.integer, int)):
+                    key_sl[coord] = [key_sl[coord]]
 
             key_in = self.db.get_coords_kwargs(**key_in)
             key_in = self.db.sort_by_coords(key_in)
-            key_slice = self.db.get_coords_kwargs(**key_slice)
-            key_slice = self.db.sort_by_coords(key_slice)
+            key_sl = self.db.get_coords_kwargs(**key_sl)
+            key_sl = self.db.sort_by_coords(key_sl)
 
-            cmd.set_key(key_in, key_slice, i)
+            cmd.set_key(key_in, key_sl, i)
+
+        cmd.merge_keys()
 
         return cmd

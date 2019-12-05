@@ -262,7 +262,6 @@ class FGConstructor():
 
                 cs.slice(slice(*overlap[i]))
                 cs.slice_total = slice(*overlap[i])
-                # TODO: slice(a, b, -1) if coord is reversed
 
             # Select the first coordinate found in the filegroups
             # with that name
