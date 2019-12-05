@@ -249,8 +249,7 @@ class FGConstructor():
         for name, coord in self.coords.items():
             coords = []
             for fg in self.filegroups:
-                # TODO: status of manually set coords values ?
-                for name_cs, cs in fg.enum("scan").items():
+                for name_cs, cs in fg.enum_scan("scannable").items():
                     if name == name_cs:
                         coords.append(cs)
 
@@ -298,7 +297,7 @@ class FGConstructor():
             If regex is empty and there is at least a out coordinate.
         """
         for fg in self.filegroups:
-            coords = list(fg.enum("*out"))
+            coords = list(fg.enum_shared(True))
             if len(coords) > 0 and fg.regex == '':
                 mess = ("Filegroup is missing a regex.\n"
                         "Contains: {0}\nCoordinates: {1}").format(

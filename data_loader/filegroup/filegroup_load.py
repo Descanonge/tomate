@@ -66,7 +66,7 @@ class FilegroupLoad(FilegroupScan):
         matches = []
         rgx_idxs = []
         in_idxs = []
-        for name, cs in self.enum("*out").items():
+        for name, cs in self.enum_shared(True).items():
             key = keys[name]
             match = []
             rgx_idx_matches = []
@@ -91,7 +91,7 @@ class FilegroupLoad(FilegroupScan):
         for m in itertools.product(*(range(z) for z in lengths)):
             # Reconstruct filename
             seg = self.segments.copy()
-            for i_c, cs in enumerate(self.enum("*out").keys()):
+            for i_c, cs in enumerate(self.enum_shared(True).keys()):
                 idx_rgx_matches = rgx_idxs[i_c]
                 for i, rgx_idx in enumerate(idx_rgx_matches):
                     seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
@@ -101,7 +101,7 @@ class FilegroupLoad(FilegroupScan):
             keys_slice = {}
             keys_in = {}
             i_c = 0
-            for name, cs in self.enum("*out").items():
+            for name, cs in self.enum_shared(True).items():
                 keys_slice[name] = m[i_c]
                 keys_in[name] = in_idxs[i_c][m[i_c]]
                 i_c += 1
@@ -117,7 +117,7 @@ class FilegroupLoad(FilegroupScan):
         """Add in coords keys to the commands."""
         keys_in = {}
         keys_slice = {}
-        for name, cs in self.enum("in").items():
+        for name, cs in self.enum_shared(False).items():
             key = keys[name]
             keys_in[name] = cs.get_slice(key)
             # TODO: slice(None, None, -1) if reversed ?

@@ -91,41 +91,37 @@ class FilegroupScan():
             else:
                 self.cs.update({coord.name: CoordScanRB(self, CoordScanRB, coord, inout)})
 
-    def enum(self, inout: str = "*") -> Dict:
-        # TODO: remove inout
-        """Iter through CoordScan objects.
-
-        Parameters
-        ----------
-        inout: str, {'in', 'out', 'inout', '*out', 'in*',
-                     '*', 'scan'}
-            CoordScan to iterate through with the specified flag
-        """
+    def enum_shared(self, shared=None):
+        """Iter through CoordScan objects."""
         cs = {}
-        for coord, c in self.cs.items():
+        for name, c in self.cs.items():
             add = False
-            if inout == "*":
+            if shared is None:
                 add = True
-            elif inout == "in*":
-                if c.inout.startswith("in"):
-                    add = True
-            elif inout == "*out":
-                if c.inout.endswith("out"):
-                    add = True
-            elif inout == "scan":
-                if c.scan:
-                    add = True
             else:
-                if c.inout == inout:
-                    add = True
+                add = (c.shared == shared)
 
             if add:
-                cs.update({coord: c})
+                cs[name] = c
 
         return cs
 
+    def enum_scan(self, scan=None):
+        """Iter through CoordScan objects."""
+        cs = {}
+        for name, c in self.cs.items():
+            add = False
+            if scan is None:
+                add = True
+            elif scan == "scannable":
+                add = len(c.scan) > 0
+            else:
+                add = scan in c.scan
 
+            if add:
+                cs[name] = c
 
+        return cs
 
     def add_scan_regex(self, pregex, replacements):
         """Specify the regex for scanning.
@@ -141,6 +137,7 @@ class FilegroupScan():
         replacements: Dict
             dictionnary of matchers to be replaced by a constant
             The keys must match a matcher in the pre-regex
+
 
         Example
         -------
@@ -204,7 +201,7 @@ class FilegroupScan():
         if len(self.segments) == 0:
             self.find_segments(m)
 
-        for cs in self.enum("scan").values():
+        for cs in self.enum_scan("scannable").values():
             cs.scan_file(m, filename)
 
     def scan_files(self, files: List[str]):
@@ -219,7 +216,7 @@ class FilegroupScan():
             raise Exception("No file matching the regex found ({0}, regex={1})".format(
                 self.contains, self.regex))
 
-        for cs in self.enum(inout="scan").values():
+        for cs in self.enum_scan("scannable").values():
             if len(cs.values) == 0:
                 raise Exception("No values detected ({0}, {1})".format(
                     cs.name, self.contains))

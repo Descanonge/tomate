@@ -99,15 +99,15 @@ class CoordScan(Coord):
         Corresponding filegroup
     coord: Coord
         Parent coordinate
-    inout: str
+    shared: bool
         inout flag
 
     Attributes
     ----------
     coord: Coord
         parent coordinate object
-    inout: str
-        inout flag
+    shared: str
+        If the coordinate is shared accross files
     values: List[float]
         list of values found for this coordinate
     slice_total: Slice
@@ -115,16 +115,19 @@ class CoordScan(Coord):
         on disk)
     scan: bool
         If the values of the coordinate are to be scanned
+    scan: set
+        What is to be scanned
     """
 
     def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
         self.filegroup = filegroup
         self.coord = coord
+
+        self.shared = shared
         self.scan = set()
 
         self.values = []
         self.slice_total = slice(None, None)
-        self.scan = False
 
         super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
 
