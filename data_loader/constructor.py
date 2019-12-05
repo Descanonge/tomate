@@ -93,14 +93,12 @@ class FGConstructor():
     root: str
         Root directory of all files
     coords: Dict[name: str, Coord]
-    vi: VariablesInfo
     filegroups: List[Filegroup]
     """
 
-    def __init__(self, root, coords, vi):
+    def __init__(self, root, coords):
         self.root = root
         self.coords = dict(zip([c.name for c in coords], coords))
-        self.vi = vi
         self.filegroups = []
 
     @property
@@ -115,8 +113,7 @@ class FGConstructor():
         """
         return self.filegroups[-1]
 
-    def add_fg(self, fg_type, contains, coords):
-        # TODO: args and kwargs
+    def add_fg(self, fg_type, contains, coords, *args, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -124,11 +121,18 @@ class FGConstructor():
         contains: List[str]
             list of variables contained in this grouping
             of files
-        coords: List[[Coord, inout: str]]
+        coords: List[[Coord, shared: str or bool]]
             coordinates used in this grouping of files.
             list of tuples of the coordinate name and a inout flag
         """
-        fg = fg_type(self.root, contains, None, coords)
+        for i, [_, shared] in enumerate(coords):
+            if shared == "shared":
+                shared = True
+            elif shared == "in":
+                shared = False
+            coords[i][1] = shared
+
+        fg = fg_type(self.root, contains, None, coords, *args, **kwargs)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
@@ -291,7 +295,7 @@ class FGConstructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_database(self, db_type):
+    def make_database(self, db_type, vi):
         """Create database instance.
 
         Scan files
@@ -300,5 +304,5 @@ class FGConstructor():
         self.check_regex()
         self.scan_files()
         self.check_values()
-        dt = db_type(self.root, self.filegroups, self.vi, *self.coords.values())
+        dt = db_type(self.root, self.filegroups, vi, *self.coords.values())
         return dt
