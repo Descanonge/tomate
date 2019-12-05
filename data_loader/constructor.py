@@ -37,6 +37,7 @@ class VIConstructor():
 
     def __init__(self):
         self.var_list = []
+        self.kwargs = {}
 
     def add_var(self, name, infos):
         """Add a variable.
@@ -52,7 +53,11 @@ class VIConstructor():
         """
         self.var_list.append([name, infos])
 
-    def make_vi(self, **kwargs):
+    def add_kwargs(self, **kwargs):
+        """Add a kwargs to the vi."""
+        self.kwargs.update(kwargs)
+
+    def make_vi(self):
         """Create the vi.
 
         Parameters
@@ -67,7 +72,7 @@ class VIConstructor():
         names = [z[0] for z in self.var_list]
         infos = {z[0]: z[1] for z in self.var_list}
 
-        vi = VariablesInfo(names, infos, **kwargs)
+        vi = VariablesInfo(names, infos, **self.kwargs)
 
         return vi
 
