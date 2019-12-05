@@ -120,7 +120,8 @@ class CoordScan(Coord):
     def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
         self.filegroup = filegroup
         self.coord = coord
-        self.inout = inout
+        self.scan = set()
+
         self.values = []
         self.slice_total = slice(None, None)
         self.scan = False
@@ -246,7 +247,7 @@ class CoordScanInOut(CoordScan):
         in_idx: List[int]
             Indices of values in file
         """
-        return values, None
+        raise NotImplementedError("scan_in_file was not set for %s" % self.name)
 
     def set_scan_filename_func(self, func):
         """Set function for scanning values.
@@ -256,6 +257,7 @@ class CoordScanInOut(CoordScan):
         func: Callable[[CoordScan, re.match], values: List[float]]
             Function that recover values from filename
         """
+        self.scan.add("filename")
         self.scan_filename = MethodType(func, self)
 
     def set_scan_in_file_func(self, func):
@@ -266,10 +268,13 @@ class CoordScanInOut(CoordScan):
         func: Callable[[CoordScan, filename: str, values: List[float]],
                        values: List[float], in_idx: List[int]]
         """
+        self.scan.add("in")
         self.scan_in_file = MethodType(func, self)
 
-    # TODO: set_manual
-    # TODO: set from other filegroup
+    def set_scan_manual(self, values):
+        """Set values manually."""
+        self.scan = set(['manual'])
+        self.set_values(values)
 
     def scan_file(self, m, filename):
         """Find values for a file.

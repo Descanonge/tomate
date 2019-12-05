@@ -152,31 +152,41 @@ class FGConstructor():
         """
         self.current_fg.add_scan_regex(pregex, replacements)
 
-    def set_scan_in_file(self, func, *coords):
+    def set_scan_in_file_func(self, func, *coords):
         """Set function for scanning coordinates values in file.
 
         Parameters
         ----------
         func: Callable[[CoordScan, filename: str, values: List[float]],
                        values: List[float], in_idx: List[int]]
-        *coords: List[Coord]
+        coords: List[Coord]
             Coordinate to apply this function for.
         """
         fg = self.current_fg
-        self.current_fg.set_scan_in_file_func(func, *coords)
+        for name in coords:
+            cs = fg.cs[name]
+            cs.set_scan_in_file_func(func)
 
-    def set_scan_filename(self, func, *coords):
+    def set_scan_filename_func(self, func, *coords):
         """Set function for scanning coordinates values in filename.
 
         Parameters
         ----------
         func: Callable[[CoordScan, re.match], values: List[float]]
             Function that recover values from filename
-        *coords: List[Coord]
+        coords: List[Coord]
             Coordinate to apply this function for.
         """
         fg = self.current_fg
-        self.current_fg.set_scan_filename_func(func, *coords)
+        for name in coords:
+            cs = fg.cs[name]
+            cs.set_scan_filename_func(func)
+
+    def set_scan_manual(self, values, coord):
+        """Set coordinate values manually."""
+        fg = self.current_fg
+        cs = fg.cs[coord]
+        cs.set_scan_manual(values)
 
     def set_coord_const_values(self, coord, values):
         """Set coordinates values manually.

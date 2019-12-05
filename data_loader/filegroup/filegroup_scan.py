@@ -124,51 +124,8 @@ class FilegroupScan():
 
         return cs
 
-    def set_scan_in_file_func(self, func, *coords):
-        """Set the function used for scanning in files.
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, filename: str, values: List[float]],
-                       values: List[float], in_idx: List[int]]
-        coords: List[Coord]
-            Coordinate to apply this function for.
 
-        Raises
-        ------
-        AttributeError
-            If the coordinate flag is wrong.
-        """
-        for name in coords:
-            cs = self.cs[name]
-            if not cs.inout.startswith('in'):
-                raise AttributeError(("{:s} has flag {:s}, ").format(
-                    name, cs.inout))
-            cs.set_scan_in_file_func(func)
-            cs.scan = True
-
-    def set_scan_filename_func(self, func, *coords):
-        """Set the function used for scanning filenames.
-
-        Parameters
-        ----------
-        func: Callable[[CoordScan, re.match], values: List[float]]
-            Function that recover values from filename
-        coords: List[Coord]
-            Coordinate to apply this function for.
-
-        Raises
-        ------
-        AttributeError
-            If the coordinate flag is wrong.
-        """
-        for name in coords:
-            cs = self.cs[name]
-            if not cs.inout.endswith('out'):
-                raise AttributeError(("{:s} has flag {:s}, ").format(
-                    name, cs.inout))
-            cs.set_scan_filename_func(func)
-            cs.scan = True
 
     def add_scan_regex(self, pregex, replacements):
         """Specify the regex for scanning.
