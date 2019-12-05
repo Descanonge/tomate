@@ -119,8 +119,7 @@ class FilegroupLoad(FilegroupScan):
         keys_slice = {}
         for name, cs in self.enum_shared(False).items():
             key = keys[name]
-            keys_in[name] = cs.get_slice(key)
-            # TODO: slice(None, None, -1) if reversed ?
+            keys_in[name] = cs.get_in_idx(key)
             keys_slice[name] = slice(None, None)
 
         cmd.set_key(keys_in, keys_slice)

@@ -110,16 +110,11 @@ class CoordScan(Coord):
         If the coordinate is shared accross files
     values: List[float]
         list of values found for this coordinate
-    slice_total: Slice
-        Slice that is used (migth be less that what is available
-        on disk)
-    scan: bool
-        If the values of the coordinate are to be scanned
     scan: set
         What is to be scanned
     """
 
-    def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
+    def __init__(self, filegroup, coord: Coord, shared: bool):
         self.filegroup = filegroup
         self.coord = coord
 
@@ -127,9 +122,9 @@ class CoordScan(Coord):
         self.scan = set()
 
         self.values = []
-        self.slice_total = slice(None, None)
+        self.in_idx = []
 
-        super(CSRB, self).__init__(coord.name, coord._array, coord.unit, coord.name_alt)
+        super().__init__(coord.name, coord._array, coord.unit, coord.name_alt)
 
     def set_values(self, values: List):
         """Manually set values"""
@@ -141,11 +136,16 @@ class CoordScan(Coord):
 
     def sort_values(self):
         """Sort by values."""
-        order = np.argsort(self.values)
         self.values = np.array(self.values)
-        self.values = self.values[order]
+        self.in_idx = np.array(self.in_idx)
 
-    def get_slice(self, key):
+        order = np.argsort(self.values)
+        self.values = self.values[order]
+        self.in_idx = self.in_idx[order]
+
+        return order
+
+    def get_in_idx(self, key):
         # TODO: doc
         """Return key of what is available.
 
@@ -153,63 +153,20 @@ class CoordScan(Coord):
         ----------
         key: Slice or List[int]
         """
-        if self.size is not None:
-            start, stop, step = key.indices(self.size)
-            key_data = slice(start + self.slice_total.start,
-                             stop + self.slice_total.start,
-                             step)
-        else:
-            # If cs has no values, to be removed ?
-            # TODO: remove ?
+        # TODO: input info on descending manually
+        if self.size is None:
             key_data = key
+        else:
+            key_data = self.in_idx[key]
 
-        if isinstance(key, list):
-            key_data = [z + self.slice_total.start for z in key]
+        if isinstance(key_data, (list, np.ndarray)):
+            diff = np.diff(key_data)
+            if np.all(diff == 1):
+                key_data = slice(key_data[0], key_data[-1]+1, 1)
+            elif np.all(diff == -1):
+                key_data = slice(key_data[-1], key_data[0]+1, -1)
 
         return key_data
-
-
-class CoordScanInOut(CoordScan):
-    """Abstract Coord used for scanning of one variable.
-
-    Keep list of values, and on the same index, the matches
-    for the filenames, and the index inside the file.
-    (No index inside the file is noted as None)
-
-    Parameters
-    ----------
-    filegroup: Filegroup
-        Corresponding filegroup
-    coord: Coord
-        Parent coordinate object
-    inout: str
-        inout flag
-
-    Attributes
-    ----------
-    matches: List[str]
-        matches found in filenames
-    in_idx: List[int]
-        list of index in files
-    matchers: List[Matcher]
-        matchers for this coordinate
-    """
-
-    def __init__(self, filegroup, CSRB, coord: Coord, inout: str):
-        super(type(self), self).__init__(filegroup, CSRB, coord, inout)
-
-        self.matches = []
-        self.in_idx = []
-        self.matchers = []
-
-    @property
-    def n_matchers(self):
-        """Number of matchers"""
-        return len(self.matchers)
-
-    def add_matcher(self, matcher: Matcher):
-        """Add a matcher."""
-        self.matchers.append(matcher)
 
     def scan_filename(self, m): # pylint: disable=method-hidden
         """Scan filename to find values.
@@ -279,7 +236,7 @@ class CoordScanInOut(CoordScan):
         self.scan = set(['manual'])
         self.set_values(values)
 
-    def scan_file(self, m, filename):
+    def scan_file_values(self, m, filename):
         """Find values for a file.
 
         Parameters
@@ -289,117 +246,107 @@ class CoordScanInOut(CoordScan):
         filename: str
             Filename
         """
-        # Scan filename
-        matches = []
-        for mchr in self.matchers:
-            mchr.match = m.group(mchr.idx+1)
-            matches.append(mchr.match)
-
-        if matches not in self.matches:
-
-            values = self.scan_filename() # pylint: disable=not-callable
+        values = None
+        in_idx = None
+        if 'filename' in self.scan:
+            values = self.scan_filename(m) # pylint: disable=not-callable
+        if 'in' in self.scan:
             values, in_idx = self.scan_in_file(filename, values) # pylint: disable=not-callable
 
-            if isinstance(values, (int, float, type(None))):
-                values = [values]
-            if isinstance(in_idx, (int, float, type(None))):
-                in_idx = [in_idx]
+        if isinstance(values, (int, float, type(None))):
+            values = [values]
+        if isinstance(in_idx, (int, float, type(None))):
+            in_idx = [in_idx]
 
-            if len(values) != len(in_idx):
-                raise IndexError("not as much values as infile indices")
+        if len(values) != len(in_idx):
+            raise IndexError("not as much values as infile indices")
 
-            matches = [matches for _ in range(len(values))]
-            self.matches += matches
-            self.values += values
-            self.in_idx += in_idx
+        self.values += values
+        self.in_idx += in_idx
 
-    def sort_values(self):
-        """Sort by values."""
-        self.values = np.array(self.values)
-        self.matches = np.array(self.matches)
-        self.in_idx = np.array(self.in_idx)
-
-        order = np.argsort(self.values)
-        self.values = self.values[order]
-        self.matches = self.matches[order]
-        self.in_idx = self.in_idx[order]
-
-    def slice(self, key):
-        """Slice values."""
-        self.matches = self.matches[key]
-        super(type(self), self).slice(key)
+        return len(values)
 
 
 class CoordScanIn(CoordScan):
-    """Abstract Coord used for scanning of one variable.
-
-    Values are fully contained in files.
-    Only the first file is scanned.
-
-    Parameters
-    ----------
-    filegroup: Filegroup
-        Corresponding filegroup
-    coord: Coord
-        Parent Coord object
+    """Coord used for scanning of a in coordinate.
 
     Attribute
     ---------
     scanned: bool
-        If the coordinate has been scanned
+        If the coord has been scanned
     """
 
-    def __init__(self, filegroup, CSRB, coord):
-        inout = "in"
-        super(type(self), self).__init__(filegroup, CSRB, coord, inout)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, shared=False)
 
         self.scanned = False
 
-    def scan_in_file(self, filename): # pylint: disable=method-hidden
-        """Scan values in file.
+    def scan_file(self, m, filename):
+        """Scan file."""
+        if not self.scanned:
+            self.scan_file_values(m, filename)
+            self.scanned = True
 
-        Parameters
-        ----------
-        filename: str
-            Filename to scan
+class CoordScanShared(CoordScan):
+    """Coord used for scanning of a shared coordinate.
 
-        Returns
-        -------
-        values: List[float]
-            Values found in file
+    Attribute
+    ---------
+    matchers: List of Matcher
+    matchers: ?
+    """
 
-        Raises
-        ------
-        NotImplementedError
-            If scan if file was not set.
-        """
-        raise NotImplementedError("scan_in_file was not set for {0}".format(self.name))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, shared=True)
 
-    def set_scan_in_file_func(self, func):
-        """Set function for scanning values in file.
+        self.matchers = []
+        self.matches = []
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, filename: str], values: List[float]]
-        """
-        self.scan_in_file = MethodType(func, self)
+    @property
+    def n_matchers(self):
+        """Numbers of matchers for that coordinate."""
+        return len(self.matchers)
+
+    def add_matcher(self, matcher: Matcher):
+        """Add a matcher."""
+        self.matchers.append(matcher)
+
+    def sort_values(self):
+        """Sort by values."""
+        self.matches = np.array(self.matches)
+
+        order = super().sort_values()
+        self.matches = self.matches[order]
+
+    def slice(self, key):
+        """Slice values."""
+        self.matches = self.matches[key]
+        super().slice(key)
 
     def scan_file(self, m, filename):
-        """Find values for a filename.
+        """Scan file."""
+        matches = []
+        for mchr in self.matchers:
+            mchr.match = m.group(mchr.idx + 1)
+            matches.append(mchr.match)
 
-        Parameters
-        ----------
-        m: re.match
-            Match of the filename against the regex
-        filename: str
-            Filename
-        """
-        if not self.scanned:
-            values = self.scan_in_file(filename) # pylint: disable=not-callable
+        if matches not in self.matches:
+            n_values = self.scan_file_values(m, filename)
 
-            if isinstance(values, (int, float, type(None))):
-                values = [values]
+            matches = [matches for _ in range(n_values)]
+            self.matches += matches
 
-            self.values = values
 
-        self.scanned = True
+def get_coordscan(filegroup, coord, shared):
+    """Get the right CoordScan object derived from a Coord."""
+    coord_type = type(coord)
+    CoordScanRB = type("CoordScanRB", (CoordScan, coord_type), {})
+
+    if shared:
+        CoordScanType = type("CoordScanSharedRB",
+                             (CoordScanShared, CoordScanRB), {})
+    else:
+        CoordScanType = type("CoordScanInRB",
+                             (CoordScanIn, CoordScanRB), {})
+
+    return CoordScanType(filegroup, coord)

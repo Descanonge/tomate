@@ -5,15 +5,14 @@ from datetime import datetime, timedelta
 import netCDF4 as nc
 
 
-def scan_filename_null(cs):
+def scan_filename_null(cs, filename):
     """Null."""
     return None
 
 
-def scan_in_file_null(cs, filename):
+def scan_in_file_null(cs, filename, values):
     """Null."""
-    return None
-
+    return None, None
 
 def scan_inout_file_null(cs, filename, values):
     """Null."""
@@ -81,22 +80,7 @@ def get_date_from_matches(cs):
     return None
 
 
-def scan_in_file_nc(cs, filename):
-    """Scan netCDF file for in values."""
-    with nc.Dataset(filename, 'r') as dt:
-        for name in [cs.name] + cs.name_alt:
-            try:
-                values = dt[name][:]
-            except IndexError:
-                values = None
-            else:
-                break
-
-    values = list(values)
-    return values
-
-
-def scan_inout_file_nc(cs, filename, values):
+def scan_in_file_nc(cs, filename, values):
     """Scan netCDF file for inout values."""
     with nc.Dataset(filename, 'r') as dt:
         for name in [cs.name] + cs.name_alt:
@@ -115,5 +99,5 @@ def scan_inout_file_nc(cs, filename, values):
 
 def scan_inout_file_nc_idx_only(cs, filename, values):
     """Scan netCDF for inout index only."""
-    _, in_idx = scan_inout_file_nc(cs, filename, values)
+    _, in_idx = scan_in_file_nc(cs, filename, values)
     return values, in_idx

@@ -37,8 +37,9 @@ class FilegroupScan():
     contains: List[str]
         Variables contained in this filegroup
     vi: VariablesInfo
-    coords: List[Coord]
-        Parent coordinates objects
+    coords: List[[Coord, shared: bool]]
+        Parent coordinates objects, and a bool indicating if the coordinate
+        is shared accross files
 
     Attributes
     ----------
@@ -76,20 +77,9 @@ class FilegroupScan():
     def make_coord_scan(self, coords: List[Coord]):
         """Add CoordScan objects."""
         self.cs = {}
-        for coord, inout in coords:
-            #TODO: Move RB in coord_scan.py
-            CoordScanRB = type('CoordScanRB', (type(coord),), dict(dlcs.CoordScan.__dict__))
-
-            if inout.endswith("out"):
-                CoordScanInOutRB = type('CoordScanInOutRB', (CoordScanRB,),
-                                        dict(dlcs.CoordScanInOut.__dict__))
-                self.cs.update({coord.name: CoordScanInOutRB(self, CoordScanRB, coord, inout)})
-            elif inout == "in":
-                CoordScanInRB = type('CoordScanInRB', (CoordScanRB,),
-                                     dict(dlcs.CoordScanIn.__dict__))
-                self.cs.update({coord.name: CoordScanInRB(self, CoordScanRB, coord)})
-            else:
-                self.cs.update({coord.name: CoordScanRB(self, CoordScanRB, coord, inout)})
+        for coord, shared in coords:
+            cs = dlcs.get_coordscan(self, coord, shared)
+            self.cs.update({coord.name: cs})
 
     def enum_shared(self, shared=None):
         """Iter through CoordScan objects."""
