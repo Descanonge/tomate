@@ -57,7 +57,7 @@ its name and a serie of attributes.
 
    name = "SST"
    infos = {'fullname': 'Sea Surface Temperature',
-            'ncname': 'sst'
+            'ncname': 'sst',
             'unit': 'deg C',
             'vmin': -2, 'vmax': 30}
    vic.add_var(name, infos)
@@ -112,12 +112,12 @@ the vi.
    from data_loader.constructor import FGConstructor
    from data_loader.filegroup import FilegroupNetCDF
 
-   fgc = FGConstructor('/Data/', coords, vi)
+   fgc = FGConstructor('/Data/', coords)
 
 We add the first filegroup for the SSH::
 
   contains = ['SSH']
-  coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'out']]
+  coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
   fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
 
 We first tell what variables are placed in this filegroup. There
@@ -229,7 +229,7 @@ Here we will use :class:`DataMasked<data_loader.masked.DataMasked>`, that
 contains function for data with masked values::
 
   from data_loader.masked.DataMasked
-  dt = fgc.make_database(DataMasked)
+  dt = fgc.make_database(DataMasked, vi)
 
 
 Loading Data
@@ -240,18 +240,18 @@ For that, we must specify the variables, and
 what part of the dimensions we want.
 For instance::
 
-  # Load all SST
-  dt.load_data('SST')
+    # Load all SST
+    dt.load_data('SST')
 
-  # Load first time step of SST and SSH
-  dt.load_data(['SST', 'SSH'], time=0)
-  dt.load_data(['SST', 'SSH'], 0)
+    # Load first time step of SST and SSH
+    dt.load_data(['SST', 'SSH'], time=0)
+    dt.load_data(None, 0)
 
-  # Load a subpart of all variables.
-  # The variables order in data is reversed
-  dt.load_data(None, lat=slice(0, 500), lon=slice(200, 800))
+    # Load a subpart of all variables.
+    # The variables order in data is reversed
+    dt.load_data(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
-  print(dt.data)
+    print(dt.data)
 
 
 After loading data, the coords of the data will be also sliced.
