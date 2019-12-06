@@ -76,9 +76,4 @@ in the code is immediate, and only the git pull is necessary for upgrade::
 Documentation
 -------------
 
-Documentation is on its way, though the code itself is already well commented.
-An API reference can be build with sphinx.
-In doc/::
-
-   sphinx-apidoc -fe -o source/references ../data_loader
-   make html
+Documentation is available at `<http://data-loader.readthedocs.io>`__.
