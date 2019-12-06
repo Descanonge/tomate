@@ -2,7 +2,7 @@
 
 Contains strictly monoteous values.
 Stores name of the coordinate, its fullname,
-and the alternative name it could be found under.
+and the alternative name it could be found under in files.
 Also stores its unit.
 
 
@@ -40,7 +40,7 @@ class Coord():
         Values of the coordinate
     unit: str, optional
         Coordinate unit
-    name_alt: List[str], optional
+    name_alt: str or List of str, optional
         Alternative names
     fullname: str, optional
         Print name
@@ -51,7 +51,7 @@ class Coord():
         Identification of the coordinate
     unit: str
         Coordinate unit
-    name_alt: List[str]
+    name_alt: List of str
         Alternative names
     fullname: str
         Print name
@@ -127,11 +127,12 @@ class Coord():
         return self._array.__getitem__(y)
 
     def __str__(self):
-        s = str(type(self)) + '\n'
-        s += 'name: ' + self.name + '\n'
-        s += 'extent: ' + self.get_extent_str() + '\n'
-        s += 'size: ' + str(self.size) + '\n'
-        return s
+        s = []
+        s.append(str(type(self)))
+        s.append('name: ' + self.name)
+        s.append('extent: ' + self.get_extent_str())
+        s.append('size: ' + str(self.size))
+        return '\n'.join(s)
 
     def get_extent_str(self) -> str:
         """Return the extent as str."""
@@ -146,10 +147,9 @@ class Coord():
         return self.__class__(self.name, a, self.unit, self.name_alt)
 
     def slice(self, key):
-        """Subset the coordinate."""
-        self._array = self._array[key]
-        self._descending = np.all(np.diff(self._array) < 0)
-        self._size = self._array.size
+        """Slice the coordinate."""
+        data = self._array[key]
+        self.update_values(data)
 
     def subset(self, vmin: float, vmax: float) -> [int, int]:
         # REVIEW

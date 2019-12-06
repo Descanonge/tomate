@@ -12,13 +12,9 @@ descending.
 Each coordinate can have a unit attribute (only cosmetic).
 It can also contain a `name_alt` attribute, a list of strings that list the
 possible names this coordinate/dimension can be found in the files. For
-instance, the latitude coordinate is generally called `lat` or `latitude`.
+instance, the latitude coordinate can be found under either `lat` or `latitude`.
 
-The coordinate contains various methods to find a values' index.
-
-To scan files, this object (or any of its child class) is subclassed into a
-:class:`CoordScan<data_loader.coord_scan.CoordScan>`, which has additional
-functionnalities for scanning coordinate values.
+The coordinate contains various methods to find the index of a value.
 
 
 Time
@@ -28,7 +24,20 @@ The :class:`Time<data_loader.time.Time>` class has a few additional
 functionnalities to treat date values more easily.
 Most notably one can obtain dates from index, or vice-versa using
 Time.index2date() and Time.date2index().
+
 The unit is here mandatory, and must comply to CF metadata conventions, and
 be of the form `<time units> since <reference time>`.
 This functionality uses the intern datetime.datetime objects and third party
 netCDF4.num2date and netCDF4.date2num functions.
+
+
+CoordScan
+=========
+
+To scan files, each Coord (or any of its child class) is subclassed into a
+:class:`CoordScan<data_loader.coord_scan.CoordScan>`, which has additional
+functionnalities for scanning coordinate values.
+The CoordScan class dynamically inherits from any subclass of Coord.
+This demands the derived Coord has the same arguments for its creation.
+
+More info on :doc:`scanning<scanning>`.

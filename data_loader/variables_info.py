@@ -12,8 +12,6 @@ import copy
 
 from data_loader.iter_dict import IterDict
 
-# TODO: kwargs
-
 
 class VariablesInfo():
     """Gives various info about all variables.

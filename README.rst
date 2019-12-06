@@ -5,6 +5,7 @@ Load data arranged in various way on disk.
 
 **This is still in alpha, use at your own risk !**
 
+
 Features
 --------
 
@@ -15,12 +16,13 @@ Features
 - Highly modulable, can be tailored to your needs.
 - NetCDF files support, with masked data, and land mask.
 
-As of now, this supports NetCDF files out of the box. But the package can be
+As of now, this only supports NetCDF files out of the box. But the package can be
 easily extended for other file formats.
 
 Support Linux only. Other platforms incoming !
 
 See examples/ for use cases.
+
 
 TODO
 ----
@@ -37,9 +39,6 @@ don't want those messages ((ง •̀_•́)ง), use the following code::
 
 More logging information is also to come in the near future.
 
-If data coming from different sources does not have the same range, a warning
-is issued. At term, the code should only load overlaping data, however this is
-still buggy. I recommend that you avoid this warning for now.
 
 Requirements
 ------------
@@ -49,7 +48,9 @@ This requires the following python packages::
   numpy
   netCDF4
   matplotlib
+  cartopy
   shapely
+
 
 Install
 -------
@@ -72,6 +73,7 @@ Alternatively, the installation can be made with a symlink, so that any change
 in the code is immediate, and only the git pull is necessary for upgrade::
 
   pip install -e .
+
 
 Documentation
 -------------

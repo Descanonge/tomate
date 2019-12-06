@@ -1,8 +1,4 @@
-"""Holds timestamps with additional functionalities.
-
-Time class stores timestamps as tuple.
-Also stores the unit, and methods using
-datetime objects.
+"""Coordinate class with additional features for date manipulation.
 
 Use user settings to set locales.
 
@@ -34,7 +30,7 @@ class Time(Coord):
 
     Attributes
     ----------
-    unit: str = "seconds since 1970-01-01 00:00:00"
+    unit: str
         Time unit
     """
 
@@ -69,8 +65,9 @@ class Time(Coord):
             indices = [indices]
         dates = num2date([self[i] for i in indices], self.unit)
 
-        for i in range(len(dates)):
-            d = dates[i]
+        # Sometimes, num2date returns a subclass of datetime
+        # I convert it back to datetime.datetime
+        for i, d in enumerate(dates):
             if not isinstance(d, datetime):
                 dates[i] = datetime(d.year, d.month, d.day,
                                     d.hour, d.minute, d.second,
