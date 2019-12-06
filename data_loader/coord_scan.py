@@ -250,13 +250,11 @@ class CoordScan(Coord):
         self.set_values(values)
         self.in_idx = in_idx
 
-    def scan_file_values(self, m, filename):
+    def scan_file_values(self, filename):
         """Find values for a file.
 
         Parameters
         ----------
-        m: re.match
-            Match of the filename against the regex
         filename: str
             Filename
 
@@ -310,7 +308,7 @@ class CoordScanIn(CoordScan):
     def scan_file(self, m, filename):
         """Scan file."""
         if not self.scanned:
-            self.scan_file_values(m, filename)
+            self.scan_file_values(filename)
             self.scanned = True
 
 
@@ -364,7 +362,7 @@ class CoordScanShared(CoordScan):
         # If they were not found before, which can happen when
         # there is more than one shared coord.
         if matches not in self.matches:
-            n_values = self.scan_file_values(m, filename)
+            n_values = self.scan_file_values(filename)
 
             matches = [matches for _ in range(n_values)]
             self.matches += matches
