@@ -90,6 +90,11 @@ class VariablesInfo():
 
         return vi
 
+    @property
+    def infos(self):
+        """Get list of infos."""
+        return self._infos
+
     def copy(self) -> "VariablesInfo":
         """Copy this instance."""
 
