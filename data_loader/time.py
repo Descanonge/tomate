@@ -40,9 +40,15 @@ class Time(Coord):
                                     for z in self.index2date([0, -1])])
 
     def update_values(self, values: List[float]):
-        # TODO: raise if no unit ?
+        """Update values.
+
+        Raises
+        ------
+        ValueError
+            If the coordinate has no unit.
+        """
         if self.unit == "":
-            self.unit = "seconds since 1970-01-01 00:00:00"
+            raise ValueError("%s has no unit" % self.name)
 
         super().update_values(values)
 
