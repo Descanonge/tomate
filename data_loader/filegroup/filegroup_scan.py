@@ -19,7 +19,7 @@ Filegroup:
 import os
 import re
 
-from typing import List, Dict
+from typing import List
 
 from data_loader.coord import Coord
 import data_loader.coord_scan as dlcs

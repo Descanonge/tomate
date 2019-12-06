@@ -130,7 +130,7 @@ class FilegroupLoad(FilegroupScan):
         for cmd in commands:
             self._load_cmd(cmd)
 
-    def _load_cmd(self, filename, var_list, keys_in, keys_slice):
+    def _load_cmd(self, cmd):
         """Load data from one file using a command.
 
         Parameters

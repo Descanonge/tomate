@@ -22,14 +22,16 @@ merge_data(dt1, dt2)
 change_variable()
 """
 
+import logging
 from types import MethodType
 from typing import List
 
 import numpy as np
 
 from data_loader.coord import Coord
-from data_loader.variables_info import VariablesInfo
 from data_loader.iter_dict import IterDict
+
+log = logging.getLogger(__name__)
 
 
 class DataBase():

@@ -9,13 +9,15 @@ FGConstructor
     Start scanning.
 """
 
-import warnings
+import logging
 import os
 
 import numpy as np
 
 from data_loader.variables_info import VariablesInfo
 from data_loader.coord import select_overlap
+
+log = logging.getLogger(__name__)
 
 
 class VIConstructor():
@@ -199,11 +201,11 @@ class FGConstructor():
         """
         fg = self.current_fg
         cs = fg.cs[coord]
-        if cs.scan:
-            warnings.warn("{cs.name} has a scannable flag. "
-                          "Values set manually could be overwritten.")
+        cs.set_scan_manual(values, in_idx)
 
-        self.current_fg.cs[coord].set_values(values)
+        if cs.scan:
+            log.warning("%s has a scannable flag. "
+                        "Values set manually could be overwritten.", cs.name)
 
     def scan_files(self):
         """Scan files.
@@ -268,10 +270,10 @@ class FGConstructor():
             coords[0].assign_values()
 
             if len(cut) > 0:
-                mess = ("({:s}) does not have the same range across"
-                        " all filegroups. A common range is taken. ").format(name)
-                mess += coord.get_extent_str()
-                warnings.warn(mess+cut, stacklevel=2)
+                mess = ("(%s) does not have the same range across"
+                        " all filegroups. A common range is taken. %s")
+                log.warning(mess, name, coord.get_extent_str(),
+                            stacklevel=2)
 
             # Check length
             for cs in coords:

@@ -18,7 +18,7 @@ The coordinate contains various methods to find the index of a value.
 
 
 Time
-====
+----
 
 The :class:`Time<data_loader.time.Time>` class has a few additional
 functionnalities to treat date values more easily.
@@ -32,7 +32,7 @@ netCDF4.num2date and netCDF4.date2num functions.
 
 
 CoordScan
-=========
+---------
 
 To scan files, each Coord (or any of its child class) is subclassed into a
 :class:`CoordScan<data_loader.coord_scan.CoordScan>`, which has additional

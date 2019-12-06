@@ -25,7 +25,7 @@ class Command():
             s.append("keys in: " + str(self.keys_in))
         if self.keys_slice:
             s.append("keys slice: " + str(self.keys_slice))
-        return("\n".join(s))
+        return "\n".join(s)
 
     def enum(self):
         """Enum on keys."""
@@ -63,7 +63,7 @@ class Command():
             coords_ = [z for z in coords if z != name]
 
             i = 1
-            while (i < self.n_keys):
+            while i < self.n_keys:
                 key_in_old = self.keys_in[i-1]
                 key_sl_old = self.keys_slice[i-1]
                 key_in = self.keys_in[i]

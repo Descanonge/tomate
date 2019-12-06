@@ -4,7 +4,6 @@ Basic support fillValue
 """
 
 import logging
-import warnings
 
 import numpy as np
 import netCDF4 as nc
@@ -110,8 +109,9 @@ class FilegroupNetCDF(FilegroupLoad):
             except KeyError:
                 dim = data_file.dimensions[coord_nc].size
                 if dim > 1:
-                    warnings.warn("Additional dimension {0} in file of "
-                                  "size > 1. The first index will be used".format(coord))
+                    log.warning("Additional dimension %s in file of "
+                                "size > 1. The first index will be used",
+                                coord)
                 k = 0
                 # We do not keep the coord name in order, with a key equal to zero,
                 # numpy will squeeze the axis.
