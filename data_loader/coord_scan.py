@@ -244,10 +244,11 @@ class CoordScan(Coord):
         self.scan.add("in")
         self.scan_in_file = MethodType(func, self)
 
-    def set_scan_manual(self, values):
+    def set_scan_manual(self, values, in_idx):
         """Set values manually."""
         self.scan = set(['manual'])
         self.set_values(values)
+        self.in_idx = in_idx
 
     def scan_file_values(self, m, filename):
         """Find values for a file.

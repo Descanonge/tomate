@@ -184,21 +184,12 @@ class FGConstructor():
             cs = fg.cs[name]
             cs.set_scan_filename_func(func)
 
-    def set_scan_manual(self, values, coord):
+    def set_scan_manual(self, coord, values, in_idx=None):
         """Set coordinate values manually."""
-        fg = self.current_fg
-        cs = fg.cs[coord]
-        cs.set_scan_manual(values)
 
-    def set_coord_const_values(self, coord, values):
-        """Set coordinates values manually.
+        if in_idx is None:
+            in_idx = [None for _ in range(len(values))]
 
-        Parameters
-        ----------
-        coord: str
-            Coordinate name
-        values: Sequence[float]
-        """
         fg = self.current_fg
         cs = fg.cs[coord]
         cs.set_scan_manual(values, in_idx)
