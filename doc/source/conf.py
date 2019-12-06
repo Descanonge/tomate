@@ -26,6 +26,7 @@ author = 'Clément Haëck'
 # The full version, including alpha/beta/rc tags
 release = data_loader.__version__
 
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 # Add any Sphinx extension module names here, as strings. They can be
