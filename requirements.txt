@@ -1,5 +1,6 @@
 numpy
 netCDF4
 matplotlib
+GEOS
 cartopy
 shapely
