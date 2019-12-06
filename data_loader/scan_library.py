@@ -5,16 +5,12 @@ from datetime import datetime, timedelta
 import netCDF4 as nc
 
 
-def scan_filename_null(cs, filename):
+def scan_filename_null(cs):
     """Null."""
     return None
 
 
 def scan_in_file_null(cs, filename, values):
-    """Null."""
-    return None, None
-
-def scan_inout_file_null(cs, filename, values):
     """Null."""
     return None, None
 
@@ -97,7 +93,7 @@ def scan_in_file_nc(cs, filename, values):
     return in_values, in_idx
 
 
-def scan_inout_file_nc_idx_only(cs, filename, values):
+def scan_in_file_nc_idx_only(cs, filename, values):
     """Scan netCDF for inout index only."""
     _, in_idx = scan_in_file_nc(cs, filename, values)
     return values, in_idx
