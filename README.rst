@@ -46,10 +46,8 @@ Requirements
 This requires the following python packages::
 
   numpy
+  scipy
   netCDF4
-  matplotlib
-  cartopy
-  shapely
 
 
 Install

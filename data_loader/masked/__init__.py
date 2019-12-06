@@ -1,4 +1,4 @@
-"""Module for loading NetCDF files."""
+"""Module for masked data."""
 
 from .data_masked import DataMasked
 

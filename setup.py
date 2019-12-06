@@ -20,8 +20,6 @@ setup(name='data_loader',
       install_requires=[
           'numpy',
           'scipy',
-          'cartopy',
-          'shapely',
-          'matplotlib'
+          'netCDF4'
       ],
       packages=find_packages())

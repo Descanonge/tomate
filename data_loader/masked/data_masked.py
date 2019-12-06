@@ -8,7 +8,6 @@ DataNetCDF
 """
 
 import logging
-import warnings
 
 import numpy as np
 
@@ -28,13 +27,17 @@ class DataMasked(DataBase):
 
     Data is loaded from disk with load_data
     """
+    def __init__(self, *args, **kwargs):
+        self.compute_land_mask_func = None
+
+        super().__init__(*args, **kwargs)
 
     def _allocate_memory(self):
         """Allocate data variable.
 
         Data is storred as a masked array
         """
-        log.info("allocating numpy masked array of shape %s" % self.shape)
+        log.info("allocating numpy masked array of shape %s", self.shape)
         self.data = np.ma.zeros(self.shape)
         # TODO: Better api from numpy ?
         self.data.mask = np.ma.make_mask_none(self.shape)
@@ -77,10 +80,15 @@ class DataMasked(DataBase):
             self.data[self.vi.idx['Chla_OC5']] = A
             # A[A > 3] = np.nan
 
+    def set_compute_land_mask(self, func):
+        """Set function to compute land mask."""
+        self.compute_land_mask_func = func
+
     def compute_land_mask(self):
         """Compute land mask and save to disk."""
-        data_loader.masked.mask.compute_land_mask(
-            self.root, self._coords_orr['lat'], self._coords_orr['lon'])
+        mask = self.compute_land_mask_func(self._coords_orr['lat'],
+                                           self._coords_orr['lon'])
+        np.save(self.root + 'land_mask.npy', mask)
 
     def get_land_mask(self, keys=None):
         """Return land mask.

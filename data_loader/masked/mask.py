@@ -1,49 +1,7 @@
-"""Manages some aspects of masked data.
-
-Computation of land mask from Natural Earth using cartopy.
-"""
+"""Manages some aspects of masked data."""
 
 import numpy as np
 import scipy.ndimage as ndimage
-
-from data_loader.masked._rasterize_polygon import shp_mask
-
-
-def compute_land_mask(root, lat, lon):
-    """Compute land mask.
-
-    According to Cartopy data (from naturalearthdata.com)
-    for a regular grid save it in wd
-
-    Parameters
-    ----------
-    root: str
-        Directory
-    lat: Coord
-    lon: Coord
-    """
-    from shapely.ops import unary_union
-    from cartopy.feature import LAND
-    from shapely.geometry.polygon import Polygon
-
-    # Extent
-    lon_min, lon_max = lon.get_limits()
-    lat_min, lat_max = lat.get_limits()
-
-    d = abs(lon_max - lon_min)/10.
-    lon_min = lon_min - d
-    lon_max = lon_max + d
-    lat_min = lat_min - d
-    lat_max = lat_max + d
-    extent = [(lon_min, lat_min), (lon_max, lat_min),
-              (lon_max, lat_max), (lon_min, lat_max)]
-
-    P = Polygon(extent)
-    global_land = unary_union(tuple(LAND.geometries()))
-    land = global_land.intersection(P)
-
-    mask = shp_mask(land, lon, lat)
-    np.save(root + 'land_mask.npy', mask)
 
 
 def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
