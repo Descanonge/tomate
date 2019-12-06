@@ -409,7 +409,7 @@ class DataBase():
 
     def _allocate_memory(self):
         """Allocate data member."""
-        log.info("allocating numpy array of shape %s" % self.shape)
+        log.info("allocating numpy array of shape %s", self.shape)
         self.data = np.zeros(self.shape)
 
     def _get_filegroups_for_variables(self, variables):
@@ -510,7 +510,7 @@ class DataBase():
             self.data = np.delete(self.data, [keys], axis=0)
         self.vi.pop_variables(variables)
 
-    def write(self, filename, wd=None, variables=None, *coords, **kwcoords):
+    def write(self, filename, wd=None, variables=None, **kwcoords):
         """Write variables to disk.
 
         Write to a netcdf file.
@@ -530,7 +530,7 @@ class DataBase():
         if variables is None:
             variables = self.vi.var
 
-        keys = self.get_coords_kwargs(*coords, **kwcoords)
+        keys = self.get_coords_kwargs(**kwcoords)
 
         fg_var = self._get_filegroups_for_variables(variables)
 

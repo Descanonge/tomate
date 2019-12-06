@@ -24,12 +24,10 @@ class FilegroupNetCDF(FilegroupLoad):
 
         Parameters
         ----------
-        filename: str
-            Filename to open
-        var_list: List[str]
-            Variables to load
-        keys: Dict[coord name, key]
-            Keys to load in file
+        cmd: Command
+            Load command containing the filename,
+            variables to load, in file keys, and
+            where to place the data.
         """
         with nc.Dataset(cmd.filename, 'r') as data_file:
             log.info("Opening %s", cmd.filename)
@@ -136,7 +134,7 @@ class FilegroupNetCDF(FilegroupLoad):
     def write(self, filename, wd, variables, keys):
         """Write data to disk."""
         log.warning("Writing a subset not implemented, writing all data.")
-       
+
         with nc.Dataset(wd + filename, 'w') as dt:
             log.info("in %s", filename)
             for name, coord in self.db.coords.items():
