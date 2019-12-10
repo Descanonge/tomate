@@ -33,11 +33,18 @@ def get_value_from_matches(cs):
 
 
 def get_date_from_matches(cs):
-    """Retrieve date from matched elements."""
+    """Retrieve date from matched elements.
+
+    Default date is 1970-01-01 12:00:00
+    If any element is not found in the filename, it will be
+    replaced by that element in the default date.
+    If no match is found, None is returned.
+    """
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
     match = False
-    date = {"year": 1970, "month": 1, "day": 1}
+    date = {"year": 1970, "month": 1, "day": 1,
+            "hour": 12, "minute": 0, "second": 0}
 
     y = elts.pop("Y", None)
     if y is not None:
