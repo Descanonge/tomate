@@ -204,6 +204,17 @@ class FGConstructor():
             log.warning("%s has a scannable flag. "
                         "Values set manually could be overwritten.", cs.name)
 
+    def set_coord_descending(self, *coords):
+        """Set a coordinate as descending in the filegroup.
+
+        Parameters
+        ----------
+        coords: List of str
+        """
+        fg = self.current_fg
+        for name in coords:
+            fg.cs[name].set_idx_descending()
+
     def scan_files(self):
         """Scan files.
 
@@ -255,12 +266,12 @@ class FGConstructor():
             overlap = select_overlap(*coords)
             cut = ""
             for i, cs in enumerate(coords):
-                sl = overlap[i]
+                sl = overlap[i].indices(cs.size)
                 if sl[0] != 0 or sl[1] != len(cs.values):
                     cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
 
-                cs.slice(slice(*overlap[i]))
-                cs.slice_total = slice(*overlap[i])
+                cs.slice(overlap[i])
+                cs.slice_total = overlap[i]
 
             # Select the first coordinate found in the filegroups
             # with that name

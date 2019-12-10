@@ -157,9 +157,19 @@ class Coord():
 
         vmin and vmax are included
         """
-        i1 = self.get_index(vmin, "below")
-        i2 = self.get_index(vmax, "above") + 1
-        return i1, i2
+        start = self.get_index(vmin, "below")
+        stop = self.get_index(vmax, "above")
+        if not self.is_descending():
+            stop += 1
+            step = 1
+        else:
+            start += 1
+            if stop == 0:
+                stop = None
+            else:
+                stop -= 1
+            step = -1
+        return slice(start, stop, step)
 
     def is_descending(self) -> bool:
         """Return if coordinate is descending"""
@@ -253,6 +263,6 @@ def select_overlap(*coords: List[Coord]) -> List[List[int]]:
     mn = max(mins)
     mx = min(maxs)
 
-    idx = [c.subset(mn, mx) for c in coords]
+    slices = [c.subset(mn, mx) for c in coords]
 
-    return idx
+    return slices

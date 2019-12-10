@@ -125,7 +125,13 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
+        self._idx_descending = False
+
         super().__init__(coord.name, coord._array, coord.unit, coord.name_alt)
+
+    def is_idx_descending(self):
+        """Is idx descending."""
+        return self._idx_descending
 
     def set_values(self, values: List):
         """Set values."""
@@ -144,7 +150,23 @@ class CoordScan(Coord):
         self.values = self.values[order]
         self.in_idx = self.in_idx[order]
 
+        if self.in_idx.dtype.kind in 'iuf':
+            self._idx_descending = np.all(np.diff(self.in_idx) < 0)
+
         return order
+
+    def set_idx_descending(self):
+        """Set coordinate as descending."""
+        self._idx_descending = True
+
+    def reverse_key(self, key):
+        """Reverse asked key."""
+        if isinstance(key, list):
+            key = [self.coord.size - z for z in key]
+        elif isinstance(key, slice):
+            key = reverse_slice(key, self.coord.size)
+
+        return key
 
     def get_in_idx(self, key):
         """Get the in file indices.
@@ -161,18 +183,29 @@ class CoordScan(Coord):
         -------
         key_data: List[int] or Slice
         """
-        # TODO: input info on descending manually
         if self.size is None:
             key_data = key
+            if self.is_idx_descending():
+                key_data = self.reverse_key(key)
         else:
             key_data = self.in_idx[key]
 
         if isinstance(key_data, (list, np.ndarray)):
             diff = np.diff(key_data)
             if np.all(diff == 1):
-                key_data = slice(key_data[0], key_data[-1]+1, 1)
+                start = key_data[0]
+                stop = key_data[-1] + 1
+                step = 1
             elif np.all(diff == -1):
-                key_data = slice(key_data[-1], key_data[0]+1, -1)
+                start = key_data[0]
+                stop = key_data[-1]
+                step = -1
+                if stop == 0:
+                    stop = None
+                else:
+                    stop -= 1
+
+            key_data = slice(start, stop, step)
 
         return key_data
 
@@ -381,3 +414,18 @@ def get_coordscan(filegroup, coord, shared):
                              (CoordScanIn, CoordScanRB), {})
 
     return CoordScanType(filegroup, coord)
+
+
+def reverse_slice(sl, size):
+    """Reverse a slice."""
+    ind = sl.indices(size)
+    start = ind[1] - 1
+    stop = ind[0]
+    step = -1
+
+    if stop == 0:
+        stop = None
+    else:
+        stop -= 1
+
+    return slice(start, stop, step)
