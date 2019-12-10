@@ -55,7 +55,7 @@ class DataBase():
     data: Numpy array
     filegroups: List[Filegroup]
         Filegroups
-    fg_idx: Dict[str, int]
+    _fg_idx: Dict[str, int]
         Index of filegroup for each variable
         {variable name: int}
 
@@ -77,11 +77,11 @@ class DataBase():
     def __init__(self, root, filegroups, vi, *coords):
         self.root = root
 
-        self.fg_idx = {}
+        self._fg_idx = {}
         self.filegroups = filegroups
         for i, fg in enumerate(filegroups):
             for var in fg.contains:
-                self.fg_idx.update({var: i})
+                self._fg_idx.update({var: i})
 
         self.vi = vi
         self._vi_orr = vi.copy()
@@ -428,7 +428,7 @@ class DataBase():
         # find the filegroups we need to load
         fg_var = []
         for var in variables:
-            fg = self.filegroups[self.fg_idx[var]]
+            fg = self.filegroups[self._fg_idx[var]]
             try:
                 idx = fg_var.index(fg)
             except ValueError:
