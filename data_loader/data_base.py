@@ -437,7 +437,7 @@ class DataBase():
         for var in variables:
             fg = self.filegroups[self._fg_idx[var]]
             try:
-                idx = fg_var.index(fg)
+                idx = [z[0] for z in fg_var].index(fg)
             except ValueError:
                 fg_var.append([fg, []])
                 idx = -1
