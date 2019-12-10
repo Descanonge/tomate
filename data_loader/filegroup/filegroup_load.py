@@ -7,11 +7,14 @@ A subclass would replace existing functions specific to a file format.
 import os
 import itertools
 from typing import List
+import logging
 
 import numpy as np
 
 from data_loader.filegroup.filegroup_scan import FilegroupScan
 from data_loader.filegroup.command import Command, merge_cmd_per_file
+
+log = logging.getLogger(__name__)
 
 
 class FilegroupLoad(FilegroupScan):
@@ -153,6 +156,42 @@ class FilegroupLoad(FilegroupScan):
             Coordinate names, in the order of the file.
         """
         raise NotImplementedError
+
+    def _reorder_chunk(self, order, keys, chunk):
+        """Reorder data.
+
+        Dimensions are not necessarily stored with the same
+        order in file and in memory.
+
+        Parameters
+        ----------
+        order: List of str
+            Coordinates names ordered as in file
+        keys: Dict
+            Coordinates keys asked for loading
+        chunk: Numpy array
+            Data chunk taken from file and to re-order
+
+        Returns
+        -------
+        chunk:
+        """
+        # If we ask for keys that are not in the file.
+        # added dimensions are inserted at the begginning
+        order_added = order.copy()
+        for k in keys:
+            if k not in order:
+                chunk = chunk.reshape((1, *chunk.shape))
+                order_added.insert(0, k)
+
+        # Reorder array
+        target = [self.db.coords_name.index(z) for z in order_added]
+        current = list(range(len(order_added)))
+        if target != current:
+            log.info("reordering %s -> %s", current, target)
+            chunk = np.moveaxis(chunk, current, target)
+
+        return chunk
 
     def _preprocess_load_command(self, cmd):
         """Preprocess the load command.

@@ -37,12 +37,12 @@ class FilegroupNetCDF(FilegroupLoad):
                 log.info("variable %s", ncname)
 
                 for key_in, key_slice in cmd:
-                    D = self._load_slice_single_var(data_file, key_in, ncname)
+                    chunk = self._load_slice_single_var(data_file, key_in, ncname)
 
                     log.info("placing it in %s, (%s)",
                              [i_var] + list(key_slice.values()),
                              ['variables'] + self.db.coords_name)
-                    self.db.data[i_var][tuple(key_slice.values())] = D
+                    self.db.data[i_var][tuple(key_slice.values())] = chunk
 
                 # Make sure it is correctly masked
                 try:
@@ -65,25 +65,13 @@ class FilegroupNetCDF(FilegroupLoad):
             Name of the variable in file
         """
 
-        order, keys_ = self._get_order(data_file, ncname, keys)
+        order, keys_ord = self._get_order(data_file, ncname, keys)
 
-        log.info("taking keys %s", keys_)
-        D = data_file[ncname][keys_]
+        log.info("taking keys %s", keys_ord.values())
+        chunk = data_file[ncname][keys_ord.values()]
+        chunk = self._reorder_chunk(order, keys_ord, chunk)
 
-        # If we ask for keys that are not in the file.
-        # Add None keys to create axis in the array where needed
-        for k in keys:
-            if k not in order:
-                D = np.expand_dims(D, -1)
-
-        # Reorder array
-        target = [self.db.coords_name.index(z) for z in order_added]
-        current = list(range(len(order_added)))
-        if target != current:
-            log.info("reordering %s -> %s", current, target)
-            D = np.moveaxis(D, current, target)
-
-        return D
+        return chunk
 
     def _get_order(self, data_file, ncname, keys):
         """Get order from netcdf file, reorder keys.
@@ -98,10 +86,12 @@ class FilegroupNetCDF(FilegroupLoad):
         -------
         order: List[str]
             Coordinate names in order
+        keys_ord: Dict
+            Keys ordered
         """
         order_nc = list(data_file[ncname].dimensions)
         order = []
-        keys_ = []
+        keys_ord = {}
         for coord_nc in order_nc:
             try:
                 coord = self.db.get_coord(coord_nc)
@@ -112,14 +102,14 @@ class FilegroupNetCDF(FilegroupLoad):
                                 "size > 1. The first index will be used",
                                 coord)
                 k = 0
-                # We do not keep the coord name in order, with a key equal to zero,
+                # We do not keep the coord name in `order` for a key equal to zero,
                 # numpy will squeeze the axis.
             else:
                 k = keys[coord.name]
                 order.append(coord.name)
 
-            keys_.append(k)
-        return order, keys_
+            keys_ord[coord.name] = k
+        return order, keys_ord
 
     def get_ncname(self, var: str) -> str:
         """Get the infile name."""
@@ -134,6 +124,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
     def write(self, filename, wd, variables, keys):
         """Write data to disk."""
+        # FIXME: Coordinate descending !
         log.warning("Writing a subset not implemented, writing all data.")
 
         with nc.Dataset(wd + filename, 'w') as dt:
