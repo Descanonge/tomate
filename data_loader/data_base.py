@@ -119,6 +119,33 @@ class DataBase():
 
         return self.data[y]
 
+    def iter_slices(self, coord, size_slice=1, c_slice=None):
+        """Iter through data with slices of `coord` of size `n_iter`.
+
+        Parameters
+        ----------
+        coord: str
+            Coordinate to iterate along to
+        size_slice: int, optional
+            Size of the slices to take
+        c_slice: Slice, optional
+            A subset of the full available coordinate to iter through
+        """
+        if c_slice is None:
+            c_slice = slice(None, None)
+
+        c = self.get_coords_from_backup(coord)[coord]
+        c.slice(c_slice)
+
+        n_slices = int(np.ceil(c.size / size_slice))
+        slices = []
+        for i in range(n_slices):
+            start = i*size_slice
+            stop = min((i+1)*size_slice, c.size)
+            slices.append(slice(start, stop))
+
+        return slices
+
     def link_filegroups(self):
         """Link filegroups and data."""
         for fg in self.filegroups:
