@@ -137,14 +137,21 @@ class DataBase():
         coords = IterDict(dict(zip(names, coords)))
         return names, coords
 
-    def get_coords_from_backup(self):
+    def get_coords_from_backup(self, *coords):
         """Remake coordinates from backup.
+
+        Parameters
+        ----------
+        *coords: List of str
+            Coord to select
 
         Returns
         -------
         coords: IterDict[Coord]
         """
-        coords_orr = self._coords_orr.values()
+        if not coords:
+            coords = self.coords_name
+        coords_orr = [self._coords_orr[name] for name in coords]
         copy = [c.copy() for c in coords_orr]
         _, coords = self._get_coords(copy)
         return coords
