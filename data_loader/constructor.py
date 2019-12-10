@@ -127,7 +127,13 @@ class FGConstructor():
             coordinates used in this grouping of files.
             list of tuples of the coordinate name and a inout flag
         """
-        for i, [_, shared] in enumerate(coords):
+        shared_corres = {'in': False, 'shared': True}
+        for i, [c, shared] in enumerate(coords):
+            if not isinstance(shared, bool):
+                if shared not in shared_corres:
+                    raise ValueError("Shared must be bool or %s\n(%s, %s)"
+                                     % (list(shared_corres.keys()),
+                                        contains, c.name))
             if shared == "shared":
                 shared = True
             elif shared == "in":
