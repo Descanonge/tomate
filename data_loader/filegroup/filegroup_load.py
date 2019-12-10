@@ -44,7 +44,7 @@ class FilegroupLoad(FilegroupScan):
             Keys of the slice that is going to be loaded, for
             that filename, and in order.
         """
-        commands = self._get_commands_inout(keys)
+        commands = self._get_commands_shared(keys)
         for cmd in commands:
             # Add variables to load in the command
             cmd.var_list = var_list
@@ -59,7 +59,7 @@ class FilegroupLoad(FilegroupScan):
             commands_new.append(cmd)
         return commands_new
 
-    def _get_commands_inout(self, keys):
+    def _get_commands_shared(self, keys):
         """Return the combo filename / keys_in for inout coordinates."""
         # Find matches and their regex indices for reconstructing filenames,
         # And in-file indexes
