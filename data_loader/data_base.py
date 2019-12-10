@@ -1,4 +1,4 @@
-"""Abstract base class for data.
+"""Base class for data.
 
 Encapsulate data in a single numpy array, along with metadata,
 such as coordinates, units, ...
@@ -23,7 +23,6 @@ change_variable()
 """
 
 import logging
-from types import MethodType
 from typing import List
 
 import numpy as np
@@ -368,6 +367,7 @@ class DataBase():
         for the SST variable.
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
+        # TODO: check keys good type
 
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
 

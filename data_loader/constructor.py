@@ -280,8 +280,7 @@ class FGConstructor():
             if len(cut) > 0:
                 mess = ("(%s) does not have the same range across"
                         " all filegroups. A common range is taken. %s")
-                log.warning(mess, name, coord.get_extent_str(),
-                            stacklevel=2)
+                log.warning(mess+cut, name, coord.get_extent_str())
 
             # Check length
             for cs in coords:

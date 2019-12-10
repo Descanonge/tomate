@@ -34,16 +34,15 @@ class FilegroupNetCDF(FilegroupLoad):
             for var in cmd.var_list:
                 ncname = self.get_ncname(var)
                 i_var = self.db.vi.idx[var]
+                log.info("variable %s", ncname)
 
                 for key_in, key_slice in cmd:
                     D = self._load_slice_single_var(data_file, key_in, ncname)
 
-                    log.info("placing it in %s, (%s)", key_slice.values(), self.db.coords_name)
+                    log.info("placing it in %s, (%s)",
+                             [i_var] + list(key_slice.values()),
+                             ['variables'] + self.db.coords_name)
                     self.db.data[i_var][tuple(key_slice.values())] = D
-
-                    # TODO: call a specialized function of self.db
-                    # to account for different db types
-                    self.db.data.mask[i_var][tuple(key_slice.values())] = D.mask
 
                 # Make sure it is correctly masked
                 try:
@@ -78,9 +77,11 @@ class FilegroupNetCDF(FilegroupLoad):
                 D = np.expand_dims(D, -1)
 
         # Reorder array
-        target = [self.db.coords_name.index(z) for z in order]
-        log.info("reordering %s", target)
-        D = np.moveaxis(D, range(len(order)), target)
+        target = [self.db.coords_name.index(z) for z in order_added]
+        current = list(range(len(order_added)))
+        if target != current:
+            log.info("reordering %s -> %s", current, target)
+            D = np.moveaxis(D, current, target)
 
         return D
 
