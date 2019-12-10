@@ -98,6 +98,8 @@ class DataBase():
 
         self.link_filegroups()
 
+        self.do_post_load_user = None
+
     def __getitem__(self, y):
         """Return slice of data or variable, or coordinate.
 
@@ -394,6 +396,8 @@ class DataBase():
 
         self._load_data(self.vi.var, kw_coords)
 
+        self.do_post_load()
+
     def _find_shape(self, kw_coords) -> List[int]:
         """Find the shape of the data to load.
 
@@ -461,17 +465,19 @@ class DataBase():
         for fg, variables in fg_var:
             fg.load_data(variables, keys)
 
-    def _post_load(self):
-        """Do operations after load."""
-
     def set_post_load_func(self, func):
         """Set function for post loading treatements.
 
         Parameters
         ----------
-        func: Callable[[]]
+        func: Callable[DataBase]
         """
-        self._post_load = MethodType(func, self)
+        self.do_post_load_user = func
+
+    def do_post_load(self):
+        """Do post loading treatments."""
+        if callable(self.do_post_load_user):
+            self.do_post_load_user(self)
 
     def set_data(self, var, data):
         """Set the data for a single variable."""
