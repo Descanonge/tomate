@@ -111,12 +111,19 @@ class DataBase():
         Parameters
         ----------
         y: str or NpIdx
+
+        Raises
+        ------
+        KeyError:
+            If key is string and not a coordinate or variable
         """
         if isinstance(y, str):
-            if y in self.coords_name:
-                return self.coords[y]
             if y in self.vi.var:
                 y = self.vi.idx[y]
+            elif y in self.coords_name:
+                return self.coords[y]
+            else:
+                raise KeyError("Key '%s' not in coordinates or variables" % y)
 
         return self.data[y]
 
