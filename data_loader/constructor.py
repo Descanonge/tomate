@@ -230,6 +230,7 @@ class FGConstructor():
             root = os.path.relpath(root, self.root)
             for f in file:
                 files.append(os.path.join(root, f))
+        files.sort()
 
         if len(files) == 0:
             raise RuntimeError("No files were found in {:s}".format(self.root))
