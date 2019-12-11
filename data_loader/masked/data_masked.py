@@ -32,7 +32,7 @@ class DataMasked(DataBase):
 
         super().__init__(*args, **kwargs)
 
-    def _allocate_memory(self):
+    def allocate_memory(self):
         """Allocate data variable.
 
         Data is storred as a masked array

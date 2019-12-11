@@ -448,8 +448,8 @@ class DataBase():
             if isinstance(key, int):
                 kw_coords[coord] = [key]
 
-        self._allocate_memory()
         self.set_slice(variables=var_load, **kw_coords)
+        self.allocate_memory()
         self._load_data(self.vi.var, kw_coords)
         self.do_post_load()
 
@@ -473,7 +473,7 @@ class DataBase():
 
         return shape
 
-    def _allocate_memory(self):
+    def allocate_memory(self):
         """Allocate data member."""
         log.info("allocating numpy array of shape %s", self.shape)
         self.data = np.zeros(self.shape)
