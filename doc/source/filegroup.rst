@@ -15,8 +15,8 @@ The loading functions are specified in the abstract class
 This class is to be subclassed for file-format specific functions.
 
 
-Scanning
---------
+Pre-regex
+---------
 
 The actual scanning is done by CoordScan objects (see :doc:`scanning`).
 This section only details the pre-regex.
