@@ -86,13 +86,14 @@ class DataBase():
         self.vi = vi
         self._vi_orr = vi.copy()
 
-        names, coords_orr = self._get_coords(coords)
+        names = [c.name for c in coords]
+        coords_orr = IterDict(dict(zip(names, coords)))
         self.coords_name = names
         self._coords_orr = coords_orr
         self.coords = self.get_coords_from_backup()
         self.dim = len(coords)
         self.slices = dict(zip(self.coords_name,
-                               [slice(None, None) for _ in range(self.dim)]))
+                               [slice(0, i, 1) for i in range(self.dim)]))
 
         self.data = None
 
@@ -151,21 +152,6 @@ class DataBase():
         for fg in self.filegroups:
             fg.db = self
 
-    def _get_coords(self, coords):
-        """Make an IterDict from a list of coords.
-
-        Parameters
-        ----------
-        coords: List[Coord]
-
-        Returns
-        -------
-        coords: IterDict[Coord]
-        """
-        names = [c.name for c in coords]
-        coords = IterDict(dict(zip(names, coords)))
-        return names, coords
-
     def get_coords_from_backup(self, *coords):
         """Remake coordinates from backup.
 
@@ -182,7 +168,7 @@ class DataBase():
             coords = self.coords_name
         coords_orr = [self._coords_orr[name] for name in coords]
         copy = [c.copy() for c in coords_orr]
-        _, coords = self._get_coords(copy)
+        coords = IterDict(dict(zip(coords, copy)))
         return coords
 
     @property
@@ -284,8 +270,7 @@ class DataBase():
 
         From a mix of positional and keyword argument,
         make a list of keywords, containing all coords.
-        Missing coord key is taken as None.
-        Are ordered as in self.coords
+        Missing coord key is taken as slice(None, None).
 
         Parameters
         ----------
@@ -297,7 +282,7 @@ class DataBase():
 
         Exemples
         --------
-        self._get_coords_kwargs([0, 1], lat=slice(0, 10))
+        self.get_coords_kwargs([0, 1], lat=slice(0, 10))
         """
 
         if not coords:
@@ -311,11 +296,41 @@ class DataBase():
 
         for coord in self.coords_name:
             if coord not in kw_coords:
-                kw_coords.update({coord: slice(None, None)})
-
-        kw_coords = self.sort_by_coords(kw_coords)
+                kw_coords[coord] = slice(None, None)
 
         return kw_coords
+
+    def fix_kw_coords(self, kw_coords, backup=True):
+        """Avoid slices with None attributes."""
+        for name, key in kw_coords.items():
+            if isinstance(key, slice):
+                kw_coords[name] = self.fix_slice(key, backup, name)
+
+        return kw_coords
+
+    def fix_slice(self, slc, backup=True, coord=None, size=None):
+        """Avoid slices with None attributes.
+
+        Coordinates size is used (backup or not)
+        If size is specified, use that instead.
+
+        Parameters
+        ----------
+        slc: slice
+        backup: bool
+            If the size of the coordinates has to be taken
+            from coordinate backup.
+        size: int
+            Force the size to be used.
+        """
+        if size is None:
+            if backup:
+                c = self.get_coords_from_backup(coord)[coord]
+            else:
+                c = self.coords[coord]
+            size = c.size
+
+        return slice(*slc.indices(size))
 
     def sort_by_coords(self, dic):
         # TODO: review
@@ -335,37 +350,48 @@ class DataBase():
 
         return keys_ord
 
-    def _slice_data(self, variables, **kw_coords):
-        """Slice data and coordinates by index."""
+    def set_slice(self, variables=None, **kw_coords):
+        """Pre-select variables and coordinates slices.
+
+        Selection is applied to available coordinates.
+        Should be used only if data is not loaded,
+        otherwise use `slice_data`.
+
+        This selection is reset when using self.load_data.
+        """
         if self.data is not None:
-            key = tuple([variables] + list(kw_coords.values()))
-            self.data = self.data[key]
-
-    def slice_data(self, variables, *coords, **kw_coords):
-        """Slice data and coordinates by index."""
+            log.warning("Using set_coords_slice with data loaded can decouple"
+                        "data and coords. Use slice_data instead.")
         if variables is None:
-            variables = slice(None, None)
-        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
+            variables = self._vi_orr.var
+        kw_coords = self.get_coords_kwargs(**kw_coords)
+        kw_coords = self.fix_kw_coords(kw_coords, backup=True)
 
-        self._slice_data(variables, **kw_coords)
+        self.vi = self._vi_orr[variables]
 
-    def _slice_coords(self, **kw_coords):
-        """Slice coordinates by index.
-
-        This slice is reset if data is reloaded.
-        """
+        coords = self.get_coords_from_backup()
         for name, key in kw_coords.items():
-            self.coords[name].slice(key)
+            coords[name].slice(key)
+            self.slices[name] = key
+        self.coords = coords
 
-        self.slices = kw_coords
+    def slice_data(self, variables=None, **kw_coords):
+        """Select a subset of loaded data and coords."""
+        if variables is None:
+            variables = self.vi.var
+        variables = [self.vi.idx[var] for var in variables]
+        kw_coords = self.get_coords_kwargs(**kw_coords)
+        kw_coords = self.fix_kw_coords(kw_coords, backup=False)
+        kw_coords = self.sort_by_coords(kw_coords)
 
-    def slice_coords(self, *coords, **kw_coords):
-        """Slice coordinates by index.
+        for name, key in kw_coords.items():
+            c = self.coords[name]
+            c.slice(key)
+            self.slices[name] = subset_slices(self.slices[name], key)
 
-        This slice is reset if data is reloaded.
-        """
-        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
-        self._slice_coords(**kw_coords)
+        if self.data is not None:
+            keys = variables + list(kw_coords.values())
+            self.data = self.data[tuple(keys)]
 
     def load_data(self, var_load, *coords, **kw_coords):
         """Load part of data from disk into memory.
@@ -404,8 +430,9 @@ class DataBase():
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
         # TODO: check keys good type
-
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
+        kw_coords = self.fix_kw_coords(kw_coords, backup=True)
+        kw_coords = self.sort_by_coords(kw_coords)
 
         if var_load is None:
             var_load = slice(None, None, None)
@@ -414,15 +441,9 @@ class DataBase():
             if isinstance(key, int):
                 kw_coords[coord] = [key]
 
-        # Slice coordinates
-        self.coords = self.get_coords_from_backup()
-        self._slice_coords(**kw_coords)
-
-        self.vi = self._vi_orr.copy()[var_load]
         self._allocate_memory()
-
+        self.set_slice(variables=var_load, **kw_coords)
         self._load_data(self.vi.var, kw_coords)
-
         self.do_post_load()
 
     def _find_shape(self, kw_coords) -> List[int]:
@@ -576,3 +597,31 @@ class DataBase():
 
         for fg, var_list in fg_var:
             fg.write(filename, wd, var_list, keys)
+
+
+def subset_slices(key, key_subset):
+    """Return slice when subsetting a coord.
+
+    Parameters
+    ----------
+    key: Slice or List
+        Current slice of a coordinate
+    key_subset: Slice or List
+        Asked slice of coordinate
+    """
+    key_new = None
+    if isinstance(key, list):
+        if isinstance(key_subset, slice):
+            key_new = key[key_subset]
+        if isinstance(key_subset, list):
+            key_new = [key[i] for i in key_subset]
+
+    if isinstance(key, slice):
+        if isinstance(key_subset, slice):
+            key_new = slice(key_subset.start + key.start,
+                            key_subset.stop + key.start,
+                            key_subset.step * key.step)
+        if isinstance(key_subset, list):
+            key_new = [i*key.step + key.start for i in key_subset]
+
+    return key_new

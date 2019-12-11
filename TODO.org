@@ -2,11 +2,9 @@
 
 TODO: fix issues with type hinting
 TODO: general doc
-TODO: Coord slicing when overlap
 
-TODO: Better management of keys, especially in regards of in file slicing
 TODO: Limiting to certain types of keys ? See above
 TODO: Add data to already loaded
       This would allow to simplify the keys asked
 
-TODO: real logging
+TODO: slice data and coords consistently

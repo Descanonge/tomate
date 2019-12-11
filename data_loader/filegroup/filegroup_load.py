@@ -122,7 +122,7 @@ class FilegroupLoad(FilegroupScan):
         for name, cs in self.enum_shared(False).items():
             key = keys[name]
             keys_in[name] = cs.get_in_idx(key)
-            keys_slice[name] = slice(None, None)
+            keys_slice[name] = slice(0, key.stop-key.start, 1)
 
         cmd.modify_key(keys_in, keys_slice)
 
