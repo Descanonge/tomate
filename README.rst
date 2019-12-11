@@ -19,7 +19,7 @@ Features
 As of now, this only supports NetCDF files out of the box. But the package can be
 easily extended for other file formats.
 
-Support Linux only. Other platforms incoming !
+Only tested for linux, should work on other OS.
 
 See examples/ for use cases.
 
@@ -30,14 +30,13 @@ TODO
 The code is still in alpha, and has to be considered unsafe. I recommend you
 check thorougly that the correct files are opened, and that the correct slices
 of data are taken from thoses files.
-Info messages are used to this end for now, and will be limited to debuging in
-the future, when the code will have been more closely reviewed. If you really
-don't want those messages ((ง •̀_•́)ง), use the following code::
+Info messages are used to this end for now, If you really don't want those
+messages ((ง •̀_•́)ง), use the following code::
 
   from data_loader import set_logging
   set_logging("WARN")
 
-More logging information is also to come in the near future.
+See the documentation on logging for more information.
 
 
 Requirements

@@ -15,6 +15,7 @@ Welcome to the Data Loader package documentation !
    filegroup
    scanning
    variables_info
+   log
 
    API references<references/data_loader>
 
