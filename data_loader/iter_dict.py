@@ -66,7 +66,7 @@ class IterDict(dict):
 
             y = list(range(*slice(start, stop, step).indices(len(self))))
 
-        if isinstance(y, list):
+        if isinstance(y, (list, tuple)):
             res = []
             for i in y:
                 res.append(get(i))
