@@ -190,23 +190,6 @@ class CoordScan(Coord):
         else:
             key_data = self.in_idx[key]
 
-        if isinstance(key_data, (list, np.ndarray)):
-            diff = np.diff(key_data)
-            if np.all(diff == 1):
-                start = key_data[0]
-                stop = key_data[-1] + 1
-                step = 1
-            elif np.all(diff == -1):
-                start = key_data[0]
-                stop = key_data[-1]
-                step = -1
-                if stop == 0:
-                    stop = None
-                else:
-                    stop -= 1
-
-            key_data = slice(start, stop, step)
-
         return key_data
 
     def scan_filename(self, m): # pylint: disable=method-hidden

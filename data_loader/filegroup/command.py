@@ -1,5 +1,8 @@
 """Command for loading data."""
 
+import os
+import numpy as np
+
 
 class Command():
     """Information for loading slices of data."""
@@ -39,7 +42,12 @@ class Command():
         self.keys_slice.append(key_slice)
 
     def set_key(self, key_in, key_slice, i=0):
-        """Fix key."""
+        """Set key."""
+        self.keys_in[i] = key_in
+        self.keys_slice[i] = key_slice
+
+    def modify_key(self, key_in, key_slice, i=0):
+        """Modify key in place."""
         self.keys_in[i].update(key_in)
         self.keys_slice[i].update(key_slice)
 
@@ -53,6 +61,17 @@ class Command():
         self.keys_in.pop(idx)
         self.keys_slice.pop(idx)
         self.n_keys -= 1
+
+    def order_keys(self, order):
+        """Modify keys order.
+
+        Parameters
+        ----------
+        order: List of str
+        """
+        for i in range(self.n_keys):
+            self.keys_in[i] = dict(zip(order, [self.keys_in[i][c] for c in order]))
+            self.keys_slice[i] = dict(zip(order, [self.keys_slice[i][c] for c in order]))
 
     def merge_keys(self):
         """Merge successive keys."""
@@ -81,11 +100,40 @@ class Command():
                 if iscont:
                     key_in[name] = k_in
                     key_sl[name] = k_sl
-                    self.set_key(key_in, key_sl, i-1)
+                    self.modify_key(key_in, key_sl, i-1)
                     self.remove_key(i)
                     i -= 1
                 else:
                     i += 1
+
+    def join_filename(self, root):
+        """Join a filename to a root directory."""
+        filename = os.path.join(root, self.filename)
+        self.filename = filename
+
+    def int2list(self):
+        """Replaces integer keys by lists of length one."""
+        for i, key_in, key_sl in self.enum():
+            for coord in key_in.keys():
+                if isinstance(key_in[coord], (np.integer, int)):
+                    key_in[coord] = [key_in[coord]]
+                if isinstance(key_sl[coord], (np.integer, int)):
+                    key_sl[coord] = [key_sl[coord]]
+
+            self.modify_key(key_in, key_sl, i)
+
+    def list2slice(self):
+        """Replaces lengthy lists by slices."""
+        for i, key_in, key_sl in self.enum():
+            for coord in key_in.keys():
+                if isinstance(key_in[coord], (np.ndarray, list)):
+                    if len(key_in[coord]) > 1:
+                        key_in[coord] = list2slice(key_in[coord])
+                if isinstance(key_sl[coord], (np.ndarray, list)):
+                    if len(key_sl[coord]) > 1:
+                        key_sl[coord] = list2slice(key_sl[coord])
+
+            self.modify_key(key_in, key_sl, i)
 
 
 def iscontiguous(k_in, k_in_old, k_sl, k_sl_old):
@@ -116,3 +164,24 @@ def merge_cmd_per_file(commands):
             i += 1
 
     return commands_merged
+
+
+def list2slice(L):
+    """Turn a continuous list into a slice."""
+    diff = np.diff(L)
+    if np.all(diff == 1):
+        start = L[0]
+        stop = L[-1] + 1
+        step = 1
+    elif np.all(diff == -1):
+        start = L[0]
+        stop = L[-1]
+        step = -1
+        if stop == 0:
+            stop = None
+        else:
+            stop -= 1
+
+    L = slice(start, stop, step)
+
+    return L

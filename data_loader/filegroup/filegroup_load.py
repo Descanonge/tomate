@@ -4,7 +4,6 @@ This class is abstract and is meant to be subclassed to be usable.
 A subclass would replace existing functions specific to a file format.
 """
 
-import os
 import itertools
 from typing import List
 import logging
@@ -12,7 +11,7 @@ import logging
 import numpy as np
 
 from data_loader.filegroup.filegroup_scan import FilegroupScan
-from data_loader.filegroup.command import Command, merge_cmd_per_file
+from data_loader.filegroup import command
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +53,7 @@ class FilegroupLoad(FilegroupScan):
             # Add keys_in for in coordinates
             self._get_command_in(cmd, keys)
 
-        commands_merged = merge_cmd_per_file(commands)
+        commands_merged = command.merge_cmd_per_file(commands)
 
         commands_new = []
         for cmd in commands_merged:
@@ -109,7 +108,7 @@ class FilegroupLoad(FilegroupScan):
                 keys_in[name] = in_idxs[i_c][m[i_c]]
                 i_c += 1
 
-            cmd = Command()
+            cmd = command.Command()
             cmd.filename = filename
             cmd.add_key(keys_in, keys_slice)
             commands.append(cmd)
@@ -125,7 +124,7 @@ class FilegroupLoad(FilegroupScan):
             keys_in[name] = cs.get_in_idx(key)
             keys_slice[name] = slice(None, None)
 
-        cmd.set_key(keys_in, keys_slice)
+        cmd.modify_key(keys_in, keys_slice)
 
     def load_data(self, var_list, keys):
         """Load data."""
@@ -167,7 +166,7 @@ class FilegroupLoad(FilegroupScan):
         ----------
         order: List of str
             Coordinates names ordered as in file
-        keys: Dict
+        keys: List of str
             Coordinates keys asked for loading
         chunk: Numpy array
             Data chunk taken from file and to re-order
@@ -196,43 +195,21 @@ class FilegroupLoad(FilegroupScan):
     def _preprocess_load_command(self, cmd):
         """Preprocess the load command.
 
-        Join root and filename
-        Replace int keys with list, as keys is then typically
-        passed to a numpy array, we will thus retain the right
-        number of dimensions.
-        Merge successive keys
-
-        Parameters
-        ----------
-        filename: str
-            Filename to open
-        var_list: List[str]
-            Variables to load
-        keys: Dict[coord name, key]
-            Keys to load in file
+        -Join root directory and filename
+        -Make integer keys to list
+        -Merge contiguous list keys
+        -Make list to slices
+        -Re-order keys according to coords
 
         Returns
         -------
         cmd: [filename: str, var_list: List[str], keys]
             Command passed to self._load_cmd
         """
-        filename = os.path.join(self.root, cmd.filename)
-        cmd.filename = filename
-
-        for i, key_in, key_sl in cmd.enum():
-            for coord in key_in.keys():
-                if isinstance(key_in[coord], (np.integer, int)):
-                    key_in[coord] = [key_in[coord]]
-                if isinstance(key_sl[coord], (np.integer, int)):
-                    key_sl[coord] = [key_sl[coord]]
-
-            key_in = self.db.get_coords_kwargs(**key_in)
-            key_in = self.db.sort_by_coords(key_in)
-            key_sl = self.db.get_coords_kwargs(**key_sl)
-            key_sl = self.db.sort_by_coords(key_sl)
-
-            cmd.set_key(key_in, key_sl, i)
-
+        cmd.join_filename(self.root)
+        cmd.int2list()
         cmd.merge_keys()
+        cmd.list2slice()
+        cmd.order_keys(self.db.coords_name)
 
         return cmd
