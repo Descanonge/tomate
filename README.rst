@@ -29,12 +29,14 @@ TODO
 
 The code is still in alpha, and has to be considered unsafe. I recommend you
 check thorougly that the correct files are opened, and that the correct slices
-of data are taken from thoses files.
-Info messages are used to this end for now, If you really don't want those
-messages ((ง •̀_•́)ง), use the following code::
+of data are taken from thoses files. Info messages are used to this end.
+If you really don't want those in your terminal ((ง •̀_•́)ง), use the following code::
 
-  from data_loader import set_logging
-  set_logging("WARN")
+  from data_loader import log
+  log.set_logging("WARN")
+
+  # or
+  log.set_file_log("log.txt", no_stdout=True)
 
 See the documentation on logging for more information.
 

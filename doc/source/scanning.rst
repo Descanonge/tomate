@@ -37,10 +37,33 @@ the files won't be scanned, but the coordinates values will still
 be checked for consistency with other filegroups.
 
 
+Reversing dimensions
+--------------------
+
+When dealing with images, it is not always easy to know how the image
+is indexed, ie where the [0, 0] pixel is located.
+As the CoordScan stores the in file index for each value it is easy
+to know if a dimension can be considered 'index descending', meaning
+the values of the coordinate are descending with the index (still
+inside the file).
+In that case, the CoordScan instance will return True when asked
+`cs.is_idx_descending()`, and when loading data the in file key for
+this dimension will be reversed).
+
+If no information on the in file index can be found inside the file,
+the `in_idx` attribute CoordScan will be set to a list of `None`.
+The index descending property can still be set manually by calling
+:func:`fgc.set_coord_descending(coord_name)<data_loader.constructor.FGConstructor.set_coord_descending>`
+on the filegroup constructor.
+
+For even more control on how the data is loaded, on should use
+the post load function of the :doc:`data object<data_base>`.
+
+
 Scanning in file
 ----------------
 
-The function is set by
+The scanning function is set by
 :func:`FGConstructor.set_scan_in_file_func<data_loader.constructor.FGConstructor.set_scan_in_file_func>`
 . The function send to this receive a CoordScan object, a filename, and
 values previously scanned in the filename (see below).
@@ -67,7 +90,7 @@ Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
 of the right coordinates.
 Again, the CoordScan calls a user-defined function set with
-:func:`FGConstrictor.set_scan_filename_func<data_loader.constructor.FGConstructor.set_scan_filename_func>`
+:func:`FGConstructor.set_scan_filename_func<data_loader.constructor.FGConstructor.set_scan_filename_func>`
 , with some functions already in :mod:`scan_library<data_loader.scan_library>`.
 The function receives a Coordscan instance, and must returns one
 or more values.
