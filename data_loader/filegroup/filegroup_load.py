@@ -185,7 +185,7 @@ class FilegroupLoad(FilegroupScan):
 
         # Reorder array
         target = [self.db.coords_name.index(z) for z in order_added]
-        current = list(range(len(order_added)))
+        current = list(range(len(target)))
         if target != current:
             log.info("reordering %s -> %s", current, target)
             chunk = np.moveaxis(chunk, current, target)

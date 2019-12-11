@@ -39,9 +39,8 @@ class FilegroupNetCDF(FilegroupLoad):
                 for key_in, key_slice in cmd:
                     chunk = self._load_slice_single_var(data_file, key_in, ncname)
 
-                    log.info("placing it in %s, (%s)",
-                             [i_var] + list(key_slice.values()),
-                             ['variables'] + self.db.coords_name)
+                    log.info("placing it in %s",
+                             [i_var] + list(key_slice.values()))
                     self.db.data[i_var][tuple(key_slice.values())] = chunk
 
                 # Make sure it is correctly masked
@@ -65,11 +64,11 @@ class FilegroupNetCDF(FilegroupLoad):
             Name of the variable in file
         """
 
-        order, keys_ord = self._get_order(data_file, ncname, keys)
+        order, keys_in = self._get_order(data_file, ncname, keys)
 
-        log.info("taking keys %s", keys_ord.values())
-        chunk = data_file[ncname][keys_ord.values()]
-        chunk = self._reorder_chunk(order, keys_ord, chunk)
+        log.info("taking keys %s", keys_in.values())
+        chunk = data_file[ncname][keys_in.values()]
+        chunk = self._reorder_chunk(order, keys, chunk)
 
         return chunk
 
@@ -101,14 +100,16 @@ class FilegroupNetCDF(FilegroupLoad):
                     log.warning("Additional dimension %s in file of "
                                 "size > 1. The first index will be used",
                                 coord)
+                name = coord_nc
                 k = 0
                 # We do not keep the coord name in `order` for a key equal to zero,
                 # numpy will squeeze the axis.
             else:
-                k = keys[coord.name]
-                order.append(coord.name)
+                name = coord.name
+                k = keys[name]
+                order.append(name)
 
-            keys_ord[coord.name] = k
+            keys_ord[name] = k
         return order, keys_ord
 
     def get_ncname(self, var: str) -> str:
