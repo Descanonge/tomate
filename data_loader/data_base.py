@@ -34,7 +34,6 @@ log = logging.getLogger(__name__)
 
 
 class DataBase():
-    # TODO: slice by value
     """Encapsulate data array and info about the variables.
 
     Data and coordinates can be accessed with subscript
@@ -367,7 +366,7 @@ class DataBase():
         This selection is reset when using self.load_data.
         """
         if self.data is not None:
-            log.warning("Using set_coords_slice with data loaded can decouple"
+            log.warning("Using set_coords_slice with data loaded can decouple "
                         "data and coords. Use slice_data instead.")
         if variables is None:
             variables = self._vi_orr.var
@@ -418,6 +417,11 @@ class DataBase():
             What subset of coordinate to load. Takes precedence
             over `coords`.
 
+        Raises
+        ------
+        ValueError:
+            If key is other than integer, list of integer, or slice
+
         Examples
         --------
         Load everything available
@@ -436,10 +440,17 @@ class DataBase():
         for the SST variable.
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
-        # TODO: check keys good type
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         kw_coords = self.fix_kw_coords(kw_coords, backup=True)
         kw_coords = self.sort_by_coords(kw_coords)
+
+        for name, key in kw_coords.items():
+            reject = not isinstance(key, (int, slice))
+            if isinstance(key, (list, tuple)):
+                reject = not all(isinstance(z, int) for z in key)
+            if reject:
+                raise ValueError("'%s' key is not an integer, list of integers, or slice"
+                                 " (is %s)" % (name, type(key)))
 
         if var_load is None:
             var_load = slice(None, None, None)
