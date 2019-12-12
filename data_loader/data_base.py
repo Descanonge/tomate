@@ -399,6 +399,11 @@ class DataBase():
             keys = variables + list(kw_coords.values())
             self.data = self.data[tuple(keys)]
 
+    def unload_data(self):
+        """Remove data, return coordinate to all available."""
+        self.data = None
+        self.set_slice()
+
     def load_data(self, var_load, *coords, **kw_coords):
         """Load part of data from disk into memory.
 
@@ -459,6 +464,7 @@ class DataBase():
             if isinstance(key, int):
                 kw_coords[coord] = [key]
 
+        self.unload_data()
         self.set_slice(variables=var_load, **kw_coords)
         self.allocate_memory()
         self._load_data(self.vi.var, kw_coords)
