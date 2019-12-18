@@ -16,9 +16,8 @@ The data object needs also:
 * :doc:`Filegroups<filegroup>` which inform on where to
   find the data files, and how to load data.
 
-To help construct these complex objects, classes are available in the
-constructor module. These objects act as
+To help construct these complex objects, a Constructor is used. It acts as
 configuration tools. Examples can be found in /examples.
 
 To jump right into using the package, one can immediatly go read the
-:doc:`quick user guide<tutorial>` doc page.
+:doc:`constructing a database<tutorial>` doc page.

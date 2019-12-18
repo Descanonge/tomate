@@ -11,10 +11,10 @@ in the files, for instance if the latitudinal dimension is reversed.
 
 Some dimensions are found entirely in the files: they are 'in',
 others can be scattered accross different files: they are 'shared'.
-For example, in a dataset of the sea surface temperature with an image
-corresponding at a date per file, the latitude and longitude will be
-'in' and the temperature 'shared'. There could also be more than one
-date per file, for instance a file for each month with daily images.
+For example, in a dataset of the sea surface temperature with an image per date
+per file, the latitude and longitude will be 'in' and the temperature 'shared'.
+There could also be more than one date per file, for instance a file for each
+month with daily images.
 
 The scanning is done independantly in each filegroup through the
 :class:`CoordScan<data_loader.coord_scan.CoordScan>`, derived from
@@ -41,22 +41,21 @@ Reversing dimensions
 --------------------
 
 When dealing with images, it is not always easy to know how the image
-is indexed, ie where the [0, 0] pixel is located.
+is indexed, ie where the `[0, 0]` pixel is located.
 As the CoordScan stores the in file index for each value it is easy
 to know if a dimension can be considered 'index descending', meaning
-the values of the coordinate are descending with the index (still
-inside the file).
+the values of the coordinate are descending when the in-file index increases.
 In that case, the CoordScan instance will return True when asked
-`cs.is_idx_descending()`, and when loading data the in file key for
-this dimension will be reversed).
+`is_idx_descending()`, and when loading data the in file key for
+this dimension will be reversed.
 
-If no information on the in file index can be found inside the file,
+If no information on the in-file index can be found inside the file,
 the `in_idx` attribute CoordScan will be set to a list of `None`.
 The index descending property can still be set manually by calling
-:func:`fgc.set_coord_descending(coord_name)<data_loader.constructor.FGConstructor.set_coord_descending>`
+:func:`Constructor.set_coord_descending(coord_name)<data_loader.constructor.Constructor.set_coord_descending>`
 on the filegroup constructor.
 
-For even more control on how the data is loaded, on should use
+For even more control on how the data is loaded, one should use
 the post load function of the :doc:`data object<data_base>`.
 
 
@@ -64,13 +63,13 @@ Scanning in file
 ----------------
 
 The scanning function is set by
-:func:`FGConstructor.set_scan_in_file_func<data_loader.constructor.FGConstructor.set_scan_in_file_func>`
-. The function send to this receive a CoordScan object, a filename, and
+:func:`Constructor.set_scan_in_file_func<data_loader.constructor.Constructor.set_scan_in_file_func>`
+. The function should receive a CoordScan object, a filename, and
 values previously scanned in the filename (see below).
-It must returns one or more values, and the corresponding index in the file.
+It must returns one or more values, and the corresponding indices in the file.
 If there is no index, the function should return `None`.
 
-There are already existing function in the
+There are already existing functions in the
 :mod:`scan_library<data_loader.scan_library>` module.
 
 
@@ -79,7 +78,7 @@ Scanning filename: the pre-regex
 
 The filename can also be scanned, as sometimes it is the sole source
 of information for a coordinate. This is done via a pre-regex, that
-specify how the filename is constructed. This is useful to retrieve
+specifies how the filename is constructed. This is useful to retrieve
 information from the filename, but is also mandatory so that the
 database know where are the files, and what part of the data they
 contain.
@@ -88,9 +87,9 @@ More information on the pre-regex: :doc:`filegroup`.
 
 Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
-of the right coordinates.
+of the corresponding coordinates.
 Again, the CoordScan calls a user-defined function set with
-:func:`FGConstructor.set_scan_filename_func<data_loader.constructor.FGConstructor.set_scan_filename_func>`
-, with some functions already in :mod:`scan_library<data_loader.scan_library>`.
+:func:`Constructor.set_scan_filename_func<data_loader.constructor.Constructor.set_scan_filename_func>`
+, eventually with functions already in :mod:`scan_library<data_loader.scan_library>`.
 The function receives a Coordscan instance, and must returns one
 or more values.

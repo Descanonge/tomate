@@ -15,6 +15,14 @@ possible names this coordinate/dimension can be found in the files. For
 instance, the latitude coordinate can be found under either `lat` or `latitude`.
 
 The coordinate contains various methods to find the index of a value.
+For instance, :func:`get_index<data_loader.coord.Coord.get_index>` to find
+the index of the element in the coordinate closest to a value.
+The closest above, below, or closest of both can be picked.
+The :func:`subset<data_loader.coord.Coord.subset>` function is also
+very useful, it returns the slice that will select indices between
+a min and max value (included). For instance::
+
+  slice_lat = lat.subset(10, 20)
 
 
 Time
@@ -38,6 +46,7 @@ To scan files, each Coord (or any of its child class) is subclassed into a
 :class:`CoordScan<data_loader.coord_scan.CoordScan>`, which has additional
 functionnalities for scanning coordinate values.
 The CoordScan class dynamically inherits from any subclass of Coord.
-This demands the derived Coord has the same arguments for its creation.
+This demands that the class derived from Coord has the same arguments for its
+creation.
 
 More info on :doc:`scanning<scanning>`.

@@ -2,8 +2,7 @@
 Filegroups
 ==========
 
-A data object contains one or more
-:class:`FilegroupLoad<data_loader.filegroup.filegroup_load.FilegroupLoad>`.
+A data object contains one or more filegroup.
 This object manages a couple of tasks. It first does the scanning of all
 datafiles to find the various coordinates values.
 It also manages the loading of the data (actually opening the files).
@@ -18,19 +17,21 @@ This class is to be subclassed for file-format specific functions.
 Pre-regex
 ---------
 
-The actual scanning is done by CoordScan objects (see :doc:`scanning`).
-This section only details the pre-regex.
+The filegroups actually only look at the filenames to see if they match
+the pattern specified by the user.
+The actual scanning is done by :class:`CoordScan<data_loader.coord_scan.CoordScan>`
+objects (see :doc:`scanning`).
 
-To find information in the filename, and keep track of how filename
+To find informations in the filename, and keep track of how they
 changes along a dimension, we must tell the database the structure of
-the filename. This is done using a pre-regex. A regular expression with
+the filenames. This is done using a pre-regex: a regular expression with
 added features.
 
 Any regex can be used in the pre-regex, however, it will be replaced
-by the match found in the first file and then considered constant.
-For example, if we have daily files as 'sst_2003-01-01.nc' with the
+by its match as found in the first file and then considered constant.
+For example, if we have daily files 'sst_2003-01-01.nc' with the
 date changing for each file. We could use the regex `sst_.*\.nc`, which
-would match correctly all files, but the program will consider that
+would match correctly all files, but the program would consider that
 *all* filenames are 'sst_2003-01-01.nc'
 
 Instead, we must specify what part of the filename varies, and along
@@ -89,7 +90,7 @@ with filenames that specify the averaging boundaries::
   sst_%(time:Y)-%(time:Y:dummy)
   sst_%(time:Y)-%(time:Y:custom=\d\d\d\d:dummy)
 
-More use cases are presentey in the :doc:`tutorial` and examples.
+More use cases are presented in the :doc:`tutorial` and examples.
 
 
 Loading

@@ -21,13 +21,13 @@ We could use any kind of subclass of the Coord class.
 
 ::
 
-   from data_loader import Coord, Time
-   lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
-   lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
-   time = Time('time', None, fullname='Time',
+    from data_loader import Coord, Time
+    lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
+    lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
+    time = Time('time', None, fullname='Time',
                 unit='hours since 1970-01-01 00:00:00')
 
-   coords = [lat, lon, time]
+    coords = [lat, lon, time]
 
 Since we do not yet have the coordinates values, we specify `None`.
 We must include a CF-metadata compliant unit for the time coordinate.
@@ -46,31 +46,34 @@ Variables
 ---------
 
 We must now specify the variables we are intersted in. We will construct a
-:doc:`VariablesInfo<variables_info>` object. For each variable we will specify
-its name and a serie of attributes.
+:doc:`VariablesInfo<variables_info>` object.
+We must supply a root directory, where all files are contained, as well as
+the coordinates created before.
+For each variable we will specify its name and eventually a serie of attributes.
 
 ::
 
-   from data_loader.constructor import VIConstructor
+    from data_loader.constructor import Constructor
 
-   vic = dlc.VIConstructor()
+    cstr = Constructor('/Data/', coords)
 
-   name = "SSH"
-   infos = {'fullname': 'Sea Surface Height',
-            'ncname': 'ssh'}
-   vic.add_var(name, infos)
+    name = "SSH"
+    infos = {'fullname': 'Sea Surface Height',
+             'ncname': 'ssh'}
+    cstr.add_variable(name, infos)
 
-   name = "SST"
-   infos = {'fullname': 'Sea Surface Temperature',
-            'ncname': 'sst',
-            'unit': 'deg C',
-            'vmin': -2, 'vmax': 30}
-   vic.add_var(name, infos)
+    name = "SST"
+    infos = {'fullname': 'Sea Surface Temperature',
+             'ncname': 'sst',
+             'unit': 'deg C',
+             'vmin': -2, 'vmax': 30}
+    cstr.add_variable(name, infos)
 
-We specified two variables, with different attributes. We can now construct the
-vi object::
 
-  vi = vic.make_vi()
+If more attributes can be found in the files, we can set the filegroups to
+scan for them a littler latter. This will overide the attributes we set.
+We specified the 'ncname' attribute that will be detrimental for scanning
+netCDF files.
 
 
 Filegroups
@@ -103,23 +106,19 @@ step is found in the filename.
 For both file groups, the latitude and longitude are in each file, and do not
 vary from file to file.
 
-We start by importing the filegroup constructor, and a FilegroupLoad subclass,
-here all our files are NetCDF, so we will use FilegroupNetCDF.
-We must supply a root directory, where all files are contained, as well as
-the vi.
+We start by importing a FilegroupLoad subclass, here all our files are NetCDF,
+so we will use FilegroupNetCDF.
 
 ::
 
-   from data_loader.constructor import FGConstructor
-   from data_loader.filegroup import FilegroupNetCDF
+    from data_loader.filegroup import FilegroupNetCDF
 
-   fgc = FGConstructor('/Data/', coords)
 
 We add the first filegroup for the SSH::
 
-  contains = ['SSH']
-  coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-  fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
+    contains = ['SSH']
+    coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
+    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
 
 We first tell what variables are placed in this filegroup. There
 can be as many variable as wanted, but a variable cannot be distributed
@@ -147,7 +146,7 @@ For that reason, we must tell for what coordinates the filenames are varying.
 Here only the time is changing across files. We use for that
 :class:`Matchers<data_loader.coord_scan.Matcher>`::
 
-       pregex = r"SSH/SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
+    pregex = r"SSH/SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
 
 Let's break it down. Each variation is notified by \% followed in parenthesis
 by the coordinate name, and the element of that coordinate.
@@ -160,13 +159,13 @@ The default elements available are found in the
 
 To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
-  pregex = ('%(dir)/%(prefix)_'
-            '%(time:Y)%(time:mm)%(time:dd)'
-            '%(suffix)')
-  replacements = {'dir': 'SSH/',
-                  'prefix': 'SSH',
-                  'suffix': r'\.nc'}
-  fgc.set_fg_regex(pregex, replacements)
+    pregex = ('%(dir)/%(prefix)_'
+              '%(time:Y)%(time:mm)%(time:dd)'
+              '%(suffix)')
+    replacements = {'dir': 'SSH/',
+                    'prefix': 'SSH',
+                    'suffix': r'\.nc'}
+    cstr.set_fg_regex(pregex, replacements)
 
 Don't forget the r to allow for backslashes.
 
@@ -176,8 +175,8 @@ This is done by standardized functions. You can use existing functions, or
 write your own. Here, all coordinates values are found in the netCDF files.
 We use an existing function::
 
-  import data_loader.scan_library as scanlib
-  fgc.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+    import data_loader.scan_library as scanlib
+    cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
 
 We now do the same process for the SST files. As their structure is a bit more
 complicated, we can explore some more advanced features of the pre-regex.
@@ -188,14 +187,14 @@ we add the `dummy` flag to the end of the matchers.
 This is a very useful trick to specify variation that are not associated with
 any coordinate value::
 
-  pregex = ('%(dir)/%(prefix)_'
-            '%(time:Y)%(time:doy)_'
-            '%(time:Y:dummy)%(time:doy:dummy)'
-            '%(suffix)')
-  replacements = {'dir': 'SSH/',
-                  'prefix': 'SSH',
-                  'suffix': r'\.nc'}
-  fgc.set_fg_regex(pregex, replacements)
+    pregex = ('%(dir)/%(prefix)_'
+              '%(time:Y)%(time:doy)_'
+              '%(time:Y:dummy)%(time:doy:dummy)'
+              '%(suffix)')
+    replacements = {'dir': 'SSH/',
+                    'prefix': 'SSH',
+                    'suffix': r'\.nc'}
+    cstr.set_fg_regex(pregex, replacements)
 
 Here we used the `doy` element, for 'day of year'.
 Let's pretend this possibility was not anticipated within the package.
@@ -203,7 +202,7 @@ We need to specify the regex that should be used to replace the matcher in
 the pre-regex. We can modify the Matcher class, but that would be cumbersome.
 Instead, we specify that we are using a custom regex::
 
-  r'%(time:Y)%(time:doy:custom=\d\d\d:)'
+    r'%(time:Y)%(time:doy:custom=\d\d\d:)'
 
 The regex will now expect a `doy` element with three digits. Note that a
 custom **must be ended by a colon**. It can still be followed by the
@@ -212,8 +211,14 @@ custom **must be ended by a colon**. It can still be followed by the
 We must again tell how the coordinate will be scanned. This time the
 date information will be retrieved from the filename::
 
-  fgc.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon')
-  fgc.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
+    cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon')
+    cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
+
+
+Finally, we can ask the filegroup to scan a file to find variables specific
+attributes. There is an existing function for netCDF files::
+
+    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
 
 
 The Data Object
@@ -226,8 +231,8 @@ This can be any subclass of
 Here we will use :class:`DataMasked<data_loader.masked.DataMasked>`, adapted
 for data with masked values::
 
-  from data_loader.masked import DataMasked
-  dt = fgc.make_database(DataMasked, vi)
+    from data_loader.masked import DataMasked
+    dt = cstr.make_database(DataMasked)
 
 The lines above will start the scanning process. Each filegroup will
 scan their files for coordinates values and index. The values obtained
@@ -266,7 +271,7 @@ coordinates are in sync with the data.
 
 Once loaded, the data can be sliced further using::
 
-  dt.slice_data('SST', time=[0, 1, 2, 5, 10])
+    dt.slice_data('SST', time=[0, 1, 2, 5, 10])
 
 If no data is currently loaded, we can still slice the coordinates.
 In the following example, we prepare to slice only a small
@@ -274,9 +279,9 @@ window in our data. This underlines that whatever we already
 loaded or sliced, when loading data we specify slices and indexes
 with regard to what is available *on disk*::
 
-  slice_lat = dt['lat'].subset(21., 40.)
-  slice_lon = dt['lon'].subset(-70., -60.)
-  dt.set_slice('SST', lat=slice_lat, lon=slice_lon)
-  print(dt.shape, dt.vi.var, dt.slices)
+    slice_lat = dt['lat'].subset(21., 40.)
+    slice_lon = dt['lon'].subset(-70., -60.)
+    dt.set_slice('SST', lat=slice_lat, lon=slice_lon)
+    print(dt.shape, dt.vi.var, dt.slices)
 
-  dt.load_data(dt.vi.var, **dt.slices)
+    dt.load_data(dt.vi.var, **dt.slices)
