@@ -36,18 +36,18 @@ class FilegroupNetCDF(FilegroupLoad):
                 i_var = self.db.vi.idx[var]
                 log.info("variable %s", ncname)
 
-                for key_in, key_slice in cmd:
-                    chunk = self._load_slice_single_var(data_file, key_in, ncname)
+                for keys_inf, keys_mem in cmd:
+                    chunk = self._load_slice_single_var(data_file, keys_inf, ncname)
 
                     log.info("placing it in %s",
-                             [i_var] + list(key_slice.values()))
-                    self.db.data[i_var][tuple(key_slice.values())] = chunk
+                             [i_var] + list(keys_mem.values()))
+                    self.db.data[i_var][tuple(keys_mem.values())] = chunk
 
-                # Make sure it is correctly masked
-                try:
-                    data_file[ncname].getncattr("_FillValue")
-                except AttributeError:
-                    self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
+                # # Make sure it is correctly masked
+                # try:
+                #     data_file[ncname].getncattr("_FillValue")
+                # except AttributeError:
+                #     self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
 
     def _load_slice_single_var(self, data_file, keys, ncname):
         """Load data for a single variable.
@@ -64,10 +64,10 @@ class FilegroupNetCDF(FilegroupLoad):
             Name of the variable in file
         """
 
-        order, keys_in = self._get_order(data_file, ncname, keys)
+        order, keys_inf = self._get_order(data_file, ncname, keys)
 
-        log.info("taking keys %s", keys_in.values())
-        chunk = data_file[ncname][keys_in.values()]
+        log.info("taking keys %s", list(keys_inf.values()))
+        chunk = data_file[ncname][keys_inf.values()]
         chunk = self._reorder_chunk(order, keys, chunk)
 
         return chunk

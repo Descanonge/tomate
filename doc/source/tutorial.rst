@@ -170,8 +170,6 @@ To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
 Don't forget the r to allow for backslashes.
 
-.. TODO: how do we treat inout in the scan ?
-
 The last step is to specify how to retrieve the coordinates values,
 either by looking at the filename, or inside the file.
 This is done by standardized functions. You can use existing functions, or

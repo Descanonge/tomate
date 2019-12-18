@@ -173,7 +173,6 @@ class CoordScan(Coord):
 
         Give the index inside the file corresponding to the
         asked values.
-        If all the index are contiguous, return a slice
 
         Parameters
         ----------
@@ -399,8 +398,11 @@ def get_coordscan(filegroup, coord, shared):
     return CoordScanType(filegroup, coord)
 
 
-def reverse_slice(sl, size):
+def reverse_slice(sl, size=None):
     """Reverse a slice."""
+    if size is None:
+        size = sl.stop - sl.start
+
     ind = sl.indices(size)
     start = ind[1] - 1
     stop = ind[0]

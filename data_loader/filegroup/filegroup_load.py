@@ -20,9 +20,13 @@ class FilegroupLoad(FilegroupScan):
     """Filegroup class with data loading functionnalies."""
 
     def get_commands(self, var_list, keys):
-        """Retrieve filenames.
+        """Get load commands.
 
-        Recreate filenames from matches.
+        Recreate filenames from matches and find shared coords keys.
+        Merge commands that have the same filename.
+        If possible, merge contiguous shared keys.
+        Add the keys for in coords.
+        Order keys according to the database coordinate order.
 
         Parameters
         ----------
@@ -35,36 +39,88 @@ class FilegroupLoad(FilegroupScan):
 
         Returns
         -------
-        filename: str
-            Filename to load
-        var_list: List[str]
-        keys: Dict[str, NpIdx]
-            Keys for the whole data
-        keys_in: Dict[str, NpIdx]
-            Keys to load in the filename
-        keys_slice: Dict[str, NpIdx]
-            Keys of the slice that is going to be loaded, for
-            that filename, and in order.
+        commands: List of Command
         """
         commands = self._get_commands_shared(keys)
+        commands = command.merge_cmd_per_file(commands)
+
+        if len(commands) == 0:
+            commands = self._get_commands_no_shared()
+
+        key_inf = self._get_key_infile(keys)
+        key_mem = self._get_key_memory(keys)
+
         for cmd in commands:
-            # Add variables to load in the command
+            cmd.join_filename(self.root)
             cmd.var_list = var_list
-            # Add keys_in for in coordinates
-            self._get_command_in(cmd, keys)
 
-        commands_merged = command.merge_cmd_per_file(commands)
+            cmd.merge_keys()
 
-        commands_new = []
-        for cmd in commands_merged:
-            cmd = self._preprocess_load_command(cmd)
-            commands_new.append(cmd)
-        return commands_new
+            for key in cmd:
+                key.modify(key_inf, key_mem)
+
+            cmd.order_keys(self.db.coords_name)
+
+        return commands
+
+    def _get_commands_no_shared(self):
+        """Get command when there are no shared coords."""
+        cmd = command.Command()
+        cmd.filename = ''.join(self.segments)
+        return [cmd]
 
     def _get_commands_shared(self, keys):
         """Return the combo filename / keys_in for inout coordinates."""
-        # Find matches and their regex indices for reconstructing filenames,
-        # And in-file indexes
+        matches, rgx_idxs, in_idxs = self._get_commands_shared__get_info(keys)
+
+        # Number of matches ordered by shared coordinates
+        lengths = [len(m_c) for m_c in matches]
+
+        commands = []
+        seg = self.segments.copy()
+        # Imbricked for loops (one per shared coord)
+        for m in itertools.product(*(range(z) for z in lengths)):
+            cmd = command.Command()
+
+            # Reconstruct filename
+            for i_c, _ in enumerate(self.enum_shared(True).keys()):
+                for i, rgx_idx in enumerate(rgx_idxs[i_c]):
+                    seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
+            cmd.filename = "".join(seg)
+
+            # Find keys
+            keys_mem = {}
+            keys_inf = {}
+            for i_c, name in enumerate(self.enum_shared(True)):
+                keys_mem[name] = m[i_c]
+                keys_inf[name] = in_idxs[i_c][m[i_c]]
+
+            cmd.append(keys_inf, keys_mem)
+            commands.append(cmd)
+
+        return commands
+
+    def _get_commands_shared__get_info(self, keys):
+        """For all asked values, retrieve matchers, regex index and in file index.
+
+        Find matches and their regex indices for reconstructing filenames.
+        Find the in-file indices as the same time.
+
+        Parameters
+        ----------
+        keys: Dict[keys]
+            Dict of askey coordinates slices.
+
+        Returns
+        -------
+        matches: List of matches for each coord.
+            Matches for all coordinates for each needed file.
+            Length is the # of shared coord, each array is (# of values, # of matches per value)
+        rgx_idxs: List of List of integer
+            Corresponding indices of matches in the regex
+        in_idxs: List of integer or None
+            In file indices of asked values
+        """
         matches = []
         rgx_idxs = []
         in_idxs = []
@@ -83,53 +139,35 @@ class FilegroupLoad(FilegroupScan):
             in_idxs.append(cs.in_idx[key])
             rgx_idxs.append(rgx_idx_matches)
 
-        # Number of matches by out coordinate for looping
-        lengths = []
-        for i_c, _ in enumerate(matches):
-            lengths.append(len(matches[i_c]))
+        return matches, rgx_idxs, in_idxs
 
-        commands = []
-        # Imbricked for loops for all out coords
-        for m in itertools.product(*(range(z) for z in lengths)):
-            # Reconstruct filename
-            seg = self.segments.copy()
-            for i_c, cs in enumerate(self.enum_shared(True).keys()):
-                idx_rgx_matches = rgx_idxs[i_c]
-                for i, rgx_idx in enumerate(idx_rgx_matches):
-                    seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
-            filename = "".join(seg)
-
-            # Find keys
-            keys_slice = {}
-            keys_in = {}
-            i_c = 0
-            for name, cs in self.enum_shared(True).items():
-                keys_slice[name] = m[i_c]
-                keys_in[name] = in_idxs[i_c][m[i_c]]
-                i_c += 1
-
-            cmd = command.Command()
-            cmd.filename = filename
-            cmd.add_key(keys_in, keys_slice)
-            commands.append(cmd)
-
-        return commands
-
-    def _get_command_in(self, cmd, keys):
-        """Add in coords keys to the commands."""
-        keys_in = {}
-        keys_slice = {}
+    def _get_key_infile(self, keys):
+        """Get the keys for data in file."""
+        keys_inf = {}
         for name, cs in self.enum_shared(False).items():
             key = keys[name]
-            keys_in[name] = cs.get_in_idx(key)
-            keys_slice[name] = slice(0, key.stop-key.start, 1)
+            key_inf = cs.get_in_idx(key)
+            key_inf = command.simplify_key(key_inf)
+            keys_inf[name] = key_inf
+        return keys_inf
 
-        cmd.modify_key(keys_in, keys_slice)
+    def _get_key_memory(self, keys):
+        """Get the keys for data in memory.
+
+        TODO: for load only, do append
+        """
+        keys_mem = {}
+        for name in self.enum_shared(False):
+            key_mem = list(range(self.db[name].size))
+            key_mem = command.simplify_key(key_mem)
+            keys_mem[name] = key_mem
+        return keys_mem
 
     def load_data(self, var_list, keys):
         """Load data."""
         commands = self.get_commands(var_list, keys)
         for cmd in commands:
+            log.debug(cmd)
             self._load_cmd(cmd)
 
     def _load_cmd(self, cmd):
@@ -191,25 +229,3 @@ class FilegroupLoad(FilegroupScan):
             chunk = np.moveaxis(chunk, current, target)
 
         return chunk
-
-    def _preprocess_load_command(self, cmd):
-        """Preprocess the load command.
-
-        -Join root directory and filename
-        -Make integer keys to list
-        -Merge contiguous list keys
-        -Make list to slices
-        -Re-order keys according to coords
-
-        Returns
-        -------
-        cmd: [filename: str, var_list: List[str], keys]
-            Command passed to self._load_cmd
-        """
-        cmd.join_filename(self.root)
-        cmd.int2list()
-        cmd.merge_keys()
-        cmd.list2slice()
-        cmd.order_keys(self.db.coords_name)
-
-        return cmd
