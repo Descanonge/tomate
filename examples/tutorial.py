@@ -8,8 +8,6 @@ from data_loader.masked import DataMasked
 import data_loader.scan_library as scanlib
 
 
-root = "/home/clement/Documents/Stage/Data/Data_SOM/Data/8days/"
-
 # Coordinates
 lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
 lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')

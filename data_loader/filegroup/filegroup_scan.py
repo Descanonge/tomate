@@ -18,6 +18,7 @@ Filegroup:
 
 import os
 import re
+from types import MethodType
 
 from typing import List
 
@@ -36,10 +37,10 @@ class FilegroupScan():
         Data directory
     contains: List[str]
         Variables contained in this filegroup
-    vi: VariablesInfo
     coords: List[[Coord, shared: bool]]
         Parent coordinates objects, and a bool indicating if the coordinate
         is shared accross files
+    vi: VariableInfo
 
     Attributes
     ----------
@@ -58,9 +59,12 @@ class FilegroupScan():
     segments: List[str]
         Fragments of filename used for reconstruction,
         pair indices are replaced with matches
+    scan_attr: bool
+        If the variables attributes have to be scanned
+    vi: VariablesInfo
     """
 
-    def __init__(self, root, contains, db, coords):
+    def __init__(self, root, contains, db, coords, vi):
         self.root = root
         self.contains = contains
         self.db = db
@@ -71,6 +75,9 @@ class FilegroupScan():
 
         self.regex = ""
         self.pregex = ""
+
+        self.vi = vi
+        self.scan_attr = False
 
         self.make_coord_scan(coords)
 
@@ -194,6 +201,12 @@ class FilegroupScan():
         for cs in self.enum_scan("scannable").values():
             cs.scan_file(m, filename)
 
+        if self.scan_attr:
+            infos = self.scan_attribute(filename, self.contains) #pylint: disable=not-callable
+            for var, info in infos.items():
+                self.vi.add_infos_per_variable(var, info)
+            self.scan_attr = False
+
     def scan_files(self, files: List[str]):
         """Scan files.
 
@@ -212,3 +225,12 @@ class FilegroupScan():
                     cs.name, self.contains))
             cs.sort_values()
             cs.update_values(cs.values)
+
+    def set_scan_attribute_func(self, func):
+        """Set function for scanning variables attributes."""
+        self.scan_attr = True
+        self.scan_attribute = MethodType(func, self)
+
+    def scan_attribute(self, filename, variables): #pylint: disable=method-hidden
+        """Scan attributes in file for specified variables."""
+        raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)

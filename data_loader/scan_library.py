@@ -5,16 +5,6 @@ from datetime import datetime, timedelta
 import netCDF4 as nc
 
 
-def scan_filename_null(cs):
-    """Null."""
-    return None
-
-
-def scan_in_file_null(cs, filename, values):
-    """Null."""
-    return None, None
-
-
 def get_value_from_matches(cs):
     """Retrieve value from matches.
 
@@ -30,6 +20,8 @@ def get_value_from_matches(cs):
     idx = elts.get("idx")
     if idx is not None:
         return int(idx)
+
+    return None
 
 
 def get_date_from_matches(cs):
@@ -56,12 +48,17 @@ def get_date_from_matches(cs):
         match = True
         date["year"] = int("20"+y)
 
+    M = elts.pop("M", None)
+    if M is not None:
+        M = _find_month_number(M)
+        if M is not None:
+            match = True
+            date["month"] = M
+
     m = elts.pop("mm", None)
     if m is not None:
         match = True
         date["month"] = int(m)
-
-    # TODO: month & day names
 
     d = elts.pop("dd", None)
     if d is not None:
@@ -83,7 +80,27 @@ def get_date_from_matches(cs):
     return None
 
 
-def scan_in_file_nc(cs, filename, values):
+def _find_month_number(name):
+    """Find a month number from its name.
+
+    name can be the full name (January)
+    or its three letter abbreviation (jan.)
+    The casing does not matter
+    """
+    names = ['january', 'february', 'march', 'april',
+             'may', 'june', 'july', 'august', 'september',
+             'october', 'november', 'december']
+    names_abbr = [c[:3] for c in names]
+
+    name = name.lower()
+    if name in names:
+        return names.index(name)
+    if name in names_abbr:
+        return names_abbr.index(name)
+
+    return None
+
+def scan_in_file_nc(cs, filename, values): #pylint: disable=unused-argument
     """Scan netCDF file for inout values."""
     with nc.Dataset(filename, 'r') as dt:
         for name in [cs.name] + cs.name_alt:
@@ -104,3 +121,20 @@ def scan_in_file_nc_idx_only(cs, filename, values):
     """Scan netCDF for inout index only."""
     _, in_idx = scan_in_file_nc(cs, filename, values)
     return values, in_idx
+
+
+def scan_attribute_nc(fg, filename, variables):
+    """Scan for all attributes in a netCDF file."""
+
+    infos = {}
+    with nc.Dataset(filename, 'r')as dt:
+        for var in variables:
+            infos_var = {}
+            nc_var = dt[fg.get_ncname(var)]
+            attributes = nc_var.ncattrs()
+            for attr in attributes:
+                infos_var[attr] = nc_var.getncattr(attr)
+
+            infos[var] = infos_var
+
+    return infos

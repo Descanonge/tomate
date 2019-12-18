@@ -40,8 +40,13 @@ class VariablesInfo():
     'infos': IterDict[variable: str, Any]
     'kwargs': Any
     """
-    def __init__(self, var_list, infos, **kwargs):
+    def __init__(self, var_list=None, infos=None, **kwargs):
         # Add the var and idx attributes
+        if var_list is None:
+            var_list = []
+        if infos is None:
+            infos = {}
+
         self.var = tuple(var_list)
         self.idx = IterDict({k: i for i, k in enumerate(var_list)})
         self.n = len(var_list)
@@ -52,9 +57,7 @@ class VariablesInfo():
 
         # TODO: No dynamic arguments
         self._kwargs = []
-        for k, z in kwargs.items():
-            self.__setattr__(k, z)
-            self._kwargs.append(k)
+        self.add_kwargs(**kwargs)
 
     def __iter__(self) -> Iterator:
         # TODO: enumerate over idx ?
@@ -195,3 +198,9 @@ class VariablesInfo():
                 z.pop(v)
         self.var = tuple(var_list)
         self.idx = IterDict({k: i for i, k in enumerate(var_list)})
+
+    def add_kwargs(self, **kwargs):
+        """Add keywords / attributes."""
+        for k, z in kwargs.items():
+            self.__setattr__(k, z)
+            self._kwargs.append(k)

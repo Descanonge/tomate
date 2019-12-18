@@ -191,7 +191,7 @@ class Coord():
 
     def get_index(self, value: float, loc: str = 'closest') -> int:
         # REVIEW
-        """Return index closest to value
+        """Return index of the element closest to `value`.
 
         loc: specifies what index to choose
              {closest | below | above}

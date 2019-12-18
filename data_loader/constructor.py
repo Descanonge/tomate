@@ -2,9 +2,7 @@
 
 Contains
 --------
-VIConstructor
-    Help creating a VariablesInfo
-FGConstructor
+Constructor
     Help creating Filegroup objects.
     Start scanning.
 """
@@ -20,67 +18,9 @@ from data_loader.coord import select_overlap
 log = logging.getLogger(__name__)
 
 
-class VIConstructor():
-    """Help creating a VariablesInfo.
 
-    Attributes
-    ----------
-    var_list: List[[name: str, infos]]
-
-    Examples
-    --------
-    vic = VIConstructor()
-
-    name = "SST"
-    infos = {"fullname": "Sea Surface Temperature",
-             "unit": "deg C"}
-    vic.add_var(name, infos)
-    """
-
-    def __init__(self):
-        self.var_list = []
-        self.kwargs = {}
-
-    def add_var(self, name, infos):
-        """Add a variable.
-
-        Stores arguments for creation later.
-
-        Parameters
-        ----------
-        name: str
-            Variable name
-        infos: Dict[info name: str, values: Any]
-            Infos for this variable
-        """
-        self.var_list.append([name, infos])
-
-    def add_kwargs(self, **kwargs):
-        """Add a kwargs to the vi."""
-        self.kwargs.update(kwargs)
-
-    def make_vi(self):
-        """Create the vi.
-
-        Parameters
-        ----------
-        kwargs:
-            Passed to vi init.
-
-        Returns
-        -------
-        vi: VariablesInfo
-        """
-        names = [z[0] for z in self.var_list]
-        infos = {z[0]: z[1] for z in self.var_list}
-
-        vi = VariablesInfo(names, infos, **self.kwargs)
-
-        return vi
-
-
-class FGConstructor():
-    """Helps creating Filegroup objects.
+class Constructor():
+    """Helps creating a database object.
 
     Parameters
     ----------
@@ -101,6 +41,8 @@ class FGConstructor():
     def __init__(self, root, coords):
         self.root = root
         self.coords = dict(zip([c.name for c in coords], coords))
+        self.vi = VariablesInfo()
+
         self.filegroups = []
 
     @property
@@ -114,6 +56,22 @@ class FGConstructor():
         fg: Filegroup
         """
         return self.filegroups[-1]
+
+    def add_variable(self, variable, info=None):
+        """Add variable along with info / attribute.
+
+        Parameters
+        ----------
+        variable: str
+            Id of the variable
+        """
+        if info is None:
+            info = {}
+        self.vi.add_variable(variable, info)
+
+    def add_kwargs(self, **kwargs):
+        """Add attributes to the vi."""
+        self.vi.add_kwargs(**kwargs)
 
     def add_fg(self, fg_type, contains, coords, *args, **kwargs):
         """Add filegroup.
@@ -140,7 +98,7 @@ class FGConstructor():
                 shared = False
             coords[i][1] = shared
 
-        fg = fg_type(self.root, contains, None, coords, *args, **kwargs)
+        fg = fg_type(self.root, contains, None, coords, self.vi, *args, **kwargs)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
@@ -203,6 +161,11 @@ class FGConstructor():
         if cs.scan:
             log.warning("%s has a scannable flag. "
                         "Values set manually could be overwritten.", cs.name)
+
+    def set_scan_attribute_func(self, func):
+        """Set a function for scanning variables attributes to current fg."""
+        fg = self.current_fg
+        fg.set_scan_attribute_func(func)
 
     def set_coord_descending(self, *coords):
         """Set a coordinate as descending in the filegroup.
@@ -313,7 +276,7 @@ class FGConstructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_database(self, db_type, vi):
+    def make_database(self, db_type):
         """Create database instance.
 
         Scan files
@@ -322,5 +285,5 @@ class FGConstructor():
         self.check_regex()
         self.scan_files()
         self.check_values()
-        dt = db_type(self.root, self.filegroups, vi, *self.coords.values())
+        dt = db_type(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt

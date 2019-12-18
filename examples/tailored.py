@@ -26,10 +26,10 @@ Here the source of the SSH data can be picked at runtime.
 """
 
 from data_loader import Coord, Time
+from data_loader.constructor import Constructor
 from data_loader.filegroup import FilegroupNetCDF
 from data_loader.masked import DataMasked
 import data_loader.scan_library as scanlib
-import data_loader.constructor as dlc
 
 root = '/Data/'
 
@@ -40,16 +40,16 @@ lon = Coord('lon', None, 'deg', 'longitude', 'Longitude')
 coords = [time, lat, lon]
 
 
-def add_ssh(vic, fgc, source):
+def add_ssh(cstr, source):
     """Add the SSH to the VI and filegroups."""
     name = "SSH"
     infos = {'fullname': 'Sea Surface Height',
              'ncname': 'ssh'}
-    vic.add_var(name, infos)
+    cstr.add_var(name, infos)
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
 
     pregex = ('%(dir)/%(prefix)_'
               '%(time:Y)%(time:mm)%(time:dd)'
@@ -57,12 +57,12 @@ def add_ssh(vic, fgc, source):
     replacements = {'dir': source + '/SSH/',
                     'prefix': 'SSH',
                     'suffix': r'\.nc'}
-    fgc.set_fg_regex(pregex, replacements)
+    cstr.set_fg_regex(pregex, replacements)
 
-    fgc.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+    cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
 
 
-def add_sst(vic, fgc):
+def add_sst(vic, cstr):
     """Add the SST to the VI and filegroups."""
 
     name = "SST"
@@ -70,11 +70,11 @@ def add_sst(vic, fgc):
              'ncname': 'sst',
              'unit': 'deg C',
              'vmin': -2, 'vmax': 30}
-    vic.add_var(name, infos)
+    cstr.add_var(name, infos)
 
     contains = ['SST']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
 
     pregex = ('%(dir)/%(prefix)_'
               r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
@@ -83,13 +83,13 @@ def add_sst(vic, fgc):
     replacements = {'dir': 'SSH/',
                     'prefix': 'SSH',
                     'suffix': r'\.nc'}
-    fgc.set_fg_regex(pregex, replacements)
+    cstr.set_fg_regex(pregex, replacements)
 
-    fgc.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
-    fgc.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
+    cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
+    cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
 
 
-def _get_data(vic, fgc, groups, **kwargs):
+def _get_data(cstr, groups, **kwargs):
     if groups is None:
         groups = ["SSH", "SST"]
 
@@ -98,12 +98,12 @@ def _get_data(vic, fgc, groups, **kwargs):
     kwargs = kwargs_default
 
     if "SSH" in groups:
-        add_ssh(vic, fgc, kwargs['source'])
+        add_ssh(cstr, kwargs['source'])
     if "SST" in groups:
-        add_sst(vic, fgc)
+        add_sst(cstr)
 
     vi = vic.make_vi()
-    dt = fgc.make_database(DataMasked, vi)
+    dt = cstr.make_database(DataMasked, vi)
     return dt
 
 
@@ -113,13 +113,11 @@ def get_data(groups=None, **kwargs):
     The filegroups and variables to add can be
     tailored using groups.
     """
-    vic = dlc.VIConstructor()
-    fgc = dlc.FGConstructor(root, coords)
-    dt = _get_data(vic, fgc, groups, **kwargs)
+    cstr = Constructor(root, coords)
+    dt = _get_data(cstr, groups, **kwargs)
     return dt
 
 
 if __name__ == '__main__':
-    vic = dlc.VIConstructor()
-    fgc = dlc.FGConstructor(root, coords)
-    dt = _get_data(vic, fgc, ["SSH", "SST"])
+    cstr = Constructor(root, coords)
+    dt = _get_data(cstr, ["SSH", "SST"])

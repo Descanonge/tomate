@@ -63,11 +63,15 @@ class Time(Coord):
         -------
         List of datetime
         """
+        # If the user has asked an integer
+        integer = False
+
         if indices is None:
             indices = range(self.size)
         if isinstance(indices, slice):
             indices = list(range(*indices.indices(self.size)))
         if isinstance(indices, int):
+            integer = True
             indices = [indices]
         dates = num2date([self[i] for i in indices], self.unit)
 
@@ -78,18 +82,34 @@ class Time(Coord):
                 dates[i] = datetime(d.year, d.month, d.day,
                                     d.hour, d.minute, d.second,
                                     d.microsecond)
+
+        if integer:
+            dates = dates[0]
         return dates
 
-    def date2index(self, dates: List[datetime]) -> List[int]:
+    def date2index(self, dates):
         """Return a list of index corresponding to dates.
 
         Nearest index before date is chosen
+
+        Parameters
+        ----------
+        dates: datetime.datetime or List of datetime
         """
-        indexes = []
+        # If the user has asked a single date
+        single = False
+        if isinstance(dates, datetime):
+            single = True
+            dates = [dates]
+
+        indices = []
         for date in dates:
             num = date2num(date, self.unit)
-            indexes.append(self.get_index(num))
-        return indexes
+            indices.append(self.get_index(num))
+
+        if single:
+            indices = indices[0]
+        return indices
 
     def change_unit(self, unit: str):
         """Change time unit."""

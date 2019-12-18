@@ -115,8 +115,8 @@ class FilegroupNetCDF(FilegroupLoad):
     def get_ncname(self, var: str) -> str:
         """Get the infile name."""
         try:
-            ncname = self.db.vi.ncname[var]
-        except AttributeError:
+            ncname = self.vi.ncname[var]
+        except KeyError:
             ncname = None
 
         if ncname is None:
