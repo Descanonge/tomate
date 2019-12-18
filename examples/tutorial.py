@@ -1,3 +1,4 @@
+"""Example from tutorial."""
 
 from data_loader import Coord, Time
 from data_loader.constructor import VIConstructor, FGConstructor
@@ -19,7 +20,7 @@ coords = [lat, lon, time]
 
 
 # Variables
-vic = dlc.VIConstructor()
+vic = VIConstructor()
 
 
 name = "SST"
@@ -31,8 +32,8 @@ vic.add_var(name, infos)
 
 name = "SSH"
 infos = {'fullname': 'Sea Surface Height',
-        'ncname': 'ssh'}
-vic.add_var()
+         'ncname': 'ssh'}
+vic.add_var(name, infos)
 
 vi = vic.make_vi()
 
@@ -41,15 +42,15 @@ vi = vic.make_vi()
 """
     Data
     ├── SSH
-    │   ├── SSH_20100101.nc
-    │   ├── SSH_20100109.nc
+    │   ├── SSH_20070101.nc
+    │   ├── SSH_20070109.nc
     │   └── ...
     └── SST
-        ├── A_2010001_2010008.L3m_8D_sst.nc
-        ├── A_2010008_2010016.L3m_8D_sst.nc
+        ├── A_2007001_2010008.L3m_8D_sst.nc
+        ├── A_2007008_2010016.L3m_8D_sst.nc
         └── ...
 """
-fgc = dlc.FGConstructor('/Data/', coords)
+fgc = FGConstructor('/Data/', coords)
 
 contains = ['SSH']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
@@ -64,7 +65,6 @@ replacements = {'dir': 'SSH/',
 fgc.set_fg_regex(pregex, replacements)
 
 fgc.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
-fgc.set_scan_filename_func(scanlib.scan_filename_null, 'time')
 
 
 contains = ['SST']
@@ -72,8 +72,8 @@ coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
 fgc.add_fg(FilegroupNetCDF, contains, coords_fg)
 
 pregex = ('%(dir)/%(prefix)_'
-          '%(time:Y)%(time:doy)_'
-          '%(time:Y:dummy)%(time:doy:dummy)'
+          r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
+          r'%(time:Y:dummy)%(time:doy:custom=\d\d\d:dummy)'
           '%(suffix)')
 replacements = {'dir': 'SSH/',
                 'prefix': 'SSH',

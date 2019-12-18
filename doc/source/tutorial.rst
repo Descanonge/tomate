@@ -53,7 +53,7 @@ its name and a serie of attributes.
 
    from data_loader.constructor import VIConstructor
 
-   vic = VIConstructor()
+   vic = dlc.VIConstructor()
 
    name = "SST"
    infos = {'fullname': 'Sea Surface Temperature',
@@ -65,7 +65,7 @@ its name and a serie of attributes.
    name = "SSH"
    infos = {'fullname': 'Sea Surface Height',
             'ncname': 'ssh'}
-   vic.add_var()
+   vic.add_var(name, infos)
 
 We specified two variables, with different attributes. We can now construct the
 vi object::
