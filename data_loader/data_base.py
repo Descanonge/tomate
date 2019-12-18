@@ -158,6 +158,11 @@ class DataBase():
         for fg in self.filegroups:
             fg.db = self
 
+    @property
+    def shape(self) -> List[int]:
+        """Shape of the data."""
+        return [self.vi.n] + [c.size for c in self.coords.values()]
+
     def get_coords_from_backup(self, *coords):
         """Remake coordinates from backup.
 
@@ -176,11 +181,6 @@ class DataBase():
         copy = [c.copy() for c in coords_orr]
         coords = IterDict(dict(zip(coords, copy)))
         return coords
-
-    @property
-    def shape(self) -> List[int]:
-        """Shape of the data."""
-        return [self.vi.n] + [c.size for c in self.coords.values()]
 
     def get_coord(self, name: str) -> Coord:
         """Return Coord with name.
@@ -339,16 +339,17 @@ class DataBase():
         return slice(*slc.indices(size))
 
     def sort_by_coords(self, dic):
-        # TODO: review
         """Sort dictionnary.
 
         The order is that of `self.coords_name`.
         """
+        # Make sure keys are coords name
         keys = {}
         for key, value in dic.items():
             c = self.get_coord(key)
             keys[c.name] = [key, value]
 
+        # Order dictionary
         keys_ord = {}
         for name in self.coords_name:
             key, value = keys[name]
@@ -445,6 +446,20 @@ class DataBase():
         for the SST variable.
         dt.load_data("SST", 0, lat=slice(200, 400))
         """
+        var_load, kw_coords = self._process_load_arguments(var_load, *coords, **kw_coords)
+        self.unload_data()
+        self.set_slice(variables=var_load, **kw_coords)
+        self.allocate_memory()
+        self._load_data(self.vi.var, kw_coords)
+        self.do_post_load()
+
+    def append_data(self, var_load, *coords, **kw_coords):
+        """Load data and append it to already loaded data."""
+        var_load, kw_coords = self._process_load_arguments(var_load, *coords, **kw_coords)
+        pass
+
+    def _process_load_arguments(self, var_load, *coords, **kw_coords):
+        """Process load arguments."""
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         kw_coords = self.fix_kw_coords(kw_coords, backup=True)
         kw_coords = self.sort_by_coords(kw_coords)
@@ -464,31 +479,7 @@ class DataBase():
             if isinstance(key, int):
                 kw_coords[coord] = [key]
 
-        self.unload_data()
-        self.set_slice(variables=var_load, **kw_coords)
-        self.allocate_memory()
-        self._load_data(self.vi.var, kw_coords)
-        self.do_post_load()
-
-    def _find_shape(self, kw_coords) -> List[int]:
-        """Find the shape of the data to load.
-
-        Excluding the number of variables.
-
-        Parameters
-        ----------
-        kw_coords: Dict[coord: str, key: NpIdx]
-            Asked index for each coord, not in order
-        """
-        shape = [0 for _ in range(self.dim)]
-        for coord, key in kw_coords.items():
-            i = self.coords_name.index(coord)
-            if isinstance(key, list):
-                shape[i] = len(key)
-            elif isinstance(key, slice):
-                shape[i] = len(range(*key.indices(self.shape[i+1])))
-
-        return shape
+        return var_load, kw_coords
 
     def allocate_memory(self):
         """Allocate data member."""
