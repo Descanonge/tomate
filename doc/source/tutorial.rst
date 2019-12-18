@@ -55,16 +55,16 @@ its name and a serie of attributes.
 
    vic = dlc.VIConstructor()
 
+   name = "SSH"
+   infos = {'fullname': 'Sea Surface Height',
+            'ncname': 'ssh'}
+   vic.add_var(name, infos)
+
    name = "SST"
    infos = {'fullname': 'Sea Surface Temperature',
             'ncname': 'sst',
             'unit': 'deg C',
             'vmin': -2, 'vmax': 30}
-   vic.add_var(name, infos)
-
-   name = "SSH"
-   infos = {'fullname': 'Sea Surface Height',
-            'ncname': 'ssh'}
    vic.add_var(name, infos)
 
 We specified two variables, with different attributes. We can now construct the

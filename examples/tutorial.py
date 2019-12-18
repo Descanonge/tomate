@@ -23,19 +23,19 @@ coords = [lat, lon, time]
 vic = VIConstructor()
 
 
-name = "SST"
-infos = {'fullname': 'Sea Surface Temperature',
-         'ncname': 'sst',
-         'unit': 'deg C',
-         'vmin': -2, 'vmax': 30}
-vic.add_var(name, infos)
-
 name = "SSH"
 infos = {'fullname': 'Sea Surface Height',
          'ncname': 'ssh'}
 vic.add_var(name, infos)
 
 vi = vic.make_vi()
+
+name = "SST"
+infos = {'fullname': 'Sea Surface Temperature',
+         'ncname': 'sst',
+         'unit': 'deg C',
+         'vmin': -2, 'vmax': 30}
+vic.add_var(name, infos)
 
 
 # Filegroups
