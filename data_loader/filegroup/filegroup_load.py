@@ -201,7 +201,7 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def _reorder_chunk(self, order, keys, chunk):
+    def reorder_chunk(self, chunk, keys, order=None):
         """Reorder data.
 
         Dimensions are not necessarily stored with the same
@@ -220,6 +220,9 @@ class FilegroupLoad(FilegroupScan):
         -------
         chunk:
         """
+        if order is None:
+            order = list(self.coords.keys())
+
         # If we ask for keys that are not in the file.
         # added dimensions are inserted at the begginning
         order_added = order.copy()

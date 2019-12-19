@@ -213,6 +213,7 @@ class Command():
 
 def merge_cmd_per_file(commands):
     """Merge commands that correspond to the same file."""
+    # TODO: non-consecutive
     commands_merged = [commands[0]]
     i = 0
     for cmd in commands[1:]:
