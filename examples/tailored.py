@@ -6,6 +6,7 @@ However it is sometime useful to load all available for one
 filegroup.
 
 This example show how this can be easily achieved.
+It uses the same kind of data as the tutorial.
 Separate function are used to add a single filegroup
 and the corresponding variables.
 
@@ -16,7 +17,8 @@ section executed if the file is run, and this with
 a minimal amount of redondant code.
 The public function can be easily imported into others
 scripts, and the module can be run directly to debug
-the database creation.
+the database creation (in which case the constructor
+is directly available).
 
 It is also suggested to implement keyword arguments
 that can be passed to the `add_...` function, to have
@@ -30,6 +32,8 @@ from data_loader.constructor import Constructor
 from data_loader.filegroup import FilegroupNetCDF
 from data_loader.masked import DataMasked
 import data_loader.scan_library as scanlib
+
+__all__ = ['get_data']
 
 root = '/Data/'
 
@@ -60,9 +64,10 @@ def add_ssh(cstr, source):
     cstr.set_fg_regex(pregex, replacements)
 
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
 
 
-def add_sst(vic, cstr):
+def add_sst(cstr):
     """Add the SST to the VI and filegroups."""
 
     name = "SST"
@@ -87,7 +92,7 @@ def add_sst(vic, cstr):
 
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
     cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
-
+    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
 
 def _get_data(cstr, groups, **kwargs):
     if groups is None:
@@ -102,8 +107,7 @@ def _get_data(cstr, groups, **kwargs):
     if "SST" in groups:
         add_sst(cstr)
 
-    vi = vic.make_vi()
-    dt = cstr.make_database(DataMasked, vi)
+    dt = cstr.make_database(DataMasked)
     return dt
 
 

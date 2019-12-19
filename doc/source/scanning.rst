@@ -37,6 +37,8 @@ the files won't be scanned, but the coordinates values will still
 be checked for consistency with other filegroups.
 
 
+.. _scanning-reversing:
+
 Reversing dimensions
 --------------------
 

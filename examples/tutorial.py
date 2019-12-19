@@ -28,7 +28,6 @@ cstr.add_variable(name, infos)
 name = "SST"
 infos = {'fullname': 'Sea Surface Temperature',
          'ncname': 'sst',
-         'units': 'deg C',
          'vmin': -2, 'vmax': 30}
 cstr.add_variable(name, infos)
 
@@ -59,7 +58,8 @@ replacements = {'dir': 'SSH/',
 cstr.set_fg_regex(pregex, replacements)
 
 cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
-cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
+cstr.set_scan_variables_attributes_func(scanlib.scan_attributes_nc)
+cstr.set_scan_coords_attributes_func(scanlib.scan_units_nc, 'lat', 'lon', 'time')
 
 
 # SST
@@ -78,7 +78,7 @@ cstr.set_fg_regex(pregex, replacements)
 
 cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
 cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
-cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
+cstr.set_scan_variables_attributes_func(scanlib.scan_attributes_nc)
 
 
 # Create database

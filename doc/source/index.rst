@@ -16,6 +16,7 @@ Welcome to the Data Loader package documentation !
    scanning
    variables_info
    log
+   expanding
 
    API references<references/data_loader>
 

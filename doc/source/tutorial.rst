@@ -5,15 +5,16 @@ Constructing a database
 A database needs a few objects to be functionnal, namely coordinates,
 a vi, and filegroups. Creating these can be a bit daunting. The
 constructor module provides ways to create a data object, and do a couple
-of additional checks.
+of additional checks that ease the creation of a database.
 
-This page will break down a typical database creation script.
+This page will break down a typical database creation script, and present
+the main features of the package.
 
 
 Coordinates
 -----------
 
-First we will define the coordinates that we will encounter in out database.
+First we will define the coordinates that we will encounter in our database.
 Here we use a simple :class:`Coord<data_loader.Coord>` for the latitude and
 longitude, and :class:`Time<data_loader.Time>` for the time as this will provide
 useful functionalities for working with dates.
@@ -45,8 +46,9 @@ order the data will be stored. Here the ranks of the data numpy array will be
 Variables
 ---------
 
-We must now specify the variables we are intersted in. We will construct a
-:doc:`VariablesInfo<variables_info>` object.
+We must now specify the variables we are interested in. This will construct a
+:doc:`VariablesInfo<variables_info>` object (abbreviated VI).
+For that, we will use a :class:`Constructor<data_loader.constructor.Constructor>` object.
 We must supply a root directory, where all files are contained, as well as
 the coordinates created before.
 For each variable we will specify its name and eventually a serie of attributes.
@@ -70,20 +72,23 @@ For each variable we will specify its name and eventually a serie of attributes.
     cstr.add_variable(name, infos)
 
 
-If more attributes can be found in the files, we can set the filegroups to
-scan for them a littler latter. This will overide the attributes we set.
-We specified the 'ncname' attribute that will be detrimental for scanning
+If more information can be found in the files, we can set the filegroups to
+scan for them a little latter. This will overide the attributes we set.
+Note that we indicated the 'ncname' attribute that will be detrimental for scanning
 netCDF files.
 
 
 Filegroups
 ----------
 
-The lasts objects to create are the filegroups. They hold information on
-where the files are, what variables they contain, and what parts of the
-dimensions.
-The filegroups are also responsible for opening those files
-later on for loading the data. We must thus give them some of that information.
+The last objects to create are the filegroups. They hold information on
+where the files are, what variables they contain, and how the different
+dimensions are arranged.
+The filegroups are responsible for scanning the files at the database
+creation to see how the data is arranged, and opening those files
+later on for loading the data.
+We must thus give them all the information necessary to accomplish those
+tasks.
 
 Our files are organized as such::
 
@@ -98,7 +103,7 @@ Our files are organized as such::
         └── ...
 
 Both group of files have a single file per time-step (an 8 day average).
-The SSH files contain information about that time-step: there is a
+The SSH files contain information about that time-step: there are a
 time dimension and variable from which we can extract the time values for
 that file.
 For the SST on the other hand, the sole information on the time value for each
@@ -131,8 +136,8 @@ The order of the coordinates does not matter here.
 We must now tell where are the files, more precisely how is constructed
 their filenames. By filename, we mean the whole string starting after the
 root directory.
-For that, a pre-regex is used. It is a regular expression, with a few
-added features. It will be transformed in a more standard regex that will be
+For that, a pre-regex is used. It is a regular expression with a few
+added features. It will be transformed in a standard regex that will be
 used to find the files.
 I can only recommend to keep the regex simple...
 
@@ -143,8 +148,8 @@ filegroup will consider that all files are in fact equal to the first
 filename that matched ('SST/A_2007001-2007008.nc' here).
 
 For that reason, we must tell for what coordinates the filenames are varying.
-Here only the time is changing across files. We use for that
-:class:`Matchers<data_loader.coord_scan.Matcher>`::
+We use for that :class:`Matchers<data_loader.coord_scan.Matcher>`.
+Here only the time is changing across files::
 
     pregex = r"SSH/SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
 
@@ -153,9 +158,9 @@ by the coordinate name, and the element of that coordinate.
 Here 'Y' means the match will be the date year, the matcher will be replaced by
 the correspond regex (4 digits in this case). This element name will also be
 used to extract information from the filename.
-The default elements available are found in the
+The elements available are defined in the
 :class:`Matcher<data_loader.coord_scan.Matcher>` class.
-(see :doc:`scanning`)
+(see :doc:`filegroup` for a list of defaults elements)
 
 To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
@@ -169,11 +174,17 @@ To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
 Don't forget the r to allow for backslashes.
 
-The last step is to specify how to retrieve the coordinates values,
+The last step is to tell the filegroup how to scan files for
+additional information. This is done by appointing scanning functions
+to the filegroup. The appointement can be coordinate specific.
+First, we must specify how to retrieve the coordinates values,
 either by looking at the filename, or inside the file.
-This is done by standardized functions. You can use existing functions, or
-write your own. Here, all coordinates values are found in the netCDF files.
-We use an existing function::
+This is done by standardized functions, there are a number of
+pre-existing functions that can be found in
+:mod:`scan_library<data_loader.scan_library>`,
+but user-defined function can also be used.
+Here, all coordinates values are found in the netCDF files, we use an existing
+function::
 
     import data_loader.scan_library as scanlib
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
@@ -184,7 +195,7 @@ First, we notice they are two varying dates in the filename, the start and end
 of the 8-days averaging. We only want to retrieve the starting date, but must
 still specify that there is a second changing date. To discard that second part,
 we add the `dummy` flag to the end of the matchers.
-This is a very useful trick to specify variation that are not associated with
+This is a useful trick to specify variations that are not associated with
 any coordinate value::
 
     pregex = ('%(dir)/%(prefix)_'
@@ -214,11 +225,19 @@ date information will be retrieved from the filename::
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon')
     cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
 
+The values and index of the coordinates is not the only thing we can scan for.
+The filegroup can look for variable specific attributes, and place them into
+the VI.
+For instance, for netCDF files::
 
-Finally, we can ask the filegroup to scan a file to find variables specific
-attributes. There is an existing function for netCDF files::
+    cstr.set_scan_variables_attributes_func(scanlib.scan_attributes_nc)
 
-    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
+We can also scan for coordinate specific information.
+Currently, only the `units` attribute can be
+modified::
+
+    cstr.set_scan_coords_attributes_func(scanlib.scan_units_nc, 'lon', 'lat')
+
 
 
 The Data Object
@@ -238,7 +257,10 @@ The lines above will start the scanning process. Each filegroup will
 scan their files for coordinates values and index. The values obtained
 will be compared.
 If the coordinates from different filegroups have different ranges, only
-the common part of the data will be available.
+the common part of the data will be available for loading.
+
+During the scanning of the file, information is logged at the 'debug' level.
+More information on logging: :doc:`log`
 
 
 Loading Data
@@ -285,3 +307,14 @@ with regard to what is available *on disk*::
     print(dt.shape, dt.vi.var, dt.slices)
 
     dt.load_data(dt.vi.var, **dt.slices)
+
+
+To go further
+-------------
+
+| More information on the database object: :doc:`data_base`
+| More information on scanning: :doc:`filegroup` and :doc:`scanning`
+| More information on logging: :doc:`log`
+
+Some examples of database creation and use cases are provided
+in /examples.
