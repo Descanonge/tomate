@@ -198,10 +198,8 @@ class FilegroupScan():
         """Return if the current file has to be opened."""
         to_open = False
         for cs in self.enum_scan("scannable").values():
-            if 'in' in cs.scan and not cs.scanned:
-                to_open = True
-            if self.scan_attr:
-                to_open = True
+            to_open = to_open or cs.is_to_open()
+        to_open = to_open or self.scan_attr
         return to_open
 
     def scan_file(self, filename: str):

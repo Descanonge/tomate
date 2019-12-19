@@ -142,10 +142,6 @@ class CoordScan(Coord):
 
         super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
 
-    def is_to_open(self):
-        """Return if the coord needs to open a file."""
-        return 'in' in self.scan or 'attribute' in self.scan
-
     def is_idx_descending(self):
         """Is idx descending."""
         return self._idx_descending
@@ -207,6 +203,10 @@ class CoordScan(Coord):
             key_data = self.in_idx[key]
 
         return key_data
+
+    def is_to_open(self):
+        """Return if the coord needs to open a file."""
+        raise NotImplementedError
 
     def scan_filename(self, m): # pylint: disable=method-hidden
         """Scan filename to find values.
@@ -368,14 +368,23 @@ class CoordScanIn(CoordScan):
         if not self.scanned:
             self.scan_file_values(file)
 
+    def is_to_open(self):
+        """Return if the coord needs to open a file."""
+        to_open = False
+        if 'in' in self.scan and not self.scanned:
+            to_open = True
+        if 'attributes' in self.scan and not self.scanned:
+            to_open = True
+        return to_open
+
 
 class CoordScanShared(CoordScan):
     """Coord used for scanning of a shared coordinate.
 
     Scan all files.
 
-    Attribute
-    ---------
+    Attributes
+    ----------
     matchers: List of Matcher
     matches: List[List[str]]
         List of matches in the filename, for each file
@@ -425,6 +434,13 @@ class CoordScanShared(CoordScan):
 
             matches = [matches for _ in range(n_values)]
             self.matches += matches
+
+    def is_to_open(self):
+        """Return if the coord needs to open a file."""
+        to_open = False
+        to_open = to_open or ('in' in self.scan)
+        to_open = to_open or ('attributes' in self.scan and not self.scanned)
+        return to_open
 
 
 def get_coordscan(filegroup, coord, shared):
