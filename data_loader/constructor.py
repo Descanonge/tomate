@@ -162,6 +162,13 @@ class Constructor():
             log.warning("%s has a scannable flag. "
                         "Values set manually could be overwritten.", cs.name)
 
+    def set_scan_coords_attributes_func(self, func, *coords):
+        """Set a function for scanning coordinate attributes."""
+        fg = self.current_fg
+        for name in coords:
+            cs = fg.cs[name]
+            cs.set_scan_attributes(func)
+
     def set_scan_variables_attributes_func(self, func):
         """Set a function for scanning variables attributes to current fg."""
         fg = self.current_fg

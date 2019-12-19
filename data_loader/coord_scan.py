@@ -111,7 +111,13 @@ class CoordScan(Coord):
         List of the index for each value inside the files
     scan: set
         What part of the file is to be scanned
-        { in | filename | manual } or a combination of the three
+        { in | filename | manual | attributes } or a combination of the three
+    scanned: bool
+        If the coordinate has been scanned
+    scan_filename_kwargs: Dict
+        Keyword arguments to pass to the scan_filename function
+    scan_in_file_kwargs: Dict
+        Keyword arguments to pass to the scan_in_file function
     """
 
     def __init__(self, filegroup, coord: Coord, shared: bool):
@@ -120,6 +126,7 @@ class CoordScan(Coord):
 
         self.shared = shared
         self.scan = set()
+        self.scanned = False
 
         self.values = []
         self.in_idx = []
@@ -130,6 +137,10 @@ class CoordScan(Coord):
         self._idx_descending = False
 
         super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
+
+    def is_to_open(self):
+        """Return if the coord needs to open a file."""
+        return 'in' in self.scan or 'attribute' in self.scan
 
     def is_idx_descending(self):
         """Is idx descending."""
@@ -239,6 +250,10 @@ class CoordScan(Coord):
         """
         raise NotImplementedError("scan_in_file was not set for '%s" % self.name)
 
+    def scan_attributes(self, filename): #pylint: disable=method-hidden
+        """Scan coordinate attributes."""
+        raise NotImplementedError("scan_attributes was not set for '%s" % self.name)
+
     def set_scan_filename_func(self, func, **kwargs):
         """Set function for scanning values.
 
@@ -265,11 +280,18 @@ class CoordScan(Coord):
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually."""
-        self.scan = set(['manual'])
+        self.scan.discard('in')
+        self.scan.discard('filename')
+        self.scan.add('manual')
         self.set_values(values)
         self.in_idx = in_idx
 
-    def scan_file_values(self, filename):
+    def set_scan_attributes(self, func):
+        """Set function for scanning attributes in file."""
+        self.scan.add("attributes")
+        self.scan_attributes = MethodType(func, self)
+
+    def scan_file_values(self, file):
         """Find values for a file.
 
         Parameters
@@ -288,10 +310,18 @@ class CoordScan(Coord):
         """
         values = None
         in_idx = None
+        if 'attributes' in self.scan and not self.scanned:
+            attributes = self.scan_attributes(file) #pylint: disable=not-callable
+            for name, attr in attributes.items():
+                if attr is not None:
+                    self.coord.__setattr__(name, attr)
         if 'filename' in self.scan:
             values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
         if 'in' in self.scan:
             values, in_idx = self.scan_in_file(filename, values) # pylint: disable=not-callable
+
+        if self.is_to_open():
+            self.scanned = True
 
         if isinstance(values, (int, float, type(None))):
             values = [values]
@@ -312,23 +342,14 @@ class CoordScanIn(CoordScan):
 
     Only scan the first file found.
     All files are considered to have the same structure.
-
-    Attribute
-    ---------
-    scanned: bool
-        If the coord has been scanned
     """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, shared=False)
 
-        self.scanned = False
-
-    def scan_file(self, m, filename):
+    def scan_file(self, m, filename, file):
         """Scan file."""
         if not self.scanned:
-            self.scan_file_values(filename)
-            self.scanned = True
+            self.scan_file_values(file)
 
 
 class CoordScanShared(CoordScan):
