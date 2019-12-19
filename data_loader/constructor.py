@@ -162,10 +162,10 @@ class Constructor():
             log.warning("%s has a scannable flag. "
                         "Values set manually could be overwritten.", cs.name)
 
-    def set_scan_attribute_func(self, func):
+    def set_scan_variables_attributes_func(self, func):
         """Set a function for scanning variables attributes to current fg."""
         fg = self.current_fg
-        fg.set_scan_attribute_func(func)
+        fg.set_scan_attributes_func(func)
 
     def set_coord_descending(self, *coords):
         """Set a coordinate as descending in the filegroup.
