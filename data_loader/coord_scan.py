@@ -296,8 +296,8 @@ class CoordScan(Coord):
 
         Parameters
         ----------
-        filename: str
-            Filename
+        file:
+            File object
 
         Returns
         -------
@@ -315,10 +315,12 @@ class CoordScan(Coord):
             for name, attr in attributes.items():
                 if attr is not None:
                     self.coord.__setattr__(name, attr)
+
         if 'filename' in self.scan:
             values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
         if 'in' in self.scan:
-            values, in_idx = self.scan_in_file(filename, values) # pylint: disable=not-callable
+            values, in_idx = self.scan_in_file(file, values, # pylint: disable=not-callable
+                                               **self.scan_in_file_kwargs)
 
         if self.is_to_open():
             self.scanned = True
@@ -391,7 +393,7 @@ class CoordScanShared(CoordScan):
         self.matches = self.matches[key]
         super().slice(key)
 
-    def scan_file(self, m, filename):
+    def scan_file(self, m, filename, file):
         """Scan file."""
         # Find matches
         matches = []
@@ -402,7 +404,7 @@ class CoordScanShared(CoordScan):
         # If they were not found before, which can happen when
         # there is more than one shared coord.
         if matches not in self.matches:
-            n_values = self.scan_file_values(filename)
+            n_values = self.scan_file_values(file)
 
             matches = [matches for _ in range(n_values)]
             self.matches += matches

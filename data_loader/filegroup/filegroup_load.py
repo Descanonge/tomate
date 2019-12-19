@@ -168,9 +168,15 @@ class FilegroupLoad(FilegroupScan):
         commands = self.get_commands(var_list, keys)
         for cmd in commands:
             log.debug(cmd)
-            self._load_cmd(cmd)
+            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
+            try:
+                self.load_cmd(file, cmd)
+            except:
+                self.close_file(file)
+                raise
+            self.close_file(file)
 
-    def _load_cmd(self, cmd):
+    def load_cmd(self, file, cmd):
         """Load data from one file using a command.
 
         Parameters

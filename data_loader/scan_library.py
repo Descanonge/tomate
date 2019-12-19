@@ -110,41 +110,53 @@ def _find_month_number(name):
 
     return None
 
-def scan_in_file_nc(cs, filename, values): #pylint: disable=unused-argument
+def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     """Scan netCDF file for inout values."""
-    with nc.Dataset(filename, 'r') as dt:
-        for name in [cs.name] + cs.name_alt:
-            try:
-                in_values = dt[name][:]
-            except IndexError:
-                in_values = None
-                in_idx = None
-            else:
-                in_values = list(in_values)
-                in_idx = list(range(len(in_values)))
-                break
+    for name in [cs.name] + cs.name_alt:
+        try:
+            in_values = file[name][:]
+        except IndexError:
+            in_values = None
+            in_idx = None
+        else:
+            in_values = list(in_values)
+            in_idx = list(range(len(in_values)))
+            break
 
     return in_values, in_idx
 
 
-def scan_in_file_nc_idx_only(cs, filename, values):
+def scan_in_file_nc_idx_only(cs, file, values):
     """Scan netCDF for inout index only."""
-    _, in_idx = scan_in_file_nc(cs, filename, values)
+    _, in_idx = scan_in_file_nc(cs, file, values)
     return values, in_idx
 
 
-def scan_attribute_nc(fg, filename, variables):
+def scan_attributes_nc(fg, file, variables):
     """Scan for all attributes in a netCDF file."""
 
     infos = {}
-    with nc.Dataset(filename, 'r')as dt:
-        for var in variables:
-            infos_var = {}
-            nc_var = dt[fg.get_ncname(var)]
-            attributes = nc_var.ncattrs()
-            for attr in attributes:
-                infos_var[attr] = nc_var.getncattr(attr)
+    for var in variables:
+        infos_var = {}
+        nc_var = file[fg.get_ncname(var)]
+        attributes = nc_var.ncattrs()
+        for attr in attributes:
+            infos_var[attr] = nc_var.getncattr(attr)
 
-            infos[var] = infos_var
+        infos[var] = infos_var
 
     return infos
+
+
+def scan_units_nc(cs, file):
+    """Scan for the time variable unit."""
+    for name in [cs.name] + cs.name_alt:
+        try:
+            nc_var = file[name]
+        except IndexError:
+            units = None
+        else:
+            units = nc_var.getncattr('units')
+            break
+
+    return {'units': units}

@@ -5,7 +5,6 @@ Basic support fillValue
 
 import logging
 
-import numpy as np
 import netCDF4 as nc
 
 from data_loader.filegroup.filegroup_load import FilegroupLoad
@@ -18,8 +17,18 @@ class FilegroupNetCDF(FilegroupLoad):
 
     For NetCDF files.
     """
+    def open_file(self, filename, mode='r', log_lvl='info'):
+        """Open file."""
+        file = nc.Dataset(filename, mode)
+        log_lvl = getattr(logging, log_lvl.upper())
+        log.log(log_lvl, "Opening %s", filename)
+        return file
 
-    def _load_cmd(self, cmd):
+    def close_file(self, file):
+        """Close file."""
+        file.close()
+
+    def load_cmd(self, file, cmd):
         """Load data from one file using a command.
 
         Parameters
@@ -29,19 +38,17 @@ class FilegroupNetCDF(FilegroupLoad):
             variables to load, in file keys, and
             where to place the data.
         """
-        with nc.Dataset(cmd.filename, 'r') as data_file:
-            log.info("Opening %s", cmd.filename)
-            for var in cmd.var_list:
-                ncname = self.get_ncname(var)
-                i_var = self.db.vi.idx[var]
-                log.info("variable %s", ncname)
+        for var in cmd.var_list:
+            ncname = self.get_ncname(var)
+            i_var = self.db.vi.idx[var]
+            log.info("Looking at variable %s", ncname)
 
-                for keys_inf, keys_mem in cmd:
-                    chunk = self._load_slice_single_var(data_file, keys_inf, ncname)
+            for keys_inf, keys_mem in cmd:
+                chunk = self._load_slice_single_var(file, keys_inf, ncname)
 
-                    log.info("placing it in %s",
-                             [i_var] + list(keys_mem.values()))
-                    self.db.data[i_var][tuple(keys_mem.values())] = chunk
+                log.info("Placing it in %s",
+                         [i_var] + list(keys_mem.values()))
+                self.db.data[i_var][tuple(keys_mem.values())] = chunk
 
                 # # Make sure it is correctly masked
                 # try:
@@ -49,7 +56,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 # except AttributeError:
                 #     self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
 
-    def _load_slice_single_var(self, data_file, keys, ncname):
+    def _load_slice_single_var(self, file, keys, ncname):
         """Load data for a single variable.
 
         The data is reordered
@@ -64,10 +71,10 @@ class FilegroupNetCDF(FilegroupLoad):
             Name of the variable in file
         """
 
-        order, keys_inf = self._get_order(data_file, ncname, keys)
+        order, keys_inf = self._get_order(file, ncname, keys)
 
-        log.info("taking keys %s", list(keys_inf.values()))
-        chunk = data_file[ncname][keys_inf.values()]
+        log.info("Taking keys %s", list(keys_inf.values()))
+        chunk = file[ncname][keys_inf.values()]
         chunk = self._reorder_chunk(order, keys, chunk)
 
         return chunk
@@ -128,13 +135,13 @@ class FilegroupNetCDF(FilegroupLoad):
         # FIXME: Coordinate descending !
         log.warning("Writing a subset not implemented, writing all data.")
 
-        with nc.Dataset(wd + filename, 'w') as dt:
+        with self.open_file(filename, mode='w') as dt:
             log.info("in %s", filename)
             for name, coord in self.db.coords.items():
                 dt.createDimension(name, coord.size)
                 dt.createVariable(name, 'f', [name])
                 dt[name][:] = coord[:]
-                log.info("laying %s values, extent %s", name, coord.get_extent_str())
+                log.info("Laying %s values, extent %s", name, coord.get_extent_str())
 
                 dt[name].setncattr('fullname', coord.fullname)
                 dt[name].setncattr('units', coord.units)

@@ -181,11 +181,27 @@ class FilegroupScan():
         self.segments = [s[i:j]
                          for i, j in zip(sep, sep[1:]+[None])]
 
+    def open_file(self, filename: str, mode='r', log_lvl='info'):
+        """Open a file."""
+        raise NotImplementedError
+
+    def close_file(self, file):
+        """Close file."""
+        raise NotImplementedError
+
+    def is_to_open(self):
+        """Return if the current file has to be opened."""
+        to_open = False
+        for cs in self.enum_scan("scannable").values():
+            if 'in' in cs.scan and not cs.scanned:
+                to_open = True
+            if self.scan_attr:
+                to_open = True
+        return to_open
+
     def scan_file(self, filename: str):
-        # TODO: pass file instead of filename if necessary
         """Scan a single filename."""
         m = re.match(self.regex, filename)
-        # TODO: message to debug the regex
 
         filename = os.path.join(self.root, filename)
 
@@ -198,14 +214,24 @@ class FilegroupScan():
         if len(self.segments) == 0:
             self.find_segments(m)
 
-        for cs in self.enum_scan("scannable").values():
-            cs.scan_file(m, filename)
+        if self.is_to_open():
+            file = self.open_file(filename, mode='r', log_lvl='debug')
+        else:
+            file = None
 
-        if self.scan_attr:
-            infos = self.scan_attribute(filename, self.contains) #pylint: disable=not-callable
-            for var, info in infos.items():
-                self.vi.add_infos_per_variable(var, info)
-            self.scan_attr = False
+        try:
+            if self.scan_attr:
+                infos = self.scan_attributes(file, self.contains) #pylint: disable=not-callable
+                for var, info in infos.items():
+                    self.vi.add_infos_per_variable(var, info)
+                self.scan_attr = False
+
+            for cs in self.enum_scan("scannable").values():
+                cs.scan_file(m, filename, file)
+        except:
+            if file is not None:
+                self.close_file(file)
+            raise
 
     def scan_files(self, files: List[str]):
         """Scan files.
@@ -226,11 +252,11 @@ class FilegroupScan():
             cs.sort_values()
             cs.update_values(cs.values)
 
-    def set_scan_attribute_func(self, func):
+    def set_scan_attributes_func(self, func):
         """Set function for scanning variables attributes."""
         self.scan_attr = True
-        self.scan_attribute = MethodType(func, self)
+        self.scan_attributes = MethodType(func, self)
 
-    def scan_attribute(self, filename, variables): #pylint: disable=method-hidden
+    def scan_attributes(self, filename, variables): #pylint: disable=method-hidden
         """Scan attributes in file for specified variables."""
         raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)
