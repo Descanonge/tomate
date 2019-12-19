@@ -323,7 +323,7 @@ class CoordScan(Coord):
 
         if 'filename' in self.scan:
             values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
-            log.debug("Scanning filename for '%s', found values %s", self.name, values)
+            log.debug("Scanning filename for '%s'", self.name)
 
         if 'in' in self.scan:
             log.debug("Scanning in file for '%s'", self.name)
@@ -338,13 +338,20 @@ class CoordScan(Coord):
         if isinstance(in_idx, (int, float, type(None))):
             in_idx = [in_idx]
 
-        if len(values) != len(in_idx):
+        n_values = len(values)
+        if n_values == 1:
+            log.debug("Found value %s", values[0])
+        else:
+            log.debug("Found %s values between %s and %s",
+                      n_values, values[0], values[n_values-1])
+
+        if n_values != len(in_idx):
             raise IndexError("not as much values as infile indices")
 
         self.values += values
         self.in_idx += in_idx
 
-        return len(values)
+        return n_values
 
 
 class CoordScanIn(CoordScan):

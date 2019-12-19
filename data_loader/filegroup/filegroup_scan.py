@@ -16,6 +16,8 @@ Filegroup:
     Manage pre-regex processing
 """
 
+import logging
+
 import os
 import re
 from types import MethodType
@@ -24,6 +26,9 @@ from typing import List
 
 from data_loader.coord import Coord
 import data_loader.coord_scan as dlcs
+
+
+log = logging.getLogger(__name__)
 
 
 class FilegroupScan():
@@ -223,6 +228,7 @@ class FilegroupScan():
             if self.scan_attr:
                 infos = self.scan_attributes(file, self.contains) #pylint: disable=not-callable
                 for var, info in infos.items():
+                    log.debug("Found for '%s' attributes %s", var, list(info.keys()))
                     self.vi.add_infos_per_variable(var, info)
                 self.scan_attr = False
 
