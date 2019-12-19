@@ -9,7 +9,7 @@ informations.
 The values of the coordinate must be strictly monotonous. They can be
 descending.
 
-Each coordinate can have a unit attribute (only cosmetic).
+Each coordinate can have a units attribute (only cosmetic).
 It can also contain a `name_alt` attribute, a list of strings that list the
 possible names this coordinate/dimension can be found in the files. For
 instance, the latitude coordinate can be found under either `lat` or `latitude`.
@@ -33,7 +33,7 @@ functionnalities to treat date values more easily.
 Most notably one can obtain dates from index, or vice-versa using
 Time.index2date() and Time.date2index().
 
-The unit is here mandatory, and must comply to CF metadata conventions, and
+The units is here mandatory, and must comply to CF metadata conventions, and
 be of the form `<time units> since <reference time>`.
 This functionality uses the intern datetime.datetime objects and third party
 netCDF4.num2date and netCDF4.date2num functions.

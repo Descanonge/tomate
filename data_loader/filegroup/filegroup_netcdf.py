@@ -137,7 +137,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 log.info("laying %s values, extent %s", name, coord.get_extent_str())
 
                 dt[name].setncattr('fullname', coord.fullname)
-                dt[name].setncattr('unit', coord.unit)
+                dt[name].setncattr('units', coord.units)
 
             for var in variables:
                 name = self.get_ncname(var)

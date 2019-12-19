@@ -134,6 +134,7 @@ class Constructor():
             cs.set_scan_in_file_func(func)
 
     def set_scan_filename_func(self, func, *coords):
+        # TODO: kwargs to pass the function like default values
         """Set function for scanning coordinates values in filename.
 
         Parameters

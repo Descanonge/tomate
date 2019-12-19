@@ -127,7 +127,7 @@ class CoordScan(Coord):
 
         self._idx_descending = False
 
-        super().__init__(coord.name, coord._array, coord.unit, coord.name_alt)
+        super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
 
     def is_idx_descending(self):
         """Is idx descending."""

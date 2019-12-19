@@ -25,12 +25,12 @@ We could use any kind of subclass of the Coord class.
     lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
     lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
     time = Time('time', None, fullname='Time',
-                unit='hours since 1970-01-01 00:00:00')
+                units='hours since 1970-01-01 00:00:00')
 
     coords = [lat, lon, time]
 
 Since we do not yet have the coordinates values, we specify `None`.
-We must include a CF-metadata compliant unit for the time coordinate.
+We must include a CF-metadata compliant units for the time coordinate.
 
 'lat', 'lon', and 'time' will be the names of our coordinates, however
 they could be found under other names in our different data files, we thus
@@ -65,7 +65,7 @@ For each variable we will specify its name and eventually a serie of attributes.
     name = "SST"
     infos = {'fullname': 'Sea Surface Temperature',
              'ncname': 'sst',
-             'unit': 'deg C',
+             'units': 'deg C',
              'vmin': -2, 'vmax': 30}
     cstr.add_variable(name, infos)
 

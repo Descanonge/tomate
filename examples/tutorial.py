@@ -12,7 +12,7 @@ import data_loader.scan_library as scanlib
 lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
 lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
 time = Time('time', None, fullname='Time',
-            unit='hours since 1970-01-01 00:00:00')
+            units='hours since 1970-01-01 00:00:00')
 
 coords = [lat, lon, time]
 
@@ -28,7 +28,7 @@ cstr.add_variable(name, infos)
 name = "SST"
 infos = {'fullname': 'Sea Surface Temperature',
          'ncname': 'sst',
-         'unit': 'deg C',
+         'units': 'deg C',
          'vmin': -2, 'vmax': 30}
 cstr.add_variable(name, infos)
 

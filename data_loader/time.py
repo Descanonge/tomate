@@ -30,8 +30,8 @@ class Time(Coord):
 
     Attributes
     ----------
-    unit: str
-        Time unit
+    units: str
+        Time units
     """
 
     def get_extent_str(self) -> str:
@@ -45,10 +45,10 @@ class Time(Coord):
         Raises
         ------
         ValueError
-            If the coordinate has no unit.
+            If the coordinate has no units.
         """
-        if self.unit == "":
-            raise ValueError("%s has no unit" % self.name)
+        if self.units == "":
+            raise ValueError("%s has no units" % self.name)
 
         super().update_values(values)
 
@@ -73,7 +73,7 @@ class Time(Coord):
         if isinstance(indices, int):
             integer = True
             indices = [indices]
-        dates = num2date([self[i] for i in indices], self.unit)
+        dates = num2date([self[i] for i in indices], self.units)
 
         # Sometimes, num2date returns a subclass of datetime
         # I convert it back to datetime.datetime
@@ -104,19 +104,19 @@ class Time(Coord):
 
         indices = []
         for date in dates:
-            num = date2num(date, self.unit)
+            num = date2num(date, self.units)
             indices.append(self.get_index(num))
 
         if single:
             indices = indices[0]
         return indices
 
-    def change_unit(self, unit: str):
-        """Change time unit."""
-        dates = num2date(self._array, self.unit)
-        values = date2num(dates, unit)
+    def change_units(self, units: str):
+        """Change time units."""
+        dates = num2date(self._array, self.units)
+        values = date2num(dates, units)
         self._array = values
-        self.unit = unit
+        self.units = units
 
     def get_collocated_times(self, time2: "Time") -> List[List[int]]:
         # REVIEW: collocated times

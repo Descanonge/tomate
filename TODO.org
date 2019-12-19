@@ -3,7 +3,6 @@
 TODO: fix issues with type hinting
 TODO: general doc
 
-TODO: Limiting to certain types of keys ? See above
 TODO: Add data to already loaded
       This would allow to simplify the keys asked
 

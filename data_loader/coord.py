@@ -3,7 +3,7 @@
 Contains strictly monoteous values.
 Stores name of the coordinate, its fullname,
 and the alternative name it could be found under in files.
-Also stores its unit.
+Also stores its units.
 
 
 Contains
@@ -38,8 +38,8 @@ class Coord():
         Identification of the coordinate
     array: Sequence, optional
         Values of the coordinate
-    unit: str, optional
-        Coordinate unit
+    units: str, optional
+        Coordinate units
     name_alt: str or List of str, optional
         Alternative names
     fullname: str, optional
@@ -49,8 +49,8 @@ class Coord():
     ----------
     name: str
         Identification of the coordinate
-    unit: str
-        Coordinate unit
+    units: str
+        Coordinate units
     name_alt: List of str
         Alternative names
     fullname: str
@@ -58,7 +58,7 @@ class Coord():
     size: int
         Length of values
     """
-    def __init__(self, name, array=None, unit=None, name_alt=None,
+    def __init__(self, name, array=None, units=None, name_alt=None,
                  fullname=None):
         self.name = name
         if name_alt is None:
@@ -71,9 +71,9 @@ class Coord():
             fullname = ""
         self.fullname = fullname
 
-        if unit is None:
-            unit = ''
-        self.unit = unit
+        if units is None:
+            units = ''
+        self.units = units
 
         self._array = None
         self._descending = None
@@ -144,7 +144,7 @@ class Coord():
             a = self._array[:]
         else:
             a = None
-        return self.__class__(self.name, a, self.unit, self.name_alt)
+        return self.__class__(self.name, a, self.units, self.name_alt)
 
     def slice(self, key):
         """Slice the coordinate."""
