@@ -64,8 +64,6 @@ class DataBase():
         Coordinates names
     coords: Dict[str, Coord]
         Coordinates by name
-    dim: int
-        Number of coordinates
     slices: Dict[NpIdx]
         Selected part of each coord
 
@@ -90,9 +88,7 @@ class DataBase():
         self.coords_name = names
         self._coords_orr = coords_orr
         self.coords = self.get_coords_from_backup()
-        self.dim = len(coords)
-        self.slices = dict(zip(self.coords_name,
-                               [slice(0, i, 1) for i in range(self.dim)]))
+        self.slices = {c.name: slice(0, c.size, 1) for c in coords}
 
         self.data = None
 
@@ -158,6 +154,11 @@ class DataBase():
         for fg in self.filegroups:
             fg.db = self
 
+    @property
+    def dim(self):
+        """Number of dimensions."""
+        return len(self.coords_name)
+            
     @property
     def shape(self) -> List[int]:
         """Shape of the data."""
