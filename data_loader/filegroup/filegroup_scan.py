@@ -217,10 +217,9 @@ class FilegroupScan():
         if len(self.segments) == 0:
             self.find_segments(m)
 
+        file = None
         if self.is_to_open():
             file = self.open_file(filename, mode='r', log_lvl='debug')
-        else:
-            file = None
 
         try:
             if self.scan_attr:
@@ -233,9 +232,11 @@ class FilegroupScan():
             for cs in self.enum_scan("scannable").values():
                 cs.scan_file(m, filename, file)
         except:
+            self.close_file(file)
+            raise
+        else:
             if file is not None:
                 self.close_file(file)
-            raise
 
     def scan_files(self, files: List[str]):
         """Scan files.

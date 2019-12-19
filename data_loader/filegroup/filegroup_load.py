@@ -174,7 +174,8 @@ class FilegroupLoad(FilegroupScan):
             except:
                 self.close_file(file)
                 raise
-            self.close_file(file)
+            else:
+                self.close_file(file)
 
     def load_cmd(self, file, cmd):
         """Load data from one file using a command.
