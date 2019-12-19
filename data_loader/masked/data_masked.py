@@ -37,7 +37,7 @@ class DataMasked(DataBase):
 
         Data is storred as a masked array
         """
-        log.info("allocating numpy masked array of shape %s", self.shape)
+        log.info("Allocating numpy masked array of shape %s", self.shape)
         self.data = np.ma.zeros(self.shape)
         # TODO: Better api from numpy ?
         self.data.mask = np.ma.make_mask_none(self.shape)

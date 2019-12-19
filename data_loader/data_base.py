@@ -484,7 +484,7 @@ class DataBase():
 
     def allocate_memory(self):
         """Allocate data member."""
-        log.info("allocating numpy array of shape %s", self.shape)
+        log.info("Allocating numpy array of shape %s", self.shape)
         self.data = np.zeros(self.shape)
 
     def _get_filegroups_for_variables(self, variables):

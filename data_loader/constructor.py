@@ -239,7 +239,7 @@ class Constructor():
             for i, cs in enumerate(coords):
                 sl = overlap[i].indices(cs.size)
                 if sl[0] != 0 or sl[1] != len(cs.values):
-                    cut += "\n" + str(cs.filegroup.contains) + " " + cs.get_extent_str()
+                    cut += "\n" + str(cs.filegroup.contains) + " had range " + cs.get_extent_str()
 
                 cs.slice(overlap[i])
                 cs.slice_total = overlap[i]
