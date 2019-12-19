@@ -16,7 +16,7 @@ def set_logging(level='INFO'):
     logging.getLogger('data_loader').setLevel(level_num)
 
 
-def set_file_log(filename: str, no_stdout=False):
+def set_file_log(filename: str, no_stdout=False, level=None):
     """Redirect output to file.
 
     Parameters
@@ -28,6 +28,11 @@ def set_file_log(filename: str, no_stdout=False):
     """
     logger = logging.getLogger('data_loader')
     handler = logging.FileHandler(filename, mode='w')
+
+    if level is not None:
+        level_num = getattr(logging, level.upper())
+        handler.setLevel(level_num)
+
     logger.addHandler(handler)
 
     if no_stdout:

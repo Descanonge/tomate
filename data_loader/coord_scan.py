@@ -21,12 +21,16 @@ CoordScanIn:
     The values are fully contained in the file
 """
 
+import logging
 from types import MethodType
 from typing import List
 
 import numpy as np
 
 from data_loader.coord import Coord
+
+
+log = logging.getLogger(__name__)
 
 
 class Matcher():
@@ -311,6 +315,7 @@ class CoordScan(Coord):
         values = None
         in_idx = None
         if 'attributes' in self.scan and not self.scanned:
+            log.debug("Scanning attributes in file for '%s'", self.name)
             attributes = self.scan_attributes(file) #pylint: disable=not-callable
             for name, attr in attributes.items():
                 if attr is not None:
@@ -318,7 +323,10 @@ class CoordScan(Coord):
 
         if 'filename' in self.scan:
             values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
+            log.debug("Scanning filename for '%s', found values %s", self.name, values)
+
         if 'in' in self.scan:
+            log.debug("Scanning in file for '%s'", self.name)
             values, in_idx = self.scan_in_file(file, values, # pylint: disable=not-callable
                                                **self.scan_in_file_kwargs)
 
@@ -400,6 +408,8 @@ class CoordScanShared(CoordScan):
         for mchr in self.matchers:
             mchr.match = m.group(mchr.idx + 1)
             matches.append(mchr.match)
+
+        log.debug("Found matches %s for filename %s", matches, filename)
 
         # If they were not found before, which can happen when
         # there is more than one shared coord.
