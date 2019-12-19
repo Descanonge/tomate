@@ -24,19 +24,29 @@ def get_value_from_matches(cs):
     return None
 
 
-def get_date_from_matches(cs):
+def get_date_from_matches(cs, default_date=None):
     """Retrieve date from matched elements.
 
-    Default date is 1970-01-01 12:00:00
     If any element is not found in the filename, it will be
     replaced by that element in the default date.
     If no match is found, None is returned.
+
+    Parameters
+    ----------
+    default_date: Dict
+        Default date element.
+        Defaults to 1970-01-01 12:00:00
     """
+    date = {"year": 1970, "month": 1, "day": 1,
+            "hour": 12, "minute": 0, "second": 0}
+
+    if default_date is None:
+        default_date = {}
+    date.update(default_date)
+
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
     match = False
-    date = {"year": 1970, "month": 1, "day": 1,
-            "hour": 12, "minute": 0, "second": 0}
 
     y = elts.pop("Y", None)
     if y is not None:
@@ -75,7 +85,7 @@ def get_date_from_matches(cs):
     # TODO: add hours
 
     if match:
-        return nc.date2num(datetime(**date), cs.unit)
+        return nc.date2num(datetime(**date), cs.units)
 
     return None
 

@@ -133,8 +133,7 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_in_file_func(func)
 
-    def set_scan_filename_func(self, func, *coords):
-        # TODO: kwargs to pass the function like default values
+    def set_scan_filename_func(self, func, *coords, **kwargs):
         """Set function for scanning coordinates values in filename.
 
         Parameters
@@ -147,7 +146,7 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_filename_func(func)
+            cs.set_scan_filename_func(func, **kwargs)
 
     def set_scan_manual(self, coord, values, in_idx=None):
         """Set coordinate values manually."""
@@ -243,14 +242,14 @@ class Constructor():
             coords[0].assign_values()
 
             if len(cut) > 0:
-                mess = ("(%s) does not have the same range across"
+                mess = ("'%s' does not have the same range across"
                         " all filegroups. A common range is taken. %s")
                 log.warning(mess+cut, name, coord.get_extent_str())
 
             # Check length
             for cs in coords:
                 if cs.size != cs.coord.size:
-                    raise IndexError(("({0}) has different lengthes across "
+                    raise IndexError(("'{0}' has different lengthes across "
                                       "filegroups. ({1} has {2}, expected {3})").format(
                                           name,
                                           cs.filegroup.contains, cs.size, cs.coord.size))
@@ -258,7 +257,7 @@ class Constructor():
             # Check that all filegroups have same values
             for cs in coords:
                 if np.any(cs[:] - cs.coord[:] > threshold):
-                    raise ValueError(("({:s}) has different values across "
+                    raise ValueError(("'{:s}' has different values across "
                                       "filegroups.").format(name))
 
     def check_regex(self):

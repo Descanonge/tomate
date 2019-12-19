@@ -88,7 +88,6 @@ class Matcher():
 
 
 class CoordScan(Coord):
-    # TODO: keep overlap in memory to load the slice in file.
     """Abstract Coord used for scanning of one variable.
 
     Parameters
@@ -124,6 +123,9 @@ class CoordScan(Coord):
 
         self.values = []
         self.in_idx = []
+
+        self.scan_filename_kwargs = {}
+        self.scan_in_file_kwargs = {}
 
         self._idx_descending = False
 
@@ -209,7 +211,7 @@ class CoordScan(Coord):
         NotImplementedError
             If scan_filename was not set.
         """
-        raise NotImplementedError("scan_filename was not set for (%s)" % self.name)
+        raise NotImplementedError("scan_filename was not set for '%s'" % self.name)
 
     def scan_in_file(self, filename, values): # pylint: disable=method-hidden
         """Scan inside file.
@@ -235,9 +237,9 @@ class CoordScan(Coord):
         NotImplementedError
             If scan_in_file was not set.
         """
-        raise NotImplementedError("scan_in_file was not set for (%s)" % self.name)
+        raise NotImplementedError("scan_in_file was not set for '%s" % self.name)
 
-    def set_scan_filename_func(self, func):
+    def set_scan_filename_func(self, func, **kwargs):
         """Set function for scanning values.
 
         Parameters
@@ -247,8 +249,9 @@ class CoordScan(Coord):
         """
         self.scan.add("filename")
         self.scan_filename = MethodType(func, self)
+        self.scan_filename_kwargs = kwargs
 
-    def set_scan_in_file_func(self, func):
+    def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
 
         Parameters
@@ -258,6 +261,7 @@ class CoordScan(Coord):
         """
         self.scan.add("in")
         self.scan_in_file = MethodType(func, self)
+        self.scan_in_file_kwargs = kwargs
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually."""
@@ -285,7 +289,7 @@ class CoordScan(Coord):
         values = None
         in_idx = None
         if 'filename' in self.scan:
-            values = self.scan_filename() # pylint: disable=not-callable
+            values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
         if 'in' in self.scan:
             values, in_idx = self.scan_in_file(filename, values) # pylint: disable=not-callable
 
