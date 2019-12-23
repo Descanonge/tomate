@@ -209,6 +209,14 @@ class Coord():
 
         return idx
 
+    def get_collocated(self, other):
+        """Return indices of identical values."""
+        values = {v for v in self[:] if v in other[:]}
+
+        idx_self = [self.get_index(v) for v in values]
+        idx_other = [other.get_index(v) for v in values]
+
+        return idx_self, idx_other
 
 def get_closest(L, elt, loc='closest'):
     """Return index closest to elt in L.

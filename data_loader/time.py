@@ -117,23 +117,3 @@ class Time(Coord):
         values = date2num(dates, units)
         self._array = values
         self.units = units
-
-    def get_collocated_times(self, time2: "Time") -> List[List[int]]:
-        # REVIEW: collocated times
-        """Find dates found both in instance and time2.
-
-        Return lists for time1 and time2
-        """
-
-        l1 = []
-        l2 = []
-        for i1, t1 in enumerate(self._array):
-            try:
-                i2 = time2[:].index(t1)
-            except ValueError:
-                pass
-            else:
-                l1.append(i1)
-                l2.append(i2)
-
-        return l1, l2
