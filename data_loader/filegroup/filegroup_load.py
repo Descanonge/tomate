@@ -221,7 +221,7 @@ class FilegroupLoad(FilegroupScan):
         chunk:
         """
         if order is None:
-            order = list(self.coords.keys())
+            order = list(self.cs.keys())
 
         # If we ask for keys that are not in the file.
         # added dimensions are inserted at the begginning
