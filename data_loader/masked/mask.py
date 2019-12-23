@@ -5,7 +5,6 @@ import scipy.ndimage as ndimage
 
 
 def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
-    # TODO: wtf is this doing here ?
     """Apply func over certain axes of array. Loop over remaining axes.
 
     args and kwargs passed to func

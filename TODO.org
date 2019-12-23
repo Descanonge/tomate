@@ -7,3 +7,5 @@ TODO: Add data to already loaded
       This would allow to simplify the keys asked
 
 TODO: slice data and coords consistently
+
+TODO: use generators when possible

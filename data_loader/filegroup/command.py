@@ -213,17 +213,20 @@ class Command():
 
 def merge_cmd_per_file(commands):
     """Merge commands that correspond to the same file."""
-    # TODO: non-consecutive
-    commands_merged = [commands[0]]
-    i = 0
-    for cmd in commands[1:]:
-        cmd_merged = commands_merged[i]
 
-        if cmd.filename == cmd_merged.filename:
-            cmd_merged += cmd
-        else:
-            commands_merged.append(cmd)
-            i += 1
+    filenames = {cmd.filename for cmd in commands}
+
+    commands_merged = []
+    for filename in filenames:
+        cmd_merged = None
+        for cmd in commands:
+            if cmd.filename == filename:
+                if cmd_merged is None:
+                    cmd_merged = cmd
+                else:
+                    cmd_merged += cmd
+
+        commands_merged.append(cmd_merged)
 
     return commands_merged
 
