@@ -218,6 +218,20 @@ class Coord():
 
         return idx_self, idx_other
 
+    def get_collocated_float(self, other, threshold=1e-5):
+        """Return indices of values closer than a threshold."""
+        idx_self = []
+        idx_other = []
+        for i, v in enumerate(self[:]):
+            i_other = other.get_index(v, loc='closest')
+            v_other = other[i_other]
+            if abs(v - v_other) < threshold:
+                idx_self.append(i)
+                idx_other.append(i_other)
+
+        return idx_self, idx_other
+
+
 def get_closest(L, elt, loc='closest'):
     """Return index closest to elt in L.
 
