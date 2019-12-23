@@ -10,8 +10,6 @@ Constructor
 import logging
 import os
 
-import numpy as np
-
 from data_loader.variables_info import VariablesInfo
 from data_loader.coord import select_overlap
 
@@ -208,8 +206,8 @@ class Constructor():
         for fg in self.filegroups:
             fg.scan_files(files)
 
-    def check_values(self, threshold=1e-5):
-        """Check and select overlap.
+    def check_scan(self, threshold=1e-5):
+        """Check scanned values are compatible accross filegroups.
 
         Select a common range across filegroups coordinates.
         Check if coordinates have the same values across filgroups.
@@ -234,38 +232,12 @@ class Constructor():
                     if name == name_cs:
                         coords.append(cs)
 
-            overlap = select_overlap(*coords)
-            cut = ""
-            for i, cs in enumerate(coords):
-                sl = overlap[i].indices(cs.size)
-                if sl[0] != 0 or sl[1] != len(cs.values):
-                    cut += "\n" + str(cs.filegroup.contains) + " had range " + cs.get_extent_str()
-
-                cs.slice(overlap[i])
-                cs.slice_total = overlap[i]
+            check_range(coords)
+            check_values(coords, threshold)
 
             # Select the first coordinate found in the filegroups
             # with that name
             coords[0].assign_values()
-
-            if len(cut) > 0:
-                mess = ("'%s' does not have the same range across"
-                        " all filegroups. A common range is taken. %s")
-                log.warning(mess+cut, name, coord.get_extent_str())
-
-            # Check length
-            for cs in coords:
-                if cs.size != cs.coord.size:
-                    raise IndexError(("'{0}' has different lengthes across "
-                                      "filegroups. ({1} has {2}, expected {3})").format(
-                                          name,
-                                          cs.filegroup.contains, cs.size, cs.coord.size))
-
-            # Check that all filegroups have same values
-            for cs in coords:
-                if np.any(cs[:] - cs.coord[:] > threshold):
-                    raise ValueError(("'{:s}' has different values across "
-                                      "filegroups.").format(name))
 
     def check_regex(self):
         """Check if a pregex has been added where needed.
@@ -291,6 +263,56 @@ class Constructor():
         """
         self.check_regex()
         self.scan_files()
-        self.check_values()
+        self.check_scan()
         dt = db_type(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
+
+
+def check_range(coords):
+    """Check coords range, slice if needed."""
+    overlap = select_overlap(*coords)
+    cut = False
+    for i, cs in enumerate(coords):
+        level = 'DEBUG'
+        sl = overlap[i].indices(cs.size)
+        if sl[0] != 0 or sl[1] != len(cs.values):
+            cut = True
+            level = 'WARNING'
+
+        log.log(getattr(logging, level),
+                "%s '%s' has range %s",
+                cs.filegroup.contains, cs.name, cs.get_extent_str())
+
+        cs.slice(overlap[i])
+
+    if cut:
+        cs = coords[0]
+        log.warning("'%s' does not have the same range across"
+                    " all filegroups. A common range is taken. %s",
+                    cs.name, cs.get_extent_str())
+
+
+def check_values(coords, threshold):
+    """Check coords values, keep values in common."""
+    sizes = [cs.size for cs in coords]
+    for i in range(len(coords) - 1):
+        c1 = coords[i]
+        c2 = coords[i+1]
+        i1, i2 = c1.get_collocated_float(c2, threshold)
+        c1.slice(i1)
+        c2.slice(i2)
+
+    for cs, size in zip(coords, sizes):
+        if  cs.size != size:
+            if cs.size == 0:
+                raise IndexError("%s '%s' had no values"
+                                 "in common with other filegroups." %
+                                 (cs.filegroup.contains, cs.name))
+            log.warning("%s '%s' had %s values ignored"
+                        " for consistency accross filegroups. "
+                        "(threshold: %s)",
+                        cs.filegroup.contains, cs.name, size-cs.size, threshold)
+            log.warning("Values common accross filegroup are kept instead "
+                        "of throwing an exception. "
+                        "This is a new feature. Has not been fully tested, "
+                        "especially for 'in' coordinates. Pay extra care.")
