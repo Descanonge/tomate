@@ -158,7 +158,7 @@ class DataBase():
     def dim(self):
         """Number of dimensions."""
         return len(self.coords_name)
-            
+
     @property
     def shape(self) -> List[int]:
         """Shape of the data."""
@@ -453,11 +453,6 @@ class DataBase():
         self.allocate_memory()
         self._load_data(self.vi.var, kw_coords)
         self.do_post_load()
-
-    def append_data(self, var_load, *coords, **kw_coords):
-        """Load data and append it to already loaded data."""
-        var_load, kw_coords = self._process_load_arguments(var_load, *coords, **kw_coords)
-        pass
 
     def _process_load_arguments(self, var_load, *coords, **kw_coords):
         """Process load arguments."""

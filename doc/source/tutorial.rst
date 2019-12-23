@@ -270,8 +270,6 @@ We can now load data !
 For that, we must specify the variables, and
 what part of the dimensions we want. We can only specify
 an integer, a list of integers, or a slice.
-A function to append data to what is already loaded is on
-its way, and will allow more complexity in what can be loaded.
 
 For instance::
 

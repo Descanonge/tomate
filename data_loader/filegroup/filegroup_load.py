@@ -152,10 +152,7 @@ class FilegroupLoad(FilegroupScan):
         return keys_inf
 
     def _get_key_memory(self, keys):
-        """Get the keys for data in memory.
-
-        TODO: for load only, do append
-        """
+        """Get the keys for data in memory."""
         keys_mem = {}
         for name in self.enum_shared(False):
             key_mem = list(range(self.db[name].size))
