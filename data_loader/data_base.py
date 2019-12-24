@@ -195,91 +195,87 @@ class DataBase():
 
         raise KeyError(str(name) + " not found")
 
-    def get_limits(self, *coords, order=False):
+    def get_limits(self, *coords):
         """Return limits of coordinates.
 
-        Parameters
-        ----------
-        coords: List[str]
-            Coordinates name.
-            If none, defaults to all coords, in the order
-            of data.
-        order: str, optional
-            Sort output for descending coordinates.
-
-        Returns
-        -------
-        limits: List[[float, float]]
-            First and last values (extent) of each coordinate.
-            If `order`, the min and max values are returned
-            instead.
-
-        Examples
-        --------
-            dt.get_lim() = [[first, last], [first, last], ...]
-            dt.get_lim("time", order=True) = [[min, max]]
-        """
-        if not coords:
-            coords = [c.name for c in self.coords.values()]
-
-        limits = []
-        for c in coords:
-            lim = self[c].get_extent()
-            if order:
-                lim.sort()
-            limits.append(lim)
-        return limits
-
-    def get_extent(self, *coords, order=False):
-        """Return extent of coordinates.
-
-        A flatened version of get_limits.
+        Min and max values for specified coordinates.
 
         Parameters
         ----------
         coords: List[str]
             Coordinates name.
-            If none, defaults to all coords, in the order
+            If None, defaults to all coordinates, in the order
             of data.
-        order: str, optional
-            Sort output for descending coordinates.
 
         Returns
         -------
         limits: List[float]
-            First and last values (extent) of each coordinate.
-            If `order`, the min and max values are returned
-            instead.
+            Min and max of each coordinate. Flattened.
 
         Examples
         --------
-            dt.get_lim() = [first, last, first, last, ...]
-            dt.get_lim("time", order=True) = [min, max]
+        >>> print(dt.get_limits('lon', 'lat'))
+        [-20.0 55.0 10.0 60.0]
         """
-        limits = self.get_limits(*coords, order=order)
+        if not coords:
+            coords = self.coords_name
+
+        limits = []
+        for c in coords:
+            limits += self[c].get_limits()
+        return limits
+
+    def get_extent(self, *coords):
+        """Return extent of coordinates.
+
+        Return first and last value of specified coordinates.
+
+        Parameters
+        ----------
+        coords: List[str]
+            Coordinates name.
+            If None, defaults to all coordinates, in the order
+            of data.
+
+        Returns
+        -------
+        limits: List[float]
+            First and last values of each coordinate.
+
+        Examples
+        --------
+        >>> print(dt.get_extent('lon', 'lat'))
+        [-20.0 55.0 60.0 10.0]
+
+        """
+        if not coords:
+            coords = self.coords_name
+
         extent = []
-        for lim in limits:
-            extent += lim
+        for c in coords:
+            extent += self[c].get_extent()
         return extent
 
     def get_coords_kwargs(self, *coords, **kw_coords):
-        """Make standard, full kwargs.
+        """Make standard, full kwargs when asking for coordinates parts.
 
         From a mix of positional and keyword argument,
         make a list of keywords, containing all coords.
         Missing coord key is taken as slice(None, None).
+        Keywords arguments take precedence over positional arguments.
 
         Parameters
         ----------
-        coords: List[NpIdx]
-            Key for subsetting coordinates, position is that
+        coords: Slice, int, or List[int]
+            Key for subsetting coordinates, order is that
             of self.coords.
-        kw_coords: Dict[NpIdx]
+        kw_coords: Slice, int or List[int]
             Key for subsetting coordinates.
 
         Exemples
         --------
-        self.get_coords_kwargs([0, 1], lat=slice(0, 10))
+        >>> print( dt.get_loords_kwargs([0, 1], lat=slice(0, 10)) )
+        {'time': [0, 1], 'lat': slice(0, 10), 'lon': slice(None, None)}
         """
 
         if not coords:

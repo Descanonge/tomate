@@ -173,15 +173,26 @@ class Coord():
         """Return if coordinate is descending"""
         return self._descending
 
-    def get_extent(self) -> [float, float]:
+    def get_extent(self):
         """Return extent.
 
         ie first and last values
+
+        Returns
+        -------
+        List[float]
+            First and last values.
         """
         return list(self._array[[0, -1]])
 
-    def get_limits(self) -> [float, float]:
-        """Return min/max"""
+    def get_limits(self):
+        """Return min/max
+
+        Returns
+        -------
+        List[float]
+            Min and max
+        """
         lim = self.get_extent()
         if self._descending:
             lim = lim[::-1]
