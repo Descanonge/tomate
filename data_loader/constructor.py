@@ -258,7 +258,11 @@ class Constructor():
         """
         fg = self.current_fg
         for name in coords:
-            fg.cs[name].set_idx_descending()
+            cs = fg.cs[name]
+            if cs.shared:
+                log.warning("%s '%s' is shared, setting it index descending"
+                            " will have no impact.", fg.contains, name)
+            cs.set_idx_descending()
 
     def scan_files(self):
         """Scan files.
