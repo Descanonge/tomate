@@ -512,6 +512,8 @@ class DataBase():
 
         if variables is None:
             variables = slice(None, None, None)
+        elif isinstance(variables, str):
+            variables = [variables]
 
         for coord, key in kw_coords.items():
             if isinstance(key, int):
