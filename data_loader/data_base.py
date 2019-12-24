@@ -65,12 +65,12 @@ class DataBase():
                 self._fg_idx.update({var: i})
 
         self.vi = vi
-        self._vi_orr = vi.copy()
+        self._vi_bak = vi.copy()
 
         names = [c.name for c in coords]
-        coords_orr = IterDict(dict(zip(names, coords)))
+        coords_bak = IterDict(dict(zip(names, coords)))
         self.coords_name = names
-        self._coords_orr = coords_orr
+        self._coords_bak = coords_bak
         self.coords = self.get_coords_from_backup()
         self.slices = {c.name: slice(0, c.size, 1) for c in coords}
 
@@ -168,8 +168,8 @@ class DataBase():
         """
         if not coords:
             coords = self.coords_name
-        coords_orr = [self._coords_orr[name] for name in coords]
-        copy = [c.copy() for c in coords_orr]
+        coords_bak = [self._coords_bak[name] for name in coords]
+        copy = [c.copy() for c in coords_bak]
         coords = IterDict(dict(zip(coords, copy)))
         return coords
 
@@ -378,11 +378,11 @@ class DataBase():
             log.warning("Using set_coords_slice with data loaded can decouple "
                         "data and coords. Use slice_data instead.")
         if variables is None:
-            variables = self._vi_orr.var
+            variables = self._vi_bak.var
         kw_coords = self.get_coords_kwargs(**kw_coords)
         kw_coords = self.fix_kw_coords(kw_coords, backup=True)
 
-        self.vi = self._vi_orr[variables]
+        self.vi = self._vi_bak[variables]
 
         coords = self.get_coords_from_backup()
         for name, key in kw_coords.items():
@@ -590,14 +590,14 @@ class DataBase():
 
         if self.data is None:
             self.data = data
-            self.vi = self._vi_orr[var]
+            self.vi = self._vi_bak[var]
         elif var in self.vi.var:
             self[var][:] = data[0]
         else:
-            self.vi = self._vi_orr[self.vi.var + [var]]
+            self.vi = self._vi_bak[self.vi.var + [var]]
             self.data = np.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variables, data, infos):
+    def add_variable(self, variable, data, **infos):
         """Concatenante new_data to data, and add kwargs to vi.
 
         Parameters
