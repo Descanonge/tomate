@@ -1,10 +1,6 @@
 #+TITLE: Data Loader
 
-TODO: fix issues with type hinting
 TODO: general doc
-
-TODO: Add data to already loaded
-      This would allow to simplify the keys asked
 
 TODO: slice data and coords consistently
 

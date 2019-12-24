@@ -560,13 +560,13 @@ def reverse_slice(sl, size=None):
         size = sl.stop - sl.start
 
     ind = sl.indices(size)
-    start = ind[1] - 1
-    stop = ind[0]
-    step = -1
+    shift = [-1, 1][ind[2] < 0]
 
-    if stop == 0:
+    start = ind[1] + shift
+    stop = ind[0] + shift
+    step = -ind[2]
+
+    if stop == -1:
         stop = None
-    else:
-        stop -= 1
 
     return slice(start, stop, step)

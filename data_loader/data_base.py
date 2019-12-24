@@ -294,49 +294,6 @@ class DataBase():
 
         return kw_coords
 
-    def fix_kw_coords(self, kw_coords, backup=True):
-        """Avoid slices with None attributes.
-
-        Coordinate size is used to replace None.
-
-        Parameters
-        ----------
-        kw_coords: Dict[coordinate:str, slice or List[int]
-            Keys
-        backup: bool, optional
-            If the size of the coordinates has to be taken
-            from coordinate backup.
-        """
-        for name, key in kw_coords.items():
-            if isinstance(key, slice):
-                kw_coords[name] = self.fix_slice(key, backup, name)
-
-        return kw_coords
-
-    def fix_slice(self, slc, backup=True, coord=None, size=None):
-        """Avoid slices with None attributes.
-
-        Coordinates size is used (backup or not)
-        If size is specified, use that instead.
-
-        Parameters
-        ----------
-        slc: Slice
-        backup: bool
-            If the size of the coordinates has to be taken
-            from coordinate backup.
-        size: int
-            Force the size to be used.
-        """
-        if size is None:
-            if backup:
-                c = self.get_coords_from_backup(coord)[coord]
-            else:
-                c = self.coords[coord]
-            size = c.size
-
-        return slice(*slc.indices(size))
-
     def sort_by_coords(self, dic):
         """Sort dictionnary.
 
@@ -378,10 +335,8 @@ class DataBase():
         if self.data is not None:
             log.warning("Using set_coords_slice with data loaded can decouple "
                         "data and coords. Use slice_data instead.")
-        if variables is None:
-            variables = self._vi_bak.var
-        kw_coords = self.get_coords_kwargs(**kw_coords)
-        kw_coords = self.fix_kw_coords(kw_coords, backup=True)
+
+        variables, kw_coords = self._process_load_arguments(variables, **kw_coords)
 
         self.vi = self._vi_bak[variables]
 
@@ -410,7 +365,6 @@ class DataBase():
             variables = self.vi.var
         variables = [self.vi.idx[var] for var in variables]
         kw_coords = self.get_coords_kwargs(**kw_coords)
-        kw_coords = self.fix_kw_coords(kw_coords, backup=False)
         kw_coords = self.sort_by_coords(kw_coords)
 
         for name, key in kw_coords.items():
@@ -470,14 +424,13 @@ class DataBase():
 
         >>> dt.load_data("SST", 0, lat=slice(200, 400))
         """
-        variables, kw_coords = self._process_load_arguments(variables, *coords, **kw_coords)
         self.unload_data()
         self.set_slice(variables=variables, **kw_coords)
         self.allocate_memory()
 
-        fg_var = self._get_filegroups_for_variables(variables)
+        fg_var = self._get_filegroups_for_variables(self.vi.var)
         for fg, var_load in fg_var:
-            fg.load_data(var_load, kw_coords)
+            fg.load_data(var_load, self.slices)
 
         try:
             self.do_post_load() #pylint: disable=not-callable
@@ -488,7 +441,6 @@ class DataBase():
         """Process load arguments.
 
         Fix gaps in coords keys and variables.
-        Fix slices.
         Sort keys.
         Reject non-valid keys.
         Replace integers by length one lists.
@@ -499,7 +451,6 @@ class DataBase():
             If a key is non-valid (not an integer, list of integer, or slice).
         """
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
-        kw_coords = self.fix_kw_coords(kw_coords, backup=True)
         kw_coords = self.sort_by_coords(kw_coords)
 
         for name, key in kw_coords.items():
@@ -512,8 +463,6 @@ class DataBase():
 
         if variables is None:
             variables = slice(None, None, None)
-        elif isinstance(variables, str):
-            variables = [variables]
 
         for coord, key in kw_coords.items():
             if isinstance(key, int):
