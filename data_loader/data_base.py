@@ -284,7 +284,9 @@ class DataBase():
             kw_coords = {}
 
         for i, key in enumerate(coords):
-            kw_coords.update({self.coords_name[i]: key})
+            name = self.coords_name[i]
+            if name not in kw_coords:
+                kw_coords[name] = key
 
         for coord in self.coords_name:
             if coord not in kw_coords:
