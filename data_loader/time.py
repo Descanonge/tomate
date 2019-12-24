@@ -1,12 +1,6 @@
 """Coordinate class with additional features for date manipulation.
 
 Use user settings to set locales.
-
-Contains
---------
-Time
-    Time class
-
 """
 
 import locale
@@ -28,10 +22,12 @@ class Time(Coord):
     Values are stored as floats, and can be converted
     to datetime objects.
 
+    Use user settings to set locales.
+
     Attributes
     ----------
     units: str
-        Time units
+        Time units.
     """
 
     def get_extent_str(self) -> str:
@@ -53,15 +49,15 @@ class Time(Coord):
         super().update_values(values)
 
     def index2date(self, indices=None):
-        """Return a list of datetime objects corresponding to indices.
+        """Return datetimes objects corresponding to indices.
 
         Parameters
         ----------
-        indices: Slice, List of int, List of slice, int
+        indices: Slice, List[int], List[slice], int
 
         Returns
         -------
-        List of datetime
+        datetime.datetime or List[datetime]
         """
         # If the user has asked an integer
         integer = False
@@ -88,13 +84,13 @@ class Time(Coord):
         return dates
 
     def date2index(self, dates):
-        """Return a list of index corresponding to dates.
+        """Return indices corresponding to dates.
 
         Nearest index before date is chosen
 
         Parameters
         ----------
-        dates: datetime.datetime or List of datetime
+        dates: datetime.datetime or List[datetime]
         """
         # If the user has asked a single date
         single = False
@@ -112,7 +108,17 @@ class Time(Coord):
         return indices
 
     def change_units(self, units: str):
-        """Change time units."""
+        """Change time units.
+
+        Parameters
+        ----------
+        units: str
+            CF compliant time units.
+
+        Examples
+        --------
+        >>> time.change_units("hours since 1950-01-01 12:00:00")
+        """
         dates = num2date(self._array, self.units)
         values = date2num(dates, units)
         self._array = values

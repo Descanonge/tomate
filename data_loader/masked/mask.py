@@ -7,18 +7,19 @@ import scipy.ndimage as ndimage
 def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
     """Apply func over certain axes of array. Loop over remaining axes.
 
-    args and kwargs passed to func
-
-    func:
-        function which takes args and kwargs
-    ndim:
-        the number of dimensions func works on. The remaining dimension
-        in input array will be treated as stacked and looped over
-    array:
-    axes:
-        axes that func should work over, default is the last ndim axes
+    Parameters
+    ----------
+    func: Callable
+        Function which takes a slice of array.
+        Dimension of slice is dictated by `ndim`.
+    ndim: int
+        The number of dimensions func works on. The remaining dimension
+        in input array will be treated as stacked and looped over.
+    array: Array
+    axes: List[int]
+        Axes that func should work over, default is the last ndim axes.
     output:
-        result passed to output. default to np.zeros
+        Result passed to output. default to np.zeros.
     """
 
     if axes is None:
@@ -64,7 +65,16 @@ def get_circle_kernel(n):
 
 
 def enlarge_mask(mask, n_neighbors, axes=None):
-    """Enlarge a stack of boolean mask by n_neighbors."""
+    """Enlarge a stack of boolean mask by `n_neighbors`.
+
+    Parameters
+    ----------
+    mask: Array
+    n_neighbors: int
+    axes: List[int]
+        Position of the two horizontal dimensions,
+        other axes will be looped over.
+    """
     N = 2*n_neighbors + 1
     kernel = get_circle_kernel(N)
 

@@ -1,34 +1,12 @@
-"""Base class for data.
-
-Encapsulate data in a single numpy array, along with metadata,
-such as coordinates, units, ...
-
-Data is on disk and can be distributed in different files.
-
-Data can be loaded onto ram using self.load_data.
-Only a subset of data can be loaded.
-
-Each implementation of the class can (and must) be tailored to a
-a different data arrangement.
-
-Contains
---------
-Data
-
-Routines
---------
-merge_data(dt1, dt2)
-
-change_variable()
-"""
+"""Base class for data."""
 
 import logging
-from typing import List
 
 import numpy as np
 
 from data_loader.coord import Coord
 from data_loader.iter_dict import IterDict
+
 
 log = logging.getLogger(__name__)
 
@@ -36,39 +14,45 @@ log = logging.getLogger(__name__)
 class DataBase():
     """Encapsulate data array and info about the variables.
 
-    Data and coordinates can be accessed with subscript
+    Data and coordinates can be accessed with getter:
     Data[{name of variable | name of coordinate}]
 
-    Data is loaded from disk with load_data
+    Data is loaded from disk with load_data.
 
     Parameters
     ----------
     root: str
-        Data directory
-    filegroups: List[Filegroup]
+        Root data directory containing all files.
+    filegroups: List[Filegroups].
     vi: VariablesInfo
-    *coords: List[Coord]
+        Information on the variables.
+    coords: List[Coord]
+        Coordinates.
 
     Attributes
     ----------
     data: Numpy array
+        Data array if loaded.
     filegroups: List[Filegroup]
-        Filegroups
-    _fg_idx: Dict[str, int]
+    _fg_idx: Dict[variable: str, int]
         Index of filegroup for each variable
-        {variable name: int}
 
     vi: VariablesInfo
+    _vi_bak: VariablesInfo
+        Copy of the vi at its initial state.
 
     coords_name: List[str]
-        Coordinates names
+        Coordinates names, in the order the data
+        is kept.
     coords: Dict[str, Coord]
-        Coordinates by name
-    slices: Dict[NpIdx]
-        Selected part of each coord
-
-    shape: List[int]
-        Shape of data
+        Coordinates by name, in the order the data
+        is kept.
+    _coords_bak: Dict[str, Coord]
+        Copies of the coordinates it their initial
+        state.
+    slices: Dict
+        Selected (and eventually loaded) part of
+        each coordinate.
     """
 
     def __init__(self, root, filegroups, vi, *coords):
@@ -97,20 +81,20 @@ class DataBase():
         self.do_post_load_user = None
 
     def __getitem__(self, y):
-        """Return slice of data or variable, or coordinate.
+        """Return a coordinate, or data for a variable.
 
         If y is a coordinate name, return the coordinate.
         If y is a variable name, return the corresponding data slice.
-        Else, it is transmitted to data.__getitem__()
+        Else, it is transmitted to data.__getitem__().
 
         Parameters
         ----------
-        y: str or NpIdx
+        y: str, or anything for a numpy array.
 
         Raises
         ------
-        KeyError:
-            If key is string and not a coordinate or variable
+        KeyError
+            If key is string and not a coordinate or variable.
         """
         if isinstance(y, str):
             if y in self.vi.var:
@@ -128,11 +112,11 @@ class DataBase():
         Parameters
         ----------
         coord: str
-            Coordinate to iterate along to
+            Coordinate to iterate along to.
         size_slice: int, optional
-            Size of the slices to take
+            Size of the slices to take.
         c_slice: Slice, optional
-            A subset of the full available coordinate to iter through
+            A subset of the full available coordinate to iter through.
         """
         if c_slice is None:
             c_slice = slice(None, None)
@@ -160,8 +144,13 @@ class DataBase():
         return len(self.coords_name)
 
     @property
-    def shape(self) -> List[int]:
-        """Shape of the data."""
+    def shape(self):
+        """Shape of the data from how coordinates and variables are selected.
+
+        Returns
+        -------
+        List[int]
+        """
         return [self.vi.n] + [c.size for c in self.coords.values()]
 
     def get_coords_from_backup(self, *coords):
@@ -169,8 +158,9 @@ class DataBase():
 
         Parameters
         ----------
-        *coords: List of str
-            Coord to select
+        coords: List[str]
+            Coord to select. If None, all coordinates
+            of data are taken.
 
         Returns
         -------
@@ -308,7 +298,18 @@ class DataBase():
         return kw_coords
 
     def fix_kw_coords(self, kw_coords, backup=True):
-        """Avoid slices with None attributes."""
+        """Avoid slices with None attributes.
+
+        Coordinate size is used to replace None.
+
+        Parameters
+        ----------
+        kw_coords: Dict[coordinate:str, slice or List[int]
+            Keys
+        backup: bool, optional
+            If the size of the coordinates has to be taken
+            from coordinate backup.
+        """
         for name, key in kw_coords.items():
             if isinstance(key, slice):
                 kw_coords[name] = self.fix_slice(key, backup, name)
@@ -323,7 +324,7 @@ class DataBase():
 
         Parameters
         ----------
-        slc: slice
+        slc: Slice
         backup: bool
             If the size of the coordinates has to be taken
             from coordinate backup.
@@ -361,11 +362,21 @@ class DataBase():
     def set_slice(self, variables=None, **kw_coords):
         """Pre-select variables and coordinates slices.
 
-        Selection is applied to available coordinates.
+        Selection is applied to **available** coordinates.
         Should be used only if data is not loaded,
         otherwise use `slice_data`.
 
         This selection is reset when using self.load_data.
+
+        Parameters
+        ----------
+        variables: List[str], optional
+            Variables to select, from all those available.
+            If None, all available are selected.
+        kw_coords: int, Slice, or List[int]
+            Part of coordinates to select, from the full
+            available extent.
+            If None, everything available is selected.
         """
         if self.data is not None:
             log.warning("Using set_coords_slice with data loaded can decouple "
@@ -384,7 +395,20 @@ class DataBase():
         self.coords = coords
 
     def slice_data(self, variables=None, **kw_coords):
-        """Select a subset of loaded data and coords."""
+        """Select a subset of loaded data and coords.
+
+        Selection is applied to **loaded** coordinates and variables.
+        If data is loaded, the array is also sliced.
+
+        Parameters
+        ----------
+        variables: str or List[str], optional
+            Variables to select, from those already selected or loaded.
+            If None, no change are made.
+        kw_coords: int, Slice, or List[int]
+            Part of coordinates to select, from part already selected or loaded.
+            If None, no change are made.
+        """
         if variables is None:
             variables = self.vi.var
         variables = [self.vi.idx[var] for var in variables]
@@ -402,11 +426,11 @@ class DataBase():
             self.data = self.data[tuple(keys)]
 
     def unload_data(self):
-        """Remove data, return coordinate to all available."""
+        """Remove data, return coordinates and variables to all available."""
         self.data = None
         self.set_slice()
 
-    def load_data(self, var_load, *coords, **kw_coords):
+    def load_data(self, variables, *coords, **kw_coords):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -414,48 +438,71 @@ class DataBase():
 
         Parameters
         ----------
-        var_load: str or List[str]
+        variables: str or List[str]
             Variables to load. If None, all variables available
             are taken.
-        *coords: List[NpIdx]
+        coords: int, Slice, or List[int]
             What subset of coordinate to load. The order is that
             of self.coords.
-        **kw_coords: Dict[coord name, NpIdx]
+            If None, all available is taken.
+        kw_coords: int, Slice, or List[int]
             What subset of coordinate to load. Takes precedence
-            over `coords`.
-
-        Raises
-        ------
-        ValueError:
-            If key is other than integer, list of integer, or slice
+            over positional `coords`.
+            If None, all availabce is taken.
 
         Examples
         --------
         Load everything available
-        dt.load_data(None)
+
+        >>> dt.load_data(None)
 
         Load first index of the first coordinate for the SST variable
-        dt.load_data("SST", 0)
+
+        >>> dt.load_data("SST", 0)
 
         Load everything for SST and Chla variables.
-        dt.load_data(["SST", "Chla"], slice(None, None), None)
+
+        >>> dt.load_data(["SST", "Chla"], slice(None, None), None)
 
         Load time steps 0, 10, and 12 of all variables.
-        dt.load_data(None, time=[0, 10, 12])
+
+        >>> dt.load_data(None, time=[0, 10, 12])
 
         Load first index of the first coordinate, and a slice of lat
         for the SST variable.
-        dt.load_data("SST", 0, lat=slice(200, 400))
+
+        >>> dt.load_data("SST", 0, lat=slice(200, 400))
         """
-        var_load, kw_coords = self._process_load_arguments(var_load, *coords, **kw_coords)
+        variables, kw_coords = self._process_load_arguments(variables, *coords, **kw_coords)
         self.unload_data()
-        self.set_slice(variables=var_load, **kw_coords)
+        self.set_slice(variables=variables, **kw_coords)
         self.allocate_memory()
         self._load_data(self.vi.var, kw_coords)
         self.do_post_load()
 
-    def _process_load_arguments(self, var_load, *coords, **kw_coords):
-        """Process load arguments."""
+        fg_var = self._get_filegroups_for_variables(variables)
+        for fg, var_load in fg_var:
+            fg.load_data(var_load, kw_coords)
+
+        try:
+            self.do_post_load() #pylint: disable=not-callable
+        except NotImplementedError:
+            pass
+
+    def _process_load_arguments(self, variables, *coords, **kw_coords):
+        """Process load arguments.
+
+        Fix gaps in coords keys and variables.
+        Fix slices.
+        Sort keys.
+        Reject non-valid keys.
+        Replace integers by length one lists.
+
+        Raises
+        ------
+        ValueError
+            If a key is non-valid (not an integer, list of integer, or slice).
+        """
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         kw_coords = self.fix_kw_coords(kw_coords, backup=True)
         kw_coords = self.sort_by_coords(kw_coords)
@@ -468,17 +515,21 @@ class DataBase():
                 raise ValueError("'%s' key is not an integer, list of integers, or slice"
                                  " (is %s)" % (name, type(key)))
 
-        if var_load is None:
-            var_load = slice(None, None, None)
+        if variables is None:
+            variables = slice(None, None, None)
 
         for coord, key in kw_coords.items():
             if isinstance(key, int):
                 kw_coords[coord] = [key]
 
-        return var_load, kw_coords
+        return variables, kw_coords
 
     def allocate_memory(self):
-        """Allocate data member."""
+        """Allocate data array.
+
+        Uses the current variables and coordinates selection
+        to get the needed shape.
+        """
         log.info("Allocating numpy array of shape %s", self.shape)
         self.data = np.zeros(self.shape)
 
@@ -487,12 +538,12 @@ class DataBase():
 
         Parameters
         ----------
-        variables: List of str
+        variables: List[str]
 
         Returns
         -------
-        fg_var: [[Filegroup, List of str]]
-            A list of the filegroups with the corresponding variables
+        fg_var: List[List[Filegroup, List[str]]
+            A list of the filegroups with the corresponding variables.
         """
 
         # find the filegroups we need to load
@@ -538,8 +589,6 @@ class DataBase():
         if callable(self.do_post_load_user):
             self.do_post_load_user(self)
 
-    def set_data(self, var, data):
-        """Set the data for a single variable."""
 
         data = np.expand_dims(data, 0)
 
@@ -557,11 +606,11 @@ class DataBase():
 
         Parameters
         ----------
-        variables: List[str]
-            Variables to add
+        variable: str
+            Variable to add
         data: Array
             Corresponding data
-        infos: List[Dict[name: str, Any]]
+        infos:
             Passed to VariablesInfo.add_variable
         """
         self.vi.add_variable(variables, infos)
@@ -592,7 +641,7 @@ class DataBase():
         ----------
         wd: str
             Directory. If None, `self.root` is used.
-        variables: Union[List[str], str]
+        variables: str or List[str]
         filename: str
             If None, the first value of time is used.
         """
@@ -611,14 +660,14 @@ class DataBase():
 
 
 def subset_slices(key, key_subset):
-    """Return slice when subsetting a coord.
+    """Compound slices and lists when subsetting a coord.
 
     Parameters
     ----------
-    key: Slice or List
-        Current slice of a coordinate
-    key_subset: Slice or List
-        Asked slice of coordinate
+    key: Slice or List[int]
+        Current slice of a coordinate.
+    key_subset: Slice or List[int]
+        Asked slice of coordinate.
     """
     key_new = None
     if isinstance(key, list):

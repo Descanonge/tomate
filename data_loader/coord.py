@@ -1,27 +1,12 @@
 """Coordinate class.
 
-Contains strictly monoteous values.
-Stores name of the coordinate, its fullname,
-and the alternative name it could be found under in files.
-Also stores its units.
-
-
-Contains
---------
-
-Coord:
-    Coordinate object
-
-
 Routines
 --------
-
 select_overlap()
     Find indices too keep a common range across coordinates.
 
 """
 
-from typing import List
 import bisect
 
 import numpy as np
@@ -35,29 +20,30 @@ class Coord():
     Parameters
     ----------
     name: str
-        Identification of the coordinate
+        Identification of the coordinate.
     array: Sequence, optional
-        Values of the coordinate
+        Values of the coordinate.
     units: str, optional
         Coordinate units
-    name_alt: str or List of str, optional
-        Alternative names
+    name_alt: str or List[str], optional
+        Alternative names.
     fullname: str, optional
-        Print name
+        Print name.
 
     Attributes
     ----------
     name: str
-        Identification of the coordinate
+        Identification of the coordinate.
     units: str
-        Coordinate units
-    name_alt: List of str
-        Alternative names
+        Coordinate units.
+    name_alt: List[str]
+        Alternative names.
     fullname: str
-        Print name
+        Print name.
     size: int
-        Length of values
+        Length of values.
     """
+
     def __init__(self, name, array=None, units=None, name_alt=None,
                  fullname=None):
         self.name = name
@@ -84,12 +70,12 @@ class Coord():
     def update_values(self, values):
         """Change values.
 
-        Check if monoteous
+        Check if new values are monoteous
 
         Parameters
         ----------
         array: Sequence
-            New values
+            New values.
 
         Raises
         ------
@@ -118,11 +104,11 @@ class Coord():
         Parameters
         ----------
         y: Numpy access
-            Keys asked, passed to a numpy array
+            Keys asked, passed to a numpy array.
 
         Returns
         -------
-        Numpy array
+        Numpy array.
         """
         return self._array.__getitem__(y)
 
@@ -135,11 +121,11 @@ class Coord():
         return '\n'.join(s)
 
     def get_extent_str(self) -> str:
-        """Return the extent as str."""
+        """Return the extent as string."""
         return "{0} - {1}".format(*self.get_extent())
 
     def copy(self):
-        """Return a copy of itself"""
+        """Return a copy of itself."""
         if self._array is not None:
             a = self._array[:]
         else:
@@ -151,11 +137,23 @@ class Coord():
         data = self._array[key]
         self.update_values(data)
 
-    def subset(self, vmin: float, vmax: float) -> [int, int]:
+    def subset(self, vmin, vmax):
         # REVIEW
-        """Return index for slicing between vmin and vmax.
+        """Return slice between vmin and vmax (included).
 
-        vmin and vmax are included
+        Parameters
+        ----------
+        vmin, vmax: float
+            Bounds to select.
+
+        Examples
+        --------
+        >>> lat = Coord('lat', np.linspace(20, 60, 41))
+        ... slice_lat = lat.subset(30, 43)
+        ... print(slice_lat)
+        slice(10, 24, 1)
+        >>> print(lat[slice_lat])
+        [30 31 ... 42 43]
         """
         start = self.get_index(vmin, "below")
         stop = self.get_index(vmax, "above")
@@ -189,12 +187,18 @@ class Coord():
             lim = lim[::-1]
         return lim
 
-    def get_index(self, value: float, loc: str = 'closest') -> int:
+    def get_index(self, value, loc='closest'):
         # REVIEW
         """Return index of the element closest to `value`.
 
-        loc: specifies what index to choose
-             {closest | below | above}
+        Can return the index of the closest element above, below
+        or from both sides to the specified value.
+
+        Parameters
+        ----------
+        value: float
+        loc: {'closest', 'below', 'above'}
+            What index to choose.
         """
         loc_ = {'below': ['left', 'right'][self._descending],
                 'above': ['right', 'left'][self._descending],
@@ -210,7 +214,19 @@ class Coord():
         return idx
 
     def get_collocated(self, other):
-        """Return indices of identical values."""
+        """Return indices of identical values.
+
+        Parameters
+        ----------
+        other: Coord
+            Other coordinate.
+
+        Returns
+        -------
+        idx_self, idx_other: List[int]
+            List of indices for both coordinates, where
+            their values are identical.
+        """
         values = {v for v in self[:] if v in other[:]}
 
         idx_self = [self.get_index(v) for v in values]
@@ -219,7 +235,19 @@ class Coord():
         return idx_self, idx_other
 
     def get_collocated_float(self, other, threshold=1e-5):
-        """Return indices of values closer than a threshold."""
+        """Return indices of values closer than a threshold.
+
+        Parameters
+        ----------
+        other: Coord
+            Other coordinate.
+
+        Returns
+        -------
+        idx_self, idx_other: List[int]
+            List of indices for both coordinates, where
+            their values less than `threshold` apart.
+        """
         idx_self = []
         idx_other = []
         for i, v in enumerate(self[:]):
@@ -271,11 +299,19 @@ def get_closest(L, elt, loc='closest'):
     return out
 
 
-def select_overlap(*coords: List[Coord]) -> List[List[int]]:
+def select_overlap(*coords):
     # REVIEW
     """Return list of slices overlapping.
 
-    coords: list of Coord
+    Parameters
+    ----------
+    coords: List[Coord]
+
+    Returns
+    -------
+    slices: List[Slice]
+        Slice for each coordinate so that the selected
+        values have the same extent.
     """
 
     limits = [c.get_limits() for c in coords]

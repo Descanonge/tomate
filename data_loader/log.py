@@ -8,9 +8,8 @@ def set_logging(level='INFO'):
 
     Parameters
     ----------
-    level: str
-         DEBUG | INFO | WARN | ERROR | CRITICAL
-         Not case sensitive
+    level: {'debug', 'info', 'warn', 'error', 'critical'}
+         Not case sensitive.
     """
     level_num = getattr(logging, level.upper())
     logging.getLogger('data_loader').setLevel(level_num)
@@ -24,7 +23,7 @@ def set_file_log(filename: str, no_stdout=False, level=None):
     filename: str
         File to output log.
     no_stdout: bool
-        Disable logging to the stdout
+        Disable logging to the stdout.
     """
     logger = logging.getLogger('data_loader')
     handler = logging.FileHandler(filename, mode='w')

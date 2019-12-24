@@ -21,19 +21,24 @@ log = logging.getLogger(__name__)
 class Key():
     """Key used in a Command.
 
+    Describe what must be taken from file and
+    where it should be placed in memory.
+    A key can be anything that can subset the
+    data, typically a list of intereger, or a slice.
+
     Parameters
     ----------
-    infile: Dict of keys {coord name: key}
-        Keys that will be taken in file
-    memory: Dict of keys {coord name: key}
+    infile: Dict[coord name, key]
+        Keys that will be taken in file.
+    memory: Dict[coord name, key]
         Keys to indicate where to put the data
         in the memory.
 
     Attributes
     ----------
-    infile: Dict of keys {coord name: key}
+    infile: Dict[coord name, key]
         Keys that will be taken in file
-    memory: Dict of keys {coord name: key}
+    memory: Dict[coord name, key]
         Keys to indicate where to put the data
         in the memory.
     """
@@ -56,12 +61,24 @@ class Key():
         return [self.infile[key], self.memory[key]]
 
     def set(self, infile, memory):
-        """Set keys."""
+        """Set keys.
+
+        Parameters
+        ----------
+        infile: Dict
+        memory: Dict
+        """
         self.infile = infile
         self.memory = memory
 
     def modify(self, infile=None, memory=None):
-        """Modify keys in place."""
+        """Modify keys in place.
+
+        Parameters
+        ----------
+        infile: Dict, optional
+        memory: Dict, optional
+        """
         if infile is not None:
             self.infile.update(infile)
         if memory is not None:
@@ -69,15 +86,20 @@ class Key():
 
 
 class Command():
-    """Information for loading slices of data.
+    """Information for loading slices of data from one file.
+
+    A command is composed of a filename, and
+    a series of keys that each specifies a
+    part of the data to take, and where to
+    place it.
 
     Attributes
     ----------
     filename: str
         File to open
-    var_list: List of str
+    var_list: List[str]
         Variables to take in that file.
-    keys: List of Keys
+    keys: List[Keys]
         List of Keys objects to take in that file.
     """
 
@@ -105,23 +127,26 @@ class Command():
         return self.keys[i]
 
     def __iadd__(self, other):
-        """."""
+        """Merge two commands.
+
+        Add the keys of one into the other.
+        """
         for k in other:
             self.append(*k)
         return self
 
     def append(self, key_infile, key_memory):
-        """Add key."""
+        """Add a key."""
         self.keys.append(Key(key_infile, key_memory))
 
     def add_keys(self, keys_infile, keys_memory):
-        """Add keys."""
+        """Add multiple keys."""
         n = len(keys_infile)
         for i in range(n):
             self.append(keys_infile[i], keys_memory[i])
 
     def set_key(self, key_infile, key_memory, i=0):
-        """Set key."""
+        """Set a key by index."""
         self[i].set(key_infile, key_memory)
 
     def modify_key(self, key_infile=None, key_memory=None, i=0):
@@ -129,7 +154,7 @@ class Command():
         self[i].modify(key_infile, key_memory)
 
     def remove_key(self, idx):
-        """Remove keys."""
+        """Remove a key."""
         self.keys.pop(idx)
 
     def remove_keys(self):
@@ -137,11 +162,11 @@ class Command():
         self.keys = []
 
     def order_keys(self, order):
-        """Modify keys order.
+        """Modify all keys order.
 
         Parameters
         ----------
-        order: List of str
+        order: List[str]
         """
         for k in self:
             keys_inf, keys_mem = k
@@ -212,7 +237,12 @@ class Command():
 
 
 def merge_cmd_per_file(commands):
-    """Merge commands that correspond to the same file."""
+    """Merge commands that correspond to the same file.
+
+    Parameters
+    ----------
+    Commands: List[Command]
+    """
     filenames = {cmd.filename for cmd in commands}
 
     commands_merged = []

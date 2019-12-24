@@ -1,12 +1,4 @@
-"""Stores metadata on the variables.
-
-Contains
---------
-VariablesInfo:
-    Stores various info in IterDict.
-"""
-
-from typing import Iterator, List, Union
+"""Stores metadata on the variables."""
 
 import copy
 
@@ -14,62 +6,69 @@ from data_loader.iter_dict import IterDict
 
 
 class VariablesInfo():
-    """Gives various info about all variables.
+    """Gives various info about variables.
 
-    Each info is stored in an IterDict and can be accessed
-    as an attribute. Same for kwargs.
+    General informations (kwargs) and variables
+    specific information (infos) are accessible as attributes.
+    Variable specific informations are stored as IterDict.
 
     Parameters
     ----------
-    var_list: List[str]
-        Variables names
+    variables: List[str]
+        Variables names.
     infos: Dict[str, Dict[str: Any]]
-        Info specific to a variable
+        Variable specific information / attribute.
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
-    **kwargs: Dict[str: Any]
-        Any additional information
+    kwargs
+        Any additional information to be stored as attributes.
 
     Attributes
     ----------
     var: List[str]
         Variables names
     idx: Dict[name: str, int]
-        Index of variables in the data
+        Index of variables in the data.
     n: int
         Number of variables
     'infos': IterDict[variable: str, Any]
     'kwargs': Any
     """
-    def __init__(self, var_list=None, infos=None, **kwargs):
+
+    def __init__(self, variables=None, infos=None, **kwargs):
         # Add the var and idx attributes
-        if var_list is None:
-            var_list = []
+        if variables is None:
+            variables = []
         if infos is None:
             infos = {}
 
-        self.var = tuple(var_list)
-        self.idx = IterDict({k: i for i, k in enumerate(var_list)})
-        self.n = len(var_list)
+        self.var = tuple(variables)
+        self.idx = IterDict({k: i for i, k in enumerate(variables)})
+        self.n = len(variables)
 
         self._infos = []
         for var, info in infos.items():
-            self.add_infos_per_variable(var, info)
+            self.add_infos_per_variable(var, **info)
 
         # TODO: No dynamic arguments
         self._kwargs = []
         self.add_kwargs(**kwargs)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self):
         # TODO: enumerate over idx ?
         """Enumerate over var."""
         return enumerate(self.var)
 
-    def __getitem__(
-            self, item: Union[str, int, List[int], List[str]]
-    ) -> "VariablesInfo":
-        # REVIEW
-        """Return VariableInfo slice."""
+    def __getitem__(self, item):
+        """Return VariableInfo slice.
 
+        Parameters
+        ----------
+        item: str, List[str], slice of str, int, List[int], slice of int
+
+        Returns
+        -------
+        vi: VariablesInfo
+        """
         keys = self.idx[item]
         if not isinstance(keys, list):
             keys = [keys]
@@ -98,9 +97,9 @@ class VariablesInfo():
         """Get list of infos."""
         return self._infos
 
-    def copy(self) -> "VariablesInfo":
-        """Copy this instance."""
 
+    def copy(self):
+        """Copy this instance."""
         var_list = copy.copy(self.var)
 
         infos = {}
@@ -130,9 +129,10 @@ class VariablesInfo():
         Parameters
         ----------
         info: str
-            Info name
+            Info name.
         values: Dict[variable: str, Any]
-            Values
+            Values for some or all variables.
+            Variables not specified will be filled with None.
         """
         if info not in self._infos:
             self._infos.append(info)

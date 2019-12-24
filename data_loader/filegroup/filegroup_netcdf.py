@@ -1,7 +1,4 @@
-"""Filegroup class for netCDF files.
-
-Basic support fillValue
-"""
+"""Filegroup class for netCDF files."""
 
 import logging
 
@@ -9,23 +6,20 @@ import netCDF4 as nc
 
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 
+
 log = logging.getLogger(__name__)
 
 
 class FilegroupNetCDF(FilegroupLoad):
-    """An ensemble of files.
+    """Filegroup class for NetCDF files."""
 
-    For NetCDF files.
-    """
     def open_file(self, filename, mode='r', log_lvl='info'):
-        """Open file."""
         file = nc.Dataset(filename, mode)
         log_lvl = getattr(logging, log_lvl.upper())
         log.log(log_lvl, "Opening %s", filename)
         return file
 
     def close_file(self, file):
-        """Close file."""
         file.close()
 
     def load_cmd(self, file, cmd):
@@ -59,16 +53,16 @@ class FilegroupNetCDF(FilegroupLoad):
     def _load_slice_single_var(self, file, keys, ncname):
         """Load data for a single variable.
 
-        The data is reordered
-
         Parameters
         ----------
-        dt: nc.Dataset
-        keys: Dict[coord name, key]
+        file: nc.Dataset
+            File object.
+        keys: Dict[coord name: str, key: slice or List[int]]
+            Keys to load in file.
         order: List[str]
-            Order of coordinates in file
+            Order of dimensions in file.
         ncname: str
-            Name of the variable in file
+            Name of the variable in file.
         """
 
         order, keys_inf = self._get_order(file, ncname, keys)
@@ -79,30 +73,33 @@ class FilegroupNetCDF(FilegroupLoad):
 
         return chunk
 
-    def _get_order(self, data_file, ncname, keys):
+    def _get_order(self, file, ncname, keys):
         """Get order from netcdf file, reorder keys.
 
         Parameters
         ----------
-        dt: nc.Dataset
+        file: nc.Dataset
+             File object.
         ncname: str
-        keys: List[NpIdx]
+             Name of the variable in ile.
+        keys: Dict[coord name: str, key: slice or List[int]]
+            Keys to load in file.
 
         Returns
         -------
         order: List[str]
-            Coordinate names in order
+            Coordinate names in order.
         keys_ord: Dict
-            Keys ordered
+            Keys in order.
         """
-        order_nc = list(data_file[ncname].dimensions)
+        order_nc = list(file[ncname].dimensions)
         order = []
         keys_ord = {}
         for coord_nc in order_nc:
             try:
                 coord = self.db.get_coord(coord_nc)
             except KeyError:
-                dim = data_file.dimensions[coord_nc].size
+                dim = file.dimensions[coord_nc].size
                 if dim > 1:
                     log.warning("Additional dimension %s in file of "
                                 "size > 1. The first index will be used",
@@ -120,7 +117,12 @@ class FilegroupNetCDF(FilegroupLoad):
         return order, keys_ord
 
     def get_ncname(self, var: str) -> str:
-        """Get the infile name."""
+        """Get the infile variable name.
+
+        Try to get it in the `ncname` attribute
+        in the vi. If not present, or None, the
+        variable name is used.
+        """
         try:
             ncname = self.vi.ncname[var]
         except KeyError:

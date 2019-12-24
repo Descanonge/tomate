@@ -22,16 +22,12 @@ class IterDict(dict):
     """Dictionnary that can also be indexed (and sliced).
 
     Created as a typical dictionnary. The order the
-    items are initialized will be kept.
+    items are initialized in will be kept.
 
     Methods
     -------
-
-    enum
-        Enumerate values
-
     __getitem__
-        Return value from a string or an integer
+        Retrieve elements from its key or index.
     """
 
     def __getitem__(self, y):
@@ -44,7 +40,17 @@ class IterDict(dict):
 
         Notes
         -----
-        For index and slices, python3.7 ordered dict abalities are used
+        For index and slices, python3.7 ordered dict abilities are used
+
+        Examples
+        --------
+        >>> ID = IterDict({'a': 'A', 'b': 'B', 'c': 'C'})
+        ... print(ID['a'])
+        'A'
+        >>> print(ID[0])
+        'A'
+        >>> print(ID[1:])
+        ['B', 'C']
         """
 
         getitem = super().__getitem__

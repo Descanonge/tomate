@@ -1,11 +1,4 @@
-"""Construct a database easily.
-
-Contains
---------
-Constructor
-    Help creating Filegroup objects.
-    Start scanning.
-"""
+"""Construct a database easily."""
 
 import logging
 import os
@@ -13,27 +6,32 @@ import os
 from data_loader.variables_info import VariablesInfo
 from data_loader.coord import select_overlap
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 
 class Constructor():
     """Helps creating a database object.
 
+    Start the scanning process, and check if
+    results are coherent across filegroups.
+
     Parameters
     ----------
     root: str
-        Root directory of all files
+        Root directory of all files.
     coords: List[Coord]
-        Coordinates
-    vi: VariablesInfo
+        Coordinates in the order the data should be kept.
 
     Attributes
     ----------
     root: str
-        Root directory of all files
-    coords: Dict[name: str, Coord]
+        Root directory of all files.
+    coords: Dict[str, Coord]
+        Coordinates in the order the data should be kept.
     filegroups: List[Filegroup]
+        Filegroups added so far.
+    vi: VariablesInfo
     """
 
     def __init__(self, root, coords):
@@ -61,14 +59,34 @@ class Constructor():
         Parameters
         ----------
         variable: str
-            Id of the variable
+            Id of the variable.
+        info: optional
+            Variable specific information.
+
+        Examples
+        --------
+        >>> name = "SST"
+        ... info = {'fullname': 'Sea Surface Temperature',
+        ...         'max_value': 40.}
+        ... cstr.add_variable(name, **info)
         """
         if info is None:
             info = {}
         self.vi.add_variable(variable, info)
 
     def add_kwargs(self, **kwargs):
-        """Add attributes to the vi."""
+        """Add attributes to the vi.
+
+        Add not variable-specific attributes to the vi.
+
+        Parameters
+        ----------
+        kwargs: Any
+
+        Examples
+        --------
+        >>> cstr.add_kwargs(altimetry_data=['SSH', 'U', 'V'])
+        """
         self.vi.add_kwargs(**kwargs)
 
     def add_fg(self, fg_type, contains, coords, *args, **kwargs):
@@ -76,12 +94,23 @@ class Constructor():
 
         Parameters
         ----------
+        fg_type: FilegroupLoad subclass
+            Class of filegroup to add. Dependand on the file-format.
         contains: List[str]
-            list of variables contained in this grouping
-            of files
-        coords: List[[Coord, shared: str or bool]]
-            coordinates used in this grouping of files.
-            list of tuples of the coordinate name and a inout flag
+            List of variables contained in this grouping
+            of files.
+        coords: List[Coord, shared: str or bool]
+            Coordinates used in this grouping of files.
+            Each element of the list is a length 2 tuple of
+            the coordinate name, and a shared flag.
+            The flag can be 'shared' or 'in'.
+        args, kwargs
+            Passed to the fg_type initializator.
+
+        Examples
+        --------
+        >>> add_fg(FilegroupNetCDF, ['Chla', 'Chla_error'],
+        ...        [['lat', 'in'], ['lon', 'in'], ['time', 'shared']])
         """
         shared_corres = {'in': False, 'shared': True}
         for i, [c, shared] in enumerate(coords):
@@ -100,19 +129,19 @@ class Constructor():
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
-        """Add filegroup with a regex scanning method.
+        """Add the pre-regex to the current filegroup.
 
         Parameters
         ----------
         pregex: str
-            pre-regex
+            Pre-regex.
         replacements: Dict[name: str, replacement: Any]
-            Constants to replace in pre-regex
+            Constants to replace in pre-regex.
 
         Examples
         --------
-        fgc.set_fg_regex("%(prefix)_%(time:year)",
-                         {"prefix": "SST"})
+        >>> cstr.set_fg_regex("%(prefix)_%(time:year)",
+        ...                   {"prefix": "SST"})
         """
         self.current_fg.add_scan_regex(pregex, replacements)
 
@@ -121,10 +150,16 @@ class Constructor():
 
         Parameters
         ----------
-        func: Callable[[CoordScan, filename: str, values: List[float]],
-                       values: List[float], in_idx: List[int]]
-        coords: List[Coord]
-            Coordinate to apply this function for.
+        func: Callable[[CoordScan, file, values: List[float]],
+                       [values: List[float], in_idx: List[int]]]
+            Function that captures values and in-file index
+        coords: List of str
+            Coordinates to apply this function for.
+
+        Notes
+        -----
+        See CoordScan.scan_in_file() for a better description of
+        the function interface.
         """
         fg = self.current_fg
         for name in coords:
@@ -132,14 +167,19 @@ class Constructor():
             cs.set_scan_in_file_func(func)
 
     def set_scan_filename_func(self, func, *coords, **kwargs):
-        """Set function for scanning coordinates values in filename.
+        """Set function for scanning coordinates values from filename.
 
         Parameters
         ----------
-        func: Callable[[CoordScan, re.match], values: List[float]]
-            Function that recover values from filename
+        func: Callable[[], [values: List[float], in_idx: List[int]]
+            Function that recover values from filename.
         coords: List[Coord]
             Coordinate to apply this function for.
+
+        Notes
+        -----
+        See CoordScan.scan_filename() for a better description of
+        the function interface.
         """
         fg = self.current_fg
         for name in coords:
@@ -147,8 +187,20 @@ class Constructor():
             cs.set_scan_filename_func(func, **kwargs)
 
     def set_scan_manual(self, coord, values, in_idx=None):
-        """Set coordinate values manually."""
+        """Set coordinate values manually.
 
+        Values will still be checked for consistency with
+        others filegroups.
+
+        Parameters
+        ----------
+        coord: str
+            Coordinate to set the values for.
+        values: List[float]
+            Values for the coordinate.
+        in_idx: List[int], optional
+            Values of the in-file index.
+        """
         if in_idx is None:
             in_idx = [None for _ in range(len(values))]
 
@@ -161,23 +213,48 @@ class Constructor():
                         "Values set manually could be overwritten.", cs.name)
 
     def set_scan_coords_attributes_func(self, func, *coords):
-        """Set a function for scanning coordinate attributes."""
+        """Set a function for scanning coordinate attributes.
+
+        Parameters
+        ----------
+        func: Callable[[file], [Dict[str, Any]]]
+            Function that recovers coordinate attribute in file.
+        coords: str
+            Coordinates to apply this function for.
+
+        Notes
+        -----
+        See CoordScan.scan_attributes() for a better description
+        of the function interface.
+        """
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
             cs.set_scan_attributes(func)
 
     def set_scan_variables_attributes_func(self, func):
-        """Set a function for scanning variables attributes to current fg."""
+        """Set a function for scanning variables specific attributes.
+
+        Parameters
+        ----------
+        func: Callable[[file, variables: List[str]],
+                       [Dict[variable name, Dict[info name, Any]]]]
+            Function that recovers variable specific attributes in file.
+
+        Notes
+        -----
+        See FilegroupScan.scan_attributes() for a better description
+        of the function interface.
+        """
         fg = self.current_fg
         fg.set_scan_attributes_func(func)
 
     def set_coord_descending(self, *coords):
-        """Set a coordinate as descending in the filegroup.
+        """Set coordinates as descending in the filegroup.
 
         Parameters
         ----------
-        coords: List of str
+        coords: List[str]
         """
         fg = self.current_fg
         for name in coords:
@@ -186,12 +263,12 @@ class Constructor():
     def scan_files(self):
         """Scan files.
 
-        Creates coordinates values.
+        Find coordinates values and eventually, in-file indices.
 
         Raises
         ------
         RuntimeError:
-            If no files are found
+            If no files are found.
         """
         files = []
         for root, _, file in os.walk(self.root):
@@ -216,14 +293,6 @@ class Constructor():
         ----------
         threshold: float = 1e-5
             Threshold used for float comparison
-
-        Raises
-        ------
-        IndexError
-            If coordinates have different lengthes across filegroup.
-        ValueError
-            If coordinates have different values across filegroups
-            (above `threshold`).
         """
         for name, coord in self.coords.items():
             coords = []
@@ -258,8 +327,20 @@ class Constructor():
     def make_database(self, db_type):
         """Create database instance.
 
-        Scan files
-        Select overlap coordinates
+        Check a regex is present in every filegroup.
+        Scan files.
+        Check coordinates for consistency across filegroups.
+        Create database object.
+
+        Parameters
+        ----------
+        db_type: DataBase or subclass
+            Database class to use.
+
+        Returns
+        -------
+        dt: db_type
+            Database instance ready to use.
         """
         self.check_regex()
         self.scan_files()
@@ -269,7 +350,13 @@ class Constructor():
 
 
 def check_range(coords):
-    """Check coords range, slice if needed."""
+    """Check coords range, slice if needed.
+
+    Parameters
+    ----------
+    coords: List[CoordScan]
+         CoordScan of different filegroups, linked to the same coordinate.
+    """
     overlap = select_overlap(*coords)
     cut = False
     for i, cs in enumerate(coords):
@@ -293,7 +380,18 @@ def check_range(coords):
 
 
 def check_values(coords, threshold):
-    """Check coords values, keep values in common."""
+    """Check coords values, keep values in common.
+
+    Parameters
+    ----------
+    coords: List[CoordScan]
+         CoordScan of different filegroups, linked to the same coordinate.
+
+    Raises
+    ------
+    IndexError
+        If a coordinate has no common values across filegroups.
+    """
     sizes = [cs.size for cs in coords]
     for i in range(len(coords) - 1):
         c1 = coords[i]

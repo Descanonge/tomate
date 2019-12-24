@@ -1,11 +1,4 @@
-"""Data class for netCDF files.
-
-Basic support fillValue
-
-Contains
---------
-DataNetCDF
-"""
+"""Data class for netCDF files."""
 
 import logging
 
@@ -14,18 +7,24 @@ import numpy as np
 from data_loader.data_base import DataBase
 import data_loader.masked.mask
 
+
 log = logging.getLogger(__name__)
 
 
 class DataMasked(DataBase):
     """Encapsulate data array and info about the variables.
 
-    For NetCDF files.
+    For masked data.
 
-    Data and coordinates can be accessed with subscript
+    Data and coordinates can be accessed with getter:
     Data[{name of variable | name of coordinate}]
 
-    Data is loaded from disk with load_data
+    Data is loaded from disk with load_data.
+
+    Attributes
+    ----------
+    compute_land_mask_func: Callable
+        Function to compute land mask.
     """
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None
@@ -35,6 +34,8 @@ class DataMasked(DataBase):
     def allocate_memory(self):
         """Allocate data variable.
 
+        Uses the current variables and coordinates selection
+        to get the needed shape.
         Data is storred as a masked array
         """
         log.info("Allocating numpy masked array of shape %s", self.shape)
@@ -48,18 +49,18 @@ class DataMasked(DataBase):
         Parameters
         ----------
         missing: bool, True
-            Mask not valid
+            Mask not valid.
         inland: bool, True
-            Mask in land
+            Mask in land.
         coast: int, 5
-            If inland, mask `coast` neighbooring pixels
+            If inland, mask `coast` neighbooring pixels.
         chla: bool, True
-            Clip Chlorophyll above 3mg.m-3 and under 0
+            Clip Chlorophyll above 3mg.m-3 and under 0.
 
         Raises
         ------
         RuntimeError
-            If data was not previously loaded
+            If data was not previously loaded.
         """
         if self.data is None:
             raise RuntimeError("Data has not been previously loaded.")
@@ -81,13 +82,20 @@ class DataMasked(DataBase):
             # A[A > 3] = np.nan
 
     def set_compute_land_mask(self, func):
-        """Set function to compute land mask."""
+        """Set function to compute land mask.
+
+        Parameters
+        ----------
+        func: Callable[[lat: Coord, lon: Coord],
+                       [mask: 2D numpy bool array]]
+             Returns a land mask as a boolean array.
+        """
         self.compute_land_mask_func = func
 
     def compute_land_mask(self):
         """Compute land mask and save to disk."""
-        mask = self.compute_land_mask_func(self._coords_orr['lat'],
-                                           self._coords_orr['lon'])
+        lat, lon = self.get_coords_from_backup('lat', 'lon')
+        mask = self.compute_land_mask_func(lat, lon)
         np.save(self.root + 'land_mask.npy', mask)
 
     def get_land_mask(self, keys=None):
@@ -95,7 +103,7 @@ class DataMasked(DataBase):
 
         Parameters
         ----------
-        keys: List[NpIdx]
+        keys: List[numpy keys]
 
         Returns
         -------

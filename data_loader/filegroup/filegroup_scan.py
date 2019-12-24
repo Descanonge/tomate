@@ -1,19 +1,7 @@
-"""Data files management.
+"""Manages scanning of data files.
 
 Files containing the same variables and having the same filenames are
 regrouped into a same Filegroup.
-CoordScan help to scan files to see what coordinates
-values they hold.
-
-Contains
---------
-
-Filegroup:
-    Contain informations on files which share the same variables
-    and filename structure.
-    Scan files and keeps a correspondance of what file contains
-    what coordinates.
-    Manage pre-regex processing
 """
 
 import logging
@@ -22,9 +10,6 @@ import os
 import re
 from types import MethodType
 
-from typing import List
-
-from data_loader.coord import Coord
 import data_loader.coord_scan as dlcs
 
 
@@ -34,39 +19,46 @@ log = logging.getLogger(__name__)
 class FilegroupScan():
     """An ensemble of files.
 
-    File which share the same variables, and filename structure.
+    Files which share the same variables, and filename structure.
+    Class manages the scanning part of filegroups.
 
     Parameters
     ----------
     root: str
-        Data directory
+        Root data directory containing all files.
     contains: List[str]
-        Variables contained in this filegroup
-    coords: List[[Coord, shared: bool]]
+        Variables contained in this filegroup.
+    db: DataBase or subclass
+        Parent database.
+    coords: List[ List[Coord, shared: bool] ]
         Parent coordinates objects, and a bool indicating if the coordinate
-        is shared accross files
-    vi: VariableInfo
+        is shared accross files.
+    vi: VariablesInfo
+        Global VariablesInfo instance.
 
     Attributes
     ----------
     root: str
-        Data directory
+        Root data directory containing all files.
     contains: List[str]
-        Variables contained in this filegroup
-    cs: List[Coord]
-        Parent coordinates objects
-    n_matcher: int
-        Number of matchers in pre-regex
+        Variables contained in this filegroup.
+    db: DataBase or subclass
+        Parent database.
+    cs: Dict[name: str, CoordScan or subclass]
+        Dictionnary of scanning coordinates,
+        each dynamically inheriting from its
+        parent Coord.
     pregex: str
-        Pre-regex
+        Pre-regex.
     regex: str
-        Regex, matchers have been replaced with regexes
+        Regex.
     segments: List[str]
         Fragments of filename used for reconstruction,
-        pair indices are replaced with matches
-    scan_attr: bool
-        If the variables attributes have to be scanned
+        pair indices are replaced with matches.
     vi: VariablesInfo
+        Global VariablesInfo instance.
+    scan_attr: bool
+        If the variables attributes have to be scanned.
     """
 
     def __init__(self, root, contains, db, coords, vi):
@@ -86,8 +78,12 @@ class FilegroupScan():
 
         self.make_coord_scan(coords)
 
-    def make_coord_scan(self, coords: List[Coord]):
-        """Add CoordScan objects."""
+    def make_coord_scan(self, coords):
+        """Add CoordScan objects.
+
+        Each CoordScan is dynamically rebased
+        from its parent Coord.
+        """
         self.cs = {}
         for coord, shared in coords:
             cs = dlcs.get_coordscan(self, coord, shared)
@@ -126,7 +122,7 @@ class FilegroupScan():
         return cs
 
     def add_scan_regex(self, pregex, replacements):
-        """Specify the regex for scanning.
+        """Specify the pre-regex.
 
         Create a proper regex from the pre-regex.
         Find the matchers: replace them by the appropriate regex,
@@ -135,16 +131,15 @@ class FilegroupScan():
         Parameters
         ----------
         pregex: str
-            Pre-regex
+            Pre-regex.
         replacements: Dict
-            dictionnary of matchers to be replaced by a constant
-            The keys must match a matcher in the pre-regex
-
+            Dictionnary of matchers to be replaced by a constant.
+            The keys must match a matcher in the pre-regex.
 
         Example
         -------
-        pregex = "%(prefix)_%(time:value)"
-        replacements = {"prefix": "SST"}
+        >>> pregex = "%(prefix)_%(time:value)"
+        ... replacements = {"prefix": "SST"}
         """
         pregex = pregex.strip()
 
@@ -175,6 +170,12 @@ class FilegroupScan():
         """Find segments in filename.
 
         Store result.
+
+        Parameters
+        ----------
+        m: re.match
+            Match of the pre-regex to find matchers.
+            Output of FilegroupScan.scan_pregex()
         """
         sep = [0]
         n = len(m.groups())
@@ -186,24 +187,48 @@ class FilegroupScan():
         self.segments = [s[i:j]
                          for i, j in zip(sep, sep[1:]+[None])]
 
-    def open_file(self, filename: str, mode='r', log_lvl='info'):
-        """Open a file."""
+    def open_file(self, filename, mode='r', log_lvl='info'):
+        """Open a file.
+
+        Parameters
+        ----------
+        filename: str
+            File to open.
+        mode: str
+            Mode for opening (read only, replace, append, ...)
+        log_lvl: {'debug', 'info', 'warning'}
+            Level to log the opening at.
+        """
         raise NotImplementedError
 
     def close_file(self, file):
-        """Close file."""
+        """Close file.
+
+        Parameters
+        ----------
+        file:
+            File object.
+        """
         raise NotImplementedError
 
     def is_to_open(self):
         """Return if the current file has to be opened."""
         to_open = False
-        for cs in self.enum_scan("scannable").values():
+        for cs in self.iter_scan("scannable").values():
             to_open = to_open or cs.is_to_open()
         to_open = to_open or self.scan_attr
         return to_open
 
     def scan_file(self, filename: str):
-        """Scan a single filename."""
+        """Scan a single filename.
+
+        Match filename against regex.
+        If first match, retrieve segments.
+        If needed, open file.
+        If not already, scan attributes.
+        Scan per coordinate.
+        Close file.
+        """
         m = re.match(self.regex, filename)
 
         filename = os.path.join(self.root, filename)
@@ -238,10 +263,11 @@ class FilegroupScan():
             if file is not None:
                 self.close_file(file)
 
-    def scan_files(self, files: List[str]):
+    def scan_files(self, files):
         """Scan files.
 
-        files: list of strings
+        files: List[str]
+
         """
         for file in files:
             self.scan_file(file)
@@ -258,10 +284,32 @@ class FilegroupScan():
             cs.update_values(cs.values)
 
     def set_scan_attributes_func(self, func):
-        """Set function for scanning variables attributes."""
+        """Set function for scanning variables attributes.
+
+        Parameters
+        ----------
+        func: Callable[[file, variables: List[str]], [Dict]]
+            Function that recovers variables attributes in file.
+            See FilegroupScan.scan_attributes for a better description
+            of the function interface.
+        """
         self.scan_attr = True
         self.scan_attributes = MethodType(func, self)
 
-    def scan_attributes(self, filename, variables): #pylint: disable=method-hidden
-        """Scan attributes in file for specified variables."""
+    def scan_attributes(self, file, variables): #pylint: disable=method-hidden
+        """Scan attributes in file for specified variables.
+
+        Parameters
+        ----------
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
+        variables: List[str]
+            Variables to look for attributes.
+
+        Returns
+        -------
+        attributes: Dict[attribute: str, Dict[variable: str, value: Any]]
+            Attributes found: {'attribute name': {'variable name': Any}}
+        """
         raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)

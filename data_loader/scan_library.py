@@ -5,25 +5,6 @@ from datetime import datetime, timedelta
 import netCDF4 as nc
 
 
-def get_value_from_matches(cs):
-    """Retrieve value from matches.
-
-    matchers: list of matchers object
-    coord: coord name
-    """
-    elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
-
-    value = elts.get("value")
-    if value is not None:
-        return float(value)
-
-    idx = elts.get("idx")
-    if idx is not None:
-        return int(idx)
-
-    return None
-
-
 def get_date_from_matches(cs, default_date=None):
     """Retrieve date from matched elements.
 
@@ -33,7 +14,8 @@ def get_date_from_matches(cs, default_date=None):
 
     Parameters
     ----------
-    default_date: Dict
+    cs: CoordScan
+    default_date: Dict, optional
         Default date element.
         Defaults to 1970-01-01 12:00:00
     """
@@ -90,6 +72,21 @@ def get_date_from_matches(cs, default_date=None):
     return None
 
 
+def get_value_from_matches(cs):
+    """Retrieve value from matches."""
+    elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
+
+    value = elts.get("value")
+    if value is not None:
+        return float(value)
+
+    idx = elts.get("idx")
+    if idx is not None:
+        return int(idx)
+
+    return None
+
+
 def _find_month_number(name):
     """Find a month number from its name.
 
@@ -111,7 +108,7 @@ def _find_month_number(name):
     return None
 
 def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
-    """Scan netCDF file for inout values."""
+    """Scan netCDF file for coordinates values and in-file index."""
     for name in [cs.name] + cs.name_alt:
         try:
             in_values = file[name][:]
@@ -127,14 +124,13 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
 
 
 def scan_in_file_nc_idx_only(cs, file, values):
-    """Scan netCDF for inout index only."""
+    """Scan netCDF for in-file index only."""
     _, in_idx = scan_in_file_nc(cs, file, values)
     return values, in_idx
 
 
 def scan_attributes_nc(fg, file, variables):
-    """Scan for all attributes in a netCDF file."""
-
+    """Scan for variables attributes in a netCDF file."""
     infos = {}
     for var in variables:
         infos_var = {}
@@ -149,7 +145,7 @@ def scan_attributes_nc(fg, file, variables):
 
 
 def scan_units_nc(cs, file):
-    """Scan for the time variable unit."""
+    """Scan for the units of the time variable."""
     for name in [cs.name] + cs.name_alt:
         try:
             nc_var = file[name]

@@ -1,11 +1,6 @@
-"""Filegroup class with data loading functionnalities.
-
-This class is abstract and is meant to be subclassed to be usable.
-A subclass would replace existing functions specific to a file format.
-"""
+"""Filegroup class with data loading functionnalities."""
 
 import itertools
-from typing import List
 import logging
 
 import numpy as np
@@ -17,7 +12,11 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupLoad(FilegroupScan):
-    """Filegroup class with data loading functionnalies."""
+    """Filegroup class with data loading functionnalies.
+
+    This class is abstract and is meant to be subclassed to be usable.
+    A subclass would replace existing functions specific to a file format.
+    """
 
     def get_commands(self, var_list, keys):
         """Get load commands.
@@ -32,14 +31,13 @@ class FilegroupLoad(FilegroupScan):
         ----------
         var_list: List[str]
             List of variables names
-        keys: Dict[str, NpIdx]
-            Dict of coord keys to load from the data
-            available
-            Keys are passed to numpy arrays
+        keys: Dict[coordinate: str, key: slice or List[int]
+            Part of coordinates to load from the data
+            available.
 
         Returns
         -------
-        commands: List of Command
+        commands: List[Command]
         """
         commands = self._get_commands_shared(keys)
         commands = command.merge_cmd_per_file(commands)
@@ -64,13 +62,13 @@ class FilegroupLoad(FilegroupScan):
         return commands
 
     def _get_commands_no_shared(self):
-        """Get command when there are no shared coords."""
+        """Get commands when there are no shared coords."""
         cmd = command.Command()
         cmd.filename = ''.join(self.segments)
         return [cmd]
 
     def _get_commands_shared(self, keys):
-        """Return the combo filename / keys_in for inout coordinates."""
+        """Return the combo filename / keys_in for shared coordinates."""
         matches, rgx_idxs, in_idxs = self._get_commands_shared__get_info(keys)
 
         # Number of matches ordered by shared coordinates
@@ -115,11 +113,11 @@ class FilegroupLoad(FilegroupScan):
         -------
         matches: List of matches for each coord.
             Matches for all coordinates for each needed file.
-            Length is the # of shared coord, each array is (# of values, # of matches per value)
-        rgx_idxs: List of List of integer
-            Corresponding indices of matches in the regex
-        in_idxs: List of integer or None
-            In file indices of asked values
+            Length is the # of shared coord, each array is (# of values, # of matches per value).
+        rgx_idxs: List[ List[int] ]
+            Corresponding indices of matches in the regex.
+        in_idxs: List[int] or None
+            In file indices of asked values.
         """
         matches = []
         rgx_idxs = []
@@ -161,7 +159,17 @@ class FilegroupLoad(FilegroupScan):
         return keys_mem
 
     def load_data(self, var_list, keys):
-        """Load data."""
+        """Load data for that filegroup.
+
+        Retrieve load commands.
+        Open file, load data, close file.
+
+        Parameters
+        ----------
+        var_list: List[str]
+            Variables to load
+        keys: Dict[coordinate: str, key: slice or List[int]]
+        """
         commands = self.get_commands(var_list, keys)
         for cmd in commands:
             log.debug(cmd)
@@ -175,20 +183,24 @@ class FilegroupLoad(FilegroupScan):
                 self.close_file(file)
 
     def load_cmd(self, file, cmd):
-        """Load data from one file using a command.
+        """Load data from one file using a load command.
+
+        Load content following a 'load command'.
+        See documentation on filegroups and expanding the package
+        for more information on how this function works, and
+        how to implement it.
 
         Parameters
         ----------
-        filename: str
-            Filename to open
-        var_list: List[str]
-            Variables to load
-        keys: Dict[coord name, key]
-            Keys to load in file
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
+        cmd: Command
+            Load command.
         """
         raise NotImplementedError
 
-    def _get_order(self, *args) -> List[str]:
+    def _get_order(self, *args):
         """Get order of dimensions in file.
 
         Returns
@@ -206,16 +218,21 @@ class FilegroupLoad(FilegroupScan):
 
         Parameters
         ----------
-        order: List of str
-            Coordinates names ordered as in file
-        keys: List of str
-            Coordinates keys asked for loading
+        order: List[str]
+            Coordinates names ordered as in file.
+        keys: List[str]
+            Coordinates keys asked for loading.
         chunk: Numpy array
-            Data chunk taken from file and to re-order
+            Data chunk taken from file and to re-order.
+        variables: bool, optional
+            If there is a variable dimension in the data
+            chunk. If there is, it should be the first one
+            (ie on the axis #0).
 
         Returns
         -------
         chunk:
+            Data array.
         """
         if order is None:
             order = list(self.cs.keys())

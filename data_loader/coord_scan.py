@@ -5,12 +5,11 @@ coordinate values inside files.
 
 Contains
 --------
-
 Matcher:
-    Keep info on a matcher in the pre-regex
+    Keep info on a matcher in the pre-regex.
 
 CoordScan:
-    Abstract class dynamically derived from a subclass of Coord
+    Abstract class dynamically derived from a subclass of Coord.
     Each object is parented to a Coord so that
     once scanned, the values can be transferred.
 
@@ -18,12 +17,12 @@ CoordScanShared:
     The dimension / coordinate is shared accross multiple files.
 
 CoordScanIn:
-    The values are fully contained in the file
+    The values are fully contained in the file, and identically
+    arranged from file to file.
 """
 
 import logging
 from types import MethodType
-from typing import List
 
 import numpy as np
 
@@ -40,24 +39,25 @@ class Matcher():
 
     Parameters
     ----------
-    pregex: str
-        Matcher pre-regex
+    m: re.match
+        Match object of a matcher in the pre-regex.
+        See FilegroupScan.scan_pregex().
     idx: int
-        Index in the full pre-regex
+        Index of the matcher in the full pre-regex
 
     Attributes
     ----------
     coord: str
-        Coordinate name
+        Coordinate name.
     idx: int
-        Matcher index in the full pre-regex
+        Matcher index in the full pre-regex.
     elt: str
-        Coordinate element
+        Coordinate element.
     dummy: bool
-        If the matcher is a dummy, not containing any
+        If the matcher is a dummy, ie not containing any
         information, or redondant information.
     ELT_RGX: Dict
-        Regex str for each type of element
+        Regex str for each type of element.
     """
 
     ELT_RGX = {"idx": r"\d*",
@@ -97,31 +97,33 @@ class CoordScan(Coord):
     Parameters
     ----------
     filegroup: Filegroup
-        Corresponding filegroup
+        Corresponding filegroup.
     coord: Coord
-        Parent coordinate
+        Parent coordinate.
     shared: bool
         If the coordinate is shared accross files.
 
     Attributes
     ----------
+    filegroup: FilegroupLoad or subclass
+        Corresponding filegroup.
     coord: Coord
-        parent coordinate object
-    shared: str
-        If the coordinate is shared accross files
+        Parent coordinate object.
+    shared: bool
+        If the coordinate is shared accross files.
     values: List[float]
-        Temporary list of values found for this coordinate
+        Temporary list of values found for this coordinate.
     in_idx: List[int]
-        List of the index for each value inside the files
+        List of the index for each value inside the files.
     scan: set
-        What part of the file is to be scanned
+        What part of the file is to be scanned.
         { in | filename | manual | attributes } or a combination of the three
     scanned: bool
-        If the coordinate has been scanned
+        If the coordinate has been scanned.
     scan_filename_kwargs: Dict
-        Keyword arguments to pass to the scan_filename function
+        Keyword arguments to pass to the scan_filename function.
     scan_in_file_kwargs: Dict
-        Keyword arguments to pass to the scan_in_file function
+        Keyword arguments to pass to the scan_in_file function.
     """
 
     def __init__(self, filegroup, coord: Coord, shared: bool):
@@ -143,10 +145,14 @@ class CoordScan(Coord):
         super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
 
     def is_idx_descending(self):
-        """Is idx descending."""
+        """Is idx descending.
+
+        Meaning the in-file index are decreasing
+        when values are increasing.
+        """
         return self._idx_descending
 
-    def set_values(self, values: List):
+    def set_values(self, values):
         """Set values."""
         self.values = values
 
@@ -185,11 +191,12 @@ class CoordScan(Coord):
         """Get the in file indices.
 
         Give the index inside the file corresponding to the
-        asked values.
+        demanded values.
 
         Parameters
         ----------
         key: Slice or List[int]
+            Index of the demanded values.
 
         Returns
         -------
@@ -205,40 +212,56 @@ class CoordScan(Coord):
         return key_data
 
     def is_to_open(self):
-        """Return if the coord needs to open a file."""
+        """Return if the coord needs to open the current file."""
         raise NotImplementedError
 
-    def scan_filename(self, m): # pylint: disable=method-hidden
+    def scan_filename(self, **kwargs): # pylint: disable=method-hidden
         """Scan filename to find values.
+
+        Matches found by the regex are accessible from
+        the matchers objects in the CoordScan object passed
+        to the function (as self).
+        Do not forget the function needs a CoordScan in
+        first argument !
 
         Parameters
         ----------
-        m: re.match
-            match of the filename against the regex
+        kwargs
+            Static keywords arguments set by
+            Constructor.set_scan_filename_func()
 
         Returns
         -------
         values: List[float]
-            Values found
+            Values found.
 
         Raises
         ------
         NotImplementedError
             If scan_filename was not set.
+
+        Notes
+        -----
+        See scan_library for various examples.
+        get_date_from_matches() for instance.
         """
         raise NotImplementedError("scan_filename was not set for '%s'" % self.name)
 
-    def scan_in_file(self, filename, values): # pylint: disable=method-hidden
-        """Scan inside file.
+    def scan_in_file(self, file, values, **kwargs): # pylint: disable=method-hidden
+        """Scan values and in-file indices inside file.
 
-        Scan file to find values and in file indices.
+        Scan file to find values and in-file indices.
 
         Parameters
         ----------
-        filename: str
-            fFilename
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
         values: List[float]
-            Values found previously in filename
+            Values found previously in filename.
+        kwargs
+            Static keywords arguments set by
+            Constructor.set_scan_in_file_func()
 
         Returns
         -------
@@ -251,20 +274,43 @@ class CoordScan(Coord):
         ------
         NotImplementedError
             If scan_in_file was not set.
+
+        Notes
+        -----
+        See scan_library for various examples.
+        scan_in_file_nc() for instance.
         """
         raise NotImplementedError("scan_in_file was not set for '%s" % self.name)
 
-    def scan_attributes(self, filename): #pylint: disable=method-hidden
-        """Scan coordinate attributes."""
+    def scan_attributes(self, file): #pylint: disable=method-hidden
+        """Scan coordinate attributes.
+
+        Only `units` attribute supported for now.
+
+        Parameters
+        ----------
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
+
+        Returns
+        -------
+        attributes: Dict
+            Attributes.
+            {'name': value}
+
+        Raises
+        ------
+        NotImplementedError
+            If scan_attribute was not set.
+        """
         raise NotImplementedError("scan_attributes was not set for '%s" % self.name)
 
     def set_scan_filename_func(self, func, **kwargs):
         """Set function for scanning values.
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, re.match], values: List[float]]
-            Function that recover values from filename
+        See CoordScan.scan_filename()
+        and Constructor.set_scan_filename_func()
         """
         self.scan.add("filename")
         self.scan_filename = MethodType(func, self)
@@ -273,17 +319,21 @@ class CoordScan(Coord):
     def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, filename: str, values: List[float]],
-                       values: List[float], in_idx: List[int]]
+        See CoordScan.scan_in_file()
+        and Constructor.set_scan_in_file_func()
         """
         self.scan.add("in")
         self.scan_in_file = MethodType(func, self)
         self.scan_in_file_kwargs = kwargs
 
     def set_scan_manual(self, values, in_idx):
-        """Set values manually."""
+        """Set values manually.
+
+        Parameters
+        ----------
+        values: List[float]
+        in_idx: List[int]
+        """
         self.scan.discard('in')
         self.scan.discard('filename')
         self.scan.add('manual')
@@ -291,7 +341,11 @@ class CoordScan(Coord):
         self.in_idx = in_idx
 
     def set_scan_attributes(self, func):
-        """Set function for scanning attributes in file."""
+        """Set function for scanning attributes in file.
+
+        See CoordScan.scan_attributes()
+        and Constructor.set_scan_coords_attributes()
+        """
         self.scan.add("attributes")
         self.scan_attributes = MethodType(func, self)
 
@@ -301,11 +355,13 @@ class CoordScan(Coord):
         Parameters
         ----------
         file:
-            File object
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
 
         Returns
         -------
-        Number of values found
+        n_values: int
+            Number of values found
 
         Raises
         ------
@@ -355,21 +411,33 @@ class CoordScan(Coord):
 
 
 class CoordScanIn(CoordScan):
-    """Coord used for scanning of a in coordinate.
+    """Coord used for scanning of a 'in' coordinate.
 
     Only scan the first file found.
     All files are considered to have the same structure.
+
+    Parameters
+    ----------
+    Passed to CoordScan(), minus `shared`.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, shared=False)
 
-    def scan_file(self, m, filename, file):
-        """Scan file."""
+    def scan_file(self, m, file):
+        """Scan file.
+
+        Parameters
+        ----------
+        m: re.match
+            Match of the filename against the regex.
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
+        """
         if not self.scanned:
             self.scan_file_values(file)
 
     def is_to_open(self):
-        """Return if the coord needs to open a file."""
         to_open = False
         if 'in' in self.scan and not self.scanned:
             to_open = True
@@ -379,13 +447,18 @@ class CoordScanIn(CoordScan):
 
 
 class CoordScanShared(CoordScan):
-    """Coord used for scanning of a shared coordinate.
+    """Coord used for scanning of a 'shared' coordinate.
 
     Scan all files.
 
+    Parameters
+    ----------
+    Passed to CoordScan(), minus `shared`.
+
     Attributes
     ----------
-    matchers: List of Matcher
+    matchers: List[Matcher]
+        Matcher objects corresponding to this coordinate.
     matches: List[List[str]]
         List of matches in the filename, for each file
     """
@@ -406,19 +479,26 @@ class CoordScanShared(CoordScan):
         self.matchers.append(matcher)
 
     def sort_values(self):
-        """Sort by values."""
         self.matches = np.array(self.matches)
 
         order = super().sort_values()
         self.matches = self.matches[order]
 
     def slice(self, key):
-        """Slice values."""
         self.matches = self.matches[key]
         super().slice(key)
 
     def scan_file(self, m, filename, file):
-        """Scan file."""
+        """Scan file.
+
+        Parameters
+        ----------
+        m: re.match
+            Match of the filename against the regex.
+        file:
+            Object to access file.
+            The file is already opened by FilegroupScan.open_file().
+        """
         # Find matches
         matches = []
         for mchr in self.matchers:
@@ -436,7 +516,6 @@ class CoordScanShared(CoordScan):
             self.matches += matches
 
     def is_to_open(self):
-        """Return if the coord needs to open a file."""
         to_open = False
         to_open = to_open or ('in' in self.scan)
         to_open = to_open or ('attributes' in self.scan and not self.scanned)
@@ -444,7 +523,16 @@ class CoordScanShared(CoordScan):
 
 
 def get_coordscan(filegroup, coord, shared):
-    """Get the right CoordScan object derived from a Coord."""
+    """Get the right CoordScan object derived from a Coord.
+
+    Parameters
+    ----------
+    filegroup: FilegroupScan
+    coord: Coord or subclass
+        Coordinate to create a CoordScan object from.
+    shared: bool
+        If the coordinate is shared.
+    """
     coord_type = type(coord)
     CoordScanRB = type("CoordScanRB", (CoordScan, coord_type), {})
 
@@ -459,7 +547,15 @@ def get_coordscan(filegroup, coord, shared):
 
 
 def reverse_slice(sl, size=None):
-    """Reverse a slice."""
+    """Reverse a slice.
+
+    Parameters
+    ----------
+    sl: Slice
+        Slice to reverse.
+    size: int, optional
+        Size of the list to get indices from.
+    """
     if size is None:
         size = sl.stop - sl.start
 
