@@ -284,17 +284,23 @@ class FilegroupScan():
 
         files: List[str]
 
+        Raises
+        ------
+        NameError
+            If no file were found.
+        ValueError
+            If no values were detected.
         """
         for file in files:
             self.scan_file(file)
 
         if not self.found_file:
-            raise Exception("No file matching the regex found ({0}, regex={1})".format(
+            raise NameError("No file matching the regex found ({0}, regex={1})".format(
                 self.contains, self.regex))
 
         for cs in self.iter_scan("scannable").values():
             if len(cs.values) == 0:
-                raise Exception("No values detected ({0}, {1})".format(
+                raise ValueError("No values detected ({0}, {1})".format(
                     cs.name, self.contains))
             cs.sort_values()
             cs.update_values(cs.values)
