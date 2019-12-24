@@ -11,6 +11,9 @@ in the files, for instance if the latitudinal dimension is reversed.
 
 Some dimensions are found entirely in the files: they are 'in',
 others can be scattered accross different files: they are 'shared'.
+In-coordinates are also assumed to be arranged in the same way for all files
+(same range, same indexing). If this is not the case, the coordinate should
+be marked as shared.
 For example, in a dataset of the sea surface temperature with an image per date
 per file, the latitude and longitude will be 'in' and the temperature 'shared'.
 There could also be more than one date per file, for instance a file for each

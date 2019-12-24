@@ -11,8 +11,8 @@ This page will break down a typical database creation script, and present
 the main features of the package.
 
 
-Coordinates
------------
+Adding Coordinates
+------------------
 
 First we will define the coordinates that we will encounter in our database.
 Here we use a simple :class:`Coord<data_loader.Coord>` for the latitude and
@@ -43,8 +43,8 @@ order the data will be stored. Here the ranks of the data numpy array will be
 (lat, lon, time).
 
 
-Variables
----------
+Adding Variables
+----------------
 
 We must now specify the variables we are interested in. This will construct a
 :doc:`VariablesInfo<variables_info>` object (abbreviated VI).
@@ -78,8 +78,8 @@ Note that we indicated the 'ncname' attribute that will be detrimental for scann
 netCDF files.
 
 
-Filegroups
-----------
+Adding filegroups
+-----------------
 
 The last objects to create are the filegroups. They hold information on
 where the files are, what variables they contain, and how the different
@@ -160,7 +160,7 @@ the correspond regex (4 digits in this case). This element name will also be
 used to extract information from the filename.
 The elements available are defined in the
 :class:`Matcher<data_loader.coord_scan.Matcher>` class.
-(see :doc:`filegroup` for a list of defaults elements)
+(see :ref:`Pre-regex` for a list of defaults elements)
 
 To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
@@ -240,7 +240,7 @@ modified::
 
 
 
-The Data Object
+The data object
 ---------------
 
 Now that everything is in place, we can create the database.
@@ -263,7 +263,7 @@ During the scanning of the file, information is logged at the 'debug' level.
 More information on logging: :doc:`log`
 
 
-Loading Data
+Loading data
 ------------
 
 We can now load data !
