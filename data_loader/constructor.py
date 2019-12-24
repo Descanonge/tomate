@@ -162,6 +162,9 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
+            if 'manual' in cs.scan:
+                log.warning("Values set manually will be overriden for '%s' from %s",
+                            cs.name, fg.contains)
             cs.set_scan_in_file_func(func)
 
     def set_scan_filename_func(self, func, *coords, **kwargs):
@@ -182,6 +185,9 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
+            if 'manual' in cs.scan:
+                log.warning("Values set manually will be overriden for '%s' from %s",
+                            cs.name, fg.contains)
             cs.set_scan_filename_func(func, **kwargs)
 
     def set_scan_manual(self, coord, values, in_idx=None):
@@ -205,10 +211,6 @@ class Constructor():
         fg = self.current_fg
         cs = fg.cs[coord]
         cs.set_scan_manual(values, in_idx)
-
-        if cs.scan:
-            log.warning("%s has a scannable flag. "
-                        "Values set manually could be overwritten.", cs.name)
 
     def set_scan_coords_attributes_func(self, func, *coords):
         """Set a function for scanning coordinate attributes.
