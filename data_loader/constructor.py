@@ -53,7 +53,7 @@ class Constructor():
         """
         return self.filegroups[-1]
 
-    def add_variable(self, variable, info=None):
+    def add_variable(self, variable, **info):
         """Add variable along with info / attribute.
 
         Parameters
@@ -70,9 +70,7 @@ class Constructor():
         ...         'max_value': 40.}
         ... cstr.add_variable(name, **info)
         """
-        if info is None:
-            info = {}
-        self.vi.add_variable(variable, info)
+        self.vi.add_variable(variable, **info)
 
     def add_kwargs(self, **kwargs):
         """Add attributes to the vi.

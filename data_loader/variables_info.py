@@ -147,45 +147,43 @@ class VariablesInfo():
         Parameters
         ----------
         var: str
-            Variable name
-        infos: Dict[str, Any]
-            Infos name and values
-            {name: value, ...}
+            Variable name.
+        infos: Dict
+            Infos name and values.
+            {'info name': value}
         """
         for k, z in infos.items():
             self.add_info(k, {var: z})
 
-    def add_variable(self, variables, infos):
+    def add_variable(self, variable, **infos):
         """Add a variable with corresponding info.
 
         Parameters
         ----------
-        variables: str
-            Variable name
-        infos: List[Dict[str, Any]]
-            Infos name and values
-            {name: value, ...}
-
-        If info is not provided, it is filled with None
+        variable: str
+            Variable name.
+        infos:
+            Infos name and values.
+            If an info present in the VI is not provided,
+            it is filled with None for the new variable.
         """
-        if isinstance(variables, str):
-            variables = [variables]
-
-        if isinstance(infos, dict):
-            infos = [infos]
-
-        var_list = list(self.var) + variables
+        if not infos:
+            infos = {}
+        var_list = list(self.var) + [variable]
         self.var = tuple(var_list)
 
-        for i, var in enumerate(variables):
-            self.n += 1
-            self.idx.update({var: self.n-1})
-            self.add_infos_per_variable(var, infos[i])
+        self.n += 1
+        self.idx.update({variable: self.n-1})
+        self.add_infos_per_variable(variable, infos)
 
+    def pop_variables(self, variables):
+        """Remove variables from vi.
 
-    def pop_variables(self, variables: List[str]):
-        """Remove variables from vi."""
-
+        Parameters
+        ----------
+        variables: List[str]
+            Variables to remove.
+        """
         if not isinstance(variables, list):
             variables = [variables]
 
