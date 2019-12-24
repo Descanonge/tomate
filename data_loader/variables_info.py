@@ -97,6 +97,10 @@ class VariablesInfo():
         """Get list of infos."""
         return self._infos
 
+    @property
+    def kwargs(self):
+        """Get list of kwargs."""
+        return self._kwargs
 
     def copy(self):
         """Copy this instance."""
