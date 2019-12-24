@@ -89,8 +89,16 @@ class FilegroupScan():
             cs = dlcs.get_coordscan(self, coord, shared)
             self.cs.update({coord.name: cs})
 
-    def enum_shared(self, shared=None):
-        """Iter through CoordScan objects."""
+    def iter_shared(self, shared=None):
+        """Iter through CoordScan objects.
+
+        Parameters
+        ----------
+        shared: bool, optional
+            To iterate only shared coordinates (shared=True),
+            or only in coordinates (shared=False).
+            If left to None, iter all coordinates.
+        """
         cs = {}
         for name, c in self.cs.items():
             add = False
@@ -104,8 +112,16 @@ class FilegroupScan():
 
         return cs
 
-    def enum_scan(self, scan=None):
-        """Iter through CoordScan objects."""
+    def iter_scan(self, scan=None):
+        """Iter through CoordScan objects.
+
+        Parameters
+        ----------
+        scan: bool, optional
+            To iterate only scannable coordinates (scan=True),
+            or only not scannable coordinates (scan=False).
+            If left to None, iter all coordinates.
+        """
         cs = {}
         for name, c in self.cs.items():
             add = False
@@ -254,8 +270,8 @@ class FilegroupScan():
                     self.vi.add_infos_per_variable(var, info)
                 self.scan_attr = False
 
-            for cs in self.enum_scan("scannable").values():
-                cs.scan_file(m, filename, file)
+            for cs in self.iter_scan("scannable").values():
+                cs.scan_file(m, file)
         except:
             self.close_file(file)
             raise
@@ -276,7 +292,7 @@ class FilegroupScan():
             raise Exception("No file matching the regex found ({0}, regex={1})".format(
                 self.contains, self.regex))
 
-        for cs in self.enum_scan("scannable").values():
+        for cs in self.iter_scan("scannable").values():
             if len(cs.values) == 0:
                 raise Exception("No values detected ({0}, {1})".format(
                     cs.name, self.contains))

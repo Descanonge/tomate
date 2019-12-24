@@ -81,7 +81,7 @@ class FilegroupLoad(FilegroupScan):
             cmd = command.Command()
 
             # Reconstruct filename
-            for i_c, _ in enumerate(self.enum_shared(True).keys()):
+            for i_c, _ in enumerate(self.iter_shared(True).keys()):
                 for i, rgx_idx in enumerate(rgx_idxs[i_c]):
                     seg[2*rgx_idx+1] = matches[i_c][m[i_c]][i]
             cmd.filename = "".join(seg)
@@ -89,7 +89,7 @@ class FilegroupLoad(FilegroupScan):
             # Find keys
             keys_mem = {}
             keys_inf = {}
-            for i_c, name in enumerate(self.enum_shared(True)):
+            for i_c, name in enumerate(self.iter_shared(True)):
                 keys_mem[name] = m[i_c]
                 keys_inf[name] = in_idxs[i_c][m[i_c]]
 
@@ -122,7 +122,7 @@ class FilegroupLoad(FilegroupScan):
         matches = []
         rgx_idxs = []
         in_idxs = []
-        for name, cs in self.enum_shared(True).items():
+        for name, cs in self.iter_shared(True).items():
             key = keys[name]
             match = []
             rgx_idx_matches = []
@@ -142,7 +142,7 @@ class FilegroupLoad(FilegroupScan):
     def _get_key_infile(self, keys):
         """Get the keys for data in file."""
         keys_inf = {}
-        for name, cs in self.enum_shared(False).items():
+        for name, cs in self.iter_shared(False).items():
             key = keys[name]
             key_inf = cs.get_in_idx(key)
             key_inf = command.simplify_key(key_inf)
@@ -152,7 +152,7 @@ class FilegroupLoad(FilegroupScan):
     def _get_key_memory(self, keys):
         """Get the keys for data in memory."""
         keys_mem = {}
-        for name in self.enum_shared(False):
+        for name in self.iter_shared(False):
             key_mem = list(range(self.db[name].size))
             key_mem = command.simplify_key(key_mem)
             keys_mem[name] = key_mem

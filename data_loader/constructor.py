@@ -294,10 +294,10 @@ class Constructor():
         threshold: float = 1e-5
             Threshold used for float comparison
         """
-        for name, coord in self.coords.items():
+        for name in self.coords:
             coords = []
             for fg in self.filegroups:
-                for name_cs, cs in fg.enum_scan("scannable").items():
+                for name_cs, cs in fg.iter_scan("scannable").items():
                     if name == name_cs:
                         coords.append(cs)
 
@@ -317,7 +317,7 @@ class Constructor():
             If regex is empty and there is at least a out coordinate.
         """
         for fg in self.filegroups:
-            coords = list(fg.enum_shared(True))
+            coords = list(fg.iter_shared(True))
             if len(coords) > 0 and fg.regex == '':
                 mess = ("Filegroup is missing a regex.\n"
                         "Contains: {0}\nCoordinates: {1}").format(
