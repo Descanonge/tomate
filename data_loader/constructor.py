@@ -87,7 +87,7 @@ class Constructor():
         """
         self.vi.add_kwargs(**kwargs)
 
-    def add_fg(self, fg_type, contains, coords, *args, **kwargs):
+    def add_filegroup(self, fg_type, contains, coords, *args, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -107,8 +107,8 @@ class Constructor():
 
         Examples
         --------
-        >>> add_fg(FilegroupNetCDF, ['Chla', 'Chla_error'],
-        ...        [['lat', 'in'], ['lon', 'in'], ['time', 'shared']])
+        >>> add_filegroup(FilegroupNetCDF, ['Chla', 'Chla_error'],
+        ...               [['lat', 'in'], ['lon', 'in'], ['time', 'shared']])
         """
         shared_corres = {'in': False, 'shared': True}
         for i, [c, shared] in enumerate(coords):

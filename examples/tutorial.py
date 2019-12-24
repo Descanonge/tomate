@@ -23,13 +23,13 @@ cstr = Constructor('/Data/', coords)
 name = "SSH"
 infos = {'fullname': 'Sea Surface Height',
          'ncname': 'ssh'}
-cstr.add_variable(name, infos)
+cstr.add_variable(name, **infos)
 
 name = "SST"
 infos = {'fullname': 'Sea Surface Temperature',
          'ncname': 'sst',
          'vmin': -2, 'vmax': 30}
-cstr.add_variable(name, infos)
+cstr.add_variable(name, **infos)
 
 
 # Filegroups
@@ -47,7 +47,7 @@ cstr.add_variable(name, infos)
 # SSH
 contains = ['SSH']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
+cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
 
 pregex = ('%(dir)/%(prefix)_'
           '%(time:Y)%(time:mm)%(time:dd)'
@@ -65,7 +65,7 @@ cstr.set_scan_coords_attributes_func(scanlib.scan_units_nc, 'lat', 'lon', 'time'
 # SST
 contains = ['SST']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
+cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
 
 pregex = ('%(dir)/%(prefix)_'
           r'%(time:Y)%(time:doy:custom=\d\d\d:)_'

@@ -62,14 +62,14 @@ For each variable we will specify its name and eventually a serie of attributes.
     name = "SSH"
     infos = {'fullname': 'Sea Surface Height',
              'ncname': 'ssh'}
-    cstr.add_variable(name, infos)
+    cstr.add_variable(name, **infos)
 
     name = "SST"
     infos = {'fullname': 'Sea Surface Temperature',
              'ncname': 'sst',
              'units': 'deg C',
              'vmin': -2, 'vmax': 30}
-    cstr.add_variable(name, infos)
+    cstr.add_variable(name, **infos)
 
 
 If more information can be found in the files, we can set the filegroups to
@@ -81,12 +81,10 @@ netCDF files.
 Adding filegroups
 -----------------
 
-The last objects to create are the filegroups. They hold information on
-where the files are, what variables they contain, and how the different
-dimensions are arranged.
-The filegroups are responsible for scanning the files at the database
-creation to see how the data is arranged, and opening those files
-later on for loading the data.
+We now create the filegroups.
+They are responsible for scanning the files at the database
+creation to see how the data is arranged and to find the coordinates
+values, and opening those files later on for loading the data.
 We must thus give them all the information necessary to accomplish those
 tasks.
 
@@ -103,7 +101,7 @@ Our files are organized as such::
         └── ...
 
 Both group of files have a single file per time-step (an 8 day average).
-The SSH files contain information about that time-step: there are a
+The SSH files contain information about that time-step: there is a
 time dimension and variable from which we can extract the time values for
 that file.
 For the SST on the other hand, the sole information on the time value for each
@@ -123,18 +121,19 @@ We add the first filegroup for the SSH::
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
 
 We first tell what variables are placed in this filegroup. There
-can be as many variable as wanted, but a variable cannot be distributed
+can be as many variables as wanted, but a variable cannot be distributed
 accross multiple filegroups.
 The `coords_fg` variable specify how are arranged the coordinates.
-The 'in' flag means the whole coordinate/dimension is found in each file.
+The 'in' flag means the whole coordinate/dimension is found in each file,
+and that it is arranged in the same way for all files.
 The 'shared' flag means the dimension is splitted accross multiple files.
 The order of the coordinates does not matter here.
 
 We must now tell where are the files, more precisely how is constructed
-their filenames. By filename, we mean the whole string starting after the
+their filename. By filename, we mean the whole string starting after the
 root directory.
 For that, a pre-regex is used. It is a regular expression with a few
 added features. It will be transformed in a standard regex that will be
@@ -148,16 +147,15 @@ filegroup will consider that all files are in fact equal to the first
 filename that matched ('SST/A_2007001-2007008.nc' here).
 
 For that reason, we must tell for what coordinates the filenames are varying.
-We use for that :class:`Matchers<data_loader.coord_scan.Matcher>`.
-Here only the time is changing across files::
+We use for that :class:`Matchers<data_loader.coord_scan.Matcher>`::
 
     pregex = r"SSH/SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
 
 Let's break it down. Each variation is notified by \% followed in parenthesis
 by the coordinate name, and the element of that coordinate.
-Here 'Y' means the match will be the date year, the matcher will be replaced by
-the correspond regex (4 digits in this case). This element name will also be
-used to extract information from the filename.
+Here 'Y' means the match will be the date year: the matcher will be replaced by
+the correspond regex (4 digits in this case), and the string found in each
+filename will be used to find the date year.
 The elements available are defined in the
 :class:`Matcher<data_loader.coord_scan.Matcher>` class.
 (see :ref:`Pre-regex` for a list of defaults elements)
@@ -172,14 +170,16 @@ To simplify a bit the pre-regex, we can specify some replacements. We obtain::
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
 
-Don't forget the r to allow for backslashes.
+Don't forget the r to allow for backslashes, and to appropriately
+escape special characters in the regex.
 
 The last step is to tell the filegroup how to scan files for
 additional information. This is done by appointing scanning functions
 to the filegroup. The appointement can be coordinate specific.
 First, we must specify how to retrieve the coordinates values,
+and eventually in-file indices,
 either by looking at the filename, or inside the file.
-This is done by standardized functions, there are a number of
+This is done by standardized functions. There are a number of
 pre-existing functions that can be found in
 :mod:`scan_library<data_loader.scan_library>`,
 but user-defined function can also be used.
@@ -195,7 +195,7 @@ First, we notice they are two varying dates in the filename, the start and end
 of the 8-days averaging. We only want to retrieve the starting date, but must
 still specify that there is a second changing date. To discard that second part,
 we add the `dummy` flag to the end of the matchers.
-This is a useful trick to specify variations that are not associated with
+This is useful to specify variations that are not associated with
 any coordinate value::
 
     pregex = ('%(dir)/%(prefix)_'
@@ -215,8 +215,8 @@ Instead, we specify that we are using a custom regex::
 
     r'%(time:Y)%(time:doy:custom=\d\d\d:)'
 
-The regex will now expect a `doy` element with three digits. Note that a
-custom **must be ended by a colon**. It can still be followed by the
+The regex will now expect a `doy` element with three digits. Note that the
+custom regex **must be ended by a colon**. It can still be followed by the
 `dummy` keyword.
 
 We must again tell how the coordinate will be scanned. This time the
