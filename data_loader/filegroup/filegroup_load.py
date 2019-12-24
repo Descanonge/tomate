@@ -210,7 +210,7 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def reorder_chunk(self, chunk, keys, order=None):
+    def reorder_chunk(self, chunk, keys, order=None, variables=False):
         """Reorder data.
 
         Dimensions are not necessarily stored with the same
@@ -248,6 +248,10 @@ class FilegroupLoad(FilegroupScan):
         # Reorder array
         target = [self.db.coords_name.index(z) for z in order_added]
         current = list(range(len(target)))
+        if variables:
+            current = [c+1 for c in current]
+            target = [t+1 for t in target]
+
         if target != current:
             log.info("reordering %s -> %s", current, target)
             chunk = np.moveaxis(chunk, current, target)

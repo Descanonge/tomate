@@ -69,7 +69,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         log.info("Taking keys %s", list(keys_inf.values()))
         chunk = file[ncname][keys_inf.values()]
-        chunk = self.reorder_chunk(chunk, keys, order)
+        chunk = self.reorder_chunk(chunk, keys, order, variables=False)
 
         return chunk
 
