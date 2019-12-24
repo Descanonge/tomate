@@ -577,11 +577,34 @@ class DataBase():
         """
         raise NotImplementedError("do_post_load was not set.")
 
+    def set_data(self, var, data):
+        """Set the data for a single variable.
 
         Parameters
         ----------
+        var: str
+            Variable to set the data to.
+        data: Array
+            Array of the correct shape for currently
+            selected coordinates. Has no axis for variables.
 
+        Raises
+        ------
+        IndexError
+            If the data has not the right dimension.
+        ValueError
+            If the data is not of the shape of current selection.
 
+        Examples
+        --------
+        """
+        if data.ndim != self.dim:
+            raise IndexError("data of wrong dimension (%s, expected %s)" %
+                             (data.ndim, self.dim))
+
+        if data.shape != self.shape[1:]:
+            raise ValueError("data of wrong shape (%s, expected %s)" %
+                             (data.shape, self.shape[1:]))
 
         data = np.expand_dims(data, 0)
 
@@ -606,16 +629,17 @@ class DataBase():
         infos:
             Passed to VariablesInfo.add_variable
         """
-        self.vi.add_variable(variables, infos)
+        self.vi.add_variable(variable, **infos)
+        self.set_data(variable, data)
 
-        if self.data is not None:
-            self.data = np.ma.concatenate((self.data, data), axis=0)
-        else:
-            self.data = data
-            self.vi = self.vi[variables]
+    def pop_variables(self, variables):
+        """Remove variables from data and vi.
 
-    def pop_variables(self, variables: List[str]):
-        """Remove variables from data and vi."""
+        Parameters
+        ----------
+        variables: List[str]
+            Variables to remove.
+        """
         if not isinstance(variables, (list, tuple)):
             variables = [variables]
 
