@@ -488,7 +488,7 @@ class CoordScanShared(CoordScan):
         self.matches = self.matches[key]
         super().slice(key)
 
-    def scan_file(self, m, filename, file):
+    def scan_file(self, m, file):
         """Scan file.
 
         Parameters
@@ -505,7 +505,7 @@ class CoordScanShared(CoordScan):
             mchr.match = m.group(mchr.idx + 1)
             matches.append(mchr.match)
 
-        log.debug("Found matches %s for filename %s", matches, filename)
+        log.debug("Found matches %s for filename %s", matches, m.group())
 
         # If they were not found before, which can happen when
         # there is more than one shared coord.
