@@ -1,6 +1,7 @@
 """Base class for data."""
 
 import logging
+from types import MethodType
 
 import numpy as np
 
@@ -77,8 +78,6 @@ class DataBase():
         self.data = None
 
         self.link_filegroups()
-
-        self.do_post_load_user = None
 
     def __getitem__(self, y):
         """Return a coordinate, or data for a variable.
@@ -473,8 +472,6 @@ class DataBase():
         self.unload_data()
         self.set_slice(variables=variables, **kw_coords)
         self.allocate_memory()
-        self._load_data(self.vi.var, kw_coords)
-        self.do_post_load()
 
         fg_var = self._get_filegroups_for_variables(variables)
         for fg, var_load in fg_var:
@@ -555,35 +552,33 @@ class DataBase():
 
         return fg_var
 
-    def _load_data(self, var_list, keys):
-        # TODO: kwargs
-        """Load data.
-
-        Parameters
-        ----------
-        varList: List[str] or str
-            Passed to VariablesInfo.__getitem__
-        keys: Dict[coord name, key]
-            Passed to Coord.__getitem__
-        """
-        fg_var = self._get_filegroups_for_variables(var_list)
-
-        for fg, variables in fg_var:
-            fg.load_data(variables, keys)
-
     def set_post_load_func(self, func):
         """Set function for post loading treatements.
 
         Parameters
         ----------
-        func: Callable[DataBase]
-        """
-        self.do_post_load_user = func
+        func: Callable[[DataBase or subclass]]
+            Function to execute after data is loaded.
+            See do_post_load() for a better description
+            of the function interface.
 
-    def do_post_load(self):
-        """Do post loading treatments."""
-        if callable(self.do_post_load_user):
-            self.do_post_load_user(self)
+        """
+        self.do_post_load = MethodType(func, self)
+
+    def do_post_load(self): #pylint: disable=method-hidden
+        """Do post loading treatments.
+
+        Raises
+        ------
+        NotImplementedError
+            If do_post_load was not set.
+        """
+        raise NotImplementedError("do_post_load was not set.")
+
+
+        Parameters
+        ----------
+
 
 
         data = np.expand_dims(data, 0)
