@@ -53,7 +53,7 @@ def add_ssh(cstr, source):
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
 
     pregex = ('%(dir)/%(prefix)_'
               '%(time:Y)%(time:mm)%(time:dd)'
@@ -79,7 +79,7 @@ def add_sst(cstr):
 
     contains = ['SST']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_fg(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
 
     pregex = ('%(dir)/%(prefix)_'
               r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
