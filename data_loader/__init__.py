@@ -26,6 +26,9 @@ Filegroup
     Manages scanning of files.
     FilegroupLoad is to be subclassed for each file-format.
 
+Constructor
+    Help to create a database.
+
 Coord
     Coordinates (ie dimensions) for the data.
 Time
@@ -46,6 +49,7 @@ from .time import Time
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo
 from .data_base import DataBase
+from .constructor import Constructor
 
 
 __version__ = "0.2"
