@@ -90,6 +90,12 @@ class Matcher():
         else:
             self.rgx = self.ELT_RGX[elt]
 
+    def __str__(self):
+        s = '{0}:{1}, idx={2}'.format(self.coord, self.elt, self.idx)
+        if self.dummy:
+            s += ', dummy'
+        return s
+
 
 class CoordScan(Coord):
     """Abstract Coord used for scanning of one variable.
@@ -143,6 +149,13 @@ class CoordScan(Coord):
         self._idx_descending = False
 
         super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
+
+    def __str__(self):
+        s = [super().__str__()]
+        s.append('matchers:')
+        s += ['\t' + str(m) for m in self.matchers]
+        return '\n'.join(s)
+
 
     def is_idx_descending(self):
         """Is idx descending.
