@@ -563,7 +563,7 @@ class DataBase():
             raise IndexError("data of wrong dimension (%s, expected %s)" %
                              (data.ndim, self.dim))
 
-        if data.shape != self.shape[1:]:
+        if list(data.shape) != self.shape[1:]:
             raise ValueError("data of wrong shape (%s, expected %s)" %
                              (data.shape, self.shape[1:]))
 
