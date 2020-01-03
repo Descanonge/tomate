@@ -7,9 +7,13 @@ select_overlap()
 
 """
 
+import logging
 import bisect
 
 import numpy as np
+
+
+log = logging.getLogger(__name__)
 
 
 class Coord():
@@ -172,6 +176,25 @@ class Coord():
     def is_descending(self) -> bool:
         """Return if coordinate is descending"""
         return self._descending
+
+    def is_regular(self, threshold=1e-5):
+        """Return if coordinate values are regularly spaced.
+
+        Float comparison is made to a threshold.
+        """
+        diff = np.diff(self[:])
+        regular = np.all(diff - diff[0] <= threshold)
+        return regular
+
+    def get_step(self, threshold=1e-5):
+        """Return mean step between values.
+
+        Check if the coordinate is regular up to threshold.
+        """
+        if not self.is_regular(threshold):
+            log.warning("Coordinate '%s' not regular (at precision %s)",
+                        self.name, threshold)
+        return np.mean(np.diff(self[:]))
 
     def get_extent(self):
         """Return extent.
