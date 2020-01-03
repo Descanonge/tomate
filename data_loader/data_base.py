@@ -59,6 +59,13 @@ class DataBase():
     def __init__(self, root, filegroups, vi, *coords):
         self.root = root
 
+        names = [c.name for c in coords]
+        coords_bak = IterDict(dict(zip(names, coords)))
+        self.coords_name = names
+        self._coords_bak = coords_bak
+        self.coords = self.get_coords_from_backup()
+        self.slices = {c.name: slice(0, c.size, 1) for c in coords}
+
         self._fg_idx = {}
         self.filegroups = filegroups
         for i, fg in enumerate(filegroups):
@@ -67,13 +74,6 @@ class DataBase():
 
         self.vi = vi
         self._vi_bak = vi.copy()
-
-        names = [c.name for c in coords]
-        coords_bak = IterDict(dict(zip(names, coords)))
-        self.coords_name = names
-        self._coords_bak = coords_bak
-        self.coords = self.get_coords_from_backup()
-        self.slices = {c.name: slice(0, c.size, 1) for c in coords}
 
         self.data = None
 
@@ -104,6 +104,15 @@ class DataBase():
                 raise KeyError("Key '%s' not in coordinates or variables" % y)
 
         return self.data[y]
+
+    def __getattribute__(self, item):
+        """Get attribute.
+
+        Can be used to retrieve coordinate by name.
+        """
+        if item in super().__getattribute__('coords_name'):
+            return super().__getattribute__('coords')[item]
+        return super().__getattribute__(item)
 
     def iter_slices(self, coord, size_slice=1, c_slice=None):
         """Iter through data with slices of `coord` of size `n_iter`.
