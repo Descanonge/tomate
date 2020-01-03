@@ -409,14 +409,14 @@ def check_values(coords, threshold):
     for cs, size in zip(coords, sizes):
         if  cs.size != size:
             if cs.size == 0:
-                raise IndexError("%s '%s' had no values"
+                raise IndexError("%s '%s' had no values "
                                  "in common with other filegroups." %
                                  (cs.filegroup.contains, cs.name))
             log.warning("%s '%s' had %s values ignored"
-                        " for consistency accross filegroups. "
-                        "(threshold: %s)",
+                        " for consistency accross filegroups."
+                        " (threshold: %s)",
                         cs.filegroup.contains, cs.name, size-cs.size, threshold)
-            log.warning("Values common accross filegroup are kept instead "
-                        "of throwing an exception. "
-                        "This is a new feature. Has not been fully tested, "
-                        "especially for 'in' coordinates. Pay extra care.")
+            log.warning("Values common accross filegroup are kept instead"
+                        " of throwing an exception."
+                        " This is a new feature. Has not been fully tested,"
+                        " especially for 'in' coordinates. Pay extra care.")
