@@ -93,7 +93,12 @@ class Coord():
             raise TypeError("Data not 1D")
         self._size = self._array.size
 
-        self._descending = np.all(np.diff(values) < 0)
+        diff = np.diff(values)
+        if len(diff) > 0:
+            desc = np.all(diff) < 0
+        else:
+            desc = False
+        self._descending = desc
         if not np.all(np.diff(values) > 0) and not self._descending:
             raise ValueError("Data not sorted")
 
