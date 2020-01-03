@@ -119,7 +119,12 @@ class Time(Coord):
         --------
         >>> time.change_units("hours since 1950-01-01 12:00:00")
         """
-        dates = num2date(self._array, self.units)
-        values = date2num(dates, units)
-        self._array = values
+        self._array = change_units(self._array, self.units, units)
         self.units = units
+
+
+def change_units(values, units_old, units_new):
+    """Change time units."""
+    dates = num2date(values, units_old)
+    values = date2num(dates, units_new)
+    return values

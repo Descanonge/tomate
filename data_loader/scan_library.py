@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
+from data_loader.time import change_units
+
 
 def get_date_from_matches(cs, default_date=None):
     """Retrieve date from matched elements.
@@ -108,16 +110,24 @@ def _find_month_number(name):
     return None
 
 def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
-    """Scan netCDF file for coordinates values and in-file index."""
+    """Scan netCDF file for coordinates values and in-file index.
+
+    Convert time values to CS units. Variable name must
+    be 'time'.
+    """
     for name in [cs.name] + cs.name_alt:
         try:
-            in_values = file[name][:]
+            nc_var = file[name]
         except IndexError:
             in_values = None
             in_idx = None
         else:
-            in_values = list(in_values)
+            in_values = list(nc_var[:])
             in_idx = list(range(len(in_values)))
+
+            if name == 'time':
+                units = nc_var.getncattr('units')
+                in_values = list(change_units(in_values, units, cs.units))
             break
 
     return in_values, in_idx
