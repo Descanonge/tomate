@@ -434,6 +434,7 @@ class DataBase():
         >>> dt.load_data("SST", 0, lat=slice(200, 400))
         """
         self.unload_data()
+        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         self.set_slice(variables=variables, **kw_coords)
         self.allocate_memory()
 
