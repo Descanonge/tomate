@@ -119,14 +119,17 @@ class Coord():
         -------
         Numpy array.
         """
+        if self._array is None:
+            raise AttributeError("Coordinate '%s' data was not set." % self.name)
         return self._array.__getitem__(y)
 
     def __str__(self):
         s = []
         s.append(str(type(self)))
         s.append('name: ' + self.name)
-        s.append('extent: ' + self.get_extent_str())
-        s.append('size: ' + str(self.size))
+        if self._array is not None:
+            s.append('extent: ' + self.get_extent_str())
+            s.append('size: ' + str(self.size))
         return '\n'.join(s)
 
     def get_extent_str(self) -> str:
