@@ -277,6 +277,8 @@ class Constructor():
         files = []
         for root, _, file in os.walk(self.root):
             root = os.path.relpath(root, self.root)
+            if root == '.':
+                root = ''
             for f in file:
                 files.append(os.path.join(root, f))
         files.sort()
