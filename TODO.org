@@ -7,8 +7,3 @@ TODO: slice data and coords consistently
 TODO: use generators when possible
 
 TODO: filegroup scan only their root
-
-TODO: plot function
-
-TODO: dynamical data class choice, to put list of
-parent classes for instance

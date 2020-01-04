@@ -297,10 +297,18 @@ class DataBase():
             if name not in kw_coords:
                 kw_coords[name] = key
 
+        return kw_coords
+
+    def get_coords_full(self, **kw_coords):
         for coord in self.coords_name:
             if coord not in kw_coords:
-                kw_coords[coord] = slice(None, None)
+                kw_coords[coord] = None
+        return kw_coords
 
+    def get_none_total(self, **kw_coords):
+        for name, key in kw_coords.items():
+            if key is None:
+                kw_coords[name] = slice(None, None)
         return kw_coords
 
     def sort_by_coords(self, dic):
@@ -373,7 +381,7 @@ class DataBase():
         if variables is None:
             variables = self.vi.var
         variables = [self.vi.idx[var] for var in variables]
-        kw_coords = self.get_coords_kwargs(**kw_coords)
+        kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
         for name, key in kw_coords.items():
@@ -447,7 +455,7 @@ class DataBase():
         except NotImplementedError:
             pass
 
-    def _process_load_arguments(self, variables, *coords, **kw_coords):
+    def _process_load_arguments(self, variables, **kw_coords):
         """Process load arguments.
 
         Fix gaps in coords keys and variables.
@@ -460,7 +468,8 @@ class DataBase():
         ValueError
             If a key is non-valid (not an integer, list of integer, or slice).
         """
-        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
+        kw_coords = self.get_coords_full(**kw_coords)
+        kw_coords = self.get_none_total(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
         for name, key in kw_coords.items():

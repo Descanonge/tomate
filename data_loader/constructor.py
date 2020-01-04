@@ -340,8 +340,8 @@ class Constructor():
 
         Parameters
         ----------
-        db_type: DataBase or subclass
-            Database class to use.
+        db_type: DataBase or subclass (or a list of)
+            Database classes to use.
 
         Returns
         -------
@@ -351,7 +351,15 @@ class Constructor():
         self.check_regex()
         self.scan_files()
         self.check_scan()
-        dt = db_type(self.root, self.filegroups, self.vi, *self.coords.values())
+
+        if isinstance(db_type, type):
+            db_type = [db_type]
+        if isinstance(db_type, list):
+            db_type = tuple(db_type)
+
+        # FIXME: check for function overide
+        cls = type('Database', db_type, {})
+        dt = cls(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
 
 
