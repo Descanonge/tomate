@@ -87,7 +87,7 @@ class Constructor():
         """
         self.vi.add_kwargs(**kwargs)
 
-    def add_filegroup(self, fg_type, contains, coords, *args, **kwargs):
+    def add_filegroup(self, fg_type, contains, coords, root=None, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -102,7 +102,9 @@ class Constructor():
             Each element of the list is a length 2 tuple of
             the coordinate name, and a shared flag.
             The flag can be 'shared' or 'in'.
-        args, kwargs
+        coords: str
+            Subfolder from root.
+        kwargs
             Passed to the fg_type initializator.
 
         Examples
@@ -123,7 +125,11 @@ class Constructor():
                 shared = False
             coords[i][1] = shared
 
-        fg = fg_type(self.root, contains, None, coords, self.vi, *args, **kwargs)
+        if root is None:
+            root = ''
+        root = os.path.join(self.root, root)
+
+        fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements):
