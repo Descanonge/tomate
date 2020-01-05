@@ -132,7 +132,7 @@ class Constructor():
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
 
-    def set_fg_regex(self, pregex, replacements):
+    def set_fg_regex(self, pregex, replacements=None):
         """Add the pre-regex to the current filegroup.
 
         Parameters
@@ -147,6 +147,8 @@ class Constructor():
         >>> cstr.set_fg_regex("%(prefix)_%(time:year)",
         ...                   {"prefix": "SST"})
         """
+        if replacements is None:
+            replacements = {}
         self.current_fg.add_scan_regex(pregex, replacements)
 
     def set_scan_in_file_func(self, func, *coords):

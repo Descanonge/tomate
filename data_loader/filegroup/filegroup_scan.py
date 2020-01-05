@@ -300,6 +300,8 @@ class FilegroupScan():
         if len(files) == 0:
             raise RuntimeError("No files were found in %s" % self.root)
 
+        log.debug("Found %s files in %s", len(files), self.root)
+
         return files
 
     def scan_files(self):
