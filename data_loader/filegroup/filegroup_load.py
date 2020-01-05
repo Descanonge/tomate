@@ -172,7 +172,7 @@ class FilegroupLoad(FilegroupScan):
         """
         commands = self.get_commands(var_list, keys)
         for cmd in commands:
-            log.debug(cmd)
+            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
             file = self.open_file(cmd.filename, mode='r', log_lvl='info')
             try:
                 self.load_cmd(file, cmd)
