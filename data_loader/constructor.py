@@ -2,6 +2,7 @@
 
 import logging
 import os
+import inspect
 
 from data_loader.variables_info import VariablesInfo
 from data_loader.coord import select_overlap
@@ -139,7 +140,7 @@ class Constructor():
         ----------
         pregex: str
             Pre-regex.
-        replacements: Dict[name: str, replacement: Any]
+        replacements: Dict[name: str, replacement: Any], optional
             Constants to replace in pre-regex.
 
         Examples
@@ -321,8 +322,8 @@ class Constructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_database(self, db_type):
-        """Create database instance.
+    def make_data(self, dt_types):
+        """Create data instance.
 
         Check a regex is present in every filegroup.
         Scan files.
@@ -331,26 +332,27 @@ class Constructor():
 
         Parameters
         ----------
-        db_type: DataBase or subclass (or a list of)
-            Database classes to use.
+        dt_type: DataBase or subclass (or a list of)
+            Database classes to use, in order of
+            priority.
 
         Returns
         -------
-        dt: db_type
-            Database instance ready to use.
+        dt:
+            Data instance ready to use.
+
+        See also
+        --------
+        create_data_class: Dynamically add inheritance to
+            create a new data class.
         """
         self.check_regex()
         self.scan_files()
         self.check_scan()
 
-        if isinstance(db_type, type):
-            db_type = [db_type]
-        if isinstance(db_type, list):
-            db_type = tuple(db_type)
+        dt_class = create_data_class(dt_types)
 
-        # FIXME: check for function overide
-        cls = type('Database', db_type, {})
-        dt = cls(self.root, self.filegroups, self.vi, *self.coords.values())
+        dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
 
 
@@ -419,3 +421,42 @@ def check_values(coords, threshold):
                         " of throwing an exception."
                         " This is a new feature. Has not been fully tested,"
                         " especially for 'in' coordinates. Pay extra care.")
+
+def create_data_class(dt_types):
+    """Create a dynamic data class.
+
+    Find a suitable name.
+    Check that there is no clash between methods.
+
+    Parameters
+    ----------
+    dt_types: Type or List[Type]
+        Types to derive the dynamic data class from.
+        In order of priority (First has priority in
+        method resolution).
+
+    Return
+    ------
+    dt_class: Class
+    """
+    name = 'Data'
+    if isinstance(dt_types, type):
+        name = dt_types.__name__
+        dt_types = [dt_types]
+
+    if isinstance(dt_types, list):
+        dt_types = tuple(dt_types)
+
+    methods = set()
+    for tp in dt_types:
+        for name, func in inspect.getmembers(tp, predicate=inspect.isfunction):
+            if (func.__module__ != 'data_loader.data_base'
+                    and name != '__init__'):
+                if name in methods:
+                    log.warning("%s modified by multiple DataBase "
+                                "subclasses", name)
+                methods.add(name)
+
+    dt_class = type(name, dt_types, {})
+
+    return dt_class
