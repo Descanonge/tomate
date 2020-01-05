@@ -274,26 +274,9 @@ class Constructor():
         """Scan files.
 
         Find coordinates values and eventually, in-file indices.
-
-        Raises
-        ------
-        RuntimeError:
-            If no files are found.
         """
-        files = []
-        for root, _, file in os.walk(self.root):
-            root = os.path.relpath(root, self.root)
-            if root == '.':
-                root = ''
-            for f in file:
-                files.append(os.path.join(root, f))
-        files.sort()
-
-        if len(files) == 0:
-            raise RuntimeError("No files were found in {:s}".format(self.root))
-
         for fg in self.filegroups:
-            fg.scan_files(files)
+            fg.scan_files()
 
     def check_scan(self, threshold=1e-5):
         """Check scanned values are compatible accross filegroups.

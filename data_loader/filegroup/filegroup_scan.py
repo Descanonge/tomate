@@ -279,10 +279,31 @@ class FilegroupScan():
             if file is not None:
                 self.close_file(file)
 
-    def scan_files(self, files):
-        """Scan files.
+    def find_files(self):
+        """Find files to scan in root directory.
 
-        files: List[str]
+        Uses os.walk.
+        Sort files alphabetically
+
+        Raises
+        ------
+        RuntimeError:
+            If no files are found.
+        """
+        # Using a generator should fast things up even though
+        # less readable
+        files = [os.path.relpath(os.path.join(root, file), self.root)
+                 for root, _, files in os.walk(self.root)
+                 for file in files]
+        files.sort()
+
+        if len(files) == 0:
+            raise RuntimeError("No files were found in %s" % self.root)
+
+        return files
+
+    def scan_files(self):
+        """Scan files.
 
         Raises
         ------
@@ -291,6 +312,7 @@ class FilegroupScan():
         ValueError
             If no values were detected.
         """
+        files = self.find_files()
         for file in files:
             self.scan_file(file)
 
