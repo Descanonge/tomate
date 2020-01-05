@@ -3,6 +3,7 @@
 from data_loader import Coord, Time
 from data_loader.constructor import Constructor
 from data_loader.filegroup import FilegroupNetCDF
+from data_loader.data_plot import DataPlot
 from data_loader.masked import DataMasked
 
 import data_loader.scan_library as scanlib
@@ -47,13 +48,12 @@ cstr.add_variable(name, **infos)
 # SSH
 contains = ['SSH']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
+cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
 
-pregex = ('%(dir)/%(prefix)_'
+pregex = ('%(prefix)_'
           '%(time:Y)%(time:mm)%(time:dd)'
           '%(suffix)')
-replacements = {'dir': 'SSH/',
-                'prefix': 'SSH',
+replacements = {'prefix': 'SSH',
                 'suffix': r'\.nc'}
 cstr.set_fg_regex(pregex, replacements)
 
@@ -65,14 +65,13 @@ cstr.set_scan_coords_attributes_func(scanlib.scan_units_nc, 'lat', 'lon', 'time'
 # SST
 contains = ['SST']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
+cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SST')
 
-pregex = ('%(dir)/%(prefix)_'
+pregex = ('%(prefix)_'
           r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
           r'%(time:Y:dummy)%(time:doy:custom=\d\d\d:dummy)'
           '%(suffix)')
-replacements = {'dir': 'SSH/',
-                'prefix': 'SSH',
+replacements = {'prefix': 'SSH',
                 'suffix': r'\.nc'}
 cstr.set_fg_regex(pregex, replacements)
 
@@ -82,7 +81,7 @@ cstr.set_scan_variables_attributes_func(scanlib.scan_attributes_nc)
 
 
 # Create database
-dt = cstr.make_database(DataMasked)
+dt = cstr.make_data([DataPlot, DataMasked])
 
 
 # Access attributes

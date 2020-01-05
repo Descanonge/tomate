@@ -59,7 +59,8 @@ __all__ = [
     'Time',
     'IterDict',
     'VariablesInfo',
-    'DataBase'
+    'DataBase',
+    'Constructor'
 ]
 
 set_logging()

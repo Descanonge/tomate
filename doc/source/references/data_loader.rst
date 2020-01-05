@@ -18,6 +18,7 @@ Submodules
    data_loader.coord
    data_loader.coord_scan
    data_loader.data_base
+   data_loader.data_plot
    data_loader.iter_dict
    data_loader.log
    data_loader.scan_library

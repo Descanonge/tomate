@@ -39,10 +39,25 @@ Data base type
 --------------
 
 Additional features can be added to the data base object.
-One can look at
-:class:`DataMasked<data_loader.masked.DataMasked>` for inspiration.
+Any method can be added to or modified from the
+:class:`DataBase<data_loader.DataBase>` class.
+The data object class can then be chosen from any of these
+subclasses, or from a combination of thoses.
+See :ref:`Database`, :ref:`The data object`, and
+:func:`constructor.create_data_class<data_loader.constructor.create_data_class>`
+for details.
 
-See :ref:`Data Base`
+It is also possible to change how the data is stored.
+To do that, it necessary to modify the
+:func:`allocate_memory<data_loader.DataBase.allocate_memory>`
+static function.
+
+One can look at
+:class:`DataMasked<data_loader.masked.DataMasked>` and
+:class:`DataPlot<data_loader.data_plot.DataPlot>`
+for inspiration.
+
+See :ref:`Database`
 
 
 Coordinates subclasses

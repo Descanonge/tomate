@@ -5,3 +5,5 @@ TODO: general doc
 TODO: slice data and coords consistently
 
 TODO: use generators when possible
+
+TODO: print data

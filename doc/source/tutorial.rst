@@ -2,7 +2,7 @@
 Constructing a database
 =======================
 
-A database needs a few objects to be functionnal, namely coordinates,
+A data object needs a few objects to be functionnal, namely coordinates,
 a vi, and filegroups. Creating these can be a bit daunting. The
 constructor module provides ways to create a data object, and do a couple
 of additional checks that ease the creation of a database.
@@ -18,7 +18,7 @@ First we will define the coordinates that we will encounter in our database.
 Here we use a simple :class:`Coord<data_loader.Coord>` for the latitude and
 longitude, and :class:`Time<data_loader.Time>` for the time as this will provide
 useful functionalities for working with dates.
-We could use any kind of subclass of the Coord class.
+We could use any kind of subclass of the Coord class, eventually a user made one.
 
 ::
 
@@ -88,6 +88,10 @@ values, and opening those files later on for loading the data.
 We must thus give them all the information necessary to accomplish those
 tasks.
 
+A filegroup regroups similar files that have the same format,
+that contain the same variables, and in whiwh the data is arranged
+in the same fashion.
+
 Our files are organized as such::
 
     Data
@@ -108,6 +112,8 @@ For the SST on the other hand, the sole information on the time value for each
 step is found in the filename.
 For both file groups, the latitude and longitude are in each file, and do not
 vary from file to file.
+Note this example is in no way a requirement, the package can accomodate with
+many more ways of organizing data in various subfolders and files.
 
 We start by importing a FilegroupLoad subclass, here all our files are NetCDF,
 so we will use FilegroupNetCDF.
@@ -121,7 +127,7 @@ We add the first filegroup for the SSH::
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
 
 We first tell what variables are placed in this filegroup. There
 can be as many variables as wanted, but a variable cannot be distributed
@@ -131,6 +137,8 @@ The 'in' flag means the whole coordinate/dimension is found in each file,
 and that it is arranged in the same way for all files.
 The 'shared' flag means the dimension is splitted accross multiple files.
 The order of the coordinates does not matter here.
+Eventually, we can add a subfolder in which the files are found,
+if not precised, the root directory from the constructor will be used.
 
 We must now tell where are the files, more precisely how is constructed
 their filename. By filename, we mean the whole string starting after the
@@ -149,7 +157,7 @@ filename that matched ('SST/A_2007001-2007008.nc' here).
 For that reason, we must tell for what coordinates the filenames are varying.
 We use for that :class:`Matchers<data_loader.coord_scan.Matcher>`::
 
-    pregex = r"SSH/SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
+    pregex = r"SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
 
 Let's break it down. Each variation is notified by \% followed in parenthesis
 by the coordinate name, and the element of that coordinate.
@@ -162,11 +170,10 @@ The elements available are defined in the
 
 To simplify a bit the pre-regex, we can specify some replacements. We obtain::
 
-    pregex = ('%(dir)/%(prefix)_'
+    pregex = ('%(prefix)_'
               '%(time:Y)%(time:mm)%(time:dd)'
               '%(suffix)')
-    replacements = {'dir': 'SSH/',
-                    'prefix': 'SSH',
+    replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
 
@@ -198,12 +205,11 @@ we add the `dummy` flag to the end of the matchers.
 This is useful to specify variations that are not associated with
 any coordinate value::
 
-    pregex = ('%(dir)/%(prefix)_'
+    pregex = ('%(prefix)_'
               '%(time:Y)%(time:doy)_'
               '%(time:Y:dummy)%(time:doy:dummy)'
               '%(suffix)')
-    replacements = {'dir': 'SSH/',
-                    'prefix': 'SSH',
+    replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
 
@@ -243,15 +249,29 @@ modified::
 The data object
 ---------------
 
-Now that everything is in place, we can create the database.
-The last information needed is the type of database we want to use.
-This can be any subclass of
-:class:`DataBase<data_loader.DataBase>` with additional functionnalities.
+Now that everything is in place, we can create the data object.
+It is useful to add different kind of methods to our data object,
+for different needs. For instance to add support for masked data,
+or to add function to plot easily our data, or to compute specific
+statistics on our data.
+We could also want to combine those functionalities.
+
+We thus instruct the constructor a class of data to use.
+This can be a subclass of
+:class:`DataBase<data_loader.DataBase>`, or a list of
+subclasses.
+In case multiple child classes are indicated, a new data type will
+be dynamically created using those classes as bases. The order of that list
+gives the priority in the method resolution (first one in the list is the
+first class checked).
+
 Here we will use :class:`DataMasked<data_loader.masked.DataMasked>`, adapted
-for data with masked values::
+for data with masked values, and
+:class:`DataPlot<data_loader.data_plot.DataPlot>` which helps in plotting data::
 
     from data_loader.masked import DataMasked
-    dt = cstr.make_database(DataMasked)
+    from data_loader.data_plot import DataPlot
+    dt = cstr.make_data([DataPlot, DataMasked])
 
 The lines above will start the scanning process. Each filegroup will
 scan their files for coordinates values and index. The values obtained
@@ -310,7 +330,7 @@ with regard to what is available *on disk*::
 To go further
 -------------
 
-| More information on the database object: :doc:`data_base`
+| More information on the data object: :doc:`data`
 | More information on scanning: :doc:`filegroup` and :doc:`scanning`
 | More information on logging: :doc:`log`
 
