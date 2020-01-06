@@ -3,55 +3,8 @@
 import numpy as np
 import scipy.ndimage as ndimage
 
+from data_loader.data_compute import do_stack
 
-def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
-    """Apply func over certain axes of array. Loop over remaining axes.
-
-    Parameters
-    ----------
-    func: Callable
-        Function which takes a slice of array.
-        Dimension of slice is dictated by `ndim`.
-    ndim: int
-        The number of dimensions func works on. The remaining dimension
-        in input array will be treated as stacked and looped over.
-    array: Array
-    axes: List[int]
-        Axes that func should work over, default is the last ndim axes.
-    output:
-        Result passed to output. default to np.zeros.
-    """
-
-    if axes is None:
-        axes = list(range(-ndim, 0))
-    lastaxes = list(range(-ndim, 0))
-
-    # Swap axes to the end
-    for i in range(ndim):
-        array = np.swapaxes(array, axes[i], lastaxes[i])
-
-    # Save shape
-    stackshape = array.shape[:-ndim]
-
-    if output is None:
-        output = np.zeros(array.shape)
-
-    # Place all stack into one dimension
-    array = np.reshape(array, (-1, *array.shape[-ndim:]))
-    output = np.reshape(output, (-1, *output.shape[-ndim:]))
-
-    for i in range(array.shape[0]):
-        output[i] = func(array[i], *args, **kwargs)
-
-    array = np.reshape(array, (*stackshape, *array.shape[-ndim:]))
-    output = np.reshape(output, (*stackshape, *output.shape[-ndim:]))
-
-    # Reswap axes
-    for i in range(ndim):
-        array = np.swapaxes(array, axes[i], lastaxes[i])
-        output = np.swapaxes(output, axes[i], lastaxes[i])
-
-    return output
 
 
 def get_circle_kernel(n):
