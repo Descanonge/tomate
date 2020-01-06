@@ -8,18 +8,19 @@ from data_loader.iter_dict import IterDict
 class VariablesInfo():
     """Gives various info about variables.
 
-    General informations (kwargs) and variables
-    specific information (infos) are accessible as attributes.
+    General informations (infos) and variables
+    specific information (attributes, abbreviated attrs)
+    are accessible as attributes.
     Variable specific informations are stored as IterDict.
 
     Parameters
     ----------
     variables: List[str]
         Variables names.
-    infos: Dict[str, Dict[str: Any]]
-        Variable specific information / attribute.
+    attributes: Dict[str, Dict[str: Any]]
+        Variable specific information.
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
-    kwargs
+    infos
         Any additional information to be stored as attributes.
 
     Attributes
@@ -30,48 +31,56 @@ class VariablesInfo():
         Index of variables in the data.
     n: int
         Number of variables
-    'infos': IterDict[variable: str, Any]
-    'kwargs': Any
+    'attrs': Dict[attribute: str, IterDict[variable: str, Any]]
+    'infos': Dict[info: str, Any]
     """
 
-    def __init__(self, variables=None, infos=None, **kwargs):
+    def __init__(self, variables=None, attributes=None, **infos):
         # Add the var and idx attributes
         if variables is None:
             variables = []
-        if infos is None:
-            infos = {}
+        if attributes is None:
+            attributes = {}
 
         self.var = tuple(variables)
         self.idx = IterDict({k: i for i, k in enumerate(variables)})
         self.n = len(variables)
 
-        self._infos = []
-        for var, info in infos.items():
-            self.add_infos_per_variable(var, **info)
+        self._attrs = {}
+        self._infos = {}
 
-        # TODO: No dynamic arguments
-        # Make a __getattribute__ to access _infos and _kwargs
-        # who would now contain the values as well
-        # we would avoid messing with __dict__ all the time
-        self._kwargs = []
-        self.add_kwargs(**kwargs)
+        for var, attrs in attributes.items():
+            self.add_attrs_per_variable(var, attrs)
+        self.add_infos(**infos)
 
     def __str__(self):
         s = []
         s.append("Variables: %s" % ', '.join(self.var))
+        s.append("Attributes: %s" % ', '.join(self.attrs))
         s.append("Infos: %s" % ', '.join(self.infos))
-        s.append("Other attributes: %s" % ', '.join(self.kwargs))
         return '\n'.join(s)
+
+    def __getattribute__(self, item):
+        """Render attributes and infos accessible as attributes."""
+        if item in super().__getattribute__('_attrs'):
+            return super().__getattribute__('_attrs')[item]
+        if item in super().__getattribute__('_infos'):
+            return super().__getattribute__('_infos')[item]
+        return super().__getattribute__(item)
 
     def print_variable(self, variable, print_none=False):
         """Print all information about a variable."""
         s = []
         s.append("Variable: %s" % variable)
-        for info in self.infos:
-            value = self.get_info(info, variable)
-            if value is not None:
-                s.append("%s: %s" % (info, str(value)))
+        for attr in self.attrs:
+            value = self.get_attr(attr, variable)
+            if value is not None or print_none:
+                s.append("%s: %s" % (attr, str(value)))
         return '\n'.join(s)
+
+    def get_attr(self, attr, var):
+        """Get attribute."""
+        return self._attrs[attr][var]
 
     def __iter__(self):
         # TODO: enumerate over idx ?
@@ -93,151 +102,129 @@ class VariablesInfo():
         if not isinstance(keys, list):
             keys = [keys]
 
-        var = [self.var[i] for i in keys]
+        variables = [self.var[i] for i in keys]
 
-        infos = {}
-        for key in self._infos:
-            value = getattr(self, key).copy()
-            for name in self.var:
-                if name not in var:
-                    value.pop(name)
-            infos.update({key: value})
-
-        kwargs = {k: self.__dict__[k] for k in self._kwargs}
-
-        vi = VariablesInfo(var, {}, **kwargs)
-
-        for name, info in infos.items():
-            vi.add_info(name, info)
-
+        vi = VariablesInfo(variables, {}, **self._infos)
+        for attr in self._attrs:
+            values_select = {}
+            for var in variables:
+                values_select[var] = self.get_attr(attr, var)
+            vi.add_attr(attr, values_select)
         return vi
+
+    @property
+    def attrs(self):
+        """Get list of attributes."""
+        return list(self._attrs.keys())
 
     @property
     def infos(self):
         """Get list of infos."""
-        return self._infos
-
-    @property
-    def kwargs(self):
-        """Get list of kwargs."""
-        return self._kwargs
+        return list(self._infos.keys())
 
     def copy(self):
         """Copy this instance."""
         var_list = copy.copy(self.var)
 
+        attrs = {}
+        for attr, values in self._attrs.items():
+            for var, value in values.items():
+                try:
+                    value_copy = copy.deepcopy(value)
+                except AttributeError:
+                    value_copy = value
+                attrs[attr] = {}
+                attrs[attr][var] = value_copy
+
         infos = {}
-        for key in self._infos:
-            value = getattr(self, key).copy()
-            infos.update({key: value})
-
-        kwargs = {}
-        for key in self._kwargs:
-            value = getattr(self, key)
+        for info, value in self._infos.items():
             try:
-                value = copy.copy(value)
+                value_copy = copy.deepcopy(value)
             except AttributeError:
-                pass
-            kwargs.update({key: value})
+                value_copy = value
+            infos[info] = value
 
-        vi = VariablesInfo(var_list, {}, **kwargs)
-
-        for name, info in infos.items():
-            vi.add_info(name, info)
+        vi = VariablesInfo(var_list, attrs, **infos)
 
         return vi
 
-    def get_info(self, info, variable):
-        """Get information.
+    def add_attr(self, attr, values):
+        """Add attribute.
 
         Parameters
         ----------
-        info: str
-            Attribute present in `infos`.
-        variable: str
-            Variable name.
-        """
-        return self.__getattribute__(info)[variable]
-
-    def add_info(self, info, values):
-        """Add info.
-
-        Parameters
-        ----------
-        info: str
-            Info name.
+        attr: str
+            Attribute name.
         values: Dict[variable: str, Any]
             Values for some or all variables.
             Variables not specified will be filled with None.
         """
-        if info not in self._infos:
-            self._infos.append(info)
-            self.__dict__.update({info: IterDict(
-                dict(zip(self.var, [None]*self.n)))})
+        if attr not in self.attrs:
+            self._attrs[attr] = IterDict(dict(zip(self.var, [None]*self.n)))
 
-        self.__dict__[info].update(values)
+        self._attrs[attr].update(values)
 
-    def add_infos_per_variable(self, var, infos):
-        """Add infos for a single variable.
+    def add_attrs_per_variable(self, var, attrs):
+        """Add attributes for a single variable.
 
         Parameters
         ----------
         var: str
             Variable name.
-        infos: Dict
-            Infos name and values.
-            {'info name': value}
+        attrs: Dict
+            Attributes name and values.
+            {'attribute name': value}
         """
-        for k, z in infos.items():
-            self.add_info(k, {var: z})
+        for k, z in attrs.items():
+            self.add_attr(k, {var: z})
 
-    def add_variable(self, variable, **infos):
-        """Add a variable with corresponding info.
+    def add_variable(self, variable, **attrs):
+        """Add a variable with corresponding attributes.
 
         Parameters
         ----------
         variable: str
             Variable name.
-        infos:
-            Infos name and values.
-            If an info present in the VI is not provided,
+        attrs:
+            Attributes name and values.
+            If an attribute present in the VI is not provided,
             it is filled with None for the new variable.
         """
-        if not infos:
-            infos = {}
+        if not attrs:
+            attrs = {}
         var_list = list(self.var) + [variable]
         self.var = tuple(var_list)
 
-        for info in self.infos:
-            self.__dict__[info][variable] = None
+        for attr in self.attrs:
+            self._attrs[attr][variable] = None
 
         self.n += 1
         self.idx.update({variable: self.n-1})
-        self.add_infos_per_variable(variable, infos)
+        self.add_attrs_per_variable(variable, attrs)
 
     def pop_variables(self, variables):
         """Remove variables from vi.
 
         Parameters
         ----------
-        variables: List[str]
+        variables: str or List[str]
             Variables to remove.
         """
         if not isinstance(variables, list):
             variables = [variables]
 
-        d = {k: self.__dict__[k] for k in self._infos}
+        for attr in self.attrs:
+            for var in variables:
+                self._attrs[attr].pop(var)
+
         var_list = list(self.var)
         for v in variables:
             var_list.remove(v)
             self.n -= 1
-            for z in d.values():
-                z.pop(v)
         self.var = tuple(var_list)
         self.idx = IterDict({k: i for i, k in enumerate(var_list)})
 
-    def add_kwargs(self, **kwargs):
-        """Add keywords / attributes."""
-        for k, z in kwargs.items():
-            self.__setattr__(k, z)
-            self._kwargs.append(k)
+    def add_infos(self, **infos):
+        """Add infos."""
+        for name, value in infos.items():
+            self._infos[name] = value

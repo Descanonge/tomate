@@ -157,5 +157,5 @@ class FilegroupNetCDF(FilegroupLoad):
                 dt.createVariable(var, t, self.db.coords_name)
                 dt[var][:] = self.db.data[self.db.vi.idx[var]]
 
-                for info in self.db.vi.infos:
-                    dt[var].setncattr(info, self.db.vi.__getattribute__(info)[var])
+                for attr in self.db.vi.attrs:
+                    dt[var].setncattr(attr, self.db.vi.get_attr(attr, var))

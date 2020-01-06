@@ -285,7 +285,7 @@ class FilegroupScan():
                 infos = self.scan_attributes(file, self.contains) #pylint: disable=not-callable
                 for var, info in infos.items():
                     log.debug("Found for '%s' attributes %s", var, list(info.keys()))
-                    self.vi.add_infos_per_variable(var, info)
+                    self.vi.add_attrs_per_variable(var, info)
                 self.scan_attr = False
 
             for cs in self.iter_scan("scannable").values():

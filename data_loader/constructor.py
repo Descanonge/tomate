@@ -54,39 +54,39 @@ class Constructor():
         """
         return self.filegroups[-1]
 
-    def add_variable(self, variable, **infos):
-        """Add variable along with infos / attributes.
+    def add_variable(self, variable, **attributes):
+        """Add variable along with attributes.
 
         Parameters
         ----------
         variable: str
             Id of the variable.
-        infos: optional
+        attributes: optional
             Variable specific information.
 
         Examples
         --------
         >>> name = "SST"
-        ... infos = {'fullname': 'Sea Surface Temperature',
+        ... attrs = {'fullname': 'Sea Surface Temperature',
         ...          'max_value': 40.}
-        ... cstr.add_variable(name, **infos)
+        ... cstr.add_variable(name, **attrs)
         """
-        self.vi.add_variable(variable, **infos)
+        self.vi.add_variable(variable, **attributes)
 
-    def add_kwargs(self, **kwargs):
-        """Add attributes to the vi.
+    def add_infos(self, **infos):
+        """Add information to the vi.
 
         Add not variable-specific attributes to the vi.
 
         Parameters
         ----------
-        kwargs: Any
+        infos: Dict[Any]
 
         Examples
         --------
-        >>> cstr.add_kwargs(altimetry_data=['SSH', 'U', 'V'])
+        >>> cstr.add_infos(altimetry_data=['SSH', 'U', 'V'])
         """
-        self.vi.add_kwargs(**kwargs)
+        self.vi.add_infos(**infos)
 
     def add_filegroup(self, fg_type, contains, coords, root=None, **kwargs):
         """Add filegroup.
