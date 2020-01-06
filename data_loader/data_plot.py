@@ -1,6 +1,9 @@
 """Add convenience functions for plotting data."""
 
 import logging
+import numpy as np
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_loader.data_base import DataBase
 
@@ -174,5 +177,40 @@ class DataPlot(DataBase):
                        frame, **kwargs)
 
         return c
+
+    def imshow_all(self, axes, variables=None, limits=None, kwargs=None, **kw_coords):
+        def plot(ax, dt, var, **kwargs):
+            im = dt.imshow(ax, var, **kwargs)
+            title = dt.vi.get_attr_safe('fullname', var, default=var)
+            ax.set_title(title)
+
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", "2%", 0)
+            label = dt.vi.get_attr_safe('units', var, default='')
+
+            ax.get_figure().colorbar(im, cax=cax, label=label)
+
+            return im
+
+        self.iter_axes(axes, plot, variables, limits=limits, kwargs=kwargs, **kw_coords)
+
+    def iter_axes(self, axes, func, variables=None, **kwargs):
+        """Apply function over multiple axes."""
+        if variables is None:
+            variables = self.vi.var
+
+        output = [None for _ in range(axes.size)]
+        for i, var in enumerate(variables):
+            ax = axes.reshape(-1)[i]
+            if var is not None:
+                output[i] = func(ax, self, var, **kwargs)
+
+        self.set_plot_keys(variables)
+        output = np.array(output)
+        output = np.reshape(output, axes.shape)
+        return output
+
+    def hoevmuller(self):
+        pass
 
     # TODO: hoevmuller plot
