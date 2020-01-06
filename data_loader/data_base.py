@@ -340,7 +340,8 @@ class DataBase():
                 kw_coords[coord] = None
         return kw_coords
 
-    def get_none_total(self, **kw_coords):
+    @staticmethod
+    def get_none_total(**kw_coords):
         for name, key in kw_coords.items():
             if key is None:
                 kw_coords[name] = slice(None, None)
@@ -479,7 +480,7 @@ class DataBase():
         self.unload_data()
         kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
         self.set_slice(variables=variables, **kw_coords)
-        self.allocate_memory()
+        self.data = self.allocate_memory(self.shape)
 
         fg_var = self._get_filegroups_for_variables(self.vi.var)
         for fg, var_load in fg_var:
@@ -524,14 +525,21 @@ class DataBase():
 
         return variables, kw_coords
 
-    def allocate_memory(self):
+    @staticmethod
+    def allocate_memory(shape):
         """Allocate data array.
 
-        Uses the current variables and coordinates selection
-        to get the needed shape.
+        Parameters
+        ----------
+        shape: List[int]
+            Shape of the array to allocate.
+
+        Returns
+        -------
+        Array
         """
-        log.info("Allocating numpy array of shape %s", self.shape)
-        self.data = np.zeros(self.shape)
+        log.info("Allocating numpy array of shape %s", shape)
+        return np.zeros(shape)
 
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.

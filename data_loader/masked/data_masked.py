@@ -31,17 +31,16 @@ class DataMasked(DataBase):
 
         super().__init__(*args, **kwargs)
 
-    def allocate_memory(self):
+    def allocate_memory(self, shape):
         """Allocate data variable.
 
-        Uses the current variables and coordinates selection
-        to get the needed shape.
         Data is storred as a masked array
         """
-        log.info("Allocating numpy masked array of shape %s", self.shape)
-        self.data = np.ma.zeros(self.shape)
+        log.info("Allocating numpy masked array of shape %s", shape)
         # TODO: Better api from numpy ?
-        self.data.mask = np.ma.make_mask_none(self.shape)
+        data = np.ma.zeros(shape)
+        data.mask = np.ma.make_mask_none(shape)
+        return data
 
     def mask_nan(self, missing=True, inland=True, coast=5, chla=True):
         """Replace sst and chla-OC5 fill values by nan.
