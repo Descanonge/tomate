@@ -60,16 +60,16 @@ For each variable we will specify its name and eventually a serie of attributes.
     cstr = Constructor('/Data/', coords)
 
     name = "SSH"
-    infos = {'fullname': 'Sea Surface Height',
+    attrs = {'fullname': 'Sea Surface Height',
              'ncname': 'ssh'}
-    cstr.add_variable(name, **infos)
+    cstr.add_variable(name, **attrs)
 
     name = "SST"
-    infos = {'fullname': 'Sea Surface Temperature',
+    attrs = {'fullname': 'Sea Surface Temperature',
              'ncname': 'sst',
              'units': 'deg C',
              'vmin': -2, 'vmax': 30}
-    cstr.add_variable(name, **infos)
+    cstr.add_variable(name, **attrs)
 
 
 If more information can be found in the files, we can set the filegroups to

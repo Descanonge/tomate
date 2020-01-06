@@ -22,15 +22,15 @@ cstr = Constructor('/Data/', coords)
 
 # Variables
 name = "SSH"
-infos = {'fullname': 'Sea Surface Height',
+attrs = {'fullname': 'Sea Surface Height',
          'ncname': 'ssh'}
-cstr.add_variable(name, **infos)
+cstr.add_variable(name, **attrs)
 
 name = "SST"
-infos = {'fullname': 'Sea Surface Temperature',
+attrs = {'fullname': 'Sea Surface Temperature',
          'ncname': 'sst',
          'vmin': -2, 'vmax': 30}
-cstr.add_variable(name, **infos)
+cstr.add_variable(name, **attrs)
 
 
 # Filegroups
