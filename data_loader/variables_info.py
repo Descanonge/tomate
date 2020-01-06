@@ -82,6 +82,10 @@ class VariablesInfo():
         """Get attribute."""
         return self._attrs[attr][var]
 
+    def get_info(self, info):
+        """Get info."""
+        return self._infos[info]
+
     def __iter__(self):
         # TODO: enumerate over idx ?
         """Enumerate over var."""
