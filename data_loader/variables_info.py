@@ -82,6 +82,15 @@ class VariablesInfo():
         """Get attribute."""
         return self._attrs[attr][var]
 
+    def get_attr_safe(self, attr, var, default=None):
+        """Get attribute."""
+        value = None
+        if attr in self._attrs:
+            value = self._attrs[attr][var]
+        if value is None:
+            value = default
+        return value
+
     def get_info(self, info):
         """Get info."""
         return self._infos[info]
