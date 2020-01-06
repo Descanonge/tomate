@@ -334,12 +334,12 @@ class Constructor():
         ----------
         dt_type: DataBase or subclass (or a list of)
             Database classes to use, in order of
-            priority.
+            priority for method resolution (First one in
+            the list is the first class checked).
 
         Returns
         -------
-        dt:
-            Data instance ready to use.
+        Data instance ready to use.
 
         See also
         --------
@@ -430,19 +430,21 @@ def create_data_class(dt_types):
 
     Parameters
     ----------
-    dt_types: Type or List[Type]
-        Types to derive the dynamic data class from.
-        In order of priority (First has priority in
-        method resolution).
+    dt_type: DataBase or subclass (or a list of)
+        Database classes to use, in order of
+        priority for method resolution (First one in
+        the list is the first class checked).
 
     Return
     ------
-    dt_class: Class
+    Data class
     """
-    name = 'Data'
     if isinstance(dt_types, type):
-        name = dt_types.__name__
         dt_types = [dt_types]
+
+    class_name = 'Data'
+    if len(dt_types) == 1:
+        class_name = dt_types[0].__name__
 
     if isinstance(dt_types, list):
         dt_types = tuple(dt_types)
@@ -457,6 +459,6 @@ def create_data_class(dt_types):
                                 "subclasses", name)
                 methods.add(name)
 
-    dt_class = type(name, dt_types, {})
+    dt_class = type(class_name, dt_types, {})
 
     return dt_class
