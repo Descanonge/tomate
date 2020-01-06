@@ -54,24 +54,24 @@ class Constructor():
         """
         return self.filegroups[-1]
 
-    def add_variable(self, variable, **info):
-        """Add variable along with info / attribute.
+    def add_variable(self, variable, **infos):
+        """Add variable along with infos / attributes.
 
         Parameters
         ----------
         variable: str
             Id of the variable.
-        info: optional
+        infos: optional
             Variable specific information.
 
         Examples
         --------
         >>> name = "SST"
-        ... info = {'fullname': 'Sea Surface Temperature',
-        ...         'max_value': 40.}
-        ... cstr.add_variable(name, **info)
+        ... infos = {'fullname': 'Sea Surface Temperature',
+        ...          'max_value': 40.}
+        ... cstr.add_variable(name, **infos)
         """
-        self.vi.add_variable(variable, **info)
+        self.vi.add_variable(variable, **infos)
 
     def add_kwargs(self, **kwargs):
         """Add attributes to the vi.
