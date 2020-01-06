@@ -36,7 +36,8 @@ class DataPlot(DataBase):
                 kw_coords[name] = self.slices_plot[name]
         return kw_coords
 
-    def _get_none_single(self, idx=0, **kw_coords):
+    @staticmethod
+    def _get_none_single(idx=0, **kw_coords):
         for name, key in kw_coords.items():
             if key is None:
                 kw_coords[name] = idx
