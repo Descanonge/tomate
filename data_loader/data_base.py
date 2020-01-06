@@ -643,6 +643,9 @@ class DataBase():
             Passed to VariablesInfo.add_variable
         """
         self.vi.add_variable(variable, **infos)
+        if self.data is not None:
+            null = self.allocate_memory([1] + self.shape[1:])
+            self.data = np.concatenate((self.data, null), 0)
         self.set_data(variable, data)
 
     def pop_variables(self, variables):
