@@ -112,7 +112,9 @@ class DataBase():
 
         return '\n'.join(s)
 
-
+    def _check_loaded(self):
+        if self.data is None:
+            raise RuntimeError("Data not loaded.")
 
     def __getitem__(self, y):
         """Return a coordinate, or data for a variable.
@@ -304,7 +306,6 @@ class DataBase():
 
         From a mix of positional and keyword argument,
         make a list of keywords, containing all coords.
-        Missing coord key is taken as slice(None, None).
         Keywords arguments take precedence over positional arguments.
 
         Parameters

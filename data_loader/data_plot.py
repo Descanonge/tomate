@@ -30,10 +30,6 @@ class DataPlot(DataBase):
                 k = key
             self.slices_plot[name] = k
 
-    def _check_loaded(self):
-        if self.data is None:
-            raise RuntimeError("Data not loaded.")
-
     def _get_none_previous(self, **kw_coords):
         for name, key in kw_coords.items():
             if key is None:
