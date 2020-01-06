@@ -208,6 +208,9 @@ class VariablesInfo():
         var_list = list(self.var) + [variable]
         self.var = tuple(var_list)
 
+        for info in self.infos:
+            self.__dict__[info][variable] = None
+
         self.n += 1
         self.idx.update({variable: self.n-1})
         self.add_infos_per_variable(variable, infos)
