@@ -405,9 +405,6 @@ class CoordScan(Coord):
             values, in_idx = self.scan_in_file(file, values, # pylint: disable=not-callable
                                                **self.scan_in_file_kwargs)
 
-        if self.is_to_open():
-            self.scanned = True
-
         if isinstance(values, (int, float, type(None))):
             values = [values]
         if isinstance(in_idx, (int, float, type(None))):
@@ -425,6 +422,7 @@ class CoordScan(Coord):
 
         self.values += values
         self.in_idx += in_idx
+        self.scanned = True
 
         return n_values
 
