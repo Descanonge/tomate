@@ -130,15 +130,15 @@ class VariablesInfo():
         """Copy this instance."""
         var_list = copy.copy(self.var)
 
-        attrs = {}
+        attrs = {var: {} for var in var_list}
         for attr, values in self._attrs.items():
             for var, value in values.items():
                 try:
                     value_copy = copy.deepcopy(value)
                 except AttributeError:
+                    # TODO: log warning ?
                     value_copy = value
-                attrs[attr] = {}
-                attrs[attr][var] = value_copy
+                attrs[var][attr] = value_copy
 
         infos = {}
         for info, value in self._infos.items():
