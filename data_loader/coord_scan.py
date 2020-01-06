@@ -152,10 +152,16 @@ class CoordScan(Coord):
 
     def __str__(self):
         s = [super().__str__()]
-        s.append('matchers:')
-        s += ['\t' + str(m) for m in self.matchers]
+        s.append(["In", "Shared"][self.shared])
+        s.append("To scan: %s" % str(self.scan))
+        if self.scanned:
+            s.append("Scanned")
+            s.append("Found %d values, kept %d" % (len(self.values), self.size))
+            if all([c == self.in_idx[0] for c in self.in_idx]):
+                s.append("In-file index is %s" % str(self.in_idx[0]))
+        else:
+            s.append("Not scanned")
         return '\n'.join(s)
-
 
     def is_idx_descending(self):
         """Is idx descending.
@@ -482,6 +488,11 @@ class CoordScanShared(CoordScan):
         self.matchers = []
         self.matches = []
 
+    def __str__(self):
+        s = [super().__str__()]
+        s.append('Matchers:')
+        s += ['\t%s' % str(m) for m in self.matchers]
+        return '\n'.join(s)
     @property
     def n_matchers(self):
         """Numbers of matchers for that coordinate."""

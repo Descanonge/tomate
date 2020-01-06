@@ -126,10 +126,15 @@ class Coord():
     def __str__(self):
         s = []
         s.append(str(type(self)))
-        s.append('name: ' + self.name)
-        if self._array is not None:
-            s.append('extent: ' + self.get_extent_str())
-            s.append('size: ' + str(self.size))
+        s.append("Name: %s" % self.name)
+        if self.has_data():
+            s.append("Extent: %s" % self.get_extent_str())
+            s.append("Size: %d" % self.size)
+            s.append("Descending: %s" % ['no', 'yes'][self.is_descending()])
+        if len(self.name_alt) > 0:
+            s.append("Alternative names: %s" % ', '.join(self.name_alt))
+        if self.units:
+            s.append("Units: %s" % self.units)
         return '\n'.join(s)
 
     def get_extent_str(self) -> str:

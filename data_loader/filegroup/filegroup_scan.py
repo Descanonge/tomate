@@ -78,6 +78,24 @@ class FilegroupScan():
 
         self.make_coord_scan(coords)
 
+    def __str__(self):
+        s = [self.__class__.__name__]
+        s.append("Contains: %s" % ', '.join(self.contains))
+
+        s.append("Root Directory: %s" % self.root)
+        s.append("Pre-regex: %s" % self.pregex)
+        s.append("Regex: %s" % self.regex)
+        s.append('')
+
+        s.append("Coordinates for scan:")
+        for name, cs in self.iter_scan().items():
+            s1 = ["\t%s " % name]
+            s1.append(["(in)", "(shared)"][cs.shared])
+            if cs.scanned:
+                s1.append(" found %d values, kept %d" % (len(cs.values), cs.size))
+            s.append(''.join(s1))
+        return '\n'.join(s)
+
     def make_coord_scan(self, coords):
         """Add CoordScan objects.
 

@@ -50,8 +50,28 @@ class VariablesInfo():
             self.add_infos_per_variable(var, **info)
 
         # TODO: No dynamic arguments
+        # Make a __getattribute__ to access _infos and _kwargs
+        # who would now contain the values as well
+        # we would avoid messing with __dict__ all the time
         self._kwargs = []
         self.add_kwargs(**kwargs)
+
+    def __str__(self):
+        s = []
+        s.append("Variables: %s" % ', '.join(self.var))
+        s.append("Infos: %s" % ', '.join(self.infos))
+        s.append("Other attributes: %s" % ', '.join(self.kwargs))
+        return '\n'.join(s)
+
+    def print_variable(self, variable, print_none=False):
+        """Print all information about a variable."""
+        s = []
+        s.append("Variable: %s" % variable)
+        for info in self.infos:
+            value = self.get_info(info, variable)
+            if value is not None:
+                s.append("%s: %s" % (info, str(value)))
+        return '\n'.join(s)
 
     def __iter__(self):
         # TODO: enumerate over idx ?

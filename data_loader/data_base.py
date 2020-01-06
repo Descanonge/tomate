@@ -79,6 +79,41 @@ class DataBase():
 
         self.link_filegroups()
 
+    def __str__(self):
+        s = ["Data object"]
+
+        s1 = "Class: %s, Bases: " % self.__class__.__name__
+        s2 = ', '.join(["%s.%s" % (c.__module__, c.__name__)
+                        for c in self.__class__.__bases__])
+        s.append(s1 + s2)
+        s.append('')
+
+        s.append("Variables: %s" % ', '.join(self.vi.var))
+        s.append('')
+
+        s.append("Data selected:")
+        s += ["\t%s: %s (%s)" % (c.name, c.get_extent_str(), c.size)
+              for c in self.coords.values()]
+        s.append('')
+
+        s.append("Data available:")
+        s += ["\t%s: %s (%d)" % (c.name, c.get_extent_str(), c.size)
+              for c in self.get_coords_from_backup().values()]
+        s.append('')
+
+        if self.data is None:
+            s.append('Data not loaded')
+        else:
+            s.append('Data loaded: %s' % str(self.slices))
+        s.append('')
+
+        s.append("%d Filegroups:" % len(self.filegroups))
+        s += ['\t%s' % ', '.join(fg.contains) for fg in self.filegroups]
+
+        return '\n'.join(s)
+
+
+
     def __getitem__(self, y):
         """Return a coordinate, or data for a variable.
 
