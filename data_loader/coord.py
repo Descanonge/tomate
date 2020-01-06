@@ -119,7 +119,7 @@ class Coord():
         -------
         Numpy array.
         """
-        if self._array is None:
+        if not self.has_data():
             raise AttributeError("Coordinate '%s' data was not set." % self.name)
         return self._array.__getitem__(y)
 
@@ -138,7 +138,7 @@ class Coord():
 
     def copy(self):
         """Return a copy of itself."""
-        if self._array is not None:
+        if self.has_data():
             a = self._array[:]
         else:
             a = None
@@ -193,6 +193,10 @@ class Coord():
         diff = np.diff(self[:])
         regular = np.all(diff - diff[0] <= threshold)
         return regular
+
+    def has_data(self):
+        """If coordinate has data."""
+        return self._array is not None
 
     def get_step(self, threshold=1e-5):
         """Return mean step between values.
