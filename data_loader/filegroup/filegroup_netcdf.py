@@ -134,7 +134,6 @@ class FilegroupNetCDF(FilegroupLoad):
 
     def write(self, filename, wd, variables, keys):
         """Write data to disk."""
-        # FIXME: Coordinate descending !
         log.warning("Writing a subset not implemented, writing all data.")
 
         with self.open_file(filename, mode='w') as dt:

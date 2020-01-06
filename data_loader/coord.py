@@ -95,7 +95,7 @@ class Coord():
 
         diff = np.diff(values)
         if len(diff) > 0:
-            desc = np.all(diff) < 0
+            desc = np.all(diff < 0)
         else:
             desc = False
         self._descending = desc
@@ -155,8 +155,10 @@ class Coord():
         self.update_values(data)
 
     def subset(self, vmin, vmax):
-        # REVIEW
         """Return slice between vmin and vmax (included).
+
+        If descending, the slice is reverted (values are always
+        in increasing order).
 
         Parameters
         ----------
@@ -259,8 +261,8 @@ class Coord():
         loc: {'closest', 'below', 'above'}
             What index to choose.
         """
-        loc_ = {'below': ['left', 'right'][self._descending],
-                'above': ['right', 'left'][self._descending],
+        loc_ = {'below': 'left',
+                'above': 'right',
                 'closest': 'closest'}[loc]
 
         C = self._array[::[1, -1][self._descending]]
