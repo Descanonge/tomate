@@ -147,6 +147,18 @@ class VariablesInfo():
 
         return vi
 
+    def get_info(self, info, variable):
+        """Get information.
+
+        Parameters
+        ----------
+        info: str
+            Attribute present in `infos`.
+        variable: str
+            Variable name.
+        """
+        return self.__getattribute__(info)[variable]
+
     def add_info(self, info, values):
         """Add info.
 
