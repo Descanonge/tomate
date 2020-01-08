@@ -161,7 +161,7 @@ class VariablesInfo():
 
         return vi
 
-    def add_attr(self, attr, values):
+    def add_attr(self, attr, values=None):
         """Add attribute.
 
         Parameters
@@ -175,6 +175,8 @@ class VariablesInfo():
         if attr not in self.attrs:
             self._attrs[attr] = IterDict(dict(zip(self.var, [None]*self.n)))
 
+        if values is None:
+            values = {}
         self._attrs[attr].update(values)
 
     def add_attrs_per_variable(self, var, attrs):
