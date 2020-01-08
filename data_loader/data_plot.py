@@ -180,7 +180,14 @@ class DataPlot(DataBase):
 
     def imshow_all(self, axes, variables=None, limits=None, kwargs=None, **kw_coords):
         def plot(ax, dt, var, **kwargs):
-            im = dt.imshow(ax, var, **kwargs)
+            im_kw = {'vmin': dt.vi.get_attr_safe('vmin', var),
+                     'vmax': dt.vi.get_attr_safe('vmax', var)}
+
+            if kwargs['kwargs'] is None:
+                kwargs['kwargs'] = {}
+            im_kw.update(kwargs.pop('kwargs'))
+
+            im = dt.imshow(ax, var, kwargs=im_kw, **kwargs)
             title = dt.vi.get_attr_safe('fullname', var, default=var)
             ax.set_title(title)
 
@@ -192,18 +199,42 @@ class DataPlot(DataBase):
 
             return im
 
-        self.iter_axes(axes, plot, variables, limits=limits, kwargs=kwargs, **kw_coords)
+        images = self.iter_axes(axes, plot, variables,
+                                limits=limits, kwargs=kwargs, **kw_coords)
+        return images
 
-    def iter_axes(self, axes, func, variables=None, **kwargs):
+    def update_imshow_all(self, axes, images, variables=None, **kw_coords):
+        def update(ax, dt, var, im, **kw_coords):
+            dt.update_imshow(im, var, **kw_coords)
+        self.iter_axes(axes, update, variables, iterables=[images], **kw_coords)
+
+    def del_axes_none(self, fig, axes, variables=None):
+        """Delete axes for which variables is None."""
+        if variables is None:
+            variables = self.vi.var
+        variables = list(variables)
+        for i in range(axes.size - len(variables)):
+            variables.append(None)
+        for i, var in enumerate(variables):
+            if var is None:
+                ax = axes.flat[i]
+                fig.delaxes(ax)
+
+    def iter_axes(self, axes, func, variables=None, iterables=None, **kwargs):
         """Apply function over multiple axes."""
         if variables is None:
             variables = self.vi.var
+        if iterables is None:
+            iterables = []
+        iterables = [np.array(c) for c in iterables]
 
         output = [None for _ in range(axes.size)]
         for i, var in enumerate(variables):
-            ax = axes.reshape(-1)[i]
+            ax = axes.flat[i]
+            iterable = [c.flat[i] for c in iterables]
+
             if var is not None:
-                output[i] = func(ax, self, var, **kwargs)
+                output[i] = func(ax, self, var, *iterable, **kwargs)
 
         self.set_plot_keys(variables)
         output = np.array(output)
