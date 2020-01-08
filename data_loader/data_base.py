@@ -7,6 +7,7 @@ import numpy as np
 
 from data_loader.coord import Coord
 from data_loader.iter_dict import IterDict
+from data_loader.time import Time
 
 
 log = logging.getLogger(__name__)
@@ -170,6 +171,46 @@ class DataBase():
             start = i*size_slice
             stop = min((i+1)*size_slice, c.size)
             slices.append(slice(start, stop))
+
+        return slices
+
+    def iter_slices_month(self, coord='time'):
+        """Iter through data with slices corresponding to a month.
+
+        Parameters
+        ----------
+        coord: str, optional
+            Coordinate to iterate along to.
+            Must be subclass of Time.
+
+        Raises
+        ------
+        TypeError:
+            If the coordinate is not a subclass of Time.
+
+        See also
+        --------
+        iter_slices: Iter through any coordinate
+        """
+        c = self.get_coords_from_backup(coord)[coord]
+        if not issubclass(type(c), Time):
+            raise TypeError("'%s' is not a subclass of Time (is %s)"
+                            % (coord, type(coord)))
+
+        dates = c.index2date()
+        slices = []
+        indices = []
+        m_old = dates[0].month
+        y_old = dates[0].year
+        for i, d in enumerate(dates):
+            m = d.month
+            y = d.year
+            if m != m_old or y != y_old:
+                slices.append(indices)
+                indices = []
+            indices.append(i)
+            m_old = m
+            y_old = y
 
         return slices
 
