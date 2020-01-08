@@ -6,3 +6,9 @@ TODO: use generators when possible
 
 TODO: check for commands in data_base that could fail with
 other types of data.
+
+TODO: make sure VI is correct with its indices
+It may break if in-data indices are not the indices
+of variables in vi.var
+
+TODO: fix scanning time values and other fun stuff with time units

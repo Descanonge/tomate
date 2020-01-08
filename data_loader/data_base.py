@@ -151,7 +151,7 @@ class DataBase():
             return super().__getattribute__('coords')[item]
         return super().__getattribute__(item)
 
-    def iter_slices(self, coord, size_slice=1, c_slice=None):
+    def iter_slices(self, coord, size_slice=1):
         """Iter through data with slices of `coord` of size `n_iter`.
 
         Parameters
@@ -160,14 +160,9 @@ class DataBase():
             Coordinate to iterate along to.
         size_slice: int, optional
             Size of the slices to take.
-        c_slice: Slice, optional
-            A subset of the full available coordinate to iter through.
         """
-        if c_slice is None:
-            c_slice = slice(None, None)
-
+        # TODO: Add subset selection
         c = self.get_coords_from_backup(coord)[coord]
-        c.slice(c_slice)
 
         n_slices = int(np.ceil(c.size / size_slice))
         slices = []
