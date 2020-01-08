@@ -37,10 +37,73 @@ class DataMasked(DataBase):
         Data is storred as a masked array
         """
         log.info("Allocating numpy masked array of shape %s", shape)
-        # TODO: Better api from numpy ?
         data = np.ma.zeros(shape)
         data.mask = np.ma.make_mask_none(shape)
         return data
+
+    def set_mask(self, variable, mask):
+        """Set mask to variable data.
+
+        Parameters
+        ----------
+        variable: str
+        mask: Array like, bool, int
+            Potential mask.
+            If bool or int, a mask array is filled.
+            Array like (ndarray, tuple, list) with shape of the data
+            without the variable dimension.
+            0's are interpreted as False, everything else as True.
+
+        Raises
+        ------
+        IndexError:
+            Mask does not have the shape of the data.
+        """
+        self._check_loaded()
+
+        if isinstance(mask, (bool, int)):
+            mask_array = np.ma.make_mask_none(self.shape[1:])
+            mask_array ^= mask
+        else:
+            mask_array = np.ma.make_mask(mask, shrink=None)
+
+        if list(mask_array.shape) != self.shape[1:]:
+            raise IndexError("Mask has incompatible shape"
+                             "(%s, expected %s)" % (list(mask_array.shape),
+                                                    self.shape[1:]))
+        self[variable].mask = mask_array
+
+    def get_coverage(self, variable, *coords):
+        """Return percentage of not masked values for a variable.
+
+        Parameters
+        ----------
+        variable: str
+        coords: List[str]
+            Coordinates to compute the coverage along.
+            If None, all coordinates are taken.
+
+        Examples
+        --------
+        >>> print(dt.get_coverage('SST'))
+        70%
+
+        If there is a time variable, we can have the coverage
+        for each time step.
+
+        >>> print(dt.get_coverage('SST', 'lat', 'lon'))
+        array([80.1, 52.6, 45.0, ...])
+        """
+        if not coords:
+            coords = self.coords_name
+        axis = [self.coords_name.index(c) for c in coords]
+
+        size = 1
+        for c in coords:
+            size *= self.coords[c].size
+
+        cover = np.sum(~self[variable].mask, axis=tuple(axis))
+        return cover / size * 100
 
     def mask_nan(self, missing=True, inland=True, coast=5, chla=True):
         """Replace sst and chla-OC5 fill values by nan.

@@ -44,12 +44,6 @@ class FilegroupNetCDF(FilegroupLoad):
                          [i_var] + list(keys_mem.values()))
                 self.db.data[i_var][tuple(keys_mem.values())] = chunk
 
-                # # Make sure it is correctly masked
-                # try:
-                #     data_file[ncname].getncattr("_FillValue")
-                # except AttributeError:
-                #     self.db.data.mask[i_var] = ~np.isfinite(self.db.data[i_var].data)
-
     def _load_slice_single_var(self, file, keys, ncname):
         """Load data for a single variable.
 
