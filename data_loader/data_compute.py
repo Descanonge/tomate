@@ -21,7 +21,9 @@ class DataCompute(DataBase):
         axis = [self.coords_name.index(c) for c in coords]
         values = [self.coords[c][:] for c in coords]
 
-        data = self.data[self.vi.idx[variable]]
+        data = self[variable]
+        if np.ma.isMaskedArray(data):
+            data = data.filled(np.nan)
         grad = np.gradient(data, *values, axis=axis)
         return grad
 
@@ -36,7 +38,7 @@ class DataCompute(DataBase):
         magn = np.linalg.norm(grad, axis=0)
 
         if np.ma.isMaskedArray(self.data):
-            mask = self.data.mask
+            mask = self[variable].mask.copy()
             magn = np.ma.array(magn, mask=mask)
         return magn
 

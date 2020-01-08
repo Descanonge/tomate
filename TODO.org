@@ -2,8 +2,7 @@
 
 TODO: general doc
 
-TODO: slice data and coords consistently
-
 TODO: use generators when possible
 
-TODO: print data
+TODO: check for commands in data_base that could fail with
+other types of data.
