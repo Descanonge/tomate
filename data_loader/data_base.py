@@ -351,9 +351,10 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        if not coords:
-            coords = self.coords_name
         kw_coords.update({name: None for name in coords})
+        if not kw_coords:
+            kw_coords = self.get_coords_full()
+        kw_coords = self.get_coords_none_total(**kw_coords)
 
         limits = []
         for name, key in coords:
@@ -387,10 +388,10 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        if not coords:
-            coords = self.coords_name
         kw_coords.update({name: None for name in coords})
-        kw_coords = self.get_coords_none_full(**kw_coords)
+        if not kw_coords:
+            kw_coords = self.get_coords_full()
+        kw_coords = self.get_coords_none_total(**kw_coords)
 
         extent = []
         for name, key in kw_coords.items():
