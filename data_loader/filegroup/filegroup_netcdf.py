@@ -1,6 +1,7 @@
 """Filegroup class for netCDF files."""
 
 import logging
+import os
 
 import netCDF4 as nc
 
@@ -117,10 +118,7 @@ class FilegroupNetCDF(FilegroupLoad):
         in the vi. If not present, or None, the
         variable name is used.
         """
-        try:
-            ncname = self.vi.ncname[var]
-        except KeyError:
-            ncname = None
+        ncname = self.vi.get_attr_safe('ncname', var)
 
         if ncname is None:
             ncname = var
@@ -130,8 +128,10 @@ class FilegroupNetCDF(FilegroupLoad):
         """Write data to disk."""
         log.warning("Writing a subset not implemented, writing all data.")
 
-        with self.open_file(filename, mode='w') as dt:
-            log.info("in %s", filename)
+        file = os.path.join(wd, filename)
+
+        with self.open_file(file, mode='w') as dt:
+            log.info("in %s", file)
             for name, coord in self.db.coords.items():
                 dt.createDimension(name, coord.size)
                 dt.createVariable(name, 'f', [name])
@@ -151,4 +151,5 @@ class FilegroupNetCDF(FilegroupLoad):
                 dt[var][:] = self.db.data[self.db.vi.idx[var]]
 
                 for attr in self.db.vi.attrs:
-                    dt[var].setncattr(attr, self.db.vi.get_attr(attr, var))
+                    if not attr.startswith('_'):
+                        dt[var].setncattr(attr, self.db.vi.get_attr(attr, var))
