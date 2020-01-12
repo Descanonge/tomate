@@ -77,6 +77,30 @@ class DataMasked(DataBase):
                                                     self.shape[1:]))
         self[variable].mask = mask_array
 
+    def filled(self, fill, variables=None, axes=None, **kw_coords):
+        """Return data with filled masked values.
+
+        Parameters
+        ----------
+        fill: Any
+            If float, that value is used as fill.
+            If 'nan', numpy.nan is used.
+            If 'fill_value', the array fill value is used.
+            If 'edge', the closest pixel value is used.
+        """
+        data = self.select(variables, **kw_coords)
+        if fill == 'edge':
+            filled = data_loader.masked.mask.fill_edge(data, axes)
+        else:
+            if fill == 'nan':
+                fill_value = np.nan
+            elif fill == 'fill_value':
+                fill_value = self.data.fill_value
+            else:
+                fill_value = fill
+            filled = data.filled(fill_value)
+        return filled
+
     def get_coverage(self, variable, *coords):
         """Return percentage of not masked values for a variable.
 
