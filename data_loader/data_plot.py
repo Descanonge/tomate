@@ -33,14 +33,16 @@ class DataPlot(DataBase):
                 k = key
             self.slices_plot[name] = k
 
-    def _get_none_previous(self, **kw_coords):
+    def _get_coords_none_previous(self, **kw_coords):
+        """Replaces None keys by last plotted."""
         for name, key in kw_coords.items():
             if key is None:
                 kw_coords[name] = self.slices_plot[name]
         return kw_coords
 
     @staticmethod
-    def _get_none_single(idx=0, **kw_coords):
+    def _get_coords_none_single(idx=0, **kw_coords):
+        """Replaces None keys by index."""
         for name, key in kw_coords.items():
             if key is None:
                 kw_coords[name] = idx
@@ -75,7 +77,7 @@ class DataPlot(DataBase):
             if 'lat' not in keys:
                 keys['lat'] = None
 
-        kw_coords = self.get_none_total(**keys)
+        kw_coords = self.get_coords_none_total(**keys)
         names = list(kw_coords.keys())
         ax.set_xlim(*self.coords[names[0]].get_limits(kw_coords[names[0]]))
         ax.set_ylim(*self.coords[names[1]].get_limits(kw_coords[names[1]]))
@@ -122,9 +124,9 @@ class DataPlot(DataBase):
         if variable is None:
             variable = self.variables_plot[0]
         kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self._get_none_previous(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
+        kw_coords = self._get_coords_none_previous(**kw_coords)
         self.set_plot_keys(variable, **kw_coords)
 
         frame = self[variable][tuple(kw_coords.values())]
@@ -161,7 +163,6 @@ class DataPlot(DataBase):
         if variable is None:
             variable = self.variables_plot[0]
         kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self._get_none_previous(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
         self.set_plot_keys(variable, **kw_coords)
