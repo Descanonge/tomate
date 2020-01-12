@@ -52,7 +52,6 @@ class DataBase():
     _coords_bak: Dict[str, Coord]
         Copies of the coordinates it their initial
         state.
-    # TODO: make private
     slices: Dict
         Selected (and eventually loaded) part of
         each coordinate.
@@ -166,27 +165,42 @@ class DataBase():
             return super().__getattribute__('coords')[item]
         return super().__getattribute__(item)
 
+    def _select(self, variables, kw_coords):
+        """Returns a subset of data.
+
+        No processing of arguments.
+        kw_coords must be full, sorted.
+
+        Parameters
+        ----------
+        variables: List[str]
+        kw_coords: Dict[keys]
+        """
+        idx = self.vi.idx[variables]
+        keys = tuple(idx + kw_coords.values())
+        return self.data[keys]
+
     def select(self, variables=None, **kw_coords):
-        """Returns a subset of datat.
+        """Returns a subset of data.
 
         Parameters
         ----------
         variables: str or List[str]
+            If None, all variables are taken.
         kw_coords: Int or List[int] or slice
+            If None, total is taken.
         """
         if variables is None:
             variables = self.vi.var
         elif isinstance(variables, str):
             variables = [variables]
-        idx = self.vi.idx[variables]
 
         kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self.get_coords_none_total(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
-        keys = tuple(idx + kw_coords.values())
-        return self.data[keys]
+        return self._select(variables, kw_coords)
 
-    def iter_slices(self, coord, size_slice=1):
+    def iter_slices(self, coord, size_slice=12):
         """Iter through data with slices of `coord` of size `n_iter`.
 
         Parameters
@@ -275,11 +289,11 @@ class DataBase():
         ----------
         coords: List[str]
             Coord to select. If None, all coordinates
-            of data are taken.
+            are taken.
 
         Returns
         -------
-        coords: IterDict[Coord]
+        IterDict[Coord]
         """
         if not coords:
             coords = self.coords_name
@@ -418,6 +432,7 @@ class DataBase():
         return kw_coords
 
     def get_coords_full(self, **kw_coords):
+        """Add missing coords in dictionnary."""
         for coord in self.coords_name:
             if coord not in kw_coords:
                 kw_coords[coord] = None
@@ -425,6 +440,7 @@ class DataBase():
 
     @staticmethod
     def get_coords_none_total(**kw_coords):
+        """Replaces None keys by total slices."""
         for name, key in kw_coords.items():
             if key is None:
                 kw_coords[name] = slice(None, None)
@@ -467,12 +483,31 @@ class DataBase():
             Part of coordinates to select, from the full
             available extent.
             If None, everything available is selected.
+
+        See also
+        --------
+        slice_data: For when data is loaded.
         """
         if self.data is not None:
             log.warning("Using set_coords_slice with data loaded can decouple "
                         "data and coords. Use slice_data instead.")
 
-        variables, kw_coords = self._process_load_arguments(variables, **kw_coords)
+        if variables is None:
+            variables = slice(None, None)
+
+        kw_coords = self.get_coords_full(**kw_coords)
+        kw_coords = self.get_coords_none_total(**kw_coords)
+        kw_coords = self.sort_by_coords(kw_coords)
+
+        for name, key in kw_coords.items():
+            reject = not isinstance(key, (int, slice))
+            if isinstance(key, (list, tuple)):
+                reject = not all(isinstance(z, int) for z in key)
+            elif isinstance(key, int):
+                kw_coords[name] = [key]
+            if reject:
+                raise ValueError("'%s' key is not an integer, list of integers, or slice"
+                                 " (is %s)" % (name, type(key)))
 
         self.vi = self._vi_bak[variables]
 
@@ -499,18 +534,16 @@ class DataBase():
         """
         if variables is None:
             variables = self.vi.var
-        variables = [self.vi.idx[var] for var in variables]
         kw_coords = self.get_coords_full(**kw_coords)
+        kw_coords = self.get_coords_none_total(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
         for name, key in kw_coords.items():
-            c = self.coords[name]
-            c.slice(key)
+            self.coords[name].slice(key)
             self.slices[name] = subset_slices(self.slices[name], key)
 
         if self.data is not None:
-            keys = variables + list(kw_coords.values())
-            self.data = self.data[tuple(keys)]
+            self.data = self._select(variables, kw_coords)
 
     def unload_data(self):
         """Remove data, return coordinates and variables to all available."""
@@ -573,40 +606,6 @@ class DataBase():
             self.do_post_load() #pylint: disable=not-callable
         except NotImplementedError:
             pass
-
-    def _process_load_arguments(self, variables, **kw_coords):
-        """Process load arguments.
-
-        Fix gaps in coords keys and variables.
-        Sort keys.
-        Reject non-valid keys.
-        Replace integers by length one lists.
-
-        Raises
-        ------
-        ValueError
-            If a key is non-valid (not an integer, list of integer, or slice).
-        """
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
-        kw_coords = self.sort_by_coords(kw_coords)
-
-        for name, key in kw_coords.items():
-            reject = not isinstance(key, (int, slice))
-            if isinstance(key, (list, tuple)):
-                reject = not all(isinstance(z, int) for z in key)
-            if reject:
-                raise ValueError("'%s' key is not an integer, list of integers, or slice"
-                                 " (is %s)" % (name, type(key)))
-
-        if variables is None:
-            variables = slice(None, None, None)
-
-        for coord, key in kw_coords.items():
-            if isinstance(key, int):
-                kw_coords[coord] = [key]
-
-        return variables, kw_coords
 
     @staticmethod
     def allocate_memory(shape):
