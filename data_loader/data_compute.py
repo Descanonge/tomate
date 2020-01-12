@@ -21,9 +21,10 @@ class DataCompute(DataBase):
         axis = [self.coords_name.index(c) for c in coords]
         values = [self.coords[c][:] for c in coords]
 
-        data = self[variable]
-        if np.ma.isMaskedArray(data):
-            data = data.filled(np.nan)
+        if 'DataMasked' in self.bases:
+            self.filled(fill, variables=variable)
+        else:
+            data = self[variable]
         grad = np.gradient(data, *values, axis=axis)
         return grad
 

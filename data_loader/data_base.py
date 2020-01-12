@@ -52,6 +52,7 @@ class DataBase():
     _coords_bak: Dict[str, Coord]
         Copies of the coordinates it their initial
         state.
+    # TODO: make private
     slices: Dict
         Selected (and eventually loaded) part of
         each coordinate.
@@ -84,8 +85,7 @@ class DataBase():
         s = ["Data object"]
 
         s1 = "Class: %s, Bases: " % self.__class__.__name__
-        s2 = ', '.join(["%s.%s" % (c.__module__, c.__name__)
-                        for c in self.__class__.__bases__])
+        s2 = ', '.join(self.bases.values())
         s.append(s1 + s2)
         s.append('')
 
@@ -112,6 +112,20 @@ class DataBase():
         s += ['\t%s' % ', '.join(fg.contains) for fg in self.filegroups]
 
         return '\n'.join(s)
+
+    @property
+    def bases(self):
+        """Return dictionary of base classes names.
+
+        Returns
+        -------
+        bases: Dict
+            {class name: full name with module}
+        """
+        bases = self.__class__.__bases__
+        out = {c.__name__: '%s.%s' % (c.__module__, c.__name__)
+               for c in bases}
+        return out
 
     def _check_loaded(self):
         if self.data is None:
