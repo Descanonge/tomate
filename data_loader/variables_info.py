@@ -96,7 +96,6 @@ class VariablesInfo():
         return self._infos[info]
 
     def __iter__(self):
-        # TODO: enumerate over idx ?
         """Enumerate over var."""
         return enumerate(self.var)
 
@@ -238,6 +237,10 @@ class VariablesInfo():
             self.n -= 1
         self.var = tuple(var_list)
         self.idx = IterDict({k: i for i, k in enumerate(var_list)})
+
+    def remove_attr(self, attr):
+        """Remove attribute."""
+        self._attrs.pop(attr)
 
     def add_infos(self, **infos):
         """Add infos."""
