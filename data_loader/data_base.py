@@ -704,15 +704,19 @@ class DataBase():
 
         if list(data.shape) != self.shape[1:]:
             raise ValueError("data of wrong shape (%s, expected %s)" %
-                             (data.shape, self.shape[1:]))
+                             (list(data.shape), self.shape[1:]))
 
         data = np.expand_dims(data, 0)
 
+        # No data is loaded
         if self.data is None:
             self.data = data
-            self.vi = self._vi_bak[var]
+
+        # Variable is already loaded
         elif var in self.vi.var:
             self[var][:] = data[0]
+
+        # Variable is not loaded, others are
         else:
             self.vi = self._vi_bak[self.vi.var + [var]]
             self.data = self._concatenate((self.data, data), axis=0)
