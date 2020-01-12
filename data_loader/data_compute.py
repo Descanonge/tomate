@@ -63,22 +63,13 @@ class DataCompute(DataBase):
         ----------
         """
         self._check_loaded()
-        if variables is None:
-            variables = self.vi.var
-        if isinstance(variables, str):
-            variables = [variables]
 
         if args is None:
             args = []
         if kwargs is None:
             kwargs = {}
 
-        idx = self.vi.idx[variables]
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_none_total(**kw_coords)
-        key = tuple([idx, *kw_coords.values()])
-
-        data = self.data[key]
+        data = self.select(variables, **kw_coords)
         res = func(data, *args, **kwargs)
         return res
 
