@@ -166,6 +166,26 @@ class DataBase():
             return super().__getattribute__('coords')[item]
         return super().__getattribute__(item)
 
+    def select(self, variables=None, **kw_coords):
+        """Returns a subset of datat.
+
+        Parameters
+        ----------
+        variables: str or List[str]
+        kw_coords: Int or List[int] or slice
+        """
+        if variables is None:
+            variables = self.vi.var
+        elif isinstance(variables, str):
+            variables = [variables]
+        idx = self.vi.idx[variables]
+
+        kw_coords = self.get_coords_full(**kw_coords)
+        kw_coords = self.get_coords_none_total(**kw_coords)
+        kw_coords = self.sort_by_coords(kw_coords)
+        keys = tuple(idx + kw_coords.values())
+        return self.data[keys]
+
     def iter_slices(self, coord, size_slice=1):
         """Iter through data with slices of `coord` of size `n_iter`.
 
