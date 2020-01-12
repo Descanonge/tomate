@@ -177,7 +177,7 @@ class DataBase():
         kw_coords: Dict[keys]
         """
         idx = self.vi.idx[variables]
-        keys = tuple(idx + kw_coords.values())
+        keys = tuple(idx + list(kw_coords.values()))
         return self.data[keys]
 
     def select(self, variables=None, **kw_coords):
