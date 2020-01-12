@@ -106,12 +106,7 @@ class DataPlot(DataBase):
         self._check_loaded()
 
         kw_coords = self.get_coords_full(**kw_coords)
-        if coords is not None:
-            keys_hor = self.get_coords_none_total(**{k: kw_coords[k]
-                                                     for k in coords})
-            kw_coords.update(keys_hor)
-        kw_coords = self._get_coords_none_single(**kw_coords)
-
+        kw_coords = self.get_coords_none_total(**kw_coords)
         frame = self.select(variable, **kw_coords)
         self.set_plot_keys(variable, **kw_coords)
 
@@ -122,13 +117,12 @@ class DataPlot(DataBase):
 
         if coords is None:
             coords = self.guess_map_coords(kw_coords)
-        slices = [kw_coords[name] for name in coords]
-        extent = self.get_extent(dict(zip(coords, slices)))
-
+        keys_hor = {name: kw_coords[name] for name in coords}
+        extent = self.get_extent(**keys_hor)
         im = ax.imshow(frame, extent=extent, **kwargs)
 
         if limits:
-            self.set_limits(ax, slices)
+            self.set_limits(ax, **keys_hor)
 
         return im
 
@@ -179,24 +173,19 @@ class DataPlot(DataBase):
         Matplotlib contour
         """
         kw_coords = self.get_coords_full(**kw_coords)
-        if coords is not None:
-            keys_hor = self.get_coords_none_total(**{k: kw_coords[k]
-                                                     for k in coords})
-            kw_coords.update(keys_hor)
-        kw_coords = self._get_coords_none_single(**kw_coords)
+        kw_coords = self.get_coords_none_total(**kw_coords)
 
         self.set_plot_keys(variable, **kw_coords)
         frame = self.select(variable, **kw_coords)
 
         if coords is None:
-            coords = self.guess_map_coordinates(kw_coords)
-        slices = [kw_coords[name] for name in coords]
+            coords = self.guess_map_coords(kw_coords)[::-1]
         values = [self.coords[name][kw_coords[name]]
                   for name in coords]
 
         c = ax.contour(*values, frame, **kwargs)
         if limits:
-            self.set_limits(ax, *slices)
+            self.set_limits(ax, **{name: kw_coords[name] for name in coords})
 
         return c
 
@@ -228,8 +217,7 @@ class DataPlot(DataBase):
         self.set_plot_keys(variable, **kw_coords)
 
         if coords is None:
-            coords = [name for name, key in kw_coords.key()
-                      if self.coords[name][key].size > 1]
+            coords = self.guess_map_coords(kw_coords)[::-1]
         values = [self.coords[name][kw_coords[name]]
                   for name in coords]
 
