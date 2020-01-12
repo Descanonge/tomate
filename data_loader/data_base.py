@@ -310,7 +310,7 @@ class DataBase():
 
         raise KeyError(str(name) + " not found")
 
-    def get_limits(self, *coords):
+    def get_limits(self, *coords, **kw_coords):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
@@ -321,6 +321,8 @@ class DataBase():
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
+        kw_coords: Any
+            Subset of coordinates
 
         Returns
         -------
@@ -331,16 +333,20 @@ class DataBase():
         --------
         >>> print(dt.get_limits('lon', 'lat'))
         [-20.0 55.0 10.0 60.0]
+
+        >>> print(dt.get_extent(lon=slice(0, 10)))
+        [-20.0 0.]
         """
         if not coords:
             coords = self.coords_name
+        kw_coords.update({name: None for name in coords})
 
         limits = []
-        for c in coords:
-            limits += self[c].get_limits()
+        for name, key in coords:
+            limits += self[name].get_limits(key)
         return limits
 
-    def get_extent(self, *coords):
+    def get_extent(self, *coords, **kw_coords):
         """Return extent of coordinates.
 
         Return first and last value of specified coordinates.
@@ -351,6 +357,8 @@ class DataBase():
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
+        kw_coords: Any
+            Subset of coordinates
 
         Returns
         -------
@@ -362,13 +370,17 @@ class DataBase():
         >>> print(dt.get_extent('lon', 'lat'))
         [-20.0 55.0 60.0 10.0]
 
+        >>> print(dt.get_extent(lon=slice(0, 10)))
+        [-20.0 0.]
         """
         if not coords:
             coords = self.coords_name
+        kw_coords.update({name: None for name in coords})
+        kw_coords = self.get_coords_none_full(**kw_coords)
 
         extent = []
-        for c in coords:
-            extent += self[c].get_extent()
+        for name, key in kw_coords.items():
+            extent += self[name].get_extent(key)
         return extent
 
     def get_coords_kwargs(self, *coords, **kw_coords):
