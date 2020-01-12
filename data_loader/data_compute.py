@@ -8,7 +8,7 @@ from data_loader.data_base import DataBase
 class DataCompute(DataBase):
     """Added functionalities for various computations."""
 
-    def gradient(self, variable, coords):
+    def gradient(self, variable, coords, fill=None):
         """Compute a n-dimensional gradient.
 
         Parameters
@@ -22,7 +22,7 @@ class DataCompute(DataBase):
         values = [self.coords[c][:] for c in coords]
 
         if 'DataMasked' in self.bases:
-            self.filled(fill, variables=variable)
+            data = self.filled(fill, variables=variable)
         else:
             data = self[variable]
         grad = np.gradient(data, *values, axis=axis)
