@@ -1,8 +1,12 @@
 """Stores metadata on the variables."""
 
+import logging
 import copy
 
 from data_loader.iter_dict import IterDict
+
+
+log = logging.getLogger(__name__)
 
 
 class VariablesInfo():
@@ -144,7 +148,8 @@ class VariablesInfo():
                 try:
                     value_copy = copy.deepcopy(value)
                 except AttributeError:
-                    # TODO: log warning ?
+                    log.warning("Could not copy '%s' attribute (value: %s)",
+                                attr, value)
                     value_copy = value
                 attrs[var][attr] = value_copy
 
