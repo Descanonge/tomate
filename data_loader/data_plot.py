@@ -24,7 +24,7 @@ class DataPlot(DataBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.variables_plot = []
+        self.last_plot = ''
         self.slices_plot = {}
         for name, key in self.slices.items():
             try:
@@ -49,10 +49,9 @@ class DataPlot(DataBase):
         return kw_coords
 
     def set_plot_keys(self, variable=None, **kw_coords):
+        """Set last plotted data."""
         if variable is not None:
-            if not isinstance(variable, list):
-                variable = [variable]
-            self.variables_plot = variable
+            self.last_plot = variable
 
         for name, key in kw_coords.items():
             self.slices_plot[name] = key
@@ -122,7 +121,7 @@ class DataPlot(DataBase):
         the plot is used.
         """
         if variable is None:
-            variable = self.variables_plot[0]
+            variable = self.last_plot
         kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
@@ -161,7 +160,7 @@ class DataPlot(DataBase):
         the plot is used.
         """
         if variable is None:
-            variable = self.variables_plot[0]
+            variable = self.last_plot
         kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self.sort_by_coords(kw_coords)
 
