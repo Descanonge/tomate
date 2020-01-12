@@ -81,12 +81,6 @@ class DataPlot(DataBase):
         ax.set_xlim(*self.coords[names[0]].get_limits(kw_coords[names[0]]))
         ax.set_ylim(*self.coords[names[1]].get_limits(kw_coords[names[1]]))
 
-    def guess_map_coords(self, kw_coords):
-        """Find coordinates with keys of size higher than one."""
-        coords = [name for name, key in kw_coords.key()
-                  if self.coords[name][key].size > 1]
-        return coords
-
     def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_coords):
         """Plot a frame on a heatmap.
 

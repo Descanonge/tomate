@@ -447,6 +447,12 @@ class DataBase():
                 kw_coords[name] = slice(None, None)
         return kw_coords
 
+    def guess_map_coords(self, kw_coords):
+        """Find coordinates with keys of size higher than one."""
+        coords = [name for name, key in kw_coords.items()
+                  if self.coords[name][key].size > 1]
+        return coords
+
     def sort_by_coords(self, dic):
         """Sort dictionnary.
 
