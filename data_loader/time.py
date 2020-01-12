@@ -53,34 +53,26 @@ class Time(Coord):
 
         Parameters
         ----------
-        indices: Slice, List[int], List[slice], int
+        indices: Slice, List[int], int
 
         Returns
         -------
         datetime.datetime or List[datetime]
         """
-        # If the user has asked an integer
-        integer = False
-
         if indices is None:
-            indices = range(self.size)
-        if isinstance(indices, slice):
-            indices = list(range(*indices.indices(self.size)))
-        if isinstance(indices, int):
-            integer = True
-            indices = [indices]
-        dates = num2date([self[i] for i in indices], self.units)
+            indices = slice(None, None)
+
+        dates = num2date(self[indices], self.units,
+                         only_use_cftime_datetimes=False)
 
         # Sometimes, num2date returns a subclass of datetime
         # I convert it back to datetime.datetime
-        for i, d in enumerate(dates):
-            if not isinstance(d, datetime):
-                dates[i] = datetime(d.year, d.month, d.day,
-                                    d.hour, d.minute, d.second,
-                                    d.microsecond)
+        # for i, d in enumerate(dates):
+        #     if not isinstance(d, datetime):
+        #         dates[i] = datetime(d.year, d.month, d.day,
+        #                             d.hour, d.minute, d.second,
+        #                             d.microsecond)
 
-        if integer:
-            dates = dates[0]
         return dates
 
     def date2index(self, dates):
