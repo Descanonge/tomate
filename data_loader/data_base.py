@@ -623,6 +623,11 @@ class DataBase():
         log.info("Allocating numpy array of shape %s", shape)
         return np.zeros(shape)
 
+    @property
+    def _concatenate(self):
+        """Concatenate function."""
+        return np.concatenate
+
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.
 
@@ -710,7 +715,7 @@ class DataBase():
             self[var][:] = data[0]
         else:
             self.vi = self._vi_bak[self.vi.var + [var]]
-            self.data = np.concatenate((self.data, data), axis=0)
+            self.data = self._concatenate((self.data, data), axis=0)
 
     def add_variable(self, variable, data, **infos):
         """Concatenante new_data to data, and add kwargs to vi.
@@ -727,7 +732,7 @@ class DataBase():
         self.vi.add_variable(variable, **infos)
         if self.data is not None:
             null = self.allocate_memory([1] + self.shape[1:])
-            self.data = np.concatenate((self.data, null), 0)
+            self.data = self._concatenate((self.data, null), 0)
         self.set_data(variable, data)
 
     def pop_variables(self, variables):

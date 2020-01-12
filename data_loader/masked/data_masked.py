@@ -41,6 +41,10 @@ class DataMasked(DataBase):
         data.mask = np.ma.make_mask_none(shape)
         return data
 
+    @property
+    def _concatenate(self):
+        return np.ma.concatenate
+
     def set_mask(self, variable, mask):
         """Set mask to variable data.
 
