@@ -88,7 +88,7 @@ class DataMasked(DataBase):
             If 'fill_value', the array fill value is used.
             If 'edge', the closest pixel value is used.
         """
-        data = self.select(variables, **kw_coords)
+        data = self.view(variables, **kw_coords)
         if fill == 'edge':
             filled = data_loader.masked.mask.fill_edge(data, axes)
         else:

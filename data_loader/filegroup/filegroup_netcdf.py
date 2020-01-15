@@ -6,6 +6,7 @@ import os
 import netCDF4 as nc
 
 from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)
@@ -38,14 +39,14 @@ class FilegroupNetCDF(FilegroupLoad):
             i_var = self.db.vi.idx[var]
             log.info("Looking at variable %s", ncname)
 
-            for keys_inf, keys_mem in cmd:
-                chunk = self._load_slice_single_var(file, keys_inf, ncname)
+            for krg_inf, krg_mem in cmd:
+                chunk = self._load_slice_single_var(file, krg_inf, ncname)
 
                 log.info("Placing it in %s",
-                         [i_var] + list(keys_mem.values()))
-                self.db.data[i_var][tuple(keys_mem.values())] = chunk
+                         [i_var] + krg_mem.keys_values)
+                krg_mem.place(self.db.data[i_var], chunk)
 
-    def _load_slice_single_var(self, file, keys, ncname):
+    def _load_slice_single_var(self, file, keyring, ncname):
         """Load data for a single variable.
 
         Parameters
@@ -60,15 +61,20 @@ class FilegroupNetCDF(FilegroupLoad):
             Name of the variable in file.
         """
 
-        order, keys_inf = self._get_order(file, ncname, keys)
+        order, krg_inf = self._get_order(file, ncname, keyring)
 
-        log.info("Taking keys %s", list(keys_inf.values()))
-        chunk = file[ncname][keys_inf.values()]
-        chunk = self.reorder_chunk(chunk, keys, order, variables=False)
+        log.info("Taking keys %s", krg_inf.keys_values)
+        chunk = krg_inf.get_array(file[ncname])
 
+        expected_shape = krg_inf.get_shape(self.db.get_coords_from_backup())
+        assert (expected_shape == list(chunk.shape)), ("Chunk does not have correct "
+                                                       "shape, has %s, expected %s"
+                                                       % (list(chunk.shape), expected_shape))
+
+        chunk = self.reorder_chunk(chunk, keyring.coords, order, variables=False)
         return chunk
 
-    def _get_order(self, file, ncname, keys):
+    def _get_order(self, file, ncname, keyring):
         """Get order from netcdf file, reorder keys.
 
         Parameters
@@ -89,10 +95,11 @@ class FilegroupNetCDF(FilegroupLoad):
         """
         order_nc = list(file[ncname].dimensions)
         order = []
-        keys_ord = {}
+        keys_ord = Keyring()
         for coord_nc in order_nc:
             try:
                 coord = self.db.get_coord(coord_nc)
+            # If the demanded coord is not in file
             except KeyError:
                 dim = file.dimensions[coord_nc].size
                 if dim > 1:
@@ -105,7 +112,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 # numpy will squeeze the axis.
             else:
                 name = coord.name
-                k = keys[name]
+                k = keyring[name]
                 order.append(name)
 
             keys_ord[name] = k

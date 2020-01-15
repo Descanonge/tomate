@@ -8,6 +8,7 @@ import numpy as np
 from data_loader.coord import Coord
 from data_loader.iter_dict import IterDict
 from data_loader.time import Time
+from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class DataBase():
         self.coords_name = names
         self._coords_bak = coords_bak
         self.coords = self.get_coords_from_backup()
-        self.slices = {c.name: slice(0, c.size, 1) for c in coords}
+        self.slices = Keyring(**{c.name: slice(0, c.size, 1) for c in coords})
 
         self._fg_idx = {}
         self.filegroups = filegroups
@@ -165,7 +166,7 @@ class DataBase():
             return super().__getattribute__('coords')[item]
         return super().__getattribute__(item)
 
-    def _select(self, variables, kw_coords):
+    def _view(self, variables, keyring):
         """Returns a subset of data.
 
         No processing of arguments.
@@ -175,13 +176,21 @@ class DataBase():
         ----------
         variables: List[str]
         kw_coords: Dict[keys]
+
+        Returns
+        -------
+        Array
+            Subset of data, in storage order.
         """
         idx = self.vi.idx[variables]
-        keys = tuple(idx + list(kw_coords.values()))
-        return self.data[keys]
+        keyring['var'] = idx
+        keyring.sort_by(['var'] + keyring.coords)
+        return keyring.get_array(self.data)
 
-    def select(self, variables=None, **kw_coords):
+    def view(self, variables=None, **kw_keys):
         """Returns a subset of data.
+
+        Wrapper of _view.
 
         Parameters
         ----------
@@ -189,16 +198,52 @@ class DataBase():
             If None, all variables are taken.
         kw_coords: Int or List[int] or slice
             If None, total is taken.
+
+        Returns
+        -------
+        Array
+            Subset of data, in storage order.
         """
         if variables is None:
             variables = self.vi.var
-        elif isinstance(variables, str):
-            variables = [variables]
+        keyring = Keyring(**kw_keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        keyring.sort_by(self.coords_name)
+        return self._view(variables, keyring)
 
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
-        kw_coords = self.sort_by_coords(kw_coords)
-        return self._select(variables, kw_coords)
+    def view_ordered(self, order, variables=None, **kw_coords):
+        """Returns a reordered subset of data.
+
+        Parameters
+        ----------
+        order: List[str]
+            List of coordinates in required order.
+        variables: str or List[str]
+        kw_coords: Key
+            Dimension of resulting subset must match
+            that of `order`.
+        """
+        if isinstance(variables, list) or variables is None:
+            var_dim = True
+        chunk = self.view(variables, **kw_coords)
+
+        if len(chunk) - int(var_dim) != len(order):
+            raise IndexError("Mismatch between selected data "
+                             "and order length (shape: %s, order: %s)"
+                             % (chunk.shape[var_dim:], order))
+
+        target = [self.db.coords_name.index(z) for z in order]
+        current = list(range(len(target)))
+        if var_dim:
+            current = [c+1 for c in current]
+            target = [t+1 for t in target]
+
+        if target != current:
+            chunk = np.moveaxis(chunk, current, target)
+
+        return chunk
+
 
     def iter_slices(self, coord, size_slice=12):
         """Iter through data with slices of `coord` of size `n_iter`.
@@ -324,7 +369,7 @@ class DataBase():
 
         raise KeyError(str(name) + " not found")
 
-    def get_limits(self, *coords, **kw_coords):
+    def get_limits(self, *coords, **kw_keys):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
@@ -335,7 +380,7 @@ class DataBase():
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        kw_coords: Any
+        kw_keys: Any
             Subset of coordinates
 
         Returns
@@ -351,17 +396,18 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        kw_coords.update({name: None for name in coords})
-        if not kw_coords:
-            kw_coords = self.get_coords_full()
-        kw_coords = self.get_coords_none_total(**kw_coords)
+        kw_keys.update({name: None for name in coords})
+        if not kw_keys:
+            kw_keys = {name: None for name in self.coords_name}
+        keyring = Keyring(**kw_keys)
+        keyring.make_total()
 
         limits = []
-        for name, key in coords:
+        for name, key in keyring.items_values():
             limits += self[name].get_limits(key)
         return limits
 
-    def get_extent(self, *coords, **kw_coords):
+    def get_extent(self, *coords, **kw_keys):
         """Return extent of coordinates.
 
         Return first and last value of specified coordinates.
@@ -388,18 +434,19 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        kw_coords.update({name: None for name in coords})
-        if not kw_coords:
-            kw_coords = self.get_coords_full()
-        kw_coords = self.get_coords_none_total(**kw_coords)
+        kw_keys.update({name: None for name in coords})
+        if not kw_keys:
+            kw_keys = {name: None for name in self.coords_name}
+        keyring = Keyring(**kw_keys)
+        keyring.make_total()
 
         extent = []
-        for name, key in kw_coords.items():
+        for name, key in keyring.items_values():
             extent += self[name].get_extent(key)
         return extent
 
-    def get_coords_kwargs(self, *coords, **kw_coords):
-        """Make standard, full kwargs when asking for coordinates parts.
+    def get_kw_keys(self, *keys, **kw_keys):
+        """Make keyword keys when asking for coordinates parts.
 
         From a mix of positional and keyword argument,
         make a list of keywords, containing all coords.
@@ -407,72 +454,34 @@ class DataBase():
 
         Parameters
         ----------
-        coords: Slice, int, or List[int]
+        keys: Slice, int, or List[int]
             Key for subsetting coordinates, order is that
             of self.coords.
-        kw_coords: Slice, int or List[int]
+        kw_keys: Slice, int or List[int]
             Key for subsetting coordinates.
 
         Exemples
         --------
-        >>> print( dt.get_loords_kwargs([0, 1], lat=slice(0, 10)) )
-        {'time': [0, 1], 'lat': slice(0, 10), 'lon': slice(None, None)}
+        >>> print( dt.get_kw_keys([0, 1], lat=slice(0, 10)) )
+        {'time': [0, 1], 'lat': slice(0, 10)}
         """
-
-        if not coords:
-            coords = []
-
-        if not kw_coords:
-            kw_coords = {}
-
-        for i, key in enumerate(coords):
+        for i, key in enumerate(keys):
             name = self.coords_name[i]
-            if name not in kw_coords:
-                kw_coords[name] = key
+            if name not in kw_keys:
+                kw_keys[name] = key
+        return kw_keys
 
-        return kw_coords
+    def guess_image_coords(self, keyring):
+        """Find coordinates with keys of size higher than one.
 
-    def get_coords_full(self, **kw_coords):
-        """Add missing coords in dictionnary."""
-        for coord in self.coords_name:
-            if coord not in kw_coords:
-                kw_coords[coord] = None
-        return kw_coords
-
-    @staticmethod
-    def get_coords_none_total(**kw_coords):
-        """Replaces None keys by total slices."""
-        for name, key in kw_coords.items():
-            if key is None:
-                kw_coords[name] = slice(None, None)
-        return kw_coords
-
-    def guess_map_coords(self, kw_coords):
-        """Find coordinates with keys of size higher than one."""
-        coords = [name for name, key in kw_coords.items()
+        Returns names of coordinates in order.
+        """
+        keyring.sort_by(self.coords_name)
+        coords = [name for name, key in keyring.items()
                   if self.coords[name][key].size > 1]
         return coords
 
-    def sort_by_coords(self, dic):
-        """Sort dictionnary.
-
-        The order is that of `self.coords_name`.
-        """
-        # Make sure keys are coords name
-        keys = {}
-        for key, value in dic.items():
-            c = self.get_coord(key)
-            keys[c.name] = [key, value]
-
-        # Order dictionary
-        keys_ord = {}
-        for name in self.coords_name:
-            key, value = keys[name]
-            keys_ord[key] = value
-
-        return keys_ord
-
-    def set_slice(self, variables=None, **kw_coords):
+    def set_slice(self, variables=None, **kw_keys):
         """Pre-select variables and coordinates slices.
 
         Selection is applied to **available** coordinates.
@@ -502,29 +511,21 @@ class DataBase():
         if variables is None:
             variables = slice(None, None)
 
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
-        kw_coords = self.sort_by_coords(kw_coords)
-
-        for name, key in kw_coords.items():
-            reject = not isinstance(key, (int, slice))
-            if isinstance(key, (list, tuple)):
-                reject = not all(isinstance(z, int) for z in key)
-            elif isinstance(key, int):
-                kw_coords[name] = [key]
-            if reject:
-                raise ValueError("'%s' key is not an integer, list of integers, or slice"
-                                 " (is %s)" % (name, type(key)))
+        keyring = Keyring(**kw_keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        keyring.make_int_list()
+        keyring.sort_by(self.coords_name)
 
         self.vi = self._vi_bak[variables]
 
         coords = self.get_coords_from_backup()
-        for name, key in kw_coords.items():
+        for name, key in keyring.items_values():
             coords[name].slice(key)
-            self.slices[name] = key
         self.coords = coords
+        self.slices = keyring
 
-    def slice_data(self, variables=None, **kw_coords):
+    def slice_data(self, variables=None, **kw_keys):
         """Select a subset of loaded data and coords.
 
         Selection is applied to **loaded** coordinates and variables.
@@ -535,29 +536,30 @@ class DataBase():
         variables: str or List[str], optional
             Variables to select, from those already selected or loaded.
             If None, no change are made.
-        kw_coords: int, Slice, or List[int]
+        kw_keys: int, Slice, or List[int]
             Part of coordinates to select, from part already selected or loaded.
             If None, no change are made.
         """
         if variables is None:
             variables = self.vi.var
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
-        kw_coords = self.sort_by_coords(kw_coords)
+        keyring = Keyring(**kw_keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        keyring.sort_by(self.coords_name)
 
-        for name, key in kw_coords.items():
+        for name, key in keyring.items():
             self.coords[name].slice(key)
-            self.slices[name] = subset_slices(self.slices[name], key)
+        self.slices += keyring
 
         if self.data is not None:
-            self.data = self._select(variables, kw_coords)
+            self.data = self._view(variables, keyring)
 
     def unload_data(self):
         """Remove data, return coordinates and variables to all available."""
         self.data = None
         self.set_slice()
 
-    def load_data(self, variables, *coords, **kw_coords):
+    def load_data(self, variables, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -568,11 +570,13 @@ class DataBase():
         variables: str or List[str]
             Variables to load. If None, all variables available
             are taken.
-        coords: int, Slice, or List[int]
+        keys: int, Slice, or List[int]
             What subset of coordinate to load. The order is that
             of self.coords.
             If None, all available is taken.
-        kw_coords: int, Slice, or List[int]
+        # TODO:
+        force: Does not simplify those coords keys
+        kw_keys: int, Slice, or List[int]
             What subset of coordinate to load. Takes precedence
             over positional `coords`.
             If None, all availabce is taken.
@@ -601,8 +605,8 @@ class DataBase():
         >>> dt.load_data("SST", 0, lat=slice(200, 400))
         """
         self.unload_data()
-        kw_coords = self.get_coords_kwargs(*coords, **kw_coords)
-        self.set_slice(variables=variables, **kw_coords)
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        self.set_slice(variables=variables, **kw_keys)
         self.data = self.allocate_memory(self.shape)
 
         fg_var = self._get_filegroups_for_variables(self.vi.var)

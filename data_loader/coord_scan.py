@@ -27,6 +27,7 @@ from types import MethodType
 import numpy as np
 
 from data_loader.coord import Coord
+from data_loader.key import Key
 
 
 log = logging.getLogger(__name__)
@@ -197,15 +198,6 @@ class CoordScan(Coord):
         """Set coordinate as descending."""
         self._idx_descending = True
 
-    def reverse_key(self, key):
-        """Reverse asked key."""
-        if isinstance(key, list):
-            key = [self.coord.size - z for z in key]
-        elif isinstance(key, slice):
-            key = reverse_slice(key, self.coord.size)
-
-        return key
-
     def get_in_idx(self, key):
         """Get the in file indices.
 
@@ -214,7 +206,7 @@ class CoordScan(Coord):
 
         Parameters
         ----------
-        key: Slice or List[int]
+        key: Key
             Index of the demanded values.
 
         Returns
@@ -224,9 +216,9 @@ class CoordScan(Coord):
         if self.size is None:
             key_data = key
             if self.is_idx_descending():
-                key_data = self.reverse_key(key)
+                key_data.reverse(self.size)
         else:
-            key_data = self.in_idx[key]
+            key_data = Key(self.in_idx[key.value])
 
         return key_data
 
@@ -567,28 +559,3 @@ def get_coordscan(filegroup, coord, shared):
 
     return CoordScanType(filegroup, coord)
 
-
-def reverse_slice(sl, size=None):
-    """Reverse a slice.
-
-    Parameters
-    ----------
-    sl: Slice
-        Slice to reverse.
-    size: int, optional
-        Size of the list to get indices from.
-    """
-    if size is None:
-        size = sl.stop - sl.start
-
-    ind = sl.indices(size)
-    shift = [-1, 1][ind[2] < 0]
-
-    start = ind[1] + shift
-    stop = ind[0] + shift
-    step = -ind[2]
-
-    if stop == -1:
-        stop = None
-
-    return slice(start, stop, step)

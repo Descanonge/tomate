@@ -7,6 +7,7 @@ import numpy as np
 
 from data_loader.filegroup.filegroup_scan import FilegroupScan
 from data_loader.filegroup import command
+from data_loader.key import Keyring
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class FilegroupLoad(FilegroupScan):
     A subclass would replace existing functions specific to a file format.
     """
 
-    def get_commands(self, var_list, keys):
+    def get_commands(self, var_list, keyring):
         """Get load commands.
 
         Recreate filenames from matches and find shared coords keys.
@@ -39,20 +40,23 @@ class FilegroupLoad(FilegroupScan):
         -------
         commands: List[Command]
         """
-        commands = self._get_commands_shared(keys)
+        commands = self._get_commands_shared(keyring)
         commands = command.merge_cmd_per_file(commands)
 
         if len(commands) == 0:
             commands = self._get_commands_no_shared()
 
-        key_inf = self._get_key_infile(keys)
-        key_mem = self._get_key_memory(keys)
+        key_inf = self._get_key_infile(keyring)
+        key_mem = self._get_key_memory(keyring)
 
         for cmd in commands:
             cmd.join_filename(self.root)
             cmd.var_list = var_list
 
             cmd.merge_keys()
+            for krg_inf, krg_mem in cmd:
+                krg_inf.make_int_list()
+                krg_mem.make_int_list()
 
             for key in cmd:
                 key.modify(key_inf, key_mem)
@@ -67,9 +71,9 @@ class FilegroupLoad(FilegroupScan):
         cmd.filename = ''.join(self.segments)
         return [cmd]
 
-    def _get_commands_shared(self, keys):
+    def _get_commands_shared(self, keyring):
         """Return the combo filename / keys_in for shared coordinates."""
-        matches, rgx_idxs, in_idxs = self._get_commands_shared__get_info(keys)
+        matches, rgx_idxs, in_idxs = self._get_commands_shared__get_info(keyring)
 
         # Number of matches ordered by shared coordinates
         lengths = [len(m_c) for m_c in matches]
@@ -87,18 +91,18 @@ class FilegroupLoad(FilegroupScan):
             cmd.filename = "".join(seg)
 
             # Find keys
-            keys_mem = {}
-            keys_inf = {}
+            krgs_inf = Keyring()
+            krgs_mem = Keyring()
             for i_c, name in enumerate(self.iter_shared(True)):
-                keys_mem[name] = m[i_c]
-                keys_inf[name] = in_idxs[i_c][m[i_c]]
+                krgs_inf[name] = in_idxs[i_c][m[i_c]]
+                krgs_mem[name] = m[i_c]
 
-            cmd.append(keys_inf, keys_mem)
+            cmd.append(krgs_inf, krgs_mem)
             commands.append(cmd)
 
         return commands
 
-    def _get_commands_shared__get_info(self, keys):
+    def _get_commands_shared__get_info(self, keyring):
         """For all asked values, retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.
@@ -123,42 +127,41 @@ class FilegroupLoad(FilegroupScan):
         rgx_idxs = []
         in_idxs = []
         for name, cs in self.iter_shared(True).items():
-            key = keys[name]
+            key = keyring[name]
             match = []
             rgx_idx_matches = []
             for i, rgx in enumerate(cs.matchers):
-                match.append(cs.matches[key, i])
+                match.append(cs.matches[key.no_int(), i])
                 rgx_idx_matches.append(rgx.idx)
 
             # Matches are stored by regex index, we
             # need to transpose to have a list by filename
             match = np.array(match)
             matches.append(match.T)
-            in_idxs.append(cs.in_idx[key])
+            in_idxs.append(cs.in_idx[key.no_int()])
             rgx_idxs.append(rgx_idx_matches)
 
         return matches, rgx_idxs, in_idxs
 
-    def _get_key_infile(self, keys):
+    def _get_key_infile(self, keyring):
         """Get the keys for data in file."""
-        keys_inf = {}
+        krg_inf = Keyring()
         for name, cs in self.iter_shared(False).items():
-            key = keys[name]
-            key_inf = cs.get_in_idx(key)
-            key_inf = command.simplify_key(key_inf)
-            keys_inf[name] = key_inf
-        return keys_inf
+            key_inf = cs.get_in_idx(keyring[name])
+            krg_inf[name] = key_inf
+        krg_inf.simplify()
+        return krg_inf
 
-    def _get_key_memory(self, keys):
+    def _get_key_memory(self, keyring):
         """Get the keys for data in memory."""
-        keys_mem = {}
+        krg_mem = Keyring()
         for name in self.iter_shared(False):
             key_mem = list(range(self.db[name].size))
-            key_mem = command.simplify_key(key_mem)
-            keys_mem[name] = key_mem
-        return keys_mem
+            krg_mem[name] = key_mem
+        krg_mem.simplify()
+        return krg_mem
 
-    def load_data(self, var_list, keys):
+    def load_data(self, var_list, keyring):
         """Load data for that filegroup.
 
         Retrieve load commands.
@@ -168,9 +171,9 @@ class FilegroupLoad(FilegroupScan):
         ----------
         var_list: List[str]
             Variables to load
-        keys: Dict[coordinate: str, key: slice or List[int]]
+        keyring: Dict[coordinate: str, key: slice or List[int]]
         """
-        commands = self.get_commands(var_list, keys)
+        commands = self.get_commands(var_list, keyring)
         for cmd in commands:
             log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
             file = self.open_file(cmd.filename, mode='r', log_lvl='info')
@@ -210,7 +213,7 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def reorder_chunk(self, chunk, keys, order=None, variables=False):
+    def reorder_chunk(self, chunk, coords, order=None, variables=False):
         """Reorder data.
 
         Dimensions are not necessarily stored with the same
@@ -220,7 +223,7 @@ class FilegroupLoad(FilegroupScan):
         ----------
         order: List[str]
             Coordinates names ordered as in file.
-        keys: List[str]
+        coords: List[str]
             Coordinates keys asked for loading.
         chunk: Numpy array
             Data chunk taken from file and to re-order.
@@ -240,7 +243,7 @@ class FilegroupLoad(FilegroupScan):
         # If we ask for keys that are not in the file.
         # added dimensions are inserted at the begginning
         order_added = order.copy()
-        for k in keys:
+        for k in coords:
             if k not in order:
                 chunk = chunk.reshape((1, *chunk.shape))
                 order_added.insert(0, k)

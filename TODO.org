@@ -9,3 +9,7 @@ It may break if in-data indices are not the indices
 of variables in vi.var
 
 TODO: compute histograms of data
+
+FIXME: rename data.select, it can be mistaken to coordinate selection
+
+TODO: say storage order (for coords order)

@@ -6,6 +6,7 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_loader.data_base import DataBase
+from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class DataPlot(DataBase):
         super().__init__(*args, **kwargs)
 
         self.last_plot = ''
-        self.slices_plot = {}
+        self.slices_plot = Keyring()
         for name, key in self.slices.items():
             try:
                 k = key.copy()
@@ -33,56 +34,33 @@ class DataPlot(DataBase):
                 k = key
             self.slices_plot[name] = k
 
-    def _get_coords_none_previous(self, **kw_coords):
+    def _make_keyring_none_previous(self, keyring):
         """Replaces None keys by last plotted."""
-        for name, key in kw_coords.items():
+        for name, key in keyring.items_values():
             if key is None:
-                kw_coords[name] = self.slices_plot[name]
-        return kw_coords
+                keyring[name] = self.slices_plot[name]
 
-    @staticmethod
-    def _get_coords_none_single(idx=0, **kw_coords):
-        """Replaces None keys by index."""
-        for name, key in kw_coords.items():
-            if key is None:
-                kw_coords[name] = idx
-        return kw_coords
-
-    def set_plot_keys(self, variable=None, **kw_coords):
+    def set_plot_keys(self, variable=None, keyring=None):
         """Set last plotted data."""
         if variable is not None:
             self.last_plot = variable
 
-        for name, key in kw_coords.items():
+        if keyring is None:
+            keyring = Keyring()
+        for name, key in keyring.items():
             self.slices_plot[name] = key
 
-    def set_limits(self, ax, *coords, **kw_coords):
+    def set_limits(self, ax, **kw_keys):
         """Set axis limits."""
-        if len(coords) + len(kw_coords) > 2:
-            log.warning('Only first two arguments will be used.')
+        names = list(kw_keys.keys())
+        axes = [ax.xaxis, ax.yaxis]
+        for i, name in enumerate(names[:2]):
+            axis = axes[i]
+            limits = self.coords[name].get_limits(kw_keys[name])
+            axis.limit_range_for_scale(*limits)
 
-        keys = {}
-        for i, key in enumerate(coords[:2]):
-            keys[['lon', 'lat'][i]] = key
-
-        for name, key in kw_coords.items():
-            if len(keys) > 2:
-                break
-            keys[name] = key
-
-        for i in range(len(keys), 2):
-            if 'lon' not in keys:
-                keys['lon'] = None
-            if 'lat' not in keys:
-                keys['lat'] = None
-
-        kw_coords = self.get_coords_none_total(**keys)
-        names = list(kw_coords.keys())
-        ax.set_xlim(*self.coords[names[0]].get_limits(kw_coords[names[0]]))
-        ax.set_ylim(*self.coords[names[1]].get_limits(kw_coords[names[1]]))
-
-    def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_coords):
-        """Plot a frame on a heatmap.
+    def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_keys):
+        """Plot an image on a heatmap.
 
         Parameters
         ----------
@@ -102,13 +80,23 @@ class DataPlot(DataBase):
         Returns
         -------
         Matplotlib image.
+
+        Raises
+        ------
+        IndexError:
+            If image has wrong shape.
         """
         self._check_loaded()
 
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
-        frame = self.select(variable, **kw_coords)
-        self.set_plot_keys(variable, **kw_coords)
+        keyring = Keyring(**kw_keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        self.set_plot_keys(variable, keyring)
+
+        image = self.view(variable, **keyring.kw)
+        if image.ndim != 2:
+            raise IndexError("Selected data does not have the dimension"
+                             " of an image %s" % list(image.shape))
 
         kwargs_def = {'origin': 'lower'}
         if kwargs is not None:
@@ -116,13 +104,13 @@ class DataPlot(DataBase):
         kwargs = kwargs_def
 
         if coords is None:
-            coords = self.guess_map_coords(kw_coords)
-        keys_hor = {name: kw_coords[name] for name in coords}
-        extent = self.get_extent(**keys_hor)
-        im = ax.imshow(frame, extent=extent, **kwargs)
+            coords = keyring.get_high_dim(self.coords)[::-1]
+        keyring_hor = keyring.subset(coords)
+        extent = self.get_extent(**keyring_hor.kw)
+        im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
-            self.set_limits(ax, **keys_hor)
+            self.set_limits(ax, **keyring_hor.kw)
 
         return im
 
@@ -140,6 +128,11 @@ class DataPlot(DataBase):
         kw_coords: Keys
             Subset of data to plot.
             If missing, last plotted is used.
+
+        Raises
+        ------
+        IndexError:
+            If image has wrong shape.
         """
         if variable is None:
             variable = self.last_plot
@@ -147,8 +140,12 @@ class DataPlot(DataBase):
         kw_coords = self._get_coords_none_previous(**kw_coords)
         self.set_plot_keys(variable, **kw_coords)
 
-        frame = self.select(variable, **kw_coords)
-        im.set_data(frame)
+        image = self.view(variable, **kw_coords)
+        if image.ndim != 2:
+            raise IndexError("Selected data does not have the dimension"
+                             " of an image %s" % image.shape)
+
+        im.set_data(image)
 
     def contour(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_coords):
         """Plot contour of a variable.
@@ -171,19 +168,28 @@ class DataPlot(DataBase):
         Returns
         -------
         Matplotlib contour
+
+        Raises
+        ------
+        IndexError:
+            If image has wrong shape.
         """
         kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self.get_coords_none_total(**kw_coords)
 
         self.set_plot_keys(variable, **kw_coords)
-        frame = self.select(variable, **kw_coords)
+        image = self.view(variable, **kw_coords)
+
+        if image.ndim != 2:
+            raise IndexError("Selected data does not have the dimension"
+                             " of an image %s" % image.shape)
 
         if coords is None:
-            coords = self.guess_map_coords(kw_coords)[::-1]
+            coords = self.guess_image_coords(kw_coords)[::-1]
         values = [self.coords[name][kw_coords[name]]
                   for name in coords]
 
-        c = ax.contour(*values, frame, **kwargs)
+        c = ax.contour(*values, image, **kwargs)
         if limits:
             self.set_limits(ax, **{name: kw_coords[name] for name in coords})
 
@@ -207,23 +213,32 @@ class DataPlot(DataBase):
         kw_coords: Keys
             Subset of data to plot.
             If missing, last plotted is used.
+
+        Raises
+        ------
+        IndexError:
+            If image has wrong shape.
         """
         if variable is None:
             variable = self.last_plot
         kw_coords = self.get_coords_full(**kw_coords)
         kw_coords = self._get_coords_none_previous(**kw_coords)
-        frame = self.select(variable, **kw_coords)
+        image = self.view(variable, **kw_coords)
+
+        if image.ndim != 2:
+            raise IndexError("Selected data does not have the dimension"
+                             " of an image %s" % image.shape)
 
         self.set_plot_keys(variable, **kw_coords)
 
         if coords is None:
-            coords = self.guess_map_coords(kw_coords)[::-1]
+            coords = self.guess_image_coords(kw_coords)[::-1]
         values = [self.coords[name][kw_coords[name]]
                   for name in coords]
 
         for coll in c.collections:
             ax.collections.remove(coll)
-        c = ax.contour(*values, frame, **kwargs)
+        c = ax.contour(*values, image, **kwargs)
 
         return c
 
@@ -249,7 +264,7 @@ class DataPlot(DataBase):
             Subset of data to plot.
 
         Returns
-        -------
+        ------a-
         Array of Matplotlib images.
         """
         def plot(ax, dt, var, **kwargs):

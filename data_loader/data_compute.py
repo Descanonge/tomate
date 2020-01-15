@@ -69,7 +69,7 @@ class DataCompute(DataBase):
         if kwargs is None:
             kwargs = {}
 
-        data = self.select(variables, **kw_coords)
+        data = self.view(variables, **kw_coords)
         res = func(data, *args, **kwargs)
         return res
 
