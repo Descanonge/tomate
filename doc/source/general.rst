@@ -21,3 +21,14 @@ configuration tools. Examples can be found in /examples.
 
 To jump right into using the package, one can immediatly go read the
 :doc:`constructing a database<tutorial>` doc page.
+
+The package contains many configurable parts, that are as independant of each
+other as possible. What can be tweaked or expanded, and how to do it is
+explained (in part) in :ref:`Expanding the package`.
+
+Information on the files scanning process is put in
+:ref:`Scanning`.
+
+And of course, the :doc:`API reference<references/modules>` contains all the doc strings for all
+modules, classes, and functions. (The presentation is not the best,
+but be sure everything is there, and up to date).

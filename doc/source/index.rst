@@ -10,7 +10,7 @@ Welcome to the Data Loader package documentation !
 
    general
    tutorial
-   data_base
+   data
    coord
    filegroup
    scanning
@@ -18,7 +18,7 @@ Welcome to the Data Loader package documentation !
    log
    expanding
 
-   API references<references/data_loader>
+   API references<references/modules>
 
 
 Indices and tables
