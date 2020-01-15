@@ -4,10 +4,22 @@ data\_loader.masked package
 Submodules
 ----------
 
-.. toctree::
+data\_loader.masked.data\_masked module
+---------------------------------------
 
-   data_loader.masked.data_masked
-   data_loader.masked.mask
+.. automodule:: data_loader.masked.data_masked
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.masked.mask module
+-------------------------------
+
+.. automodule:: data_loader.masked.mask
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

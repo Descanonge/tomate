@@ -12,19 +12,102 @@ Subpackages
 Submodules
 ----------
 
-.. toctree::
+data\_loader.constructor module
+-------------------------------
 
-   data_loader.constructor
-   data_loader.coord
-   data_loader.coord_scan
-   data_loader.data_base
-   data_loader.data_compute
-   data_loader.data_plot
-   data_loader.iter_dict
-   data_loader.log
-   data_loader.scan_library
-   data_loader.time
-   data_loader.variables_info
+.. automodule:: data_loader.constructor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.coord module
+-------------------------
+
+.. automodule:: data_loader.coord
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.coord\_scan module
+-------------------------------
+
+.. automodule:: data_loader.coord_scan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.data\_base module
+------------------------------
+
+.. automodule:: data_loader.data_base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.data\_compute module
+---------------------------------
+
+.. automodule:: data_loader.data_compute
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.data\_plot module
+------------------------------
+
+.. automodule:: data_loader.data_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.iter\_dict module
+------------------------------
+
+.. automodule:: data_loader.iter_dict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.key module
+-----------------------
+
+.. automodule:: data_loader.key
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.log module
+-----------------------
+
+.. automodule:: data_loader.log
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.scan\_library module
+---------------------------------
+
+.. automodule:: data_loader.scan_library
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.time module
+------------------------
+
+.. automodule:: data_loader.time
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+data\_loader.variables\_info module
+-----------------------------------
+
+.. automodule:: data_loader.variables_info
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------
