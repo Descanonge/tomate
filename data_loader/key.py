@@ -196,7 +196,18 @@ class Keyring():
         """Return dictionary of keys values."""
         return dict(zip(self.coords, self.keys_values))
 
+    @property
+    def shape(self):
+        """Return shape of all keys."""
+        return [k.shape for k in self.keys]
+
     def subset(self, coords):
+        """Return a subpart of this keyring.
+
+        Parameters
+        ----------
+        coords: List[str]
+        """
         return Keyring(**{c: self[c] for c in coords})
 
     def items(self):
@@ -234,6 +245,25 @@ class Keyring():
             s.append('%s: %s' % (c, str(key)))
         return str(', '.join(s))
 
+
+    def set_shape(self, coords):
+        """Set shape of all keys using coordinates.
+
+        Parameters
+        ----------
+        coords: Dict[Coord]
+        """
+        for name, c in coords.items():
+            self[name].set_shape_coord(c)
+
+    def get_non_zeros(self):
+        """Return coordinates with a non zero shape.
+
+        ie whose dimension would not be squeezed.
+        """
+        return [name for name, k in self.items()
+                if k.shape is None or k.shape > 0]
+
     def sort_by(self, order):
         """Sort keys by order.
 
@@ -251,13 +281,25 @@ class Keyring():
         self._keys = keys_ord
 
     def make_full(self, coords, fill=None):
-        """Fill keyring missing coords."""
+        """Fill keyring missing coords.
+
+        Parameters
+        ----------
+        coords: List[str]
+        fill: Any
+        """
         for c in coords:
             if c not in self:
                 self[c] = fill
 
     def make_total(self, *coords, miss=None):
-        """Fill missing keys by total slices."""
+        """Fill missing keys by total slices.
+
+        Parameters
+        ----------
+        coords: str
+        miss: Any
+        """
         if not coords:
             coords = self.coords
         for c, v in self.items_values():
@@ -265,7 +307,14 @@ class Keyring():
                 self[c] = slice(None, None)
 
     def make_single(self, *coords, idx=0, miss=None):
-        """Fill missing keys by an index."""
+        """Fill missing keys by an index.
+
+        Parameters
+        ----------
+        coords: str
+        idx: int
+        miss: Any
+        """
         if not coords:
             coords = self.coords
         for c, v in self.items_values():
@@ -273,82 +322,28 @@ class Keyring():
                 self[c] = idx
 
     def make_int_list(self, *coords):
-        """Turn integer values into lists."""
+        """Turn integer values into lists.
+
+        Parameters
+        ----------
+        coords: str
+        """
         if not coords:
             coords = self.coords
         for c, k in self.items():
             if c in coords and k.type == 'int':
                 self[c] = [k.value]
 
-    def get_high_dim(self, coords):
+    def get_high_dim(self):
         """Returns coordinates of size higher than one."""
-        out = [c for c, v in self.items_values()
-               if coord[c][v].size > 1]
+        out = [c for c, k in self.items()
+               if k.shape is None or k.shape > 1]
         return out
-
-    def get_shape(self, coords):
-        """."""
-        shape = [coords[c][v].size
-                 for c, v in self.items_values()]
-        return shape
 
     def simplify(self):
         """Simplify keys."""
         for key in self.keys:
             key.simplify()
-
-    def has_normal_access(self):
-        """."""
-        n_list = [k.type for k in self.keys].count('list')
-        n_int = [k.type for k in self.keys].count('int')
-        if n_list >= 2:
-            return False
-        if n_list >= 1 and n_int >= 1:
-            return False
-
-        return True
-
-    def check_array_ndim(self, array):
-        if len(self) != array.ndim:
-            raise IndexError("Keyring does not have the correct"
-                             " number of keys (%d, expected %d)"
-                             % (len(self), array.ndim))
-
-    def place_normal(self, array, chunk):
-        self.check_array_ndim(array)
-        array[tuple(self.keys_values)] = chunk
-
-    def place_complex(self, array, chunk):
-        raise NotImplementedError()
-
-    def place(self, array, chunk):
-        """."""
-        if self.has_normal_access():
-            self.place_normal(array, chunk)
-        else:
-            self.place_complex(array, chunk)
-
-    def get_array_normal(self, array):
-        self.check_array_ndim(array)
-        return array[tuple(self.keys_values)]
-
-    def get_array_complex(self, array):
-        self.check_array_ndim(array)
-        out = array
-        keys = []
-        for k in self.keys:
-            keys_ = tuple(keys + [k.value])
-            print(keys_)
-            out = out[keys_]
-            if k.type != 'int':
-                keys.append(slice(None, None))
-        return out
-
-    def get_array(self, array):
-        """Transform to a tuple usable by numpy."""
-        if self.has_normal_access():
-            return self.get_array_normal(array)
-        return self.get_array_complex(array)
 
 
 def list2slice_simple(L):
