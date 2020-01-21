@@ -64,6 +64,9 @@ class VariablesInfo():
         s.append("Infos: %s" % ', '.join(self.infos))
         return '\n'.join(s)
 
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
+
     def __getattribute__(self, item):
         """Render attributes and infos accessible as attributes."""
         if item in super().__getattribute__('_attrs'):

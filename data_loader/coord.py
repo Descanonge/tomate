@@ -88,7 +88,7 @@ class Coord():
         ValueError
             If the data is not sorted.
         """
-        self._array = np.array(values)
+        self._array = np.array(values, dtype=np.float64)
         if len(self._array.shape) > 1:
             raise TypeError("Data not 1D")
         self._size = self._array.size
@@ -136,6 +136,9 @@ class Coord():
         if self.units:
             s.append("Units: %s" % self.units)
         return '\n'.join(s)
+
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
 
     def get_extent_str(self) -> str:
         """Return the extent as string."""

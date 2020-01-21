@@ -277,7 +277,7 @@ class DataPlot(DataBase):
                 kwargs['kwargs'] = {}
             im_kw.update(kwargs.pop('kwargs'))
 
-            im = dt.imshow(ax, var, coords=None, kwargs=im_kw, **kwargs)
+            im = dt.imshow(ax, var, kwargs=im_kw, **kwargs)
             title = dt.vi.get_attr_safe('fullname', var, default=var)
             ax.set_title(title)
 
@@ -289,8 +289,9 @@ class DataPlot(DataBase):
 
             return im
 
-        images = self.iter_axes(axes, plot, variables, coords,
-                                limits=limits, kwargs=kwargs, **kw_coords)
+        images = self.iter_axes(axes, plot, variables,
+                                limits=limits, kwargs=kwargs, coords=coords,
+                                **kw_coords)
         return images
 
     def update_imshow_all(self, axes, images, variables=None, **kw_coords):
@@ -328,7 +329,7 @@ class DataPlot(DataBase):
                 ax = axes.flat[i]
                 fig.delaxes(ax)
 
-    def iter_axes(self, axes, func, variables=None, iterables=None, **kwargs):
+    def iter_axes(self, axes, func, variables=None, iterables=None, *args, **kwargs):
         """Apply function over multiple axes.
 
         Parameters
@@ -358,7 +359,7 @@ class DataPlot(DataBase):
             iterable = [c.flat[i] for c in iterables]
 
             if var is not None:
-                output[i] = func(ax, self, var, *iterable, **kwargs)
+                output[i] = func(ax, self, var, *iterable, *args, **kwargs)
 
         self.set_plot_keys(variables)
         output = np.array(output)
