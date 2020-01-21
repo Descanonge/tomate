@@ -215,38 +215,33 @@ class DataBase():
         keyring.sort_by(self.coords_name)
         return self._view(variables, keyring)
 
-    def view_ordered(self, order, variables=None, **kw_coords):
+    def view_ordered(self, order, variables=None, **keys):
         """Returns a reordered subset of data.
 
         Parameters
         ----------
         order: List[str]
             List of coordinates in required order.
+            If multiple variables are selected, 'var'
+            must be present.
         variables: str or List[str]
-        kw_coords: Key
+        keys: Key-like
             Dimension of resulting subset must match
             that of `order`.
         """
-        if isinstance(variables, list) or variables is None:
-            var_dim = True
-        chunk = self.view(variables, **kw_coords)
+        if variables is None:
+            variables = self.vi.var
+        keyring = Keyring(**keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        keyring.sort_by(self.coords_name)
 
-        if len(chunk) - int(var_dim) != len(order):
-            raise IndexError("Mismatch between selected data "
-                             "and order length (shape: %s, order: %s)"
-                             % (chunk.shape[var_dim:], order))
+        idx = self.vi.idx[variables]
+        keyring['var'] = idx
+        keyring.sort_by(['var'] + keyring.coords)
 
-        target = [self.db.coords_name.index(z) for z in order]
-        current = list(range(len(target)))
-        if var_dim:
-            current = [c+1 for c in current]
-            target = [t+1 for t in target]
-
-        if target != current:
-            chunk = np.moveaxis(chunk, current, target)
-
-        return chunk
-
+        array = self.acs.take(keyring, self.data)
+        return self.acs.reorder(keyring, array, order)
 
     def iter_slices(self, coord, size_slice=12):
         """Iter through data with slices of `coord` of size `n_iter`.
