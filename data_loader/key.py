@@ -42,6 +42,7 @@ class Key():
                             " (is %s)" % type(key))
         self.value = key
         self.type = tp
+        self.set_shape()
 
     def __eq__(self, other):
         return self.value == other.value
@@ -49,13 +50,47 @@ class Key():
     def __str__(self):
         return str(self.value)
 
+
+    def set_shape(self):
+        """Set shape if possible.
+
+        Set the shape attribute.
+        Shape is the size a array would have
+        if the key was applied.
+
+        Is None if cannot be determined.
+        """
+        if self.type == 'int':
+            self.shape = 0
+        elif self.type == 'list':
+            self.shape = len(self.value)
+        else:
+            self.shape = None
+
+    def set_shape_coord(self, coord):
+        """Set shape using a coordinate.
+
+        Parameters
+        ----------
+        coord: Coord
+            The coordinate that would be used.
+        """
+        self.shape = coord[self.value].size
+
     def no_int(self):
+        """Return value, replaces int with list."""
         if self.type == 'int':
             return [self.value]
         return self.value
 
     def reverse(self, size):
-        """Reverse key."""
+        """Reverse key.
+
+        Parameters
+        ----------
+        size: int
+            Size of the coordinate.
+        """
         if self.type == 'int':
             self.value = size - self.value
         elif self.type == 'list':
