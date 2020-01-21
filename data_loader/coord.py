@@ -88,7 +88,7 @@ class Coord():
         ValueError
             If the data is not sorted.
         """
-        self._array = np.array(values)
+        self._array = np.array(values, dtype=np.float64)
         if len(self._array.shape) > 1:
             raise TypeError("Data not 1D")
         self._size = self._array.size
