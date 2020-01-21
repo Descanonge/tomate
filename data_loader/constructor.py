@@ -6,6 +6,7 @@ import inspect
 
 from data_loader.variables_info import VariablesInfo
 from data_loader.coord import select_overlap
+from data_loader.accessor import Accessor
 
 
 log = logging.getLogger(__name__)
@@ -322,7 +323,7 @@ class Constructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, dt_types):
+    def make_data(self, dt_types, accessor=None):
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -350,7 +351,7 @@ class Constructor():
         self.scan_files()
         self.check_scan()
 
-        dt_class = create_data_class(dt_types)
+        dt_class = create_data_class(dt_types, accessor)
 
         dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
@@ -422,7 +423,7 @@ def check_values(coords, threshold):
                         " This is a new feature. Has not been fully tested,"
                         " especially for 'in' coordinates. Pay extra care.")
 
-def create_data_class(dt_types):
+def create_data_class(dt_types, accessor=None):
     """Create a dynamic data class.
 
     Find a suitable name.
@@ -459,6 +460,20 @@ def create_data_class(dt_types):
                                 "subclasses", name)
                 methods.add(name)
 
-    dt_class = type(class_name, dt_types, {})
+
+    if accessor is None:
+        d = {}
+        acs_types = set()
+        for tp in dt_types:
+            acs_tp = type(tp.acs)
+            if acs_tp != Accessor:
+                if acs_tp in acs_types:
+                    log.warning("Multiple subclasses of Accessor. "
+                                "%s will take precedence.", dt_types[0])
+                acs_types.add(acs_tp)
+    else:
+        d = {'acs': accessor}
+
+    dt_class = type(class_name, dt_types, d)
 
     return dt_class

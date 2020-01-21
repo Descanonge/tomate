@@ -9,6 +9,7 @@ from data_loader.coord import Coord
 from data_loader.iter_dict import IterDict
 from data_loader.time import Time
 from data_loader.key import Keyring
+from data_loader.accessor import Accessor
 
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,8 @@ class DataBase():
         Selected (and eventually loaded) part of
         each coordinate.
     """
+
+    acs = Accessor()
 
     def __init__(self, root, filegroups, vi, *coords):
         self.root = root
@@ -185,7 +188,7 @@ class DataBase():
         idx = self.vi.idx[variables]
         keyring['var'] = idx
         keyring.sort_by(['var'] + keyring.coords)
-        return keyring.get_array(self.data)
+        return self.acs.take(keyring, self.data)
 
     def view(self, variables=None, **kw_keys):
         """Returns a subset of data.
@@ -311,6 +314,7 @@ class DataBase():
         """Link filegroups and data."""
         for fg in self.filegroups:
             fg.db = self
+            fg.acs = self.acs
 
     @property
     def dim(self):
@@ -634,11 +638,6 @@ class DataBase():
         log.info("Allocating numpy array of shape %s", shape)
         return np.zeros(shape)
 
-    @property
-    def _concatenate(self):
-        """Concatenate function."""
-        return np.concatenate
-
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.
 
@@ -733,7 +732,7 @@ class DataBase():
             self.data = self._concatenate((self.data, data), axis=0)
 
     def add_variable(self, variable, data, **infos):
-        """Concatenante new_data to data, and add kwargs to vi.
+        """Concatenate new_data to data, and add kwargs to vi.
 
         Parameters
         ----------
@@ -747,7 +746,7 @@ class DataBase():
         self.vi.add_variable(variable, **infos)
         if self.data is not None:
             null = self.allocate_memory([1] + self.shape[1:])
-            self.data = self._concatenate((self.data, null), 0)
+            self.data = self.acs.concatenate((self.data, null), 0)
         self.set_data(variable, data)
 
     def pop_variables(self, variables):

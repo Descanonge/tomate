@@ -10,6 +10,7 @@ of variables in vi.var
 
 TODO: compute histograms of data
 
-FIXME: rename data.select, it can be mistaken to coordinate selection
-
 TODO: say storage order (for coords order)
+
+TODO: separate vi.var and loaded data ?
+or create function to ask is_loaded(variable)

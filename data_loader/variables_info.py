@@ -72,33 +72,6 @@ class VariablesInfo():
             return super().__getattribute__('_infos')[item]
         return super().__getattribute__(item)
 
-    def print_variable(self, variable, print_none=False):
-        """Print all information about a variable."""
-        s = []
-        s.append("Variable: %s" % variable)
-        for attr in self.attrs:
-            value = self.get_attr(attr, variable)
-            if value is not None or print_none:
-                s.append("%s: %s" % (attr, str(value)))
-        return '\n'.join(s)
-
-    def get_attr(self, attr, var):
-        """Get attribute."""
-        return self._attrs[attr][var]
-
-    def get_attr_safe(self, attr, var, default=None):
-        """Get attribute."""
-        value = None
-        if attr in self._attrs:
-            value = self._attrs[attr][var]
-        if value is None:
-            value = default
-        return value
-
-    def get_info(self, info):
-        """Get info."""
-        return self._infos[info]
-
     def __iter__(self):
         """Enumerate over var."""
         return enumerate(self.var)
@@ -127,6 +100,38 @@ class VariablesInfo():
                 values_select[var] = self.get_attr(attr, var)
             vi.add_attr(attr, values_select)
         return vi
+
+    def print_variable(self, variable, print_none=False):
+        """Print all information about a variable."""
+        s = []
+        s.append("Variable: %s" % variable)
+        for attr in self.attrs:
+            value = self.get_attr(attr, variable)
+            if value is not None or print_none:
+                s.append("%s: %s" % (attr, str(value)))
+        return '\n'.join(s)
+
+    def get_attr(self, attr, var):
+        """Get attribute."""
+        return self._attrs[attr][var]
+
+    def get_attr_safe(self, attr, var, default=None):
+        """Get attribute."""
+        value = None
+        if attr in self._attrs:
+            value = self._attrs[attr][var]
+        if value is None:
+            value = default
+        return value
+
+    def get_info(self, info):
+        """Get info."""
+        return self._infos[info]
+
+    @property
+    def empty(self):
+        """Return VI without any variable."""
+        return self[[]]
 
     @property
     def attrs(self):

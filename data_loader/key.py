@@ -4,7 +4,21 @@ import numpy as np
 
 
 class Key():
-    """Element for indexing a dimension of an array."""
+    """Element for indexing a dimension of an array.
+
+    Can be None, int, List[int] or slice.
+
+    Parameters
+    ----------
+    key: None, int, List[int], slice
+        Key-like object.
+
+    Attributes
+    ----------
+    value: None, int, List[int], slice
+    type: str
+        {'none', 'int', 'list', 'slice'}
+    """
 
     int_types = (int, np.integer)
 

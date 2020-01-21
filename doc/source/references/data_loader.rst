@@ -12,6 +12,14 @@ Subpackages
 Submodules
 ----------
 
+data\_loader.accessor module
+----------------------------
+
+.. automodule:: data_loader.accessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 data\_loader.constructor module
 -------------------------------
 

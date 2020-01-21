@@ -60,6 +60,7 @@ class DataPlot(DataBase):
             axis.limit_range_for_scale(*limits)
 
     def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_keys):
+        # FIXME: coords is broken
         """Plot an image on a heatmap.
 
         Parameters
@@ -107,6 +108,7 @@ class DataPlot(DataBase):
             coords = keyring.get_high_dim(self.coords)[::-1]
         keyring_hor = keyring.subset(coords)
         extent = self.get_extent(**keyring_hor.kw)
+        image = self.acs.reorder(keyring, image, coords[::-1])
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
@@ -264,7 +266,7 @@ class DataPlot(DataBase):
             Subset of data to plot.
 
         Returns
-        ------a-
+        -------
         Array of Matplotlib images.
         """
         def plot(ax, dt, var, **kwargs):

@@ -101,7 +101,8 @@ class Command():
     var_list: List[str]
         Variables to take in that file.
     keyrings: List[CmdKeyrings]
-        List of Keys objects to take in that file.
+        List of keyrings that tell what to take in the file,
+        and where to place it.
     """
 
     def __init__(self):

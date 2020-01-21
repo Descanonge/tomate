@@ -249,14 +249,13 @@ class FilegroupLoad(FilegroupScan):
                 order_added.insert(0, k)
 
         # Reorder array
-        target = [self.db.coords_name.index(z) for z in order_added]
-        current = list(range(len(target)))
         if variables:
-            current = [c+1 for c in current]
-            target = [t+1 for t in target]
+            order_added.insert(0, 'var')
+            coords.insert(0, 'var')
+        source, dest = self.acs.get_order_arg(coords, order_added)
 
-        if target != current:
-            log.info("reordering %s -> %s", current, target)
-            chunk = np.moveaxis(chunk, current, target)
+        if source != dest:
+            log.info("reordering %s -> %s", source, dest)
+            chunk = self.acs.moveaxis(chunk, source, dest)
 
         return chunk

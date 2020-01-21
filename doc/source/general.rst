@@ -27,7 +27,7 @@ other as possible. What can be tweaked or expanded, and how to do it is
 explained (in part) in :ref:`Expanding the package`.
 
 Important details on how the data is accessed in arrays are available
-in :ref:`Keys: Accessing data`.
+in :ref:`Accessing data`.
 
 Information on the files scanning process is put in
 :ref:`Scanning`.

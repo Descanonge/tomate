@@ -5,10 +5,30 @@ import logging
 import numpy as np
 
 from data_loader.data_base import DataBase
+from data_loader.accessor import Accessor
 import data_loader.masked.mask
 
 
 log = logging.getLogger(__name__)
+
+
+class AccessorMask(Accessor):
+
+    @staticmethod
+    def concatenate(arrays, *args, **kwargs):
+        """Concatenate arrays.
+
+        Parameters
+        ----------
+        array: List[Array]
+        args, kwargs:
+            Passed to np.concatenate.
+
+        Returns
+        -------
+        Array
+        """
+        return np.ma.concatenate(arrays, *args, **kwargs)
 
 
 class DataMasked(DataBase):
@@ -26,6 +46,9 @@ class DataMasked(DataBase):
     compute_land_mask_func: Callable
         Function to compute land mask.
     """
+
+    acs = AccessorMask()
+
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None
 

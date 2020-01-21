@@ -44,7 +44,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
                 log.info("Placing it in %s",
                          [i_var] + krg_mem.keys_values)
-                krg_mem.place(self.db.data[i_var], chunk)
+                self.acs.place(krg_mem, self.db.data[i_var], chunk)
 
     def _load_slice_single_var(self, file, keyring, ncname):
         """Load data for a single variable.
@@ -64,9 +64,10 @@ class FilegroupNetCDF(FilegroupLoad):
         order, krg_inf = self._get_order(file, ncname, keyring)
 
         log.info("Taking keys %s", krg_inf.keys_values)
-        chunk = krg_inf.get_array(file[ncname])
+        chunk = self.acs.take(krg_inf, file[ncname])
 
-        expected_shape = krg_inf.get_shape(self.db.get_coords_from_backup())
+        krg_inf.set_shape(self.db.get_coords_from_backup(*krg_inf.coords))
+        expected_shape = krg_inf.shape
         assert (expected_shape == list(chunk.shape)), ("Chunk does not have correct "
                                                        "shape, has %s, expected %s"
                                                        % (list(chunk.shape), expected_shape))
