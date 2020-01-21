@@ -137,6 +137,9 @@ class Coord():
             s.append("Units: %s" % self.units)
         return '\n'.join(s)
 
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
+
     def get_extent_str(self) -> str:
         """Return the extent as string."""
         return "{0} - {1}".format(*self.get_extent())

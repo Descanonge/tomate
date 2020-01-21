@@ -112,6 +112,9 @@ class DataBase():
 
         return '\n'.join(s)
 
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
+
     @property
     def bases(self):
         """Return dictionary of base classes names.
