@@ -260,7 +260,7 @@ class DataPlot(DataBase):
                 kwargs['kwargs'] = {}
             im_kw.update(kwargs.pop('kwargs'))
 
-            im = dt.imshow(ax, var, coords=None, kwargs=im_kw, **kwargs)
+            im = dt.imshow(ax, var, kwargs=im_kw, **kwargs)
             title = dt.vi.get_attr_safe('fullname', var, default=var)
             ax.set_title(title)
 
@@ -272,8 +272,9 @@ class DataPlot(DataBase):
 
             return im
 
-        images = self.iter_axes(axes, plot, variables, coords,
-                                limits=limits, kwargs=kwargs, **kw_coords)
+        images = self.iter_axes(axes, plot, variables,
+                                limits=limits, kwargs=kwargs, coords=coords,
+                                **kw_coords)
         return images
 
     def update_imshow_all(self, axes, images, variables=None, **kw_coords):
