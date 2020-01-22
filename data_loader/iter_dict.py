@@ -9,14 +9,6 @@ Uses python 3.7 ordered dictionnary feature.
 
 import sys
 
-if sys.version_info[:2] < (3, 7):
-    raise Exception("Python 3.7 or a more recent version is required.")
-    # After python 3.7 dictionnaries are guaranteed to conserve the order of
-    #  item assignement. Dict containing infos associated with variables names
-    #  are kept in sync with data array.
-    # BUT the code has been written so that this is uncessary, however this
-    #  presently still need reviewing.
-
 
 class IterDict(dict):
     """Dictionnary that can also be indexed (and sliced).

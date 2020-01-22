@@ -42,6 +42,8 @@ IterDict
     is preserved (in python 3.7+).
 """
 
+import sys
+
 from .log import set_logging
 
 from .coordinates.coord import Coord
@@ -67,5 +69,10 @@ __all__ = [
     'DataBase',
     'Constructor'
 ]
+
+
+if sys.version_info[:2] < (3, 7):
+    raise Exception("Python 3.7 or above is required.")
+
 
 set_logging()
