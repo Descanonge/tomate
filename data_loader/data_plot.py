@@ -13,26 +13,12 @@ log = logging.getLogger(__name__)
 
 
 class DataPlot(DataBase):
-    """Added functionalities for plotting data.
-
-    Attributes
-    ----------
-    variables_plot: List[str]
-    slices_plot: Dict
-        What part of the data have been plotted.
-    """
+    """Added functionalities for plotting data."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.last_plot = ''
-        self.slices_plot = Keyring()
-        for name, key in self.slices.items():
-            try:
-                k = key.copy()
-            except AttributeError:
-                k = key
-            self.slices_plot[name] = k
+        self.plotted = self.avail.copy()
+        self.plotted.empty()
 
     def _make_keyring_none_previous(self, keyring):
         """Replaces None keys by last plotted."""
@@ -40,27 +26,43 @@ class DataPlot(DataBase):
             if key is None:
                 keyring[name] = self.slices_plot[name]
 
-    def set_plot_keys(self, variable=None, keyring=None):
-        """Set last plotted data."""
-        if variable is not None:
-            self.last_plot = variable
+    def set_limits(self, ax, scope=None, *coords, **kw_keys):
+        """Set axis limits.
 
-        if keyring is None:
-            keyring = Keyring()
-        for name, key in keyring.items():
-            self.slices_plot[name] = key
+        Parameters
+        ----------
+        ax: Matplotlib.Axes
+        scope: Scope, optional
+            Scope to act on. Default is plotted if not empty
+            available otherwise.
+        coords: str, optional
+            Coords to take limit from.
+            Default to firts coordinates present in scope,
+            of size above 1.
+            or first `kw_keys` if present.
+        kw_keys: key-like, optional
+            Subpart of coordinates to consider.
+            If not specified, all coordinates range are taken.
+        """
+        if scope is None:
+            if not self.plotted.is_empty():
+                scope = self.plotted
+            else:
+                scope = self.avail
 
-    def set_limits(self, ax, **kw_keys):
-        """Set axis limits."""
-        names = list(kw_keys.keys())
+        if kw_keys:
+            names = kw_keys.keys()
+        elif coords:
+            names = coords
+        else:
+            names = scope.get_high_dim()
         axes = [ax.xaxis, ax.yaxis]
         for i, name in enumerate(names[:2]):
             axis = axes[i]
-            limits = self.coords[name].get_limits(kw_keys[name])
+            limits = scope[name].get_limits(kw_keys[name])
             axis.limit_range_for_scale(*limits)
 
     def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_keys):
-        # FIXME: coords is broken
         """Plot an image on a heatmap.
 
         Parameters
@@ -75,8 +77,9 @@ class DataPlot(DataBase):
             Set axis limits.
         kwargs: Dict[Any]
             Passed to imshow.
-        kw_coords: Keys
+        kw_keys: key-like
             Subset of data to plot.
+            Act on available.
 
         Returns
         -------
@@ -92,12 +95,13 @@ class DataPlot(DataBase):
         keyring = Keyring(**kw_keys)
         keyring.make_full(self.coords_name)
         keyring.make_total()
-        self.set_plot_keys(variable, keyring)
 
         image = self.view(variable, **keyring.kw)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % list(image.shape))
+
+        self.plotted = self._select_from_avail([variable], keyring)
 
         kwargs_def = {'origin': 'lower'}
         if kwargs is not None:
@@ -105,18 +109,18 @@ class DataPlot(DataBase):
         kwargs = kwargs_def
 
         if coords is None:
-            coords = keyring.get_high_dim(self.coords)[::-1]
-        keyring_hor = keyring.subset(coords)
-        extent = self.get_extent(**keyring_hor.kw)
+            coords = keyring.get_high_dim()
+
+        extent = self.plotted.get_extent(*coords)
         image = self.acs.reorder(keyring, image, coords[::-1])
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
-            self.set_limits(ax, **keyring_hor.kw)
+            self.set_limits(ax, self.plotted, *coords)
 
         return im
 
-    def update_imshow(self, im, variable=None, **kw_coords):
+    def update_imshow(self, im, variable=None, **kw_keys):
         """Update a heatmap plot.
 
         If a parameter is None, the value used for setting
@@ -127,8 +131,9 @@ class DataPlot(DataBase):
         im: Matplotlib image
         variable: str
             If None, last plotted is used.
-        kw_coords: Keys
+        kw_keys: Keys
             Subset of data to plot.
+            Act on available.
             If missing, last plotted is used.
 
         Raises
@@ -137,16 +142,17 @@ class DataPlot(DataBase):
             If image has wrong shape.
         """
         if variable is None:
-            variable = self.last_plot
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self._get_coords_none_previous(**kw_coords)
-        self.set_plot_keys(variable, **kw_coords)
+            variable = self.plotted.var[0]
+        self.plotted.var = [variable]
+        if kw_keys:
+            krg = Keyring(**kw_keys)
+            krg.make_total()
+            self.plotted = self._select_from_avail(variable, krg)
 
-        image = self.view(variable, **kw_coords)
+        image = self._view_scope(self.plotted)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % image.shape)
-
         im.set_data(image)
 
     def contour(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_coords):

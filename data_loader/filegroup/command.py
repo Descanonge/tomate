@@ -248,7 +248,10 @@ def merge_cmd_per_file(commands):
     ----------
     Commands: List[Command]
     """
-    filenames = {cmd.filename for cmd in commands}
+    filenames = []
+    for cmd in commands:
+        if cmd.filename not in filenames:
+            filenames.append(cmd.filename)
 
     commands_merged = []
     for filename in filenames:

@@ -36,7 +36,7 @@ class FilegroupNetCDF(FilegroupLoad):
         """
         for var in cmd.var_list:
             ncname = self.get_ncname(var)
-            i_var = self.db.vi.idx[var]
+            i_var = self.db.loaded.idx[var]
             log.info("Looking at variable %s", ncname)
 
             for krg_inf, krg_mem in cmd:
@@ -66,7 +66,7 @@ class FilegroupNetCDF(FilegroupLoad):
         log.info("Taking keys %s", krg_inf.keys_values)
         chunk = self.acs.take(krg_inf, file[ncname])
 
-        krg_inf.set_shape(self.db.get_coords_from_backup(*krg_inf.coords))
+        krg_inf.set_shape(self.db.avail.subset(krg_inf.coords))
         expected_shape = krg_inf.shape
         assert (expected_shape == list(chunk.shape)), ("Chunk does not have correct "
                                                        "shape, has %s, expected %s"
@@ -99,20 +99,19 @@ class FilegroupNetCDF(FilegroupLoad):
         keys_ord = Keyring()
         for coord_nc in order_nc:
             try:
-                coord = self.db.get_coord(coord_nc)
+                name = self.db.get_coord_name(coord_nc)
             # If the demanded coord is not in file
             except KeyError:
                 dim = file.dimensions[coord_nc].size
                 if dim > 1:
                     log.warning("Additional dimension %s in file of "
                                 "size > 1. The first index will be used",
-                                coord)
+                                coord_nc)
                 name = coord_nc
                 k = 0
                 # We do not keep the coord name in `order` for a key equal to zero,
                 # numpy will squeeze the axis.
             else:
-                name = coord.name
                 k = keyring[name]
                 order.append(name)
 
@@ -156,7 +155,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 except AttributeError:
                     t = 'f'
                 dt.createVariable(var, t, self.db.coords_name)
-                dt[var][:] = self.db.data[self.db.vi.idx[var]]
+                dt[var][:] = self.db.data[self.db.idx[var]]
 
                 for attr in self.db.vi.attrs:
                     if not attr.startswith('_'):

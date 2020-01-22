@@ -4,13 +4,8 @@ TODO: general doc
 
 TODO: use generators when possible
 
-TODO: make sure VI is correct with its indices
-It may break if in-data indices are not the indices
-of variables in vi.var
-
 TODO: compute histograms of data
 
 TODO: say storage order (for coords order)
 
-TODO: separate vi.var and loaded data ?
-or create function to ask is_loaded(variable)
+TODO: add note on python 3.7+

@@ -151,7 +151,7 @@ class DataMasked(DataBase):
 
         size = 1
         for c in coords:
-            size *= self.coords[c].size
+            size *= self.loaded[c].size
 
         cover = np.sum(~self[variable].mask, axis=tuple(axis))
         return cover / size * 100
@@ -189,9 +189,9 @@ class DataMasked(DataBase):
             self.data.mask |= m
 
         if chla:
-            A = self.data[self.vi.idx['Chla_OC5']]
+            A = self.data[self.idx['Chla_OC5']]
             A = np.clip(A, 0, 3)
-            self.data[self.vi.idx['Chla_OC5']] = A
+            self.data[self.idx['Chla_OC5']] = A
             # A[A > 3] = np.nan
 
     def set_compute_land_mask(self, func):
@@ -207,7 +207,8 @@ class DataMasked(DataBase):
 
     def compute_land_mask(self):
         """Compute land mask and save to disk."""
-        lat, lon = self.get_coords_from_backup('lat', 'lon')
+        lat = self.avail.lat
+        lon = self.avail.lon
         mask = self.compute_land_mask_func(lat, lon)
         np.save(self.root + 'land_mask.npy', mask)
 

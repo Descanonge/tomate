@@ -5,11 +5,9 @@ from types import MethodType
 
 import numpy as np
 
-from data_loader.coord import Coord
-from data_loader.iter_dict import IterDict
-from data_loader.time import Time
 from data_loader.key import Keyring
 from data_loader.accessor import Accessor
+from data_loader.scope import Scope
 
 
 log = logging.getLogger(__name__)
@@ -42,21 +40,11 @@ class DataBase():
         Index of filegroup for each variable
 
     vi: VariablesInfo
-    _vi_bak: VariablesInfo
-        Copy of the vi at its initial state.
+        Currently loaded variables
 
     coords_name: List[str]
         Coordinates names, in the order the data
         is kept.
-    coords: Dict[str, Coord]
-        Coordinates by name, in the order the data
-        is kept.
-    _coords_bak: Dict[str, Coord]
-        Copies of the coordinates it their initial
-        state.
-    slices: Dict
-        Selected (and eventually loaded) part of
-        each coordinate.
     """
 
     acs = Accessor()
@@ -65,11 +53,13 @@ class DataBase():
         self.root = root
 
         names = [c.name for c in coords]
-        coords_bak = IterDict(dict(zip(names, coords)))
         self.coords_name = names
-        self._coords_bak = coords_bak
-        self.coords = self.get_coords_from_backup()
-        self.slices = Keyring(**{c.name: slice(0, c.size, 1) for c in coords})
+        self.avail = Scope(vi.var, *coords)
+
+        self.loaded = self.avail.copy()
+        self.select = self.avail.copy()
+        self.loaded.empty()
+        self.select.empty()
 
         self._fg_idx = {}
         self.filegroups = filegroups
@@ -78,7 +68,6 @@ class DataBase():
                 self._fg_idx.update({var: i})
 
         self.vi = vi
-        self._vi_bak = vi.copy()
 
         self.data = None
 
@@ -92,23 +81,19 @@ class DataBase():
         s.append(s1 + s2)
         s.append('')
 
-        s.append("Variables: %s" % ', '.join(self.vi.var))
-        s.append('')
-
-        s.append("Data selected:")
-        s += ["\t%s: %s (%s)" % (c.name, c.get_extent_str(), c.size)
-              for c in self.coords.values()]
-        s.append('')
-
-        s.append("Data available:")
-        s += ["\t%s: %s (%d)" % (c.name, c.get_extent_str(), c.size)
-              for c in self.get_coords_from_backup().values()]
+        s.append("Data available: \n%s" % str(self.avail))
         s.append('')
 
         if self.data is None:
             s.append('Data not loaded')
         else:
-            s.append('Data loaded: %s' % str(self.slices))
+            s.append('Data loaded: \n%s' % str(self.loaded))
+        s.append('')
+
+        if self.select.is_empty():
+            s.append('No data selected')
+        else:
+            s.append('Data selected: \n%s' % str(self.select))
         s.append('')
 
         s.append("%d Filegroups:" % len(self.filegroups))
@@ -154,10 +139,10 @@ class DataBase():
             If key is string and not a coordinate or variable.
         """
         if isinstance(y, str):
-            if y in self.vi.var:
-                y = self.vi.idx[y]
+            if y in self.loaded.var:
+                y = self.idx[y]
             elif y in self.coords_name:
-                return self.coords[y]
+                return self.scope[y]
             else:
                 raise KeyError("Key '%s' not in coordinates or variables" % y)
 
@@ -169,8 +154,23 @@ class DataBase():
         Can be used to retrieve coordinate by name.
         """
         if item in super().__getattribute__('coords_name'):
-            return super().__getattribute__('coords')[item]
+            if not self.loaded.is_empty():
+                scope = super().__getattribute__('loaded')
+            else:
+                scope = super().__getattribute__('avail')
+            return scope[item]
         return super().__getattribute__(item)
+
+    @property
+    def scope(self):
+        """Loaded scope if possible, available otherwise."""
+        if not self.loaded.is_empty():
+            return self.loaded
+        return self.avail
+
+    @property
+    def idx(self):
+        return self.loaded.idx
 
     def _view(self, variables, keyring):
         """Returns a subset of data.
@@ -188,10 +188,23 @@ class DataBase():
         Array
             Subset of data, in storage order.
         """
-        idx = self.vi.idx[variables]
+        idx = self.idx[variables]
         keyring['var'] = idx
-        keyring.sort_by(['var'] + keyring.coords)
+        keyring.sort_by(['var'] + self.coords_name)
         return self.acs.take(keyring, self.data)
+
+    def view_scope(self, scope):
+        if scope.is_empty():
+            raise RuntimeError("Scope is empty.")
+        self._check_loaded()
+
+        variables = scope.var
+        k = Keyring()
+        for name, c in scope.coords.items():
+            key = self.loaded[name].subset(c.get_limits())
+            k[name] = key
+        return self._view(variables, k)
+
 
     def view(self, variables=None, **kw_keys):
         """Returns a subset of data.
@@ -239,7 +252,7 @@ class DataBase():
         keyring.make_total()
         keyring.sort_by(self.coords_name)
 
-        idx = self.vi.idx[variables]
+        idx = self.idx[variables]
         keyring['var'] = idx
         keyring.sort_by(['var'] + keyring.coords)
 
@@ -247,7 +260,7 @@ class DataBase():
         return self.acs.reorder(keyring, array, order)
 
     def iter_slices(self, coord, size_slice=12):
-        """Iter through data with slices of `coord` of size `n_iter`.
+        """Iter through loaded data with slices of `coord` of size `n_iter`.
 
         Parameters
         ----------
@@ -256,20 +269,10 @@ class DataBase():
         size_slice: int, optional
             Size of the slices to take.
         """
-        # TODO: Add subset selection
-        c = self.get_coords_from_backup(coord)[coord]
-
-        n_slices = int(np.ceil(c.size / size_slice))
-        slices = []
-        for i in range(n_slices):
-            start = i*size_slice
-            stop = min((i+1)*size_slice, c.size)
-            slices.append(slice(start, stop))
-
-        return slices
+        return self.scope.iter_slices(coord, size_slice)
 
     def iter_slices_month(self, coord='time'):
-        """Iter through data with slices corresponding to a month.
+        """Iter through loaded data with slices corresponding to a month.
 
         Parameters
         ----------
@@ -277,36 +280,11 @@ class DataBase():
             Coordinate to iterate along to.
             Must be subclass of Time.
 
-        Raises
-        ------
-        TypeError:
-            If the coordinate is not a subclass of Time.
-
         See also
         --------
         iter_slices: Iter through any coordinate
         """
-        c = self.get_coords_from_backup(coord)[coord]
-        if not issubclass(type(c), Time):
-            raise TypeError("'%s' is not a subclass of Time (is %s)"
-                            % (coord, type(coord)))
-
-        dates = c.index2date()
-        slices = []
-        indices = []
-        m_old = dates[0].month
-        y_old = dates[0].year
-        for i, d in enumerate(dates):
-            m = d.month
-            y = d.year
-            if m != m_old or y != y_old:
-                slices.append(indices)
-                indices = []
-            indices.append(i)
-            m_old = m
-            y_old = y
-
-        return slices
+        return self.scope.iter_slices_month(coord)
 
     def link_filegroups(self):
         """Link filegroups and data."""
@@ -327,32 +305,17 @@ class DataBase():
         -------
         List[int]
         """
-        return [self.vi.n] + [c.size for c in self.coords.values()]
+        return self.scope.shape
 
-    def get_coords_from_backup(self, *coords):
-        """Remake coordinates from backup.
+    def get_coord_name(self, name):
+        """Return coord name.
+
+        Search within alternative names.
 
         Parameters
         ----------
-        coords: List[str]
-            Coord to select. If None, all coordinates
-            are taken.
-
-        Returns
-        -------
-        IterDict[Coord]
-        """
-        if not coords:
-            coords = self.coords_name
-        coords_bak = [self._coords_bak[name] for name in coords]
-        copy = [c.copy() for c in coords_bak]
-        coords = IterDict(dict(zip(coords, copy)))
-        return coords
-
-    def get_coord(self, name: str) -> Coord:
-        """Return Coord with name.
-
-        Search within alternative names.
+        name: str
+            Coordinate name or alternative names.
 
         Raises
         ------
@@ -360,21 +323,22 @@ class DataBase():
             If the name is not found.
         """
         # First check name
-        for c_name, coord in self.coords.items():
+        for c_name in self.avail:
             if c_name == name:
-                return coord
+                return c_name
 
         # Then check name_alt
-        for c_name, coord in self.coords.items():
+        for c_name, coord in self.avail.coords.items():
             if name in coord.name_alt:
-                return coord
+                return c_name
 
-        raise KeyError(str(name) + " not found")
+        raise KeyError("%s not found" % name)
 
     def get_limits(self, *coords, **kw_keys):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
+        Loaded scope if present, available otherwise.
 
         Parameters
         ----------
@@ -398,19 +362,10 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        kw_keys.update({name: None for name in coords})
-        if not kw_keys:
-            kw_keys = {name: None for name in self.coords_name}
-        keyring = Keyring(**kw_keys)
-        keyring.make_total()
-
-        limits = []
-        for name, key in keyring.items_values():
-            limits += self[name].get_limits(key)
-        return limits
+        return self.scope.get_limits(*coords, **kw_keys)
 
     def get_extent(self, *coords, **kw_keys):
-        """Return extent of coordinates.
+        """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
 
@@ -436,16 +391,7 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        kw_keys.update({name: None for name in coords})
-        if not kw_keys:
-            kw_keys = {name: None for name in self.coords_name}
-        keyring = Keyring(**kw_keys)
-        keyring.make_total()
-
-        extent = []
-        for name, key in keyring.items_values():
-            extent += self[name].get_extent(key)
-        return extent
+        return self.scope.get_extent(*coords, **kw_keys)
 
     def get_kw_keys(self, *keys, **kw_keys):
         """Make keyword keys when asking for coordinates parts.
@@ -473,24 +419,17 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def guess_image_coords(self, keyring):
-        """Find coordinates with keys of size higher than one.
+    def _select_from_avail(self, variables=None, keyring=None):
+        if keyring is None:
+            keyring = Keyring()
+        keyring['var'] = variables
 
-        Returns names of coordinates in order.
-        """
-        keyring.sort_by(self.coords_name)
-        coords = [name for name, key in keyring.items()
-                  if self.coords[name][key].size > 1]
-        return coords
+        scope = self.avail.copy()
+        scope.slice(**keyring.kw)
+        return scope
 
-    def set_slice(self, variables=None, **kw_keys):
-        """Pre-select variables and coordinates slices.
-
-        Selection is applied to **available** coordinates.
-        Should be used only if data is not loaded,
-        otherwise use `slice_data`.
-
-        This selection is reset when using self.load_data.
+    def select_data(self, variables=None, **kw_keys):
+        """Slices loaded data slices.
 
         Parameters
         ----------
@@ -506,32 +445,15 @@ class DataBase():
         --------
         slice_data: For when data is loaded.
         """
-        if self.data is not None:
-            log.warning("Using set_coords_slice with data loaded can decouple "
-                        "data and coords. Use slice_data instead.")
-
-        if variables is None:
-            variables = slice(None, None)
-
         keyring = Keyring(**kw_keys)
         keyring.make_full(self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        keyring.sort_by(self.coords_name)
 
-        self.vi = self._vi_bak[variables]
+        self.select = self._select_from_avail(variables, keyring)
 
-        coords = self.get_coords_from_backup()
-        for name, key in keyring.items_values():
-            coords[name].slice(key)
-        self.coords = coords
-        self.slices = keyring
-
-    def slice_data(self, variables=None, **kw_keys):
+    def slice(self, variables=None, **kw_keys):
         """Select a subset of loaded data and coords.
-
-        Selection is applied to **loaded** coordinates and variables.
-        If data is loaded, the array is also sliced.
 
         Parameters
         ----------
@@ -542,24 +464,22 @@ class DataBase():
             Part of coordinates to select, from part already selected or loaded.
             If None, no change are made.
         """
+        self._check_loaded()
+
         if variables is None:
-            variables = self.vi.var
+            variables = self.loaded.var
+
         keyring = Keyring(**kw_keys)
         keyring.make_full(self.coords_name)
         keyring.make_total()
-        keyring.sort_by(self.coords_name)
 
-        for name, key in keyring.items():
-            self.coords[name].slice(key)
-        self.slices += keyring
-
-        if self.data is not None:
-            self.data = self._view(variables, keyring)
+        self.loaded.slice(var=variables, **keyring.kw)
+        self.data = self._view(variables, keyring)
 
     def unload_data(self):
         """Remove data, return coordinates and variables to all available."""
         self.data = None
-        self.set_slice()
+        self.loaded = self.avail.copy()
 
     def load_data(self, variables, *keys, **kw_keys):
         """Load part of data from disk into memory.
@@ -607,13 +527,19 @@ class DataBase():
         >>> dt.load_data("SST", 0, lat=slice(200, 400))
         """
         self.unload_data()
+
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        self.set_slice(variables=variables, **kw_keys)
+        keyring = Keyring(**kw_keys)
+        keyring.make_full(self.coords_name)
+        keyring.make_total()
+        keyring.make_int_list()
+        self.loaded = self._select_from_avail(variables, keyring)
+
         self.data = self.allocate_memory(self.shape)
 
         fg_var = self._get_filegroups_for_variables(self.vi.var)
         for fg, var_load in fg_var:
-            fg.load_data(var_load, self.slices)
+            fg.load_data(var_load, keyring)
 
         try:
             self.do_post_load() #pylint: disable=not-callable
@@ -718,50 +644,46 @@ class DataBase():
 
         # No data is loaded
         if self.data is None:
+            self.loaded = self.avail.copy()
+            self.loaded.var = [var]
             self.data = data
 
         # Variable is already loaded
-        elif var in self.vi.var:
+        elif var in self.loaded.var:
             self[var][:] = data[0]
 
         # Variable is not loaded, others are
         else:
-            self.vi = self._vi_bak[self.vi.var + [var]]
-            self.data = self._concatenate((self.data, data), axis=0)
+            self.loaded.var.append(var)
+            self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable, data, **infos):
+    def add_variable(self, variable, data=None, **infos):
         """Concatenate new_data to data, and add kwargs to vi.
 
         Parameters
         ----------
         variable: str
             Variable to add
-        data: Array
+        data: Array, optional
             Corresponding data
         infos:
             Passed to VariablesInfo.add_variable
         """
         self.vi.add_variable(variable, **infos)
-        if self.data is not None:
-            null = self.allocate_memory([1] + self.shape[1:])
-            self.data = self.acs.concatenate((self.data, null), 0)
-        self.set_data(variable, data)
+        self.avail.var.append(variable)
+        if data is not None:
+            self.set_data(variable, data)
 
-    def pop_variables(self, variables):
-        """Remove variables from data and vi.
+    def remove_loaded_variable(self, variable):
+        """Remove variable from data.
 
         Parameters
         ----------
-        variables: List[str]
-            Variables to remove.
+        variable: str
         """
-        if not isinstance(variables, (list, tuple)):
-            variables = [variables]
-
-        keys = self.vi.idx[variables]
-        if self.data is not None:
+        if variable in self.loaded:
+            keys = self.loaded.idx[variable]
             self.data = np.delete(self.data, [keys], axis=0)
-        self.vi.pop_variables(variables)
 
     def write(self, filename, wd=None, variables=None, **kwcoords):
         """Write variables to disk.

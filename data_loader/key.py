@@ -50,7 +50,6 @@ class Key():
     def __str__(self):
         return str(self.value)
 
-
     def set_shape(self):
         """Set shape if possible.
 
@@ -238,6 +237,10 @@ class Keyring():
         """
         for name, key in keys.items():
             self[name] = key
+
+    def remove(self, key):
+        """Pop a key."""
+        self._keys.remove(key)
 
     def __str__(self):
         s = []

@@ -31,8 +31,6 @@ class VariablesInfo():
     ----------
     var: List[str]
         Variables names
-    idx: Dict[name: str, int]
-        Index of variables in the data.
     n: int
         Number of variables
     'attrs': Dict[attribute: str, IterDict[variable: str, Any]]
@@ -40,14 +38,12 @@ class VariablesInfo():
     """
 
     def __init__(self, variables=None, attributes=None, **infos):
-        # Add the var and idx attributes
         if variables is None:
             variables = []
         if attributes is None:
             attributes = {}
 
         self.var = tuple(variables)
-        self.idx = IterDict({k: i for i, k in enumerate(variables)})
         self.n = len(variables)
 
         self._attrs = {}
@@ -84,25 +80,17 @@ class VariablesInfo():
 
         Parameters
         ----------
-        item: str, List[str], slice of str, int, List[int], slice of int
+        item: str
+            Variable or attribute
 
         Returns
         -------
-        vi: VariablesInfo
+        vi: Dict[Any]
         """
-        keys = self.idx[item]
-        if not isinstance(keys, list):
-            keys = [keys]
-
-        variables = [self.var[i] for i in keys]
-
-        vi = VariablesInfo(variables, {}, **self._infos)
-        for attr in self._attrs:
-            values_select = {}
-            for var in variables:
-                values_select[var] = self.get_attr(attr, var)
-            vi.add_attr(attr, values_select)
-        return vi
+        if item in self.var:
+            return {name: attrs[item] for name, attrs in self._attrs}
+        if item in self.attrs:
+            return self._attrs[item]
 
     def print_variable(self, variable, print_none=False):
         """Print all information about a variable."""
@@ -130,11 +118,6 @@ class VariablesInfo():
     def get_info(self, info):
         """Get info."""
         return self._infos[info]
-
-    @property
-    def empty(self):
-        """Return VI without any variable."""
-        return self[[]]
 
     @property
     def attrs(self):
@@ -226,7 +209,6 @@ class VariablesInfo():
             self._attrs[attr][variable] = None
 
         self.n += 1
-        self.idx.update({variable: self.n-1})
         self.add_attrs_per_variable(variable, attrs)
 
     def pop_variables(self, variables):
@@ -249,7 +231,6 @@ class VariablesInfo():
             var_list.remove(v)
             self.n -= 1
         self.var = tuple(var_list)
-        self.idx = IterDict({k: i for i, k in enumerate(var_list)})
 
     def remove_attr(self, attr):
         """Remove attribute."""
