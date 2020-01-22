@@ -44,8 +44,8 @@ IterDict
 
 from .log import set_logging
 
-from .coord import Coord
-from .time import Time
+from .coordinates.coord import Coord
+from .coordinates.time import Time
 from .key import Keyring
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo

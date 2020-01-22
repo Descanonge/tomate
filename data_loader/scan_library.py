@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
-from data_loader.time import change_units
+from data_loader.coordinates.time import change_units
 
 
 def get_date_from_matches(cs, default_date=None):

@@ -5,7 +5,7 @@ import os
 import inspect
 
 from data_loader.variables_info import VariablesInfo
-from data_loader.coord import select_overlap
+from data_loader.coordinates.coord import select_overlap
 from data_loader.accessor import Accessor
 
 

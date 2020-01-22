@@ -28,22 +28,6 @@ data\_loader.constructor module
    :undoc-members:
    :show-inheritance:
 
-data\_loader.coord module
--------------------------
-
-.. automodule:: data_loader.coord
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-data\_loader.coord\_scan module
--------------------------------
-
-.. automodule:: data_loader.coord_scan
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 data\_loader.data\_base module
 ------------------------------
 
@@ -100,10 +84,10 @@ data\_loader.scan\_library module
    :undoc-members:
    :show-inheritance:
 
-data\_loader.time module
-------------------------
+data\_loader.scope module
+-------------------------
 
-.. automodule:: data_loader.time
+.. automodule:: data_loader.scope
    :members:
    :undoc-members:
    :show-inheritance:

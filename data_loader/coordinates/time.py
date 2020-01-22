@@ -10,7 +10,7 @@ from datetime import datetime
 
 from netCDF4 import date2num, num2date
 
-from data_loader.coord import Coord
+from data_loader.coordinates.coord import Coord
 
 
 locale.setlocale(locale.LC_ALL, '')
@@ -32,8 +32,8 @@ class Time(Coord):
 
     def get_extent_str(self) -> str:
         """Return extent as str."""
-        return "{0} - {1}".format(*[z.strftime("%x %X")
-                                    for z in self.index2date([0, -1])])
+        return "%s - %s" % tuple(self.format(v)
+                                 for v in self.index2date([0, -1]))
 
     def update_values(self, values: List[float]):
         """Update values.
@@ -114,6 +114,16 @@ class Time(Coord):
         self._array = change_units(self._array, self.units, units)
         self.units = units
 
+    @staticmethod
+    def format(value, fmt=None):
+        if isinstance(value, datetime):
+            if fmt is None:
+                fmt = '%x %X'
+            return value.strftime(fmt)
+        else:
+            if fmt is None:
+                fmt = '{:.2f}'
+            return fmt.format(value)
 
 def change_units(values, units_old, units_new):
     """Change time units."""

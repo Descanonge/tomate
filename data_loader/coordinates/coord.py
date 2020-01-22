@@ -67,7 +67,7 @@ class Coord():
 
         self._array = None
         self._descending = None
-        self._size = None
+        self._size = 0
         if array is not None:
             self.update_values(array)
 
@@ -127,9 +127,9 @@ class Coord():
         s = []
         s.append(str(type(self)))
         s.append("Name: %s" % self.name)
+        s.append("Size: %d" % self.size)
         if self.has_data():
             s.append("Extent: %s" % self.get_extent_str())
-            s.append("Size: %d" % self.size)
             s.append("Descending: %s" % ['no', 'yes'][self.is_descending()])
         if len(self.name_alt) > 0:
             s.append("Alternative names: %s" % ', '.join(self.name_alt))
@@ -142,7 +142,7 @@ class Coord():
 
     def get_extent_str(self) -> str:
         """Return the extent as string."""
-        return "{0} - {1}".format(*self.get_extent())
+        return "%s - %s" % tuple(self.format(v) for v in self.get_extent())
 
     def copy(self):
         """Return a copy of itself."""
@@ -154,8 +154,16 @@ class Coord():
 
     def slice(self, key):
         """Slice the coordinate."""
+        if key is None:
+            key = slice(None, None)
         data = self._array[key]
         self.update_values(data)
+
+    def empty(self):
+        """Empty values."""
+        self._array = None
+        self._descending = None
+        self._size = 0
 
     def subset(self, vmin, vmax):
         """Return slice between vmin and vmax (included).
@@ -276,6 +284,11 @@ class Coord():
             idx = self.size-idx - 1
 
         return idx
+
+    @staticmethod
+    def format(value, fmt='{:.2f}'):
+        """Format a scalar value."""
+        return fmt.format(value)
 
     def get_collocated(self, other):
         """Return indices of identical values.

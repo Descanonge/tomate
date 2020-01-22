@@ -26,7 +26,7 @@ from types import MethodType
 
 import numpy as np
 
-from data_loader.coord import Coord
+from data_loader.coordinates.coord import Coord
 from data_loader.key import Key
 
 
