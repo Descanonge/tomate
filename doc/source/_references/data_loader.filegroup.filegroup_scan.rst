@@ -19,6 +19,7 @@ data\_loader.filegroup.filegroup\_scan
 
 
    .. autoclass:: FilegroupScan
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

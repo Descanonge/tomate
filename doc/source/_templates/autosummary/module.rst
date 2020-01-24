@@ -38,6 +38,7 @@
 {% if classes %}
 {%- for item in classes %}
    .. autoclass:: {{ item }}
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

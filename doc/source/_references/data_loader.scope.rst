@@ -19,6 +19,7 @@ data\_loader.scope
 
 
    .. autoclass:: Scope
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

@@ -19,6 +19,7 @@ data\_loader.data\_plot
 
 
    .. autoclass:: DataPlot
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

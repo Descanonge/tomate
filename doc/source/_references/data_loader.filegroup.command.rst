@@ -27,10 +27,12 @@ data\_loader.filegroup.command
 
 
    .. autoclass:: CmdKeyrings
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:
    .. autoclass:: Command
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

@@ -23,6 +23,7 @@ data\_loader.data\_compute
 
 
    .. autoclass:: DataCompute
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

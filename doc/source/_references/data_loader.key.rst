@@ -31,10 +31,12 @@ data\_loader.key
 
 
    .. autoclass:: Key
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:
    .. autoclass:: Keyring
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

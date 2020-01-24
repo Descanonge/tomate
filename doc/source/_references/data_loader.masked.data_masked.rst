@@ -21,10 +21,12 @@ data\_loader.masked.data\_masked
 
 
    .. autoclass:: AccessorMask
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:
    .. autoclass:: DataMasked
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

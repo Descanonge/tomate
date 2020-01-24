@@ -19,6 +19,7 @@ data\_loader.variables\_info
 
 
    .. autoclass:: VariablesInfo
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:

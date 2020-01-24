@@ -19,6 +19,7 @@ data\_loader.iter\_dict
 
 
    .. autoclass:: IterDict
+      :show-inheritance:
       :members:
       :undoc-members:
       :private-members:
