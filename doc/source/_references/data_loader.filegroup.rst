@@ -5,13 +5,15 @@ data\_loader.filegroup
 ======================
 
 
-
 .. automodule:: data_loader.filegroup
 
 
-
-
-..
+.. rubric:: Content
+.. autosummary::
+       FilegroupLoad
+   
+       FilegroupNetCDF
+   
 
 .. rubric:: Submodules
 .. autosummary::
