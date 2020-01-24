@@ -10,16 +10,19 @@ Welcome to the Data Loader package documentation !
 
    general
    tutorial
+
    data
    coord
    filegroup
+
    scanning
    variables_info
-   accessor
    log
+
+   accessor
    expanding
 
-   API references<references/modules>
+   API Reference <_references/data_loader.rst>
 
 
 Indices and tables

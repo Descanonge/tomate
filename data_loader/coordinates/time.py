@@ -116,14 +116,21 @@ class Time(Coord):
 
     @staticmethod
     def format(value, fmt=None):
+        """Format value.
+
+        Parameters
+        ----------
+        value: Float or datetime
+        fmt: str
+            Passed to string.format or datetime.strftime
+        """
         if isinstance(value, datetime):
             if fmt is None:
                 fmt = '%x %X'
             return value.strftime(fmt)
-        else:
-            if fmt is None:
-                fmt = '{:.2f}'
-            return fmt.format(value)
+        if fmt is None:
+            fmt = '{:.2f}'
+        return fmt.format(value)
 
 def change_units(values, units_old, units_new):
     """Change time units."""

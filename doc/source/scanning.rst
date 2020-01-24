@@ -62,7 +62,7 @@ on the filegroup constructor.
 
 This only works for 'in' coordinates.
 For even more control on how the data is loaded, one should use
-the post load function of the :doc:`data object<data_base>`.
+the post load function of the :doc:`data object<data>`.
 
 
 Scanning in file

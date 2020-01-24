@@ -1,13 +1,4 @@
-"""Module compiling filegroups type.
-
-Contains
---------
-FilegroupLoad
-    Abstract class defining filegroups.
-
-FilegroupNetCDF
-    Filegroup class for netCDF files
-"""
+"""Module compiling filegroups type."""
 
 
 

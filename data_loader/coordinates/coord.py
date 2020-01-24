@@ -1,11 +1,4 @@
-"""Coordinate class.
-
-Routines
---------
-select_overlap()
-    Find indices too keep a common range across coordinates.
-
-"""
+"""Coordinate class."""
 
 import logging
 import bisect
@@ -260,7 +253,6 @@ class Coord():
         return lim
 
     def get_index(self, value, loc='closest'):
-        # REVIEW
         """Return index of the element closest to `value`.
 
         Can return the index of the closest element above, below
@@ -287,7 +279,13 @@ class Coord():
 
     @staticmethod
     def format(value, fmt='{:.2f}'):
-        """Format a scalar value."""
+        """Format a scalar value.
+
+        Parameters
+        ----------
+        value: float
+        fmt: str
+        """
         return fmt.format(value)
 
     def get_collocated(self, other):
@@ -340,11 +338,16 @@ class Coord():
 def get_closest(L, elt, loc='closest'):
     """Return index closest to elt in L.
 
-    L is a ascending sorted list
-    loc: 'closest' -> take closest elt
-          'left' -> take closest to the left
-          'right' -> take closest to the right
     If two numbers are equally close, return the smallest number.
+
+    Parameters
+    ----------
+    L: List[float]
+        Ascending sorted list
+    loc: str
+        'closest' -> take closest elt,
+        'left' -> take closest to the left,
+        'right' -> take closest to the right,
     """
 
     loc_opt = ['left', 'right', 'closest']

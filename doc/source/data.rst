@@ -2,4 +2,10 @@
 Database
 ========
 
-Upcoming
+
+Scopes
+------
+
+
+Additional methods
+------------------

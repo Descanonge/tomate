@@ -120,10 +120,6 @@ class Keyring():
     keys: Key or int or List[int] or slice
         What part of the data must be selected
         for a given coordinate.
-
-    Attributes
-    ----------
-    _keys: Dict[Key]
     """
     def __init__(self, **keys):
         self._keys = {}

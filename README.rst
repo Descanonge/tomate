@@ -13,8 +13,8 @@ Features
 - Scan the files automatically to find values of coordinates.
 - Manage the data once loaded, and keep information about its variables at
   hand.
+- Use and create convenience function for analysis, plotting,...
 - Highly modulable, can be tailored to your needs.
-- NetCDF files support, with masked data, and land mask.
 
 As of now, this only supports NetCDF files out of the box. But the package can be
 easily extended for other file formats.
@@ -41,14 +41,23 @@ If you really don't want those in your terminal ((ง •̀_•́)ง), use the 
 See the documentation on logging for more information.
 
 
+Documentation
+-------------
+
+Documentation is available at `<http://data-loader.readthedocs.io>`__.
+
+
 Requirements
 ------------
 
 This requires the following python packages::
 
   numpy
-  scipy
-  netCDF4
+
+Optional dependencies::
+
+  [Mask] scipy (for masked data)
+  [NetCDF] NetCDF4 (for netcdf files)
 
 
 Install
@@ -58,6 +67,11 @@ To install, run::
 
   git clone https://github.com/Descanonges/data-loader.git & cd data-loader/
   pip install .
+
+To add optional dependencies::
+
+  pip install .[Feature name]
+  # Feature name can be Mask, NetCDF
 
 To remove::
 
@@ -73,8 +87,3 @@ in the code is immediate, and only the git pull is necessary for upgrade::
 
   pip install -e .
 
-
-Documentation
--------------
-
-Documentation is available at `<http://data-loader.readthedocs.io>`__.

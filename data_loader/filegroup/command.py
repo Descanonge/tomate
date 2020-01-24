@@ -1,13 +1,4 @@
-"""Command for loading data.
-
-Contains
---------
-Key:
-    Key for taking a slice of data and putting somewhere.
-
-Command:
-    A command to indicate what to load and how.
-"""
+"""Command for loading data."""
 
 import os
 import logging

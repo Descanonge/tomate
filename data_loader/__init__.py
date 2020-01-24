@@ -1,45 +1,10 @@
 """Manages sets of data on disk.
 
-Manages:
+Manages
 
-    -placement of data on disk
-    -loading of subsets of this data
-    -variables and their metadata
-
-
-Contains
---------
-
-VariablesInfo
-    Holds metadata on variables.
-
-DataBase
-    Stores info on variables, coordinates, files on disk.
-    Load the data.
-    Once loaded store the data.
-    Can be subclassed for additional features.
-
-Filegroup
-    Holds information on a grouping of files sharing the
-    same arrangement on disk, same filename construction,
-    and the same variables.
-    Manages scanning of files.
-    FilegroupLoad is to be subclassed for each file-format.
-
-Constructor
-    Help to create a database.
-
-Coord
-    Coordinates (ie dimensions) for the data.
-Time
-    Coord with additional functionalities for handling
-    dates.
-CoordScan
-    Coord for scanning files on disk.
-
-IterDict
-    Dictionnary which can be indexed. Order of items
-    is preserved (in python 3.7+).
+* placement of data on disk
+* loading of subsets of this data
+* variables and their metadata
 """
 
 import sys
@@ -49,7 +14,9 @@ from .log import set_logging
 from .coordinates.coord import Coord
 from .coordinates.time import Time
 from .coordinates.latlon import Lat, Lon
+
 from .key import Keyring
+
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo
 from .data_base import DataBase
