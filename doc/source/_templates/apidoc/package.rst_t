@@ -1,0 +1,26 @@
+.. automodule:: {{ pkgname }}
+
+{%- if subpackages %}
+.. rubric:: Subpackages
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   {% for pkg in subpackages %}
+      {{pkg|replace(pkgname + ".", "")}}
+   {% endfor %}
+
+{%- endif %}
+
+
+{%- if submodules %}
+.. rubric:: Submodules
+.. autosummary::
+   :toctree:
+   :nosignatures:
+
+   {% for mod in submodules %}
+      {{mod|replace(pkgname + ".", "")}}
+   {% endfor %}
+
+{%- endif %}
