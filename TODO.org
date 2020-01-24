@@ -1,11 +1,5 @@
 #+TITLE: Data Loader
 
-TODO: general doc
-
-TODO: use generators when possible
-
-TODO: compute histograms of data
-
 TODO: say storage order (for coords order)
 
 TODO: add note on python 3.7+

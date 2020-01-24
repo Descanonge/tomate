@@ -3,7 +3,12 @@
 import logging
 import os
 
-import netCDF4 as nc
+try:
+    import netCDF4 as nc
+except ImportError:
+    _has_netcdf = False
+else:
+    _has_netcdf = True
 
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.key import Keyring
@@ -13,7 +18,19 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupNetCDF(FilegroupLoad):
-    """Filegroup class for NetCDF files."""
+    """Filegroup class for NetCDF files.
+
+    Parameters
+    ----------
+    args, kwargs
+        Passed to FilegroupLoad.
+        See FilegroupScan for init.
+    """
+
+    def __init__(self, *args, **kwargs):
+        if not _has_netcdf:
+            raise ImportError("netCDF4 package necessary to use FilegroupNetCDF.")
+        super().__init__(*args, **kwargs)
 
     def open_file(self, filename, mode='r', log_lvl='info'):
         file = nc.Dataset(filename, mode)

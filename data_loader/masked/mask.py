@@ -1,7 +1,13 @@
 """Manages some aspects of masked data."""
 
 import numpy as np
-import scipy.ndimage as ndimage
+
+try:
+    import scipy.ndimage as ndimage
+except ImportError:
+    _has_scipy = False
+else:
+    _has_scipy = True
 
 from data_loader.data_compute import do_stack
 
@@ -28,6 +34,9 @@ def enlarge_mask(mask, n_neighbors, axes=None):
         Position of the two horizontal dimensions,
         other axes will be looped over.
     """
+    if not _has_scipy:
+        raise ImportError("scipy package necessary to use enlarge_mask.")
+
     N = 2*n_neighbors + 1
     kernel = get_circle_kernel(N)
 
@@ -38,6 +47,9 @@ def enlarge_mask(mask, n_neighbors, axes=None):
 
 def fill_edge(data, axes=None):
     """Fill masked by value of closest pixel."""
+    if not _has_scipy:
+        raise ImportError("scipy package necessary to use fill_edge.")
+
     mask = data.mask
     small_mask = ~enlarge_mask(~mask, 1, axes=axes)
     to_fill_mask = small_mask * mask
