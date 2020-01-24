@@ -1,6 +1,6 @@
 
-data_loader
-===========
+API Reference
+=============
 
 .. automodule:: data_loader
 

@@ -19,7 +19,3 @@ Some aspects of the logging can be modified using functions from the
 :mod:`log<data_loader.log>` module.
 More experienced users can directly modify the global logger, whose
 name is 'data_loader'.
-
-.. autofunction:: data_loader.log.set_logging
-
-.. autofunction:: data_loader.log.set_file_log

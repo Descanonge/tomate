@@ -53,8 +53,8 @@ class Accessor():
     def check_shape(cls, keyring, array):
         """Check if keyring match array shape.
 
-        Pararemeters
-        ------------
+        Parameters
+        ----------
         keyring: Keyring
         array: Array
         """

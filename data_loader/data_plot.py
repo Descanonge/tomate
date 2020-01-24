@@ -344,7 +344,7 @@ class DataPlot(DataBase):
             Axes to iterate on.
         func: Callable
             Function to call for every axe.
-            func(ax, DataPlot, variable, *iterable, **kwargs)
+            func(ax, DataPlot, variable, \*iterable, \*\*kwargs)
         variables: List[str]
             None elements will be skipped.
         iterables: List[List[Any]]
