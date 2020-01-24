@@ -8,6 +8,14 @@ with open('README.rst') as file:
     long_description = file.read()
 
 
+required = ['numpy']
+
+extras = {
+    "Mask": ["scipy"],
+    "NetCDF": ["netCDF4"],
+}
+
+
 setup(name='data_loader',
       version=data_loader.__version__,
       description='Load data from a multitude of files.',
@@ -17,9 +25,6 @@ setup(name='data_loader',
       author='Clément HAËCK',
       author_email='clement.haeck@posteo.net',
       license='',
-      install_requires=[
-          'numpy',
-          'scipy',
-          'netCDF4'
-      ],
+      install_requires=required,
+      extras_require=extras,
       packages=find_packages())
