@@ -10,7 +10,7 @@ import os
 import re
 from types import MethodType
 
-import data_loader.coordinates.coord_scan as dlcs
+import data_loader.filegroup.coord_scan as dlcs
 from data_loader.accessor import Accessor
 
 

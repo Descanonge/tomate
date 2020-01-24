@@ -2,23 +2,6 @@
 
 Handles scanning of the filenames, and of the
 coordinate values inside files.
-
-Contains
---------
-Matcher:
-    Keep info on a matcher in the pre-regex.
-
-CoordScan:
-    Abstract class dynamically derived from a subclass of Coord.
-    Each object is parented to a Coord so that
-    once scanned, the values can be transferred.
-
-CoordScanShared:
-    The dimension / coordinate is shared accross multiple files.
-
-CoordScanIn:
-    The values are fully contained in the file, and identically
-    arranged from file to file.
 """
 
 import logging
