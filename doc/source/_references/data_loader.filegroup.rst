@@ -10,9 +10,9 @@ data\_loader.filegroup
 
 .. rubric:: Content
 .. autosummary::
-       FilegroupLoad
+       filegroup.FilegroupLoad
    
-       FilegroupNetCDF
+       filegroup.FilegroupNetCDF
    
 
 .. rubric:: Submodules
