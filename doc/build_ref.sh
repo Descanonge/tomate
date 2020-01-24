@@ -2,18 +2,22 @@
 
 
 source="source"
-ref="$source/_references"
+tmp="$source/_tmp"
+
+ref_folder="_references"
+ref="$tmp/$ref_folder"
+ref_final="$source/$ref_folder"
+
 gen="$ref/autosummary"
 
-rm -r "$ref"
 
 sphinx-apidoc -fMe \
     -t "$source/_templates/apidoc" \
     -o "$ref" ../data_loader
 
-file=("$ref"/*.rst)
-file="${file[0]}"
-file="$(realpath $file --relative-to="$ref")"
+files=("$ref"/*.rst)
+file="${files[0]}"
+file="$(realpath "$file" --relative-to="$ref")"
 package="$(echo "$file" | cut -d. -f1)"
 
 sphinx-autogen \
@@ -31,7 +35,7 @@ for f in "${files[@]}"; do
 done
 modules=($modules)
 
-echo "Found modules: ${modules[@]}"
+echo "Found modules:" "${modules[@]}"
 
 pack=""
 for m in "${modules[@]}"; do
@@ -45,7 +49,7 @@ done
 
 pack=($pack $package)
 pack=($(printf "%s\n" "${pack[@]}" | sort -u))
-echo "Found subpackages: ${pack[@]}"
+echo "Found subpackages:" "${pack[@]}"
 
 for f in "${files[@]}"; do
     move=0
@@ -62,16 +66,31 @@ for f in "${files[@]}"; do
         echo "combine $file"
         sta="$(cat "$gen/$file")"
         end="$(tail -n +2 "$ref/$file")"
-        printf "$sta\n\n$end" > "$ref/$file"
+        printf "%s\n\n%s" "$sta" "$end" > "$ref/$file"
     fi
 done
 
 sta=$(cat "$source/$package.rst")
 end=$(tail -n +2 "$ref/$package.rst")
-printf "$sta\n\n$end" > "$ref/$package.rst"
-
-echo "Removing generated in $gen"
-rm -r "$gen"
+printf "%s\n\n%s" "$sta" "$end" > "$ref/$package.rst"
 
 echo "Removing $ref/modules.rst"
 rm "$ref/modules.rst"
+
+files=("$ref"/*.rst)
+for f in "${files[@]}"; do
+    file="$(realpath "$f" --relative-to="$ref")"
+    f_old="$ref_final/$file"
+    if [ -f "$f_old" ]; then
+        if [[ ! -z "$(diff "$f_old" "$f")" ]]; then
+            echo "Updated $file"
+            mv "$f" "$f_old"
+        fi
+    else
+        echo "New file $file"
+        mv "$f" "$f_old"
+    fi
+done
+
+echo "Removing tmp"
+rm -r "$tmp"
