@@ -265,7 +265,9 @@ class Accessor():
         # TODO: add securities
         non_zeros = keyring.get_non_zeros()
         source, dest = cls.get_order_arg(non_zeros, order)
-        return cls.moveaxis(array, source, dest)
+        if source != dest:
+            return cls.moveaxis(array, source, dest)
+        return array
 
     @staticmethod
     def concatenate(arrays, *args, **kwargs):
