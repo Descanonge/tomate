@@ -45,6 +45,7 @@ class Matcher():
     """
 
     ELT_RGX = {"idx": r"\d*",
+               "x": r"\d\d\d\d\d\d\d\d",
                "Y": r"\d\d\d\d",
                "yy": r"\d\d",
                "M": r"[a-zA-Z]*",

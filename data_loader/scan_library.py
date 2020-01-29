@@ -32,6 +32,13 @@ def get_date_from_matches(cs, default_date=None):
 
     match = False
 
+    y = elts.pop("x", None)
+    if y is not None:
+        match = True
+        date["year"] = int(y[:4])
+        date["month"] = int(y[4:6])
+        date["day"] = int(y[6:8])
+
     y = elts.pop("Y", None)
     if y is not None:
         match = True
