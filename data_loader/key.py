@@ -126,6 +126,16 @@ class Keyring():
         What part of the data must be selected
         for a given coordinate.
     """
+
+    @classmethod
+    def get_default(cls, keyring=None, **keys):
+        if keyring is None:
+            keyring = cls()
+        else:
+            keyring = keyring.copy()
+        keyring.update(keys)
+        return keyring
+
     def __init__(self, **keys):
         self._keys = {}
 
