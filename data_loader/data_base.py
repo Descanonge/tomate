@@ -153,7 +153,7 @@ class DataBase():
 
         Can be used to retrieve coordinate by name.
         """
-        if item in super().__getattribute__('coords_name'):
+        if item in super().__getattribute__('coords_name') + ['var']:
             if not self.loaded.is_empty():
                 scope = super().__getattribute__('loaded')
             else:
