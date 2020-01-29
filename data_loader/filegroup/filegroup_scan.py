@@ -256,6 +256,26 @@ class FilegroupScan():
         to_open = to_open or self.scan_attr
         return to_open
 
+    def scan_attributes_and_infos(self, file):
+        try:
+            attrs = self.scan_attributes(file, self.contains)
+        except NotImplementedError:
+            pass
+        else:
+            for var, attr in attrs.items():
+                log.debug("Found for '%s' attributes %s", var, list(attr.keys()))
+                self.vi.add_attrs_per_variable(var, attr)
+            self.scan_attr = False
+
+        try:
+            infos = self.scan_infos(file)
+        except NotImplementedError:
+            pass
+        else:
+            log.debug("Found infos %s", list(infos.keys()))
+            self.vi.add_infos(**infos)
+            self.scan_attr = False
+
     def scan_file(self, filename: str):
         """Scan a single filename.
 
@@ -285,11 +305,7 @@ class FilegroupScan():
 
         try:
             if self.scan_attr:
-                infos = self.scan_attributes(file, self.contains) #pylint: disable=not-callable
-                for var, info in infos.items():
-                    log.debug("Found for '%s' attributes %s", var, list(info.keys()))
-                    self.vi.add_attrs_per_variable(var, info)
-                self.scan_attr = False
+                self.scan_attributes_and_infos(file)
 
             for cs in self.iter_scan("scannable").values():
                 cs.scan_file(m, file)
@@ -380,3 +396,29 @@ class FilegroupScan():
             Attributes found: {'attribute name': {'variable name': Any}}
         """
         raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)
+
+    def set_scan_infos_func(self, func):
+        """Set a function for scanning general data attributes.
+
+        Parameters
+        ----------
+        func: Callable[[file],
+                       [Dict[info name, Any]]]
+        """
+        self.scan_attr = True
+        self.scan_infos = MethodType(func, self)
+
+    def scan_infos(self, file):
+        """Scan general attributes in file.
+
+        Parameters
+        ----------
+        file:
+            Object to access file.
+            The file is already opened by FilegroupSan.open_file()
+
+        Returns
+        -------
+        infos: Dict[str, Any]
+        """
+        raise NotImplementedError("scan_infos was not set for (%s)" % self.contains)

@@ -250,7 +250,7 @@ class Constructor():
         Parameters
         ----------
         func: Callable[[file, variables: List[str]],
-                       [Dict[variable name, Dict[info name, Any]]]]
+                       [Dict[variable name, Dict[attr name, Any]]]]
             Function that recovers variable specific attributes in file.
 
         Notes
@@ -260,6 +260,22 @@ class Constructor():
         """
         fg = self.current_fg
         fg.set_scan_attributes_func(func)
+
+    def set_scan_infos_func(self, func):
+        """Set a function for scanning general data attributes.
+
+        Parameters
+        ----------
+        func: Callable[[file],
+                       [Dict[info name, Any]]]
+
+        Notes
+        -----
+        See FilegroupScan.scan_infos() for a better description
+        of the function interface.
+        """
+        fg = self.current_fg
+        fg.set_scan_infos_func(func)
 
     def set_coord_descending(self, *coords):
         """Set coordinates as descending in the filegroup.
