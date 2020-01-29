@@ -169,6 +169,7 @@ class Scope():
             indices.append(i)
             m_old = m
             y_old = y
+        slices.append(indices)
 
         return slices
 
