@@ -82,13 +82,22 @@ class Time(Coord):
 
         Parameters
         ----------
-        dates: datetime.datetime or List[datetime]
+        dates: datetime.datetime or List[datetime] or List[int]
+            Date or dates to find the index for.
+            Dates are defined with datetime objects, or
+            using a list of ints corresponding to
+            ['year', 'month', 'day', 'hour', 'minute', 'second',
+            'microsecond'].
         """
         # If the user has asked a single date
         single = False
         if isinstance(dates, datetime):
             single = True
             dates = [dates]
+
+        elif all(isinstance(d, (int, float)) for d in dates):
+            single = True
+            dates = [datetime(*dates)]
 
         indices = []
         for date in dates:
