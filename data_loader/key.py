@@ -50,6 +50,11 @@ class Key():
     def __str__(self):
         return str(self.value)
 
+    def copy(self):
+        if self.type == 'list':
+            return self.value.copy()
+        return self.value
+
     def set_shape(self):
         """Set shape if possible.
 
@@ -244,6 +249,9 @@ class Keyring():
             s.append('%s: %s' % (c, str(key)))
         return str(', '.join(s))
 
+    def copy(self):
+        args = {c: k.copy() for c, k in self.items()}
+        return Keyring(**args)
 
     def set_shape(self, coords):
         """Set shape of all keys using coordinates.
