@@ -211,6 +211,9 @@ class Keyring():
         """Return shape of all keys."""
         return [k.shape for k in self.keys]
 
+    def __bool__(self):
+        return len(self.coords > 0)
+
     def subset(self, coords):
         """Return a subpart of this keyring.
 
