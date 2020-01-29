@@ -341,7 +341,7 @@ class Constructor():
                             fg.contains, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, dt_types, accessor=None):
+    def make_data(self, dt_types, accessor=None, scan=True):
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -365,9 +365,10 @@ class Constructor():
         create_data_class: Dynamically add inheritance to
             create a new data class.
         """
-        self.check_regex()
-        self.scan_files()
-        self.check_scan()
+        if scan:
+            self.check_regex()
+            self.scan_files()
+            self.check_scan()
 
         dt_class = create_data_class(dt_types, accessor)
 
