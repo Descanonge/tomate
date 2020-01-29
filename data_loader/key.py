@@ -241,7 +241,7 @@ class Keyring():
 
     def remove(self, key):
         """Pop a key."""
-        self._keys.remove(key)
+        self._keys.pop(key)
 
     def __str__(self):
         s = []
