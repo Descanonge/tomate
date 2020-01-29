@@ -131,6 +131,8 @@ class Constructor():
             root = ''
         root = os.path.join(self.root, root)
 
+        contains = list(contains)
+
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
 
