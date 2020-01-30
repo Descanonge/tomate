@@ -26,6 +26,8 @@ class DataPlot(DataBase):
         self.plotted = self.avail.copy()
         self.plotted.empty()
 
+        self.plot_coords = []
+
     def _make_keyring_none_previous(self, keyring):
         """Replaces None keys by last plotted."""
         for name, key in keyring.items_values():
