@@ -731,18 +731,19 @@ class DataBase():
         ValueError
             If the data is not of the shape of current selection.
         """
-        if data.ndim != self.dim:
+        if self.acs.ndim(data) != self.n_coords:
+            # TODO: Expand dimensions of size one
             raise IndexError("data of wrong dimension (%s, expected %s)" %
-                             (data.ndim, self.dim))
+                             (data.ndim, self.n_coords))
 
-        if list(data.shape) != self.shape[1:]:
+        if self.acs.shape(data) != self.shape[1:]:
             raise ValueError("data of wrong shape (%s, expected %s)" %
-                             (list(data.shape), self.shape[1:]))
+                             (self.acs.shape(data), self.shape[1:]))
 
         data = np.expand_dims(data, 0)
 
         # No data is loaded
-        if self.data is None:
+        if self.loaded.is_empty():
             self.loaded = self.avail.copy()
             self.loaded.var = [var]
             self.data = data
