@@ -287,9 +287,9 @@ class Keyring():
         for name, key in keys.items():
             self[name] = key
 
-    def remove(self, key):
+    def pop(self, dim: str) -> Key:
         """Pop a key."""
-        self._keys.pop(key)
+        return self._keys.pop(dim)
 
     def __str__(self):
         s = []
