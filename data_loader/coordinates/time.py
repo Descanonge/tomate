@@ -1,10 +1,10 @@
-"""Coordinate class with additional features for date manipulation.
+"""Convenient management of dates.
 
 Use user settings to set locales.
 """
 
 import locale
-from typing import List
+from typing import Sequence
 
 from datetime import datetime
 
@@ -35,8 +35,12 @@ class Time(Coord):
         return "%s - %s" % tuple(self.format(v)
                                  for v in self.index2date([0, -1]))
 
-    def update_values(self, values: List[float]):
+    def update_values(self, values: Sequence[float]):
         """Update values.
+
+        See also
+        --------
+        Coord.update_values
 
         Raises
         ------
@@ -53,11 +57,13 @@ class Time(Coord):
 
         Parameters
         ----------
-        indices: Slice, List[int], int
+        indices: Slice, List[int], int, optional
+            If None, all available are used.
 
         Returns
         -------
-        datetime.datetime or List[datetime]
+        datetime.datetime, List[datetime]
+            Return a list if the input was a list.
         """
         if indices is None:
             indices = slice(None, None)
@@ -82,12 +88,17 @@ class Time(Coord):
 
         Parameters
         ----------
-        dates: datetime.datetime or List[datetime] or List[int]
+        dates: datetime.datetime, List[datetime], List[int]
             Date or dates to find the index for.
             Dates are defined with datetime objects, or
             using a list of ints corresponding to
             ['year', 'month', 'day', 'hour', 'minute', 'second',
             'microsecond'].
+
+        Returns
+        -------
+        int, List[int]:
+            Return a list if the input was a list.
         """
         # If the user has asked a single date
         single = False
@@ -124,12 +135,12 @@ class Time(Coord):
         self.units = units
 
     @staticmethod
-    def format(value, fmt=None):
+    def format(value, fmt=None) -> str:
         """Format value.
 
         Parameters
         ----------
-        value: Float or datetime
+        value: Float, datetime
         fmt: str
             Passed to string.format or datetime.strftime
         """
@@ -142,7 +153,22 @@ class Time(Coord):
         return fmt.format(value)
 
 def change_units(values, units_old, units_new):
-    """Change time units."""
+    """Change time units.
+
+    Parameters
+    ----------
+    values: Sequence[float]
+        Current values.
+    units_old: str
+        Current units, in CF compliant format.
+    units_new: str
+        New units, in CF compliant format
+
+    Returns
+    -------
+    Sequence[float]
+        Values in new units.
+    """
     dates = num2date(values, units_old)
     values = date2num(dates, units_new)
     return values

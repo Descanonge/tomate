@@ -1,4 +1,4 @@
-"""Coordinate class."""
+"""Coordinates."""
 
 import logging
 import bisect
@@ -22,7 +22,7 @@ class Coord():
         Values of the coordinate.
     units: str, optional
         Coordinate units
-    name_alt: str or List[str], optional
+    name_alt: str, List[str], optional
         Alternative names.
     fullname: str, optional
         Print name.
@@ -96,7 +96,7 @@ class Coord():
             raise ValueError("Data not sorted")
 
     @property
-    def size(self):
+    def size(self) -> int:
         """Length of coordinate."""
         return self._size
 
@@ -105,12 +105,12 @@ class Coord():
 
         Parameters
         ----------
-        y: Numpy access
-            Keys asked, passed to a numpy array.
+        y: Key-like
+            Key asked, passed to a numpy array.
 
         Returns
         -------
-        Numpy array.
+        Array
         """
         if not self.has_data():
             raise AttributeError("Coordinate '%s' data was not set." % self.name)
@@ -137,7 +137,7 @@ class Coord():
         """Return the extent as string."""
         return "%s - %s" % tuple(self.format(v) for v in self.get_extent())
 
-    def copy(self):
+    def copy(self) -> "Coord":
         """Return a copy of itself."""
         if self.has_data():
             a = self._array[:]
@@ -146,7 +146,12 @@ class Coord():
         return self.__class__(self.name, a, self.units, self.name_alt, self.fullname)
 
     def slice(self, key):
-        """Slice the coordinate."""
+        """Slice the coordinate.
+
+        Parameters
+        ----------
+        key: Key-like
+        """
         if key is None:
             key = slice(None, None)
         data = self._array[key]
@@ -158,7 +163,7 @@ class Coord():
         self._descending = None
         self._size = 0
 
-    def subset(self, vmin, vmax):
+    def subset(self, vmin, vmax) -> slice:
         """Return slice between vmin and vmax (included).
 
         If descending, the slice is reverted (values are always
@@ -196,7 +201,7 @@ class Coord():
         """Return if coordinate is descending"""
         return self._descending
 
-    def is_regular(self, threshold=1e-5):
+    def is_regular(self, threshold=1e-5) -> bool:
         """Return if coordinate values are regularly spaced.
 
         Float comparison is made to a threshold.
@@ -205,11 +210,11 @@ class Coord():
         regular = np.all(diff - diff[0] <= threshold)
         return regular
 
-    def has_data(self):
+    def has_data(self) -> bool:
         """If coordinate has data."""
         return self._array is not None
 
-    def get_step(self, threshold=1e-5):
+    def get_step(self, threshold=1e-5) -> float:
         """Return mean step between values.
 
         Check if the coordinate is regular up to threshold.
@@ -226,7 +231,7 @@ class Coord():
 
         Parameters
         ----------
-        slc: slice
+        slc: slice, optional
             Constrain extent to a slice.
 
         Returns
@@ -242,6 +247,11 @@ class Coord():
     def get_limits(self, slc=None):
         """Return min/max
 
+        Parameters
+        ----------
+        slc: slice, optional
+            Constrain extent to a slice.
+
         Returns
         -------
         List[float]
@@ -252,7 +262,7 @@ class Coord():
             lim = lim[::-1]
         return lim
 
-    def get_index(self, value, loc='closest'):
+    def get_index(self, value, loc='closest') -> int:
         """Return index of the element closest to `value`.
 
         Can return the index of the closest element above, below
@@ -278,7 +288,7 @@ class Coord():
         return idx
 
     @staticmethod
-    def format(value, fmt='{:.2f}'):
+    def format(value, fmt='{:.2f}') -> str:
         """Format a scalar value.
 
         Parameters

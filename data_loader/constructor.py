@@ -362,7 +362,8 @@ class Constructor():
 
         See also
         --------
-        create_data_class: Dynamically add inheritance to
+        create_data_class:
+            Dynamically add inheritance to
             create a new data class.
         """
         if scan:

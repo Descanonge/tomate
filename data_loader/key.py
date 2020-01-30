@@ -8,6 +8,8 @@ class Key():
 
     Can be None, int, List[int] or slice.
 
+    See :doc:`key` for more information.
+
     Parameters
     ----------
     key: None, int, List[int], slice
@@ -118,17 +120,28 @@ class Key():
 class Keyring():
     """Object for indexing an array.
 
-    Multiple coordinates can be specified.
+    Multiple dimensions can be specified.
+
+    See :doc:`../key` for more information.
 
     Parameters
     ----------
-    keys: Key or int or List[int] or slice
+    keys: Key-like
         What part of the data must be selected
-        for a given coordinate.
+        for a given dimension.
     """
 
     @classmethod
-    def get_default(cls, keyring=None, **keys):
+    def get_default(cls, keyring=None, **keys) -> "Keyring":
+        """Return a new keyring, eventually updated.
+
+        Parameters
+        ----------
+        keyring: Keyring, optional
+            Keyring to take values from.
+        keys: Key, Key-like
+            Keys to add to the keyring.
+        """
         if keyring is None:
             keyring = cls()
         else:
@@ -142,33 +155,35 @@ class Keyring():
         for name, key in keys.items():
             self[name] = key
 
-    def __getitem__(self, item):
-        """Return key for a coordinate.
+    def __getitem__(self, item) -> Key:
+        """Return key for a dimension.
 
         Parameters
         ----------
         item: str
-            Coordinate name.
+            Dimension name.
         """
         return self._keys[item]
 
     def __setitem__(self, item, value):
-        """Set item.
+        """Set key value to dimension.
 
         Parameters
         ----------
         item: str
-            Coordinate name
-        value: Key or key-like
+            Dimension name
+        value: Key, key-like
         """
         if not isinstance(value, Key):
             value = Key(value)
         self._keys[item] = value
 
     def __iter__(self):
+        """Returns dict iterator over dimensions names."""
         return iter(self._keys)
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Returns number of dimensions."""
         return len(self._keys)
 
     @property
@@ -197,34 +212,45 @@ class Keyring():
 
         Returns
         -------
-        List[key-like]
+        List[Key-like]
         """
         return [k.value for k in self.keys]
 
     @property
     def kw(self):
-        """Return dictionary of keys values."""
-        return dict(zip(self.coords, self.keys_values))
+        """Return dictionary of keys values.
+
+        Returns
+        -------
+        Dict[str, Key-like]
+        """
+        return dict(zip(self.dims, self.keys_values))
 
     @property
-    def shape(self):
+    def shape(self) -> List[int]:
         """Return shape of all keys."""
         return [k.shape for k in self.keys]
 
     def __bool__(self):
-        return len(self.coords > 0)
+        """If the keyring has keys."""
+        return len(self.dims > 0)
 
-    def subset(self, coords):
+    def subset(self, dims):
         """Return a subpart of this keyring.
 
         Parameters
         ----------
-        coords: List[str]
+        dims: List[str]
+
+        Returns
+        -------
+        Keyring
+             Keyring with only specified keys.
         """
-        return Keyring(**{c: self[c] for c in coords})
+        return Keyring(**{c: self[c] for c in dims})
 
     def items(self):
-        """Iterate through coordinates and keys.
+        """Iterate through dimensions and keys.
 
         Returns
         -------
@@ -276,8 +302,8 @@ class Keyring():
         for name, c in coords.items():
             self[name].set_shape_coord(c)
 
-    def get_non_zeros(self):
-        """Return coordinates with a non zero shape.
+    def get_non_zeros(self) -> List[str]:
+        """Return dimensions name with a non zero shape.
 
         ie whose dimension would not be squeezed.
         """
@@ -300,68 +326,84 @@ class Keyring():
             keys_ord[name] = self[name]
         self._keys = keys_ord
 
-    def make_full(self, coords, fill=None):
-        """Fill keyring missing coords.
+    def make_full(self, dims, fill=None):
+        """Add dimensions.
 
         Parameters
         ----------
-        coords: List[str]
-        fill: Any
+        dimensions: List[str]
+            List of dimensions to add if not
+            already present.
+        fill: Any, optional
+            Value to set new keys to.
         """
-        for c in coords:
+        for c in dims:
             if c not in self:
                 self[c] = fill
 
-    def make_total(self, *coords, miss=None):
+    def make_total(self, *dims, miss=None):
         """Fill missing keys by total slices.
 
         Parameters
         ----------
-        coords: str
-        miss: Any
+        dims: str, optional
+            Dimensions names to fill if missing.
+            If not specified, all are selected.
+        miss: Any, optional
+            Value of the key to flag as missing.
         """
-        if not coords:
-            coords = self.coords
+        if not dims:
+            dims = self.dims
         for c, v in self.items_values():
-            if c in coords and v == miss:
+            if c in dims and v == miss:
                 self[c] = slice(None, None)
 
-    def make_single(self, *coords, idx=0, miss=None):
+    def make_single(self, *dims, idx=0, miss=None):
         """Fill missing keys by an index.
 
         Parameters
         ----------
-        coords: str
-        idx: int
+        dims: str, optional
+            Dimensions names to fill if missing.
+            If not specified, all are selected.
+        idx: int, optional
+            Index to set as value.
         miss: Any
+            Value of the key to flag as missing.
         """
-        if not coords:
-            coords = self.coords
+        if not dims:
+            dims = self.dims
         for c, v in self.items_values():
-            if c in coords and v == miss:
+            if c in dims and v == miss:
                 self[c] = idx
 
-    def make_int_list(self, *coords):
+    def make_int_list(self, *dims):
         """Turn integer values into lists.
 
         Parameters
         ----------
-        coords: str
+        dims: str
+             Dimensions names to change if
+             necessary. If not specified, all are
+             selected.
         """
-        if not coords:
-            coords = self.coords
+        if not dims:
+            dims = self.dims
         for c, k in self.items():
-            if c in coords and k.type == 'int':
+            if c in dims and k.type == 'int':
                 self[c] = [k.value]
 
-    def get_high_dim(self):
+    def get_high_dim(self) -> List[str]:
         """Returns coordinates of size higher than one."""
         out = [c for c, k in self.items()
                if k.shape is None or k.shape > 1]
         return out
 
     def simplify(self):
-        """Simplify keys."""
+        """Simplify keys.
+
+        Turn list into a slice if possible.
+        """
         for key in self.keys:
             key.simplify()
 

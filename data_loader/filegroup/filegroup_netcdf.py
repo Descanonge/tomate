@@ -70,29 +70,27 @@ class FilegroupNetCDF(FilegroupLoad):
         ----------
         file: nc.Dataset
             File object.
-        keys: Dict[coord name: str, key: slice or List[int]]
-            Keys to load in file.
-        order: List[str]
-            Order of dimensions in file.
+        keyring: Keyring
+            Keys to load from file.
         ncname: str
             Name of the variable in file.
         """
+        order = self._get_order(file, ncname)
+        int_krg = self._get_internal_keyring(order, keyring)
 
-        order, krg_inf = self._get_order(file, ncname, keyring)
+        log.info("Taking keys %s", int_krg.keys_values)
+        chunk = self.acs.take(int_krg, file[ncname])
 
-        log.info("Taking keys %s", krg_inf.keys_values)
-        chunk = self.acs.take(krg_inf, file[ncname])
-
-        krg_inf.set_shape(self.db.avail.subset(krg_inf.coords))
-        expected_shape = krg_inf.shape
+        int_krg.set_shape(self.db.avail.subset(int_krg.dims))
+        expected_shape = int_krg.shape
         assert (expected_shape == list(chunk.shape)), ("Chunk does not have correct "
                                                        "shape, has %s, expected %s"
                                                        % (list(chunk.shape), expected_shape))
 
-        chunk = self.reorder_chunk(chunk, keyring.coords, order, variables=False)
+        chunk = self.reorder_chunk(chunk, keyring.dims, order, variables=False)
         return chunk
 
-    def _get_order(self, file, ncname, keyring):
+    def _get_order(self, file, ncname):
         """Get order from netcdf file, reorder keys.
 
         Parameters

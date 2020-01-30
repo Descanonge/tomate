@@ -3,3 +3,5 @@
 TODO: say storage order (for coords order)
 
 TODO: add note on python 3.7+
+
+TODO: compute linear combinations

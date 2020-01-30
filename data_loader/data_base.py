@@ -2,6 +2,7 @@
 
 import logging
 from types import MethodType
+from typing import Dict, List
 
 import numpy as np
 
@@ -16,19 +17,38 @@ log = logging.getLogger(__name__)
 class DataBase():
     """Encapsulate data array and info about the variables.
 
-    Data and coordinates can be accessed with getter:
-    Data[{name of variable | name of coordinate}]
+    The data itself is stored in the data attribute.
+    It can be loaded from disk using multiple `Filegroups`.
+    The data can be conveniently accessed using the `view` method.
 
-    Data is loaded from disk with load_data.
+    The data varies along coordinates (akin to dimensions).
+    An ensemble of coordinates and variables constitutes a `Scope`
+    This object has three different scopes:
+    \*avail: all data available on disk
+    \*loaded: part of that data that is loaded in memory
+    \*select: part of data selected
+
+    Coordinates objects, the list of variables, and the shape
+    of data, attributes of the different scopes objects, are
+    directly accessible from the data object.
+    If data has been loaded, the 'loaded' scope is used,
+    otherwise the 'available' scope is used.
+   
+    Data and coordinates can be accessed as items:
+    `Data[{name of variable | name of coordinate}]`.
+    Coordinates can be accessed as attributes:
+    `Data.name_of_coordinate`.
+
+    See :doc:`data` for more information.
 
     Parameters
     ----------
     root: str
         Root data directory containing all files.
-    filegroups: List[Filegroups].
+    filegroups: List[Filegroups]
     vi: VariablesInfo
-        Information on the variables.
-    coords: List[Coord]
+        Information on the variables and data.
+    coords: Coord
         Coordinates.
 
     Attributes
@@ -40,11 +60,21 @@ class DataBase():
         Index of filegroup for each variable
 
     vi: VariablesInfo
-        Currently loaded variables
+        Information on the variables and data.
 
     coords_name: List[str]
         Coordinates names, in the order the data
-        is kept.
+        is kept in the array.
+
+    avail: Scope
+        Scope of available data (on disk)
+    loaded: Scope
+        Scope of loaded data
+    select: Scope
+        Scope of selected data.
+
+    acs: Accessor (or subclass)
+        Object to use to access the data.
     """
 
     acs = Accessor()
@@ -105,13 +135,15 @@ class DataBase():
         return '\n'.join([super().__repr__(), str(self)])
 
     @property
-    def bases(self):
-        """Return dictionary of base classes names.
+    def bases(self) -> Dict[str, str]:
+        """Bases classes.
+
+        Returns dictionary of bases name and their fullname
+        (with module).
 
         Returns
         -------
-        bases: Dict
-            {class name: full name with module}
+        {class name: full name with module}
         """
         bases = self.__class__.__bases__
         out = {c.__name__: '%s.%s' % (c.__module__, c.__name__)
@@ -119,24 +151,31 @@ class DataBase():
         return out
 
     def _check_loaded(self):
+        """Check if data is loaded.
+
+        Raises
+        ------
+        RuntimeError
+            If the data is not loaded.
+        """
         if self.data is None:
             raise RuntimeError("Data not loaded.")
 
-    def __getitem__(self, y):
+    def __getitem__(self, y: str):
         """Return a coordinate, or data for a variable.
 
-        If y is a coordinate name, return the coordinate.
+        If y is a coordinate name, return the coordinate of current scope.
         If y is a variable name, return the corresponding data slice.
-        Else, it is transmitted to data.__getitem__().
 
         Parameters
         ----------
-        y: str, or anything for a numpy array.
+        y: str
+            Coordinate or variable name.
 
         Raises
         ------
         KeyError
-            If key is string and not a coordinate or variable.
+            If key is not a coordinate or variable.
         """
         if isinstance(y, str):
             if y in self.loaded.var:
@@ -151,7 +190,10 @@ class DataBase():
     def __getattribute__(self, item):
         """Get attribute.
 
-        Can be used to retrieve coordinate by name.
+        If item is a coordinate name, return coordinate from
+        current scope.
+        If item is 'var', return list of variable from
+        current scope.
         """
         if item in super().__getattribute__('coords_name') + ['var']:
             if not self.loaded.is_empty():
@@ -162,26 +204,36 @@ class DataBase():
         return super().__getattribute__(item)
 
     @property
-    def scope(self):
-        """Loaded scope if possible, available otherwise."""
+    def scope(self) -> Scope:
+        """Loaded scope if not empty, available scope otherwise."""
         if not self.loaded.is_empty():
             return self.loaded
         return self.avail
 
     @property
-    def idx(self):
+    def idx(self) -> Dict[str, int]:
+        """Index of each variable in the data array.
+
+        {variable name: index}
+        """
         return self.loaded.idx
 
-    def _view(self, variables, keyring):
-        """Returns a subset of data.
+    def view(self, variables=None, keyring=None, **keys):
+        """Returns a subset of loaded data.
 
-        No processing of arguments.
-        kw_coords must be full, sorted.
+        Keys act on loaded scope.
+        If a key is an integer (or variables is a single string),
+        the corresponding dimension in the array will be squeezed.
 
         Parameters
         ----------
-        variables: List[str]
-        kw_coords: Dict[keys]
+        variables: str or List[str], optional
+            If None, all variables are taken.
+        keyring: Keyring, optional
+            Keyring specifying parts of coordinates to take.
+        keys: Key-like, optional
+            Parts of coordinates to take.
+            Take precedence over keyring.
 
         Returns
         -------
@@ -206,22 +258,19 @@ class DataBase():
         return self._view(variables, k)
 
 
-    def view(self, variables=None, **kw_keys):
-        """Returns a subset of data.
+    def view_scope(self, scope):
+        """Returns a subset of loaded data.
 
-        Wrapper of _view.
+        Subset is specified by common range of coordinates
+        of scope parameter, and loaded scope.
 
         Parameters
         ----------
-        variables: str or List[str]
-            If None, all variables are taken.
-        kw_coords: Int or List[int] or slice
-            If None, total is taken.
+        scope: Scope
 
         Returns
         -------
         Array
-            Subset of data, in storage order.
         """
         if variables is None:
             variables = self.vi.var
@@ -231,19 +280,41 @@ class DataBase():
         keyring.sort_by(self.coords_name)
         return self._view(variables, keyring)
 
-    def view_ordered(self, order, variables=None, **keys):
+    def view_ordered(self, order, variables=None, keyring=None, **keys):
         """Returns a reordered subset of data.
+
+        The ranks of the array are rearranged to follow
+        the specified coordinates order.
+        Keys act on loaded scope.
 
         Parameters
         ----------
         order: List[str]
-            List of coordinates in required order.
-            If multiple variables are selected, 'var'
-            must be present.
-        variables: str or List[str]
-        keys: Key-like
-            Dimension of resulting subset must match
-            that of `order`.
+            List of coordinates names in required order.
+            The 'var' keyword can also be used to rearrange
+            the variable rank.
+            Not all coordinates need to be specified, but
+            all coordinates specified must be in the subset
+            dimensions.
+        variables: str or List[str], optional
+        keyring: Keyring, optional
+        keys: Key-like, optional
+
+        Examples
+        --------
+        >>> print(dt.coords_name)
+        ['time', 'lat', 'lon']
+        >>> print(dt.shape)
+        [12, 300, 500]
+        >>> a = dt.view_orderd(['lon', 'lat'], time=[1])
+        ... print(a.shape)
+        [1, 500, 300]
+
+        See also
+        --------
+        Accessor.reorder: The underlying function.
+        numpy.moveaxis: The function used in default Accessor.
+        view: For details on subsetting data (without reordering).
         """
         if variables is None:
             variables = self.vi.var
@@ -260,7 +331,11 @@ class DataBase():
         return self.acs.reorder(keyring, array, order)
 
     def iter_slices(self, coord, size_slice=12):
-        """Iter through loaded data with slices of `coord` of size `n_iter`.
+        """Iter through slices of a coordinate.
+
+        Scope will be loaded if not empty, available otherwise.
+        The prescribed slice size is a maximum, the last
+        slice can be smaller.
 
         Parameters
         ----------
@@ -268,17 +343,25 @@ class DataBase():
             Coordinate to iterate along to.
         size_slice: int, optional
             Size of the slices to take.
+
+        Returns
+        -------
+        List[slice]
         """
         return self.scope.iter_slices(coord, size_slice)
 
     def iter_slices_month(self, coord='time'):
-        """Iter through loaded data with slices corresponding to a month.
+        """Iter through monthes of a time coordinate.
 
         Parameters
         ----------
         coord: str, optional
             Coordinate to iterate along to.
             Must be subclass of Time.
+
+        Returns
+        -------
+        List[List[int]]
 
         See also
         --------
@@ -298,16 +381,14 @@ class DataBase():
         return len(self.coords_name)
 
     @property
-    def shape(self):
-        """Shape of the data from how coordinates and variables are selected.
+    def shape(self) -> List[int]:
+        """Shape of the data from current scope.
 
-        Returns
-        -------
-        List[int]
+        Scope is loaded if not empty, available otherwise.
         """
         return self.scope.shape
 
-    def get_coord_name(self, name):
+    def get_coord_name(self, name: str) -> str:
         """Return coord name.
 
         Search within alternative names.
@@ -315,7 +396,12 @@ class DataBase():
         Parameters
         ----------
         name: str
-            Coordinate name or alternative names.
+            Coordinate name or alternative name.
+
+        Returns
+        -------
+        str
+            Coordinate name.
 
         Raises
         ------
@@ -334,20 +420,23 @@ class DataBase():
 
         raise KeyError("%s not found" % name)
 
-    def get_limits(self, *coords, **kw_keys):
+    def get_limits(self, *coords, keyring=None, **keys):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
-        Loaded scope if present, available otherwise.
+        Scope is loaded if not empty, available otherwise.
 
         Parameters
         ----------
-        coords: List[str]
+        coords: str
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        kw_keys: Any
-            Subset of coordinates
+        keyring: Keyring, optional
+            Subset coordinates.
+        keys: Key-like, optional
+            Subset coordinates.
+            Take precedence over keyring.
 
         Returns
         -------
@@ -364,23 +453,27 @@ class DataBase():
         """
         return self.scope.get_limits(*coords, **kw_keys)
 
-    def get_extent(self, *coords, **kw_keys):
+    def get_extent(self, *coords, keyring=None, **keys):
         """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
+        Scope is loaded if not empty, available otherwise.
 
         Parameters
         ----------
-        coords: List[str]
+        coords: str
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        kw_coords: Any
-            Subset of coordinates
+        keyring: Keyring, optional
+            Subset coordinates.
+        keys: Key-like, optional
+            Subset coordinates.
+            Take precedence over keyring.
 
         Returns
         -------
-        limits: List[float]
+        extent: List[float]
             First and last values of each coordinate.
 
         Examples
@@ -397,16 +490,15 @@ class DataBase():
         """Make keyword keys when asking for coordinates parts.
 
         From a mix of positional and keyword argument,
-        make a list of keywords, containing all coords.
+        make a list of keywords.
         Keywords arguments take precedence over positional arguments.
+        Positional argument shall be ordered as the coordinates
+        are ordered in data.
 
         Parameters
         ----------
-        keys: Slice, int, or List[int]
-            Key for subsetting coordinates, order is that
-            of self.coords.
-        kw_keys: Slice, int or List[int]
-            Key for subsetting coordinates.
+        keys: Key-like, optional
+        kw_keys: Key-like, optional
 
         Exemples
         --------
@@ -486,22 +578,21 @@ class DataBase():
 
         What variables, and what part of the data
         corresponding to coordinates indices can be specified.
+        Keys specified to subset data act on the available scope.
+        If a parameter is None, all available is taken for that
+        parameter.
 
         Parameters
         ----------
         variables: str or List[str]
-            Variables to load. If None, all variables available
-            are taken.
-        keys: int, Slice, or List[int]
+            Variables to load.
+        keys: int, slice, List[int], optional
             What subset of coordinate to load. The order is that
             of self.coords.
-            If None, all available is taken.
-        # TODO:
-        force: Does not simplify those coords keys
-        kw_keys: int, Slice, or List[int]
+        # TODO: force: Does not simplify those coords keys
+        kw_keys: int, slice, or List[int], optional
             What subset of coordinate to load. Takes precedence
             over positional `coords`.
-            If None, all availabce is taken.
 
         Examples
         --------
@@ -628,9 +719,6 @@ class DataBase():
             If the data has not the right dimension.
         ValueError
             If the data is not of the shape of current selection.
-
-        Examples
-        --------
         """
         if data.ndim != self.dim:
             raise IndexError("data of wrong dimension (%s, expected %s)" %
@@ -657,16 +745,21 @@ class DataBase():
             self.loaded.var.append(var)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable, data=None, **infos):
-        """Concatenate new_data to data, and add kwargs to vi.
+    def add_variable(self, variable, data=None, **attrs):
+        """Add new variable.
+
+        Add variable, and its attributes to the VI.
+        If present, add data to loaded data.
 
         Parameters
         ----------
         variable: str
-            Variable to add
+            Variable to add.
         data: Array, optional
-            Corresponding data
-        infos:
+            Corresponding data to add.
+            Its shape must match that of the loaded scope.
+        attrs: Any, optional
+            Variable attributes.
             Passed to VariablesInfo.add_variable
         """
         self.vi.add_variable(variable, **infos)
@@ -674,18 +767,14 @@ class DataBase():
         if data is not None:
             self.set_data(variable, data)
 
-    def remove_loaded_variable(self, variable):
-        """Remove variable from data.
-
-        Parameters
-        ----------
-        variable: str
-        """
+    def remove_loaded_variable(self, variable: str):
+        """Remove variable from data."""
         if variable in self.loaded:
             keys = self.loaded.idx[variable]
             self.data = np.delete(self.data, [keys], axis=0)
+            self.loaded.var.remove(variable)
 
-    def write(self, filename, wd=None, variables=None, **kwcoords):
+    def write(self, filename, wd=None, variables=None):
         """Write variables to disk.
 
         Write to a netcdf file.
@@ -693,11 +782,13 @@ class DataBase():
 
         Parameters
         ----------
-        wd: str
-            Directory. If None, `self.root` is used.
-        variables: str or List[str]
         filename: str
-            If None, the first value of time is used.
+            File to write in. Relative to each filegroup root
+            directory, or from `wd` if specified.
+        wd: str, optional
+            Force to write `filename` in this directory.
+        variables: str, List[str], optional
+            Variables to write. If None, all are written.
         """
         if wd is None:
             wd = self.root

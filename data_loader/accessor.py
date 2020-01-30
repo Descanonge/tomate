@@ -1,7 +1,8 @@
-"""Manages access to data array."""
+"""Access to data array."""
 
 
 import logging
+from typing import List
 
 import numpy as np
 
@@ -13,26 +14,19 @@ class Accessor():
     """Manages access to arrays.
 
     Stores static and class methods.
+    Can be subclassed for different implementation.
+
+    See :doc:`../accessor`.
     """
 
     @staticmethod
-    def ndim(array):
-        """Return number of dimensions of array.
-
-        Returns
-        -------
-        int
-        """
+    def ndim(array) -> int:
+        """Return number of dimensions of array."""
         return array.ndim
 
     @staticmethod
-    def shape(array):
-        """Return shape of array.
-
-        Returns
-        -------
-        List[int]
-        """
+    def shape(array) -> List[int]:
+        """Return shape of array."""
         return list(array.shape)
 
     @classmethod
@@ -41,7 +35,8 @@ class Accessor():
 
         Parameters
         ----------
-        keyring: Keyring or Dict or List
+        keyring: Keyring, Dict, List
+            Keys used for creating the array.
         array: Array
         """
         if cls.ndim(array) != len(keyring):
@@ -56,6 +51,7 @@ class Accessor():
         Parameters
         ----------
         keyring: Keyring
+            Keys used for creating the array.
         array: Array
         """
         if any(k is not None and a != k
@@ -66,7 +62,12 @@ class Accessor():
 
     @classmethod
     def has_normal_access(cls, keyring):
-        """Check if keyring would need complex access."""
+        """Check if keyring would need complex access.
+
+        Parameters
+        ----------
+        keyring: Keyring
+        """
         n_list = [k.type for k in keyring.keys].count('list')
         n_int = [k.type for k in keyring.keys].count('int')
         if n_list >= 2:
@@ -80,7 +81,10 @@ class Accessor():
     def take(cls, keyring, array):
         """Retrieve part of an array.
 
-        return array[keyring]
+        Amounts to `return array[keyring]`.
+       
+        Uses numpy normal indexing when possible.
+        If not, uses more complex method to access array.
 
         Parameters
         ----------
@@ -91,6 +95,23 @@ class Accessor():
         Returns
         -------
         Array
+            View of the input array in the case
+            of normal indexing, or a copy otherwise.
+
+        Notes
+        -----
+        See :doc:`../accessor` for more information.
+
+        See Numpy docpage on indexing
+        https://docs.scipy.org/doc/numpy/user/basics.indexing.html
+
+        See also
+        --------
+        take_normal:
+             Function used for normal indexing.
+        take_complex:
+             Function used when normal indexing
+             would not work.
         """
         if cls.has_normal_access(keyring):
             return cls.take_normal(keyring, array)
@@ -100,8 +121,8 @@ class Accessor():
     def take_normal(cls, keyring, array):
         """Retrieve part of an array with normal indexing.
 
+        Amounts to `array[keyring]`.
         Returns a view into the array.
-        return array[keyring]
 
         Parameters
         ----------
@@ -120,8 +141,8 @@ class Accessor():
     def take_complex(cls, keyring, array):
         """Retrieve part of an array without normal indexing.
 
+        Amounts to `array[keyring]`.
         Returns a copy of the array.
-        return array[keyring]
 
         Parameters
         ----------
@@ -146,18 +167,26 @@ class Accessor():
 
     @classmethod
     def place(cls, keyring, array, chunk):
-        """Assign part of an array with another.
+        """Assign a part of array with another array.
 
-        Array[keyring] = chunk
+        Amounts to `array[keyring] = chunk`.
+        Uses numpy normal indexing when possible.
+        If not, uses more complex method to access array.
 
         Parameters
         ----------
         keyring: Keyring
-            Tell part of array to assign.
+            Part of array to assign.
         array: Array
-            Array to assign
+            Array to assign.
         chunk: Array
-            Array to be assigned
+            Array to be assigned.
+
+        See also
+        --------
+        take:
+             Function to access part of array, with more
+             details on normal and complexed indexing.
         """
         if cls.has_normal_access(keyring):
             cls.place_normal(keyring, array, chunk)
@@ -166,18 +195,20 @@ class Accessor():
 
     @classmethod
     def place_normal(cls, keyring, array, chunk):
-        """Assign part of an array with normal indexing.
+        """Assign a part of an array with normal indexing.
 
-        Array[keyring] = chunk
+        Amounts to `array[keyring] = chunk`.
+        Uses numpy normal indexing when possible.
+        If not, uses more complex method to access array.
 
         Parameters
         ----------
         keyring: Keyring
-            Tell part of array to assign.
+            Part of array to assign.
         array: Array
-            Array to assign
+            Array to assign.
         chunk: Array
-            Array to be assigned
+            Array to be assigned.
        """
         cls.check_shape(keyring, chunk)
         array[tuple(keyring.keys_values)] = chunk
@@ -186,22 +217,24 @@ class Accessor():
     def place_complex(cls, keyring, array, chunk):
         """Assign part of an array without normal indexing.
 
-        Array[keyring] = chunk
+        Amounts to `array[keyring] = chunk`.
+        Uses numpy normal indexing when possible.
+        If not, uses more complex method to access array.
 
         Parameters
         ----------
         keyring: Keyring
-            Tell part of array to assign.
+            Part of array to assign.
         array: Array
-            Array to assign
+            Array to assign.
         chunk: Array
-            Array to be assigned
+            Array to be assigned.
         """
         raise NotImplementedError
 
     @staticmethod
     def moveaxis(array, source, destination):
-        """Exchange axis.
+        """Exchange axes.
 
         Parameters
         ----------
@@ -214,37 +247,13 @@ class Accessor():
         Returns
         -------
         Array
+
+        See also
+        --------
+        numpy.moveaxis: Function used.
         """
         out = np.moveaxis(array, source, destination)
         return out
-
-    @staticmethod
-    def get_order_arg(current, order):
-        """Return indexing needed to exchange axis.
-
-        Parameters
-        ----------
-        current: List[str]
-            Current dimension names.
-        order: List[str]
-            Target dimensions order.
-
-        Returns
-        -------
-        List[int]
-            Sources indices.
-        List[int]
-            Destination indices.
-        """
-        source = list(range(len(current)))
-        dest = [current.index(n) for n in order]
-
-        source_, dest_ = [], []
-        for s, d in zip(source, dest):
-            if s != d:
-                source_.append(s)
-                dest_.append(d)
-        return source, dest
 
     @classmethod
     def reorder(cls, keyring, array, order):
@@ -254,9 +263,13 @@ class Accessor():
         ----------
         keyring: Keyring
             Keyring used to take the array.
+            Defines the dimensions names.
         array: Array
         order: List[str]
             Target dimensions order.
+            Not all dimensions names need to be specified,
+            but all dimensions specified must be in the
+            array (ie be in the keyring, with a shape above 0).
 
         Returns
         -------
@@ -270,17 +283,25 @@ class Accessor():
         return array
 
     @staticmethod
-    def concatenate(arrays, *args, **kwargs):
+    def concatenate(arrays, axis=0, out=None):
         """Concatenate arrays.
 
         Parameters
         ----------
         array: List[Array]
-        args, kwargs:
-            Passed to np.concatenate.
+            Arrays to concatenate.
+        axis: int, optional
+            The axis along which the arrays will be joined.
+            If None, the arrays are flattened.
+        out: Array, optional
+            Array to place the result in.
 
         Returns
         -------
         Array
+
+        See also
+        --------
+        numpy.concatenate: Function used.
         """
-        return np.concatenate(arrays, *args, **kwargs)
+        return np.concatenate(arrays, axis=axis, out=out)

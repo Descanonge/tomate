@@ -13,7 +13,13 @@ log = logging.getLogger(__name__)
 
 
 class DataPlot(DataBase):
-    """Added functionalities for plotting data."""
+    """Added functionalities for plotting data.
+
+    Attributes
+    ----------
+    plotted
+    plot_coords
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,7 +32,7 @@ class DataPlot(DataBase):
             if key is None:
                 keyring[name] = self.slices_plot[name]
 
-    def set_limits(self, ax, scope=None, *coords, **kw_keys):
+    def set_limits(self, ax, scope=None, *coords, keyring=None, **keys):
         """Set axis limits.
 
         Parameters

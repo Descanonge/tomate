@@ -1,7 +1,8 @@
-"""Command for loading data."""
+"""For specifying how to load data."""
 
 import os
 import logging
+from typing import Iterator
 
 import numpy as np
 
@@ -16,8 +17,6 @@ class CmdKeyrings():
 
     Describe what must be taken from file and
     where it should be placed in memory.
-    A key can be anything that can subset the
-    data, typically a list of intereger, or a slice.
 
     Parameters
     ----------
@@ -47,9 +46,24 @@ class CmdKeyrings():
         return 'in-file: ' + str(self.infile) + ' | memory: ' + str(self.memory)
 
     def __iter__(self):
+        """Returns both keyrings.
+
+        Yields
+        ------
+        Iterator[Keyring]
+            Infile and memory keyrings.
+        """
         return iter([self.infile, self.memory])
 
     def __getitem__(self, item):
+        """Get keys from both keyrings.
+
+        Returns
+        -------
+        List[Key]
+            Key for `item` dimension in
+            infile and memory keyrings.
+        """
         return [self.infile[item], self.memory[item]]
 
     def set(self, infile, memory):
@@ -81,14 +95,14 @@ class Command():
     """Information for loading slices of data from one file.
 
     A command is composed of a filename, and
-    a series of keys that each specifies a
+    a series of keyrings duos that each specifies a
     part of the data to take, and where to
     place it.
 
     Attributes
     ----------
     filename: str
-        File to open
+        File to open.
     var_list: List[str]
         Variables to take in that file.
     keyrings: List[CmdKeyrings]
@@ -101,8 +115,8 @@ class Command():
         self.var_list = []
         self.keyrings = []
 
-    def __iter__(self):
-        """Iter on keys."""
+    def __iter__(self) -> Iterator[CmdKeyrings]:
+        """Iter on keyrings duos."""
         return iter(self.keyrings)
 
     def __str__(self):
@@ -113,13 +127,15 @@ class Command():
         s.append("keyrings: %s" % '\n      '.join([str(k) for k in self]))
         return "\n".join(s)
 
-    def __len__(self):
-        return len(self.keyrings)
+    def __len__(self) -> int:
+        """Number of keyrings duos."""
+        return len(self.keyrings)5
 
-    def __getitem__(self, i):
+    def __getitem__(self, i) -> CmdKeyring:
+        """Get i-th keyrings duo."""
         return self.keyrings[i]
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: "CmdKeyring") -> "CmdKeyring":
         """Merge two commands.
 
         Add the keys of one into the other.
@@ -129,24 +145,48 @@ class Command():
         return self
 
     def append(self, krg_infile, krg_memory):
-        """Add a command keyring set."""
+        """Add a command keyring duo.
+
+        Parameters
+        ----------
+        krg_infile, krg_memory: Keyring
+        """
         self.keyrings.append(CmdKeyrings(krg_infile, krg_memory))
 
     def add_keyrings(self, krgs_infile, krgs_memory):
-        """Add multiple keyrings."""
+        """Add multiple keyrings duos.
+
+        Parameters
+        ----------
+        krgs_infile, krgs_memory: List[Keyring]
+        """
         n = len(krgs_infile)
         for i in range(n):
             self.append(krgs_infile[i], krgs_memory[i])
 
     def set_keyring(self, krg_infile, krg_memory, i=0):
-        """Set a key by index."""
+        """Set a keyrings duo by index.
+
+        Paramaters
+        ----------
+        krg_infile, krg_memory: Keyring
+        i: int, optional
+            Index.
+        """
         self[i].set(krg_infile, krg_memory)
 
     def modify_keyring(self, krg_infile=None, krg_memory=None, i=0):
-        """Modify key in place."""
+        """Modify a keyrings duo in place.
+
+        Parameters
+        ----------
+        krg_infile, krg_memory: Keyring, optional
+        i: int, optional
+             Index.
+        """
         self[i].modify(krg_infile, krg_memory)
 
-    def remove_keyring(self, idx):
+    def remove_keyring(self, idx: int):
         """Remove a key."""
         self.keyrings.pop(idx)
 
@@ -226,7 +266,7 @@ class Command():
         self.remove_keyrings()
         self.keyrings = cks_new
 
-    def join_filename(self, root):
+    def join_filename(self, root: str):
         """Join a filename to a root directory."""
         filename = os.path.join(root, self.filename)
         self.filename = filename

@@ -171,7 +171,7 @@ class FilegroupLoad(FilegroupScan):
         ----------
         var_list: List[str]
             Variables to load
-        keyring: Dict[coordinate: str, key: slice or List[int]]
+        keyring: Keyring
         """
         commands = self.get_commands(var_list, keyring)
         for cmd in commands:
@@ -203,16 +203,37 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def _get_order(self, *args):
+    def _get_order(self, file):
         """Get order of dimensions in file.
+
+        Parameters
+        ----------
+        file: File object
 
         Returns
         -------
         order: List[str]
-            Coordinate names, in the order of the file.
+            Dimensions names, in the order of the file.
         """
         raise NotImplementedError
 
+    @staticmethod
+    def _get_internal_keyring(order, keyring) -> Keyring:
+        """Get keyring for in file taking.
+
+        If dimension that are not known by the filegroup,
+        and thus not in the keyring, take the first index.
+
+        Remove any keys from dimension not in the file.
+
+        Put the keyring in order.
+        """
+        int_krg = keyring.copy()
+        for dim in order:
+            if dim not in int_krg:
+                int_krg[dim] = 0
+        return int_krg.subset(order)
+    
     def reorder_chunk(self, chunk, coords, order=None, variables=False):
         """Reorder data.
 

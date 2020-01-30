@@ -197,8 +197,19 @@ class FilegroupScan():
         self.regex = regex
         self.pregex = pregex
 
-    def scan_pregex(self, pregex):
-        """Scan pregex for matchers."""
+    @staticmethod
+    def scan_pregex(pregex):
+        """Scan pregex for matchers.
+
+        Parameters
+        ----------
+        pregex: str
+             Pre-regex.
+
+        Returns
+        -------
+        Iterator[re.match]
+        """
         regex = r"%\(([a-zA-Z]*):([a-zA-Z]*)(?P<cus>:custom=)?((?(cus)[^:]+:))(:?dummy)?\)"
         m = re.finditer(regex, pregex)
         return m

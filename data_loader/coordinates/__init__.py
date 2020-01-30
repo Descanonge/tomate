@@ -1,1 +1,4 @@
-"""Various coordinates subclasses."""
+"""Various coordinates classes.
+
+See :doc:`../coord`.
+"""

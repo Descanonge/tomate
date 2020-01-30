@@ -1,11 +1,14 @@
-"""Coordinate scanning.
+"""This is where the scanning is happening.
 
 Handles scanning of the filenames, and of the
 coordinate values inside files.
+
+See :doc:`../scanning` and :doc:`../coord`.
 """
 
 import logging
 from types import MethodType
+from typing import Sequence
 
 import numpy as np
 
@@ -96,9 +99,9 @@ class CoordScan(Coord):
 
     Attributes
     ----------
-    filegroup: FilegroupLoad or subclass
+    filegroup: FilegroupScan or subclass
         Corresponding filegroup.
-    coord: Coord
+    coord: Coord or subclass
         Parent coordinate object.
     shared: bool
         If the coordinate is shared accross files.
@@ -108,16 +111,16 @@ class CoordScan(Coord):
         List of the index for each value inside the files.
     scan: set
         What part of the file is to be scanned.
-        { in | filename | manual | attributes } or a combination of the three
+        subset of :{ in | filename | manual | attributes }.
     scanned: bool
         If the coordinate has been scanned.
-    scan_filename_kwargs: Dict
+    scan_filename_kwargs: Dict[str, Any]
         Keyword arguments to pass to the scan_filename function.
-    scan_in_file_kwargs: Dict
+    scan_in_file_kwargs: Dict[str, Any]
         Keyword arguments to pass to the scan_in_file function.
     """
 
-    def __init__(self, filegroup, coord: Coord, shared: bool):
+    def __init__(self, filegroup, coord, shared):
         self.filegroup = filegroup
         self.coord = coord
 
@@ -148,15 +151,15 @@ class CoordScan(Coord):
             s.append("Not scanned")
         return '\n'.join(s)
 
-    def is_idx_descending(self):
-        """Is idx descending.
+    def is_idx_descending(self) -> bool:
+        """Is index descending.
 
         Meaning the in-file index are decreasing
         when values are increasing.
         """
         return self._idx_descending
 
-    def set_values(self, values):
+    def set_values(self, values: Sequence[float]):
         """Set values."""
         self.values = values
 
@@ -165,7 +168,13 @@ class CoordScan(Coord):
         self.coord.update_values(self._array)
 
     def sort_values(self):
-        """Sort by values."""
+        """Sort by values.
+
+        Returns
+        -------
+        order: List[int]
+            The order used to sort values.
+        """
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
 
@@ -195,7 +204,7 @@ class CoordScan(Coord):
 
         Returns
         -------
-        key_data: List[int] or Slice
+        key_data: List[int], Slice
         """
         if self.size is None:
             key_data = key
@@ -206,7 +215,7 @@ class CoordScan(Coord):
 
         return key_data
 
-    def is_to_open(self):
+    def is_to_open(self) -> bool:
         """Return if the coord needs to open the current file."""
         raise NotImplementedError
 
@@ -467,8 +476,9 @@ class CoordScanShared(CoordScan):
         s.append('Matchers:')
         s += ['\t%s' % str(m) for m in self.matchers]
         return '\n'.join(s)
+
     @property
-    def n_matchers(self):
+    def n_matchers(self) -> int:
         """Numbers of matchers for that coordinate."""
         return len(self.matchers)
 

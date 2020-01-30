@@ -4,14 +4,28 @@ from data_loader.coordinates.coord import Coord
 
 
 class Lat(Coord):
-    """Latitude coordinate."""
+    """Latitude coordinate.
+
+    Parameters
+    ----------
+    name: str, optional
+        Identification of the coordinate.
+    array: Sequence, optional
+        Values of the coordinate.
+    units: str, optional
+        Coordinate units
+    name_alt: str, List[str], optional
+        Alternative names.
+    fullname: str, optional
+        Print name.
+    """
 
     def __init__(self, name='lat', array=None,
                  units='deg', fullname='Latitude', alt_name='latitude'):
         super().__init__(name, array, units, alt_name, fullname)
 
     @staticmethod
-    def format(value, fmt='.2f'):
+    def format(value, fmt='.2f') -> str:
         """Format value.
 
         Parameters
@@ -25,7 +39,21 @@ class Lat(Coord):
 
 
 class Lon(Coord):
-    """Longitude coordinate."""
+    """Longitude coordinate.
+
+    Parameters
+    ----------
+    name: str, optional
+        Identification of the coordinate.
+    array: Sequence, optional
+        Values of the coordinate.
+    units: str, optional
+        Coordinate units
+    name_alt: str, List[str], optional
+        Alternative names.
+    fullname: str, optional
+        Print name.
+    """
     # TODO: convert to km
 
     def __init__(self, name='lon', array=None,
@@ -34,7 +62,7 @@ class Lon(Coord):
 
 
     @staticmethod
-    def format(value, fmt='.2f'):
+    def format(value, fmt='.2f') -> str:
         """Format value.
 
         Parameters
