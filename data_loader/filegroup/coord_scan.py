@@ -230,7 +230,8 @@ class CoordScan(Coord):
 
         Parameters
         ----------
-        kwargs
+        self: CoordScan or subclass
+        kwargs: Any
             Static keywords arguments set by
             Constructor.set_scan_filename_func()
 
@@ -244,10 +245,10 @@ class CoordScan(Coord):
         NotImplementedError
             If scan_filename was not set.
 
-        Notes
-        -----
-        See scan_library for various examples.
-        get_date_from_matches() for instance.
+        See also
+        --------
+        scan_library: for various examples.
+        scan_library.get_date_from_matches: for instance
         """
         raise NotImplementedError("scan_filename was not set for '%s'" % self.name)
 
@@ -263,7 +264,7 @@ class CoordScan(Coord):
             The file is already opened by FilegroupScan.open_file().
         values: List[float]
             Values found previously in filename.
-        kwargs
+        kwargs: Dict[str, Any]
             Static keywords arguments set by
             Constructor.set_scan_in_file_func()
 
@@ -279,10 +280,10 @@ class CoordScan(Coord):
         NotImplementedError
             If scan_in_file was not set.
 
-        Notes
-        -----
-        See scan_library for various examples.
-        scan_in_file_nc() for instance.
+        See also
+        --------
+        scan_library: for various examples.
+        scan_library.scan_in_file_nc: for instance.
         """
         raise NotImplementedError("scan_in_file was not set for '%s" % self.name)
 
@@ -299,22 +300,27 @@ class CoordScan(Coord):
 
         Returns
         -------
-        attributes: Dict
-            Attributes.
-            {'name': value}
+        attributes: Dict[str, Any]
+            Attributes {'name': value}.
 
         Raises
         ------
         NotImplementedError
             If scan_attribute was not set.
+
+        See also
+        --------
+        scan_library.scan_units_nc: for instance
         """
         raise NotImplementedError("scan_attributes was not set for '%s" % self.name)
 
     def set_scan_filename_func(self, func, **kwargs):
         """Set function for scanning values.
 
-        See CoordScan.scan_filename()
-        and Constructor.set_scan_filename_func()
+        See also
+        --------
+        scan_filename: for the function signature.
+        Constructor.set_scan_filename_func: for more details.
         """
         self.scan.add("filename")
         self.scan_filename = MethodType(func, self)
@@ -323,8 +329,10 @@ class CoordScan(Coord):
     def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
 
-        See CoordScan.scan_in_file()
-        and Constructor.set_scan_in_file_func()
+        See also
+        --------
+        scan_in_file: for the function signature.
+        Constructor.set_scan_in_file_func: for more details.
         """
         self.scan.add("in")
         self.scan_in_file = MethodType(func, self)
@@ -347,8 +355,10 @@ class CoordScan(Coord):
     def set_scan_attributes(self, func):
         """Set function for scanning attributes in file.
 
-        See CoordScan.scan_attributes()
-        and Constructor.set_scan_coords_attributes()
+        See also
+        --------
+        scan_attributes: for the function signature
+        and Constructor.set_scan_coords_attributes: for more details.
         """
         self.scan.add("attributes")
         self.scan_attributes = MethodType(func, self)
@@ -365,7 +375,7 @@ class CoordScan(Coord):
         Returns
         -------
         n_values: int
-            Number of values found
+            Number of values found.
 
         Raises
         ------
@@ -439,7 +449,7 @@ class CoordScanIn(CoordScan):
         if not self.scanned:
             self.scan_file_values(file)
 
-    def is_to_open(self):
+    def is_to_open(self) -> bool:
         to_open = False
         if 'in' in self.scan and not self.scanned:
             to_open = True
@@ -523,7 +533,7 @@ class CoordScanShared(CoordScan):
             matches = [matches for _ in range(n_values)]
             self.matches += matches
 
-    def is_to_open(self):
+    def is_to_open(self) -> bool:
         to_open = False
         to_open = to_open or ('in' in self.scan)
         to_open = to_open or ('attributes' in self.scan and not self.scanned)
@@ -532,6 +542,10 @@ class CoordScanShared(CoordScan):
 
 def get_coordscan(filegroup, coord, shared):
     """Get the right CoordScan object derived from a Coord.
+
+    Dynamically create a subclass of CoordScanShared
+    or CoordScanIn, that inherits methods from a
+    subclass of Coord.
 
     Parameters
     ----------

@@ -5,6 +5,7 @@ regrouped into a same Filegroup.
 """
 
 import logging
+from typing import List
 
 import os
 import re
@@ -21,7 +22,7 @@ class FilegroupScan():
     """An ensemble of files.
 
     Files which share the same variables, and filename structure.
-    Class manages the scanning part of filegroups.
+    This class manages the scanning part of filegroups.
 
     Parameters
     ----------
@@ -45,7 +46,7 @@ class FilegroupScan():
         Variables contained in this filegroup.
     db: DataBase or subclass
         Parent database.
-    cs: Dict[name: str, CoordScan or subclass]
+    cs: Dict[str, CoordScan or subclass]
         Dictionnary of scanning coordinates,
         each dynamically inheriting from its
         parent Coord.
@@ -104,6 +105,10 @@ class FilegroupScan():
 
         Each CoordScan is dynamically rebased
         from its parent Coord.
+
+        Parameters
+        ----------
+        coords: List[[Coord, shared: bool]]
         """
         self.cs = {}
         for coord, shared in coords:
@@ -119,6 +124,10 @@ class FilegroupScan():
             To iterate only shared coordinates (shared=True),
             or only in coordinates (shared=False).
             If left to None, iter all coordinates.
+
+        Returns
+        -------
+        Dict[str, CoordScan]
         """
         cs = {}
         for name, c in self.cs.items():
@@ -142,6 +151,10 @@ class FilegroupScan():
             To iterate only scannable coordinates (scan=True),
             or only not scannable coordinates (scan=False).
             If left to None, iter all coordinates.
+
+        Returns
+        -------
+        Dict[str, CoordScan]
         """
         cs = {}
         for name, c in self.cs.items():
@@ -169,7 +182,7 @@ class FilegroupScan():
         ----------
         pregex: str
             Pre-regex.
-        replacements: Dict
+        replacements: Dict[str, str]
             Dictionnary of matchers to be replaced by a constant.
             The keys must match a matcher in the pre-regex.
 
@@ -221,9 +234,8 @@ class FilegroupScan():
 
         Parameters
         ----------
-        m: re.match
-            Match of the pre-regex to find matchers.
-            Output of FilegroupScan.scan_pregex()
+        m: Iterator[re.match]
+            Matches of the pre-regex to find matchers.
         """
         sep = [0]
         n = len(m.groups())
@@ -259,7 +271,7 @@ class FilegroupScan():
         """
         raise NotImplementedError
 
-    def is_to_open(self):
+    def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
         to_open = False
         for cs in self.iter_scan("scannable").values():
@@ -268,6 +280,13 @@ class FilegroupScan():
         return to_open
 
     def scan_attributes_and_infos(self, file):
+        """Scan for attributes and infos.
+
+        Parameters
+        ----------
+        file:
+            File object.
+        """
         try:
             attrs = self.scan_attributes(file, self.contains)
         except NotImplementedError:
@@ -292,9 +311,12 @@ class FilegroupScan():
 
         Match filename against regex.
         If first match, retrieve segments.
+
         If needed, open file.
-        If not already, scan attributes.
+        If not done already, scan attributes and infos.
+
         Scan per coordinate.
+       
         Close file.
         """
         m = re.match(self.regex, filename)
@@ -327,8 +349,8 @@ class FilegroupScan():
             if file is not None:
                 self.close_file(file)
 
-    def find_files(self):
-        """Find files to scan in root directory.
+    def find_files(self) -> List[str]:
+        """Find files to scan.
 
         Uses os.walk.
         Sort files alphabetically
@@ -403,7 +425,7 @@ class FilegroupScan():
 
         Returns
         -------
-        attributes: Dict[attribute: str, Dict[variable: str, value: Any]]
+        attributes: Dict[str, Dict[str, Any]]
             Attributes found: {'attribute name': {'variable name': Any}}
         """
         raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)

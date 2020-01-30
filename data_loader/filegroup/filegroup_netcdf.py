@@ -1,4 +1,4 @@
-"""Filegroup class for netCDF files."""
+"""NetCDF files support."""
 
 import logging
 import os
@@ -32,7 +32,7 @@ class FilegroupNetCDF(FilegroupLoad):
             raise ImportError("netCDF4 package necessary to use FilegroupNetCDF.")
         super().__init__(*args, **kwargs)
 
-    def open_file(self, filename, mode='r', log_lvl='info'):
+    def open_file(self, filename, mode='r', log_lvl='info') -> nc.Dataset:
         file = nc.Dataset(filename, mode)
         log_lvl = getattr(logging, log_lvl.upper())
         log.log(log_lvl, "Opening %s", filename)
@@ -46,6 +46,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         Parameters
         ----------
+        file: netCDF4.Dataset
         cmd: Command
             Load command containing the filename,
             variables to load, in file keys, and
