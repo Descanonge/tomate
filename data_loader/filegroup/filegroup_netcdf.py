@@ -140,15 +140,16 @@ class FilegroupNetCDF(FilegroupLoad):
             ncname = var
         return ncname
 
-    def write(self, filename, wd, variables, keys):
+    def write(self, filename, wd, variables):
         """Write data to disk."""
-        log.warning("Writing a subset not implemented, writing all data.")
+        if wd is None:
+            wd = self.root
 
         file = os.path.join(wd, filename)
 
         with self.open_file(file, mode='w') as dt:
             log.info("in %s", file)
-            for name, coord in self.db.coords.items():
+            for name, coord in self.db.loaded.coords.items():
                 dt.createDimension(name, coord.size)
                 dt.createVariable(name, 'f', [name])
                 dt[name][:] = coord[:]
