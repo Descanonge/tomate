@@ -180,12 +180,10 @@ class DataBase():
         if isinstance(y, str):
             if y in self.loaded.var:
                 y = self.idx[y]
+                return self.data[y]
             elif y in self.coords_name:
                 return self.scope[y]
-            else:
-                raise KeyError("Key '%s' not in coordinates or variables" % y)
-
-        return self.data[y]
+        raise KeyError("Key '%s' not in coordinates or variables" % y)
 
     def __getattribute__(self, item):
         """Get attribute.
