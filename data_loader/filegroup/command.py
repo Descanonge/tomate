@@ -222,7 +222,7 @@ class Command():
         TypeError:
             If the one of the in-file key is not an integer.
         """
-        coords = list(self[0].infile.coords)
+        coords = list(self[0].infile.dims)
         cks = self.keyrings
         for name in coords:
             coords_ = [c for c in coords if c != name]

@@ -375,8 +375,13 @@ class DataBase():
             fg.acs = self.acs
 
     @property
-    def dim(self):
+    def ndim(self) -> int:
         """Number of dimensions."""
+        return len(self.coords_name) + 1
+
+    @property
+    def n_coords(self) -> int:
+        """Number of coordinates."""
         return len(self.coords_name)
 
     @property

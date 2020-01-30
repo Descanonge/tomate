@@ -196,23 +196,13 @@ class Keyring():
         return len(self._keys)
 
     @property
-    def coords(self):
-        """List of coordinates present in the keyring.
-
-        Returns
-        -------
-        List[str]
-        """
+    def dims(self) -> List[str]:
+        """List of dimensions present in the keyring."""
         return list(self._keys.keys())
 
     @property
-    def keys(self):
-        """List of keys present in the keyring.
-
-        Returns
-        -------
-        List[Key]
-        """
+    def keys(self) -> List[Key]:
+        """List of keys present in the keyring."""
         return list(self._keys.values())
 
     @property
