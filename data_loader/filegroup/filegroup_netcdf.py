@@ -100,23 +100,19 @@ class FilegroupNetCDF(FilegroupLoad):
              File object.
         ncname: str
              Name of the variable in ile.
-        keys: Dict[coord name: str, key: slice or List[int]]
-            Keys to load in file.
 
         Returns
         -------
         order: List[str]
             Coordinate names in order.
-        keys_ord: Dict
-            Keys in order.
         """
         order_nc = list(file[ncname].dimensions)
         order = []
-        keys_ord = Keyring()
         for coord_nc in order_nc:
             try:
                 name = self.db.get_coord_name(coord_nc)
-            # If the demanded coord is not in file
+
+            # If the demanded dimension is not in database.
             except KeyError:
                 dim = file.dimensions[coord_nc].size
                 if dim > 1:
@@ -124,15 +120,12 @@ class FilegroupNetCDF(FilegroupLoad):
                                 "size > 1. The first index will be used",
                                 coord_nc)
                 name = coord_nc
-                k = 0
                 # We do not keep the coord name in `order` for a key equal to zero,
                 # numpy will squeeze the axis.
             else:
-                k = keyring[name]
                 order.append(name)
 
-            keys_ord[name] = k
-        return order, keys_ord
+        return order
 
     def get_ncname(self, var: str) -> str:
         """Get the infile variable name.
