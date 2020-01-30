@@ -109,40 +109,42 @@ class Scope():
         for c in self.coords.values():
             c.empty()
 
-    def slice(self, **keys):
+    def slice(self, variables=None, keyring=None, **keys):
         """Slices coordinates and variables.
+
+        If a parameter is None, no change is made for
+        that parameter.
 
         Parameters
         ----------
-        keys: Key-like
-            Coordinates to slice, argument name is coordinate name.
-            Variables can be sliced as well, by specifying
-            a argument with name 'var', equal to a str or a List[str].
+        variables: str, List[str], optional
+        keyring: Keyring, optional
+        keys: Key-like, optional
         """
-        if 'var' in keys:
-            key = keys['var']
-            if key is None:
-                key = self.var
-            elif isinstance(key, str):
-                key = [key]
-            keys['var'] = list(key)
+        if variables is not None:
+            if isinstance(variables, str):
+                variables = [variables]
+            self.var = [v for v in variables if v in self.var]
 
-        for c, k in keys.items():
-            if c == 'var':
-                self.var = [v for v in k if v in self.var]
-            else:
-                self[c].slice(k)
-
-    def copy(self):
-        """Return a copy."""
-        return self.__class__(self.var, *self.coords.values())
+        if keyring is None:
+            keyring = Keyring()
+        else:
+            keyring = keyring.copy()
+        keyring.update(keys)
+        keyring.make_total()
+        keyring.make_int_list()
+        for c, k in keyring.items_values():
+            self[c].slice(k)
 
     def copy(self) -> "Scope":
         """Return a copy of self."""
         return Scope(self.var, self.coords.values())
 
     def iter_slices(self, coord, size_slice=12):
-        """Iter through data with slices of `coord` of size `n_iter`.
+        """Iter through slices of a coordinate.
+
+        The prescribed slice size is a maximum, the last
+        slice can be smaller.
 
         Parameters
         ----------
@@ -150,9 +152,12 @@ class Scope():
             Coordinate to iterate along to.
         size_slice: int, optional
             Size of the slices to take.
+
+        Returns
+        -------
+        List[slice]
         """
         c = self[coord]
-
         n_slices = int(np.ceil(c.size / size_slice))
         slices = []
         for i in range(n_slices):
@@ -163,7 +168,7 @@ class Scope():
         return slices
 
     def iter_slices_month(self, coord='time'):
-        """Iter through data with slices corresponding to a month.
+        """Iter through monthes of a time coordinate.
 
         Parameters
         ----------
@@ -171,10 +176,9 @@ class Scope():
             Coordinate to iterate along to.
             Must be subclass of Time.
 
-        Raises
-        ------
-        TypeError:
-            If the coordinate is not a subclass of Time.
+        Returns
+        -------
+        List[List[int]]
 
         See also
         --------
@@ -237,32 +241,43 @@ class Scope():
             limits += self[name].get_limits(key)
         return limits
 
-    def get_extent(self, *coords, **kw_keys):
-        """Return extent of coordinates.
+    def get_extent(self, *coords, keyring=None, **keys):
+        """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
 
         Parameters
         ----------
-        coords: List[str]
+        coords: str
             Coordinates name.
             If None, defaults to all coordinates, in the order
-            of scope.
-        kw_coords: Any
-            Subset of coordinates
+            of data.
+        keyring: Keyring, optional
+            Subset coordinates.
+        keys: Key-like, optional
+            Subset coordinates.
+            Take precedence over keyring.
 
         Returns
         -------
-        limits: List[float]
+        extent: List[float]
             First and last values of each coordinate.
         """
-        kw_keys.update({name: None for name in coords})
-        if not kw_keys:
-            kw_keys = {name: None for name in self.coords_name}
-        keyring = Keyring(**kw_keys)
+        keyring = Keyring.get_default(keyring, **keys)
+        keyring.make_full(coords)
+        if not keyring:
+            keyring.make_full(self.coords_name)
         keyring.make_total()
 
         extent = []
         for name, key in keyring.items_values():
             extent += self[name].get_extent(key)
         return extent
+
+    def get_keyring(self, supscope):
+        keyring = Keyring()
+        for name, c in self.coords.items():
+            # FIXME: and list ?
+            key = supscope[name].subset(*c.get_limits())
+            keyring[name] = key
+        return keyring

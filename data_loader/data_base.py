@@ -238,23 +238,19 @@ class DataBase():
         Array
             Subset of data, in storage order.
         """
-        idx = self.idx[variables]
-        keyring['var'] = idx
-        keyring.sort_by(['var'] + self.coords_name)
-        return self.acs.take(keyring, self.data)
-
-    def view_scope(self, scope):
-        if scope.is_empty():
-            raise RuntimeError("Scope is empty.")
         self._check_loaded()
 
-        variables = scope.var
-        k = Keyring()
-        for name, c in scope.coords.items():
-            key = self.loaded[name].subset(c.get_limits())
-            k[name] = key
-        return self._view(variables, k)
+        if keyring is None:
+            keyring = Keyring()
+        else:
+            keyring = keyring.copy()
 
+        keyring.update(keys)
+        keyring.make_full(self.coords_name)
+        keyring['var'] = self.idx[variables]
+        keyring.make_total()
+        keyring.sort_by(['var'] + self.coords_name)
+        return self.acs.take(keyring, self.data)
 
     def view_scope(self, scope):
         """Returns a subset of loaded data.
@@ -270,13 +266,16 @@ class DataBase():
         -------
         Array
         """
-        if variables is None:
-            variables = self.vi.var
-        keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
-        keyring.make_total()
-        keyring.sort_by(self.coords_name)
-        return self._view(variables, keyring)
+        log.warning("Not functionnal.")
+        if scope.is_empty():
+            raise RuntimeError("Scope is empty.")
+
+        variables = scope.var
+        keyring = Keyring()
+        for name, c in scope.coords.items():
+            key = self.loaded[name].subset(*c.get_limits())
+            keyring[name] = key
+        return self.view(variables, keyring)
 
     def view_ordered(self, order, variables=None, keyring=None, **keys):
         """Returns a reordered subset of data.
@@ -314,16 +313,18 @@ class DataBase():
         numpy.moveaxis: The function used in default Accessor.
         view: For details on subsetting data (without reordering).
         """
-        if variables is None:
-            variables = self.vi.var
-        keyring = Keyring(**keys)
-        keyring.make_full(self.coords_name)
-        keyring.make_total()
-        keyring.sort_by(self.coords_name)
+        self._check_loaded()
 
-        idx = self.idx[variables]
-        keyring['var'] = idx
-        keyring.sort_by(['var'] + keyring.coords)
+        if keyring is None:
+            keyring = Keyring()
+        else:
+            keyring = keyring.copy()
+
+        keyring.update(keys)
+        keyring.make_full(self.coords_name)
+        keyring['var'] = self.idx[variables]
+        keyring.make_total()
+        keyring.sort_by(['var'] + self.coords_name)
 
         array = self.acs.take(keyring, self.data)
         return self.acs.reorder(keyring, array, order)
@@ -449,7 +450,7 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        return self.scope.get_limits(*coords, **kw_keys)
+        return self.scope.get_limits(*coords, keyring, **keys)
 
     def get_extent(self, *coords, keyring=None, **keys):
         """Return extent of loaded coordinates.
@@ -482,7 +483,7 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        return self.scope.get_extent(*coords, **kw_keys)
+        return self.scope.get_extent(*coords, keyring, **keys)
 
     def get_kw_keys(self, *keys, **kw_keys):
         """Make keyword keys when asking for coordinates parts.
@@ -509,62 +510,69 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def _select_from_avail(self, variables=None, keyring=None):
-        if keyring is None:
-            keyring = Keyring()
-        keyring['var'] = variables
-
-        scope = self.avail.copy()
-        scope.slice(**keyring.kw)
-        return scope
-
-    def select_data(self, variables=None, **kw_keys):
-        """Slices loaded data slices.
+    def get_subscope(self, variables=None, keyring=None, scope='avail', **keys):
+        """Return subset of scope.
 
         Parameters
         ----------
-        variables: List[str], optional
-            Variables to select, from all those available.
-            If None, all available are selected.
-        kw_coords: int, Slice, or List[int]
-            Part of coordinates to select, from the full
-            available extent.
-            If None, everything available is selected.
+        variables: str, List[str], optional
+        keyring: Keyring, optional
+        scope: str, Scope, optional
+            Scope to subset.
+            If str, can be {'avail', 'loaded', 'select'},
+            corresponding scope of data will then be taken.
+        keys: Key-like, optional
+
+        Returns
+        -------
+        Scope
+            Copy of input scope, sliced with specified keys.
+        """
+        if isinstance(scope, str):
+            scope = {'avail': self.avail,
+                     'loaded': self.loaded,
+                     'select': self.select}[scope]
+        scope = scope.copy()
+        scope.slice(variables, keyring, **keys)
+        return scope
+
+    def select_from_scope(self, variables=None, keyring=None, scope='avail', **keys):
+        """Set selected scope from another scope.
+
+        Wrapper around :func:`get_subscope`.
+
+        Parameters
+        ----------
+        variables: str, List[str], optional
+        keyring: Keyring, optional
+        scope: str, Scope, optional
+            Scope to subset.
+            If str, can be {'avail', 'loaded', 'select'},
+            corresponding scope of data will then be taken.
+        keys: Key-like, optional
 
         See also
         --------
-        slice_data: For when data is loaded.
+        get_subscope
         """
-        keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
-        keyring.make_total()
-        keyring.make_int_list()
+        self.select = self.get_subscope(variables, keyring, scope, **keys)
 
-        self.select = self._select_from_avail(variables, keyring)
+    def slice_data(self, variables=None, keyring=None, **keys):
+        """Slice loaded data.
 
-    def slice(self, variables=None, **kw_keys):
-        """Select a subset of loaded data and coords.
+        Keys act on loaded scope.
 
         Parameters
         ----------
         variables: str or List[str], optional
-            Variables to select, from those already selected or loaded.
+            Variables to select, from those already loaded.
             If None, no change are made.
-        kw_keys: int, Slice, or List[int]
-            Part of coordinates to select, from part already selected or loaded.
-            If None, no change are made.
+        keyring: Keyring, optional
+        keys: Key-like, optional
         """
         self._check_loaded()
-
-        if variables is None:
-            variables = self.loaded.var
-
-        keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
-        keyring.make_total()
-
-        self.loaded.slice(var=variables, **keyring.kw)
-        self.data = self._view(variables, keyring)
+        self.loaded = self.get_subscope(variables, keyring, 'loaded', **keys)
+        self.data = self.view(variables, keyring, **keys)
 
     def unload_data(self):
         """Remove data, return coordinates and variables to all available."""
@@ -622,7 +630,7 @@ class DataBase():
         keyring.make_full(self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        self.loaded = self._select_from_avail(variables, keyring)
+        self.loaded = self.get_subscope(variables, keyring, 'avail', **kw_keys)
 
         self.data = self.allocate_memory(self.shape)
 

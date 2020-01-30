@@ -1,4 +1,6 @@
-"""Object for indexing the data array."""
+"""Objects for indexing the data array."""
+
+from typing import List
 
 import numpy as np
 
@@ -44,6 +46,7 @@ class Key():
                             " (is %s)" % type(key))
         self.value = key
         self.type = tp
+        self.shape = None
         self.set_shape()
 
     def __eq__(self, other):
@@ -52,7 +55,8 @@ class Key():
     def __str__(self):
         return str(self.value)
 
-    def copy(self):
+    def copy(self) -> "Key":
+        """Return copy of self."""
         if self.type == 'list':
             return self.value.copy()
         return self.value
@@ -60,11 +64,11 @@ class Key():
     def set_shape(self):
         """Set shape if possible.
 
-        Set the shape attribute.
-        Shape is the size a array would have
+        Shape is the size an array would have
         if the key was applied.
 
-        Is None if cannot be determined.
+        Is None if cannot be determined from
+        the key alone.
         """
         if self.type == 'int':
             self.shape = 0
@@ -84,7 +88,12 @@ class Key():
         self.shape = coord[self.value].size
 
     def no_int(self):
-        """Return value, replaces int with list."""
+        """Return value, replaces int with list.
+
+        Returns
+        -------
+        value: key-like
+        """
         if self.type == 'int':
             return [self.value]
         return self.value
@@ -288,7 +297,8 @@ class Keyring():
             s.append('%s: %s' % (c, str(key)))
         return str(', '.join(s))
 
-    def copy(self):
+    def copy(self) -> "Keyring":
+        """Return copy of self."""
         args = {c: k.copy() for c, k in self.items()}
         return Keyring(**args)
 
@@ -316,7 +326,7 @@ class Keyring():
         Parameters
         ----------
         order: List[str]
-             Coordinates present in the keyring.
+             Dimensions present in the keyring.
         """
         if len(order) < len(self.keys):
             raise IndexError("Order given is too short.")

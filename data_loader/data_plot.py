@@ -56,16 +56,24 @@ class DataPlot(DataBase):
             else:
                 scope = self.avail
 
-        if kw_keys:
-            names = kw_keys.keys()
-        elif coords:
+        if keyring is None:
+            keyring = Keyring()
+        else:
+            keyring = keyring.copy()
+        keyring.update(keys)
+
+        if coords:
             names = coords
+        elif keyring.kw:
+            name = keyring.coords
         else:
             names = scope.get_high_dim()
+        keyring.make_full(names)
+        keyring.make_total()
         axes = [ax.xaxis, ax.yaxis]
         for i, name in enumerate(names[:2]):
             axis = axes[i]
-            limits = scope[name].get_limits(kw_keys[name])
+            limits = scope[name].get_limits(keyring[name].value)
             axis.limit_range_for_scale(*limits)
 
     def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_keys):
@@ -102,23 +110,23 @@ class DataPlot(DataBase):
         keyring.make_full(self.coords_name)
         keyring.make_total()
 
-        image = self.view(variable, **keyring.kw)
+        if coords is None:
+            coords = keyring.get_high_dim()[::-1]
+        self.plot_coords = coords
+
+        image = self.view_ordered(coords[::-1], variable, keyring)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % list(image.shape))
 
-        self.plotted = self._select_from_avail([variable], keyring)
+        self.plotted = self.get_subscope(variable, keyring, 'loaded')
 
         kwargs_def = {'origin': 'lower'}
         if kwargs is not None:
             kwargs_def.update(kwargs)
         kwargs = kwargs_def
 
-        if coords is None:
-            coords = keyring.get_high_dim()
-
         extent = self.plotted.get_extent(*coords)
-        image = self.acs.reorder(keyring, image, coords[::-1])
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
@@ -126,7 +134,7 @@ class DataPlot(DataBase):
 
         return im
 
-    def update_imshow(self, im, variable=None, **kw_keys):
+    def update_imshow(self, im, variable=None, **keys):
         """Update a heatmap plot.
 
         If a parameter is None, the value used for setting
@@ -150,12 +158,10 @@ class DataPlot(DataBase):
         if variable is None:
             variable = self.plotted.var[0]
         self.plotted.var = [variable]
-        if kw_keys:
-            krg = Keyring(**kw_keys)
-            krg.make_total()
-            self.plotted = self._select_from_avail(variable, krg)
 
-        image = self._view_scope(self.plotted)
+        self.plotted = self.get_subscope(variable, scope='loaded', **keys)
+
+        image = self.view_ordered(self.plot_coords[::-1], variable, **keys)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % image.shape)
@@ -373,7 +379,6 @@ class DataPlot(DataBase):
             if var is not None:
                 output[i] = func(ax, self, var, *iterable, *args, **kwargs)
 
-        self.set_plot_keys(variables)
         output = np.array(output)
         output = np.reshape(output, axes.shape)
         return output
