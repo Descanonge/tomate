@@ -4,8 +4,6 @@ import os
 import logging
 from typing import Iterator
 
-import numpy as np
-
 from data_loader.key import Keyring, Key
 
 
@@ -129,9 +127,9 @@ class Command():
 
     def __len__(self) -> int:
         """Number of keyrings duos."""
-        return len(self.keyrings)5
+        return len(self.keyrings)
 
-    def __getitem__(self, i) -> CmdKeyring:
+    def __getitem__(self, i) -> CmdKeyrings:
         """Get i-th keyrings duo."""
         return self.keyrings[i]
 
