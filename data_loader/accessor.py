@@ -276,8 +276,10 @@ class Accessor():
         Array
         """
         # TODO: add securities
-        non_zeros = keyring.get_non_zeros()
-        source, dest = cls.get_order_arg(non_zeros, order)
+        # Current data order
+        current = keyring.get_non_zeros()
+        source = [current.index(n) for n in current if n in order]
+        dest = [current.index(n) for n in order]
         if source != dest:
             return cls.moveaxis(array, source, dest)
         return array

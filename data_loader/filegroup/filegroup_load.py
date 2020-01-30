@@ -273,7 +273,8 @@ class FilegroupLoad(FilegroupScan):
         if variables:
             order_added.insert(0, 'var')
             coords.insert(0, 'var')
-        source, dest = self.acs.get_order_arg(coords, order_added)
+        source = [coords.index(n) for n in coords if n in order_added]
+        dest = [coords.index(n) for n in order_added]
 
         if source != dest:
             log.info("reordering %s -> %s", source, dest)
