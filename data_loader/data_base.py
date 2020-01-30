@@ -84,7 +84,7 @@ class DataBase():
 
         names = [c.name for c in coords]
         self.coords_name = names
-        self.avail = Scope(vi.var, *coords)
+        self.avail = Scope(vi.var, coords)
 
         self.loaded = self.avail.copy()
         self.select = self.avail.copy()

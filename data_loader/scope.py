@@ -137,6 +137,10 @@ class Scope():
         """Return a copy."""
         return self.__class__(self.var, *self.coords.values())
 
+    def copy(self) -> "Scope":
+        """Return a copy of self."""
+        return Scope(self.var, self.coords.values())
+
     def iter_slices(self, coord, size_slice=12):
         """Iter through data with slices of `coord` of size `n_iter`.
 
