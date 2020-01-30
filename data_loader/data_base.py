@@ -802,18 +802,13 @@ class DataBase():
         variables: str, List[str], optional
             Variables to write. If None, all are written.
         """
-        if wd is None:
-            wd = self.root
-
         if variables is None:
-            variables = self.vi.var
-
-        keys = self.get_coords_kwargs(**kwcoords)
-
+            variables = self.loaded.var
+        else:
+            variables = [v for v in variables if v in self.loaded.var]
         fg_var = self._get_filegroups_for_variables(variables)
-
         for fg, var_list in fg_var:
-            fg.write(filename, wd, var_list, keys)
+            fg.write(filename, wd, var_list)
 
 
 def subset_slices(key, key_subset):
