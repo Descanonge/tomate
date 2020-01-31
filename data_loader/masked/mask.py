@@ -14,7 +14,18 @@ from data_loader.data_compute import do_stack
 
 
 def get_circle_kernel(n):
-    """Return circular kernel for convolution of size nxn."""
+    """Return circular kernel for convolution of size nxn.
+
+    Parameters
+    ----------
+    n: int
+        Diameter of kernel.
+
+    Returns
+    -------
+    Array
+        Shape (n, n)
+    """
     kernel = np.zeros((n, n))
     for i in range(n):
         for j in range(n):
@@ -46,7 +57,15 @@ def enlarge_mask(mask, n_neighbors, axes=None):
 
 
 def fill_edge(data, axes=None):
-    """Fill masked by value of closest pixel."""
+    """Fill masked by value of closest pixel.
+
+    Parameters
+    ----------
+    data: Array
+    axes: List[int]
+        Axes to work on.
+        If None, the last two axes are used.
+    """
     if not _has_scipy:
         raise ImportError("scipy package necessary to use fill_edge.")
 

@@ -10,7 +10,7 @@ class Key():
 
     Can be None, int, List[int] or slice.
 
-    See :doc:`key` for more information.
+    See :doc:`../accessor` for more information.
 
     Parameters
     ----------
@@ -131,7 +131,7 @@ class Keyring():
 
     Multiple dimensions can be specified.
 
-    See :doc:`../key` for more information.
+    See :doc:`../accessor` for more information.
 
     Parameters
     ----------

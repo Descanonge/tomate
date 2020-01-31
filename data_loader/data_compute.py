@@ -1,4 +1,5 @@
 """Add convenience functions for various operations on data."""
+# TODO: update to keyrings
 
 import numpy as np
 
@@ -6,7 +7,10 @@ from data_loader.data_base import DataBase
 
 
 class DataCompute(DataBase):
-    """Added functionalities for various computations."""
+    """Data class with added functionalities for various computations.
+
+    See :class:`DataBase` for more information.
+    """
 
     def gradient(self, variable, coords, fill=None):
         """Compute a n-dimensional gradient.

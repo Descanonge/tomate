@@ -39,7 +39,7 @@ class DataBase():
     Coordinates can be accessed as attributes:
     `Data.name_of_coordinate`.
 
-    See :doc:`data` for more information.
+    See :doc:`../data` for more information.
 
     Parameters
     ----------

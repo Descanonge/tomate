@@ -165,7 +165,7 @@ class Command():
     def set_keyring(self, krg_infile, krg_memory, i=0):
         """Set a keyrings duo by index.
 
-        Paramaters
+        Parameters
         ----------
         krg_infile, krg_memory: Keyring
         i: int, optional

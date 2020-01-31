@@ -19,7 +19,7 @@ class FilegroupLoad(FilegroupScan):
     This class is abstract and is meant to be subclassed to be usable.
     A subclass would replace existing functions specific to a file format.
 
-    See :doc:`expanding` for more information about subclassing this.
+    See :doc:`../expanding` for more information about subclassing this.
     """
 
     def get_commands(self, var_list, keyring):
@@ -221,7 +221,7 @@ class FilegroupLoad(FilegroupScan):
 
         Load content following a 'load command'.
 
-        See :doc:`filegroup` and :doc:`expanding`
+        See :doc:`../filegroup` and :doc:`../expanding`
         for more information on how this function works, and
         how to implement it.
 

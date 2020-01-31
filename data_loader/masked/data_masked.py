@@ -1,4 +1,4 @@
-"""Data class for netCDF files."""
+"""Masked data classes."""
 
 import logging
 
@@ -6,6 +6,7 @@ import numpy as np
 
 from data_loader.data_base import DataBase
 from data_loader.accessor import Accessor
+from data_loader.key import Keyring
 import data_loader.masked.mask
 
 
@@ -13,22 +14,24 @@ log = logging.getLogger(__name__)
 
 
 class AccessorMask(Accessor):
+    """Accessor for masked numpy array."""
 
     @staticmethod
-    def concatenate(arrays, *args, **kwargs):
+    def concatenate(arrays, axis=0):
         """Concatenate arrays.
 
         Parameters
         ----------
         array: List[Array]
-        args, kwargs:
-            Passed to np.concatenate.
-
+        axis: int, optional
+            The axis along which the arrays will be joined.
+            If None, the arrays are flattened.
+       
         Returns
         -------
         Array
         """
-        return np.ma.concatenate(arrays, *args, **kwargs)
+        return np.ma.concatenate(arrays, axis)
 
 
 class DataMasked(DataBase):
@@ -36,10 +39,7 @@ class DataMasked(DataBase):
 
     For masked data.
 
-    Data and coordinates can be accessed with getter:
-    Data[{name of variable | name of coordinate}]
-
-    Data is loaded from disk with load_data.
+    See :class:`DataBase` for more information.
 
     Attributes
     ----------
@@ -51,22 +51,14 @@ class DataMasked(DataBase):
 
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None
-
         super().__init__(*args, **kwargs)
 
-    def allocate_memory(self, shape):
-        """Allocate data variable.
-
-        Data is storred as a masked array
-        """
+    @staticmethod
+    def allocate_memory(shape):
         log.info("Allocating numpy masked array of shape %s", shape)
         data = np.ma.zeros(shape)
         data.mask = np.ma.make_mask_none(shape)
         return data
-
-    @property
-    def _concatenate(self):
-        return np.ma.concatenate
 
     def set_mask(self, variable, mask):
         """Set mask to variable data.
@@ -74,9 +66,9 @@ class DataMasked(DataBase):
         Parameters
         ----------
         variable: str
-        mask: Array like, bool, int
+        mask: Array, bool, int
             Potential mask.
-            If bool or int, a mask array is filled.
+            If bool or int, a mask array is filled with this value.
             Array like (ndarray, tuple, list) with shape of the data
             without the variable dimension.
             0's are interpreted as False, everything else as True.
@@ -130,7 +122,7 @@ class DataMasked(DataBase):
         Parameters
         ----------
         variable: str
-        coords: List[str]
+        coords: str, optional
             Coordinates to compute the coverage along.
             If None, all coordinates are taken.
 
@@ -161,13 +153,13 @@ class DataMasked(DataBase):
 
         Parameters
         ----------
-        missing: bool, True
+        missing: bool, optional
             Mask not valid.
-        inland: bool, True
+        inland: bool, optional
             Mask in land.
-        coast: int, 5
+        coast: int, optional
             If inland, mask `coast` neighbooring pixels.
-        chla: bool, True
+        chla: bool, optional
             Clip Chlorophyll above 3mg.m-3 and under 0.
 
         Raises
