@@ -9,6 +9,7 @@ data\_loader.filegroup.command
 .. automodule:: data_loader.filegroup.command
 .. rubric:: Classes
 .. autosummary::
+   
        CmdKeyrings
    
        Command
@@ -16,6 +17,7 @@ data\_loader.filegroup.command
 
 .. rubric:: Functions
 .. autosummary::
+   
        merge_cmd_per_file
    
        simplify_keys

@@ -10,9 +10,11 @@ data\_loader.filegroup
 
 .. rubric:: Content
 .. autosummary::
-       filegroup.FilegroupLoad
+       :nosignatures:
    
-       filegroup.FilegroupNetCDF
+       filegroup_load.FilegroupLoad
+   
+       filegroup_netcdf.FilegroupNetCDF
    
 
 .. rubric:: Submodules

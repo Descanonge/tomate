@@ -11,6 +11,10 @@ ref_final="$source/$ref_folder"
 gen="$ref/autosummary"
 
 
+if [ ! -d "$ref_final" ]; then
+    mkdir "$ref_final"
+fi
+
 sphinx-apidoc -fMe \
     -t "$source/_templates/apidoc" \
     -o "$ref" ../data_loader

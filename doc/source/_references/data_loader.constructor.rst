@@ -9,11 +9,13 @@ data\_loader.constructor
 .. automodule:: data_loader.constructor
 .. rubric:: Classes
 .. autosummary::
+   
        Constructor
    
 
 .. rubric:: Functions
 .. autosummary::
+   
        check_range
    
        check_values

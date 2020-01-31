@@ -10,6 +10,7 @@ data\_loader.masked.mask
 
 .. rubric:: Functions
 .. autosummary::
+   
        enlarge_mask
    
        fill_edge

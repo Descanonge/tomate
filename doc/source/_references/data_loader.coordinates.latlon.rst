@@ -9,6 +9,7 @@ data\_loader.coordinates.latlon
 .. automodule:: data_loader.coordinates.latlon
 .. rubric:: Classes
 .. autosummary::
+   
        Lat
    
        Lon

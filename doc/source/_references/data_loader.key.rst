@@ -9,6 +9,7 @@ data\_loader.key
 .. automodule:: data_loader.key
 .. rubric:: Classes
 .. autosummary::
+   
        Key
    
        Keyring
@@ -16,6 +17,7 @@ data\_loader.key
 
 .. rubric:: Functions
 .. autosummary::
+   
        list2slice_complex
    
        list2slice_simple

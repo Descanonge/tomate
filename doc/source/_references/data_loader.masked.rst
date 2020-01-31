@@ -10,7 +10,9 @@ data\_loader.masked
 
 .. rubric:: Content
 .. autosummary::
-       masked.DataMasked
+       :nosignatures:
+   
+       data_masked.DataMasked
    
 
 .. rubric:: Submodules

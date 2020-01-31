@@ -3,7 +3,10 @@
 {%- if items %}
 .. rubric:: {{rubric}}
 .. autosummary::
-   {%- for item in items %}
+   {%- if rubric == "Content" %}
+       :nosignatures:
+   {%- endif %}
+   {% for item in items %}
        {{item}}
    {% endfor %}
 {%- endif %}

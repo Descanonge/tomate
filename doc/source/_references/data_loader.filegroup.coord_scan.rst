@@ -9,6 +9,7 @@ data\_loader.filegroup.coord\_scan
 .. automodule:: data_loader.filegroup.coord_scan
 .. rubric:: Classes
 .. autosummary::
+   
        CoordScan
    
        CoordScanIn
@@ -20,6 +21,7 @@ data\_loader.filegroup.coord\_scan
 
 .. rubric:: Functions
 .. autosummary::
+   
        get_coordscan
    
 

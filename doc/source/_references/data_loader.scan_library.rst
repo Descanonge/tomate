@@ -10,6 +10,7 @@ data\_loader.scan\_library
 
 .. rubric:: Functions
 .. autosummary::
+   
        get_date_from_matches
    
        get_value_from_matches

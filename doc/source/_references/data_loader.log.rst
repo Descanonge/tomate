@@ -10,6 +10,7 @@ data\_loader.log
 
 .. rubric:: Functions
 .. autosummary::
+   
        set_file_log
    
        set_logging
