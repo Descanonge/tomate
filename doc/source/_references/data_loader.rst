@@ -4,6 +4,8 @@ API Reference
 
 .. automodule:: data_loader
 
+.. image:: ../diagram.*
+
 .. rubric:: Content
 .. autosummary::
     coordinates.coord.Coord

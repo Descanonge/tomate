@@ -4,6 +4,9 @@ API Reference
 
 .. automodule:: data_loader
 
+.. image:: ../diagram.*
+           :alt: Diagram of inheritance and structure around Data object.
+
 .. rubric:: Content
 .. autosummary::
     coordinates.coord.Coord
@@ -16,3 +19,4 @@ API Reference
     data_base.DataBase
 
     constructor.Constructor
+
