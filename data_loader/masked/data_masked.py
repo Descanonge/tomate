@@ -204,25 +204,27 @@ class DataMasked(DataBase):
         mask = self.compute_land_mask_func(lat, lon)
         np.save(self.root + 'land_mask.npy', mask)
 
-    def get_land_mask(self, keys=None):
+    def get_land_mask(self, keyring=None, **keys):
         """Return land mask.
 
         Parameters
         ----------
-        keys: List[numpy keys]
+        keyring: Keyring
+        keys: Key-like
 
         Returns
         -------
         mask: np.array(dtype=bool)
         """
-        if keys is None:
-            keys = [self.slices[c] for c in ['lat', 'lon']]
-
+        keyring = Keyring.get_default(keyring, **keys)
+        # TODO: subset of land mask default to loaded or selected
         try:
-            mask = np.load(self.root + 'land_mask.npy',
-                           mmap_mode='r')[tuple(keys)]
+            file = np.load(self.root + 'land_mask.npy',
+                           mmap_mode='r')
         except FileNotFoundError:
             self.compute_land_mask()
             self.get_land_mask()
+        else:
+            mask = self.acs.take(file, keyring)
 
         return mask
