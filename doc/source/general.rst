@@ -37,3 +37,6 @@ Information on the files scanning process is put in
 
 And of course, the :doc:`API reference<_references/data_loader>` contains all
 the doc strings for all modules, classes, and functions.
+
+
+Github page: `<https://github.com/Descanonges/data-loader>`__
