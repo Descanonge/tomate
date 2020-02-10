@@ -33,7 +33,7 @@ class DataBase():
     directly accessible from the data object.
     If data has been loaded, the 'loaded' scope is used,
     otherwise the 'available' scope is used.
-   
+
     Data and coordinates can be accessed as items:
     `Data[{name of variable | name of coordinate}]`.
     Coordinates can be accessed as attributes:
@@ -181,7 +181,7 @@ class DataBase():
             if y in self.loaded.var:
                 y = self.idx[y]
                 return self.data[y]
-            elif y in self.coords_name:
+            if y in self.coords_name:
                 return self.scope[y]
         raise KeyError("Key '%s' not in coordinates or variables" % y)
 
@@ -424,7 +424,7 @@ class DataBase():
 
         raise KeyError("%s not found" % name)
 
-    def get_limits(self, *coords, keyring=None, **keys):
+    def get_limits(self, *coords, scope=None, keyring=None, **keys):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
@@ -455,13 +455,12 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        return self.scope.get_limits(*coords, keyring, **keys)
+        return scope.get_limits(*coords, keyring=keyring, **keys)
 
-    def get_extent(self, *coords, keyring=None, **keys):
+    def get_extent(self, *coords, scope=None, keyring=None, **keys):
         """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
-        Scope is loaded if not empty, available otherwise.
 
         Parameters
         ----------
@@ -488,7 +487,7 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
-        return self.scope.get_extent(*coords, keyring, **keys)
+        return scope.get_extent(*coords, keyring=keyring, **keys)
 
     def get_kw_keys(self, *keys, **kw_keys):
         """Make keyword keys when asking for coordinates parts.
