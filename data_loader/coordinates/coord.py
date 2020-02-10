@@ -163,16 +163,20 @@ class Coord():
         self._descending = None
         self._size = 0
 
-    def subset(self, vmin, vmax) -> slice:
-        """Return slice between vmin and vmax (included).
+    def subset(self, vmin=None, vmax=None, exclude=False) -> slice:
+        """Return slice between vmin and vmax.
 
         If descending, the slice is reverted (values are always
         in increasing order).
 
         Parameters
         ----------
-        vmin, vmax: float
+        vmin, vmax: float, optional
             Bounds to select.
+            If None, min and max of coordinate are taken.
+        exclude: bool, optional
+            If True, exclude vmin and vmax from selection.
+            Default is False.
 
         Examples
         --------
@@ -183,8 +187,14 @@ class Coord():
         >>> print(lat[slice_lat])
         [30 31 ... 42 43]
         """
-        start = self.get_index(vmin, "below")
-        stop = self.get_index(vmax, "above")
+        if vmin is None:
+            start = 0
+        else:
+            start = self.get_index(vmin, ["below", "above"][exclude])
+        if vmax is None:
+            stop = self.size
+        else:
+            stop = self.get_index(vmax, ["above", "below"][exclude])
         if not self.is_descending():
             stop += 1
             step = 1
