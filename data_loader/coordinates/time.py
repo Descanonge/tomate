@@ -8,7 +8,12 @@ from typing import Sequence
 
 from datetime import datetime
 
-from netCDF4 import date2num, num2date
+try:
+    import netCDF4 as nc
+except ImportError:
+    _has_netcdf = False
+else:
+    _has_netcdf = True
 
 from data_loader.coordinates.coord import Coord
 
@@ -65,11 +70,14 @@ class Time(Coord):
         datetime.datetime, List[datetime]
             Return a list if the input was a list.
         """
+        if not _has_netcdf:
+            raise ImportError("netCDF4 package necessary for index2date.")
+
         if indices is None:
             indices = slice(None, None)
 
-        dates = num2date(self[indices], self.units,
-                         only_use_cftime_datetimes=False)
+        dates = nc.num2date(self[indices], self.units,
+                            only_use_cftime_datetimes=False)
 
         # Sometimes, num2date returns a subclass of datetime
         # I convert it back to datetime.datetime
@@ -100,6 +108,9 @@ class Time(Coord):
         int, List[int]:
             Return a list if the input was a list.
         """
+        if not _has_netcdf:
+            raise ImportError("netCDF4 package necessary for date2index.")
+
         # If the user has asked a single date
         single = False
         if isinstance(dates, datetime):
@@ -112,7 +123,7 @@ class Time(Coord):
 
         indices = []
         for date in dates:
-            num = date2num(date, self.units)
+            num = nc.date2num(date, self.units)
             indices.append(self.get_index(num))
 
         if single:
@@ -169,6 +180,9 @@ def change_units(values, units_old, units_new):
     Sequence[float]
         Values in new units.
     """
-    dates = num2date(values, units_old)
-    values = date2num(dates, units_new)
+    if not _has_netcdf:
+        raise ImportError("netCDF4 package necessary for change_units.")
+
+    dates = nc.num2date(values, units_old)
+    values = nc.date2num(dates, units_new)
     return values

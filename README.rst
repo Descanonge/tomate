@@ -76,7 +76,7 @@ Data-loader requires the following python packages::
 
 Optional dependencies::
 
-  [NetCDF] NetCDF4 (for netcdf files)
+  [NetCDF] NetCDF4 (for netcdf files, and time coordinate)
   [Mask] scipy (for some features of masked data)
 
 
