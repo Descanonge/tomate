@@ -207,6 +207,10 @@ class Coord():
             step = -1
         return slice(start, stop, step)
 
+    def select(self, vmin=None, vmax=None, exclude=False):
+        """Select values slice."""
+        return self._array[self.subset(vmin, vmax, exclude)]
+
     def is_descending(self) -> bool:
         """Return if coordinate is descending"""
         return self._descending
