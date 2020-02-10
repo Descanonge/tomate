@@ -208,6 +208,14 @@ class DataBase():
             return self.loaded
         return self.avail
 
+    def get_scope(self, scope) -> Scope:
+        """Get scope by name."""
+        if isinstance(scope, str):
+            scope = {'avail': self.avail,
+                     'loaded': self.loaded,
+                     'select': self.select}[scope]
+        return scope
+
     @property
     def idx(self) -> Dict[str, int]:
         """Index of each variable in the data array.
@@ -455,6 +463,9 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
+        scope = self.get_scope(scope)
+        if scope is None:
+            scope = self.scope
         return scope.get_limits(*coords, keyring=keyring, **keys)
 
     def get_extent(self, *coords, scope=None, keyring=None, **keys):
@@ -487,6 +498,9 @@ class DataBase():
         >>> print(dt.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
+        scope = self.get_scope(scope)
+        if scope is None:
+            scope = self.scope
         return scope.get_extent(*coords, keyring=keyring, **keys)
 
     def get_kw_keys(self, *keys, **kw_keys):
@@ -532,10 +546,7 @@ class DataBase():
         Scope
             Copy of input scope, sliced with specified keys.
         """
-        if isinstance(scope, str):
-            scope = {'avail': self.avail,
-                     'loaded': self.loaded,
-                     'select': self.select}[scope]
+        scope = self.get_scope(scope)
         scope = scope.copy()
         scope.slice(variables, keyring, **keys)
         return scope

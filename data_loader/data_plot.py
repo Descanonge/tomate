@@ -28,11 +28,10 @@ class DataPlot(DataBase):
 
         self.plot_coords = []
 
-    def _make_keyring_none_previous(self, keyring):
-        """Replaces None keys by last plotted."""
-        for name, key in keyring.items_values():
-            if key is None:
-                keyring[name] = self.slices_plot[name]
+    def get_scope(self, scope):
+        if scope == 'plotted':
+            return self.plotted
+        return super().get_scope(scope)
 
     def set_limits(self, ax, scope=None, *coords, keyring=None, **keys):
         """Set axis limits.
