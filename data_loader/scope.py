@@ -233,7 +233,7 @@ class Scope():
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(coords)
         if not keyring:
-            keyring.make_full(self.coords_name)
+            keyring.make_full(self.coords.keys())
         keyring.make_total()
 
         limits = []
@@ -266,7 +266,7 @@ class Scope():
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(coords)
         if not keyring:
-            keyring.make_full(self.coords_name)
+            keyring.make_full(self.coords.keys())
         keyring.make_total()
 
         extent = []

@@ -33,24 +33,25 @@ class DataPlot(DataBase):
             return self.plotted
         return super().get_scope(scope)
 
-    def set_limits(self, ax, scope=None, *coords, keyring=None, **keys):
+    def set_limits(self, ax, *coords, scope=None, keyring=None, **keys):
         """Set axis limits.
 
         Parameters
         ----------
         ax: Matplotlib.Axes
-        scope: Scope, optional
-            Scope to act on. Default is plotted if not empty
-            available otherwise.
         coords: str, optional
             Coords to take limit from.
             Default to firts coordinates present in scope,
             of size above 1.
             or first `kw_keys` if present.
+        scope: Scope, optional
+            Scope to act on. Default is plotted if not empty
+            available otherwise.
         kw_keys: key-like, optional
             Subpart of coordinates to consider.
             If not specified, all coordinates range are taken.
         """
+        scope = self.get_scope(scope)
         if scope is None:
             if not self.plotted.is_empty():
                 scope = self.plotted

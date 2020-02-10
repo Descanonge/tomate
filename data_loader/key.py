@@ -1,8 +1,12 @@
 """Objects for indexing the data array."""
 
+import logging
 from typing import List
 
 import numpy as np
+
+
+log = logging.getLogger(__name__)
 
 
 class Key():
@@ -232,7 +236,7 @@ class Keyring():
 
     def __bool__(self):
         """If the keyring has keys."""
-        return len(self.dims > 0)
+        return len(self.dims) > 0
 
     def subset(self, dims):
         """Return a subpart of this keyring.
