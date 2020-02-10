@@ -783,8 +783,8 @@ class DataBase():
             Variable attributes.
             Passed to VariablesInfo.add_variable
         """
-        self.vi.add_variable(variable, **infos)
-        self.avail.var.append(variable)
+        if variable not in self.vi:
+            self.vi.add_variable(variable, **attrs)
         if data is not None:
             self.set_data(variable, data)
 
