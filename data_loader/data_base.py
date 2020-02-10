@@ -648,8 +648,7 @@ class DataBase():
         except NotImplementedError:
             pass
 
-    @staticmethod
-    def allocate_memory(shape):
+    def allocate(self, shape):
         """Allocate data array.
 
         Parameters
@@ -662,7 +661,7 @@ class DataBase():
         Array
         """
         log.info("Allocating numpy array of shape %s", shape)
-        return np.zeros(shape)
+        return self.acs.allocate(shape)
 
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.

@@ -17,6 +17,12 @@ class AccessorMask(Accessor):
     """Accessor for masked numpy array."""
 
     @staticmethod
+    def allocate(shape):
+        array = np.ma.zeros(shape)
+        array.mask = np.ma.make_mask_none(shape)
+        return array
+
+    @staticmethod
     def concatenate(arrays, axis=0):
         """Concatenate arrays.
 
@@ -52,13 +58,6 @@ class DataMasked(DataBase):
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None
         super().__init__(*args, **kwargs)
-
-    @staticmethod
-    def allocate_memory(shape):
-        log.info("Allocating numpy masked array of shape %s", shape)
-        data = np.ma.zeros(shape)
-        data.mask = np.ma.make_mask_none(shape)
-        return data
 
     def set_mask(self, variable, mask):
         """Set mask to variable data.

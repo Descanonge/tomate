@@ -60,6 +60,20 @@ class Accessor():
                              "and keyring shape (array: %s, keyring: %s)"
                              % (cls.shape(array), keyring.shape))
 
+    @staticmethod
+    def allocate(shape):
+        """Allocate array of given shape.
+
+        Parameters
+        ----------
+        shape: List[int]
+
+        Returns
+        -------
+        Array
+        """
+        return np.zeros(shape)
+
     @classmethod
     def has_normal_access(cls, keyring):
         """Check if keyring would need complex access.
