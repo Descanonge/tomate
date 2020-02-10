@@ -12,7 +12,6 @@ import re
 from types import MethodType
 
 import data_loader.filegroup.coord_scan as dlcs
-from data_loader.accessor import Accessor
 
 
 log = logging.getLogger(__name__)
@@ -79,8 +78,6 @@ class FilegroupScan():
         self.scan_attr = False
 
         self.make_coord_scan(coords)
-
-        self.acs = Accessor()
 
     def __str__(self):
         s = [self.__class__.__name__]
