@@ -326,6 +326,12 @@ class Keyring():
             keys_ord[name] = self[name]
         self._keys = keys_ord
 
+    def check_unwanted(self, dims):
+        """Check if keyring contains unwanted dimensions."""
+        for c in self:
+            if c not in dims:
+                raise KeyError("'%s' dimension is unwanted in keyring." % c)
+
     def make_full(self, dims, fill=None):
         """Add dimensions.
 
@@ -337,6 +343,10 @@ class Keyring():
         fill: Any, optional
             Value to set new keys to.
         """
+        for c in self:
+            if c not in dims:
+                log.warning("'%s' dimension in keyring is not in specified "
+                            "full list of dimensions, and might be unwanted.", c)
         for c in dims:
             if c not in self:
                 self[c] = fill
