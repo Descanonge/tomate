@@ -528,7 +528,7 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def get_subscope(self, variables=None, keyring=None, scope='avail', **keys):
+    def get_subscope(self, scope='avail', variables=None, keyring=None, **keys):
         """Return subset of scope.
 
         Parameters
@@ -645,7 +645,7 @@ class DataBase():
         keyring.make_full(self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        self.loaded = self.get_subscope(variables, keyring, 'avail', **kw_keys)
+        self.loaded = self.get_subscope('avail', variables, keyring, **kw_keys)
 
         self.data = self.allocate_memory(self.shape)
 
