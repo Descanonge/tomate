@@ -5,3 +5,7 @@ TODO: say storage order (for coords order)
 TODO: add note on python 3.7+
 
 TODO: compute linear combinations
+
+TODO: Remove iterdict
+
+TODO: Make acs attribute class rather than instance

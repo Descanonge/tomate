@@ -647,9 +647,9 @@ class DataBase():
         keyring.make_int_list()
         self.loaded = self.get_subscope('avail', variables, keyring, **kw_keys)
 
-        self.data = self.allocate_memory(self.shape)
+        self.data = self.allocate(self.shape)
 
-        fg_var = self._get_filegroups_for_variables(self.vi.var)
+        fg_var = self._get_filegroups_for_variables(self.loaded.var)
         for fg, var_load in fg_var:
             fg.load_data(var_load, keyring)
 
