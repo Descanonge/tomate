@@ -1,7 +1,7 @@
 """Example from tutorial."""
 
 from data_loader import Coord, Time
-from data_loader.constructor import Constructor
+from data_loader import Constructor
 from data_loader.filegroup import FilegroupNetCDF
 from data_loader.data_plot import DataPlot
 from data_loader.masked import DataMasked

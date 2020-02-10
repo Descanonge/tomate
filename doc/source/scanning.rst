@@ -1,4 +1,7 @@
 
+.. currentmodule :: data_loader
+
+
 Scanning
 ========
 
@@ -20,27 +23,41 @@ There could also be more than one date per file, for instance a file for each
 month with daily images.
 
 The scanning is done independantly in each filegroup through the
-:class:`CoordScan<data_loader.coord_scan.CoordScan>`, derived from
-a :class:`Coord<data_loader.coord.Coord>`, or any of its subclass
-(see :doc:`coord`).
-The CoordScan object stores the values of the corresponding coordinate,
-the in file index (noted in_idx), and for shared coordinates the
-matches which are used to find the corresponding filenames.
-All of those are indexed on the values, so when we ask for the
-i_th value of a coordinate, we take the i_th matches to get the
-corresponding filename.
+:class:`CoordScan<filegroup.coord_scan.CoordScan>` object, dynamically derived
+from a :class:`Coord<coordinates.coord.Coord>`, or any of its subclass.
 
-In coordinates scan only one file, the first one found.
+The CoordScan object stores the values of its parent coordinate,
+the in-file indices (noted `in_idx`), and for shared coordinates the
+part of the filename that were found against matchers from the regex.
+All those variables are indexed on the coordinate values, so when we ask for the
+i_th value of a coordinate, we take the i_th series of matches to get the
+corresponding filename, and the i_th in-file index to know where to look in that
+file.
+
+The fact that everything is indexed on coordinates values, means that
+coordinates scanned from files will always have values in growing order.
+If needed, the data will be reversed to accomodate (see
+:ref:`Reversing dimensions`).
+
+In-coordinates scan only one file, the first one found.
 Shared coordinates scan all the files available.
 The actual scanning (opening files) is done by user-defined
 functions. These are set at runtime using the filegroups constructors.
-There are two types of functions: `scan_filename` and `scan_in_file`.
+There are two types of functions: `scan_filename` and `scan_in_file``.
 The values and in file indices can also be set manually, in which case
 the files won't be scanned, but the coordinates values will still
 be checked for consistency with other filegroups.
 
+Coordinate attributes, variables attributes, and general information on
+the data can all be retrieved from files.
+Functions to accomplish this are set with
+:func:`constructor.Constructor.set_scan_coords_attributes_func`,
+:func:`constructor.Constructor.set_scan_variables_attributes_func`, and
+:func:`constructor.Constructor.set_scan_infos_func`, respectively.
+See their docstrings for more information.
+Currently, the only attributes that can be applied this way for coordinates
+is their units.
 
-.. _scanning-reversing:
 
 Reversing dimensions
 --------------------
@@ -57,7 +74,7 @@ this dimension will be reversed.
 If no information on the in-file index can be found inside the file,
 the `in_idx` attribute CoordScan will be set to a list of `None`.
 The index descending property can still be set manually by calling
-:func:`Constructor.set_coord_descending(coord_name)<data_loader.constructor.Constructor.set_coord_descending>`
+:func:`constructor.Constructor.set_coord_descending`
 on the filegroup constructor.
 
 This only works for 'in' coordinates.
@@ -69,14 +86,14 @@ Scanning in file
 ----------------
 
 The scanning function is set by
-:func:`Constructor.set_scan_in_file_func<data_loader.constructor.Constructor.set_scan_in_file_func>`
-. The function should receive a CoordScan object, a filename, and
+:func:`constructor.Constructor.set_scan_in_file_func`.
+The function should receive a CoordScan object, a filename, and
 values previously scanned in the filename (see below).
 It must returns one or more values, and the corresponding indices in the file.
 If there is no index, the function should return `None`.
 
 There are already existing functions in the
-:mod:`scan_library<data_loader.scan_library>` module.
+:mod:`data_loader.scan_library` module.
 
 
 Scanning filename: the pre-regex
@@ -95,7 +112,7 @@ Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
 of the corresponding coordinates.
 Again, the CoordScan calls a user-defined function set with
-:func:`Constructor.set_scan_filename_func<data_loader.constructor.Constructor.set_scan_filename_func>`
-, eventually with functions already in :mod:`scan_library<data_loader.scan_library>`.
+:func:`constructor.Constructor.set_scan_filename_func`,
+eventually with functions already defined in :mod:`data_loader.scan_library`.
 The function receives a Coordscan instance, and must returns one
 or more values.

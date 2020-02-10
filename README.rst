@@ -67,7 +67,7 @@ Requirements
 Data-loader requires python **>=3.7**. From this version, dictionaries
 preserve the order in which keys are added.
 The code heavily relies on this feature.
-Note this could be avoided, but would require a fair bit of
+This could be avoided, but would require a fair bit of
 refactoring.
 
 Data-loader requires the following python packages::

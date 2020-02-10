@@ -29,15 +29,15 @@ average = np.zeros(dt['time'].size)
 # We only load a small 2D window
 # ranging from 36N to 41N in latitude,
 # and from 71W to 62W in longitude.
-slice_lat = dt['lat'].subset(36, 41)
-slice_lon = dt['lon'].subset(-71, -62)
+slice_lat = dt.lat.subset(36, 41)
+slice_lon = dt.lon.subset(-71, -62)
 
 # The size slice. Beware, this does not necessarily
 # divide roundly the total number of time steps,
 # the last slice can be smaller than this.
 size_slice = 12
 
-for slice_time in dt.iter_slices('time', size_slice=size_slice):
+for slice_time in dt.avail.iter_slices('time', size_slice=size_slice):
     dt.load_data('SST', time=slice_time, lat=slice_lat, lon=slice_lon)
 
     avg = np.nanmean(dt['SST'], axis=[1, 2])

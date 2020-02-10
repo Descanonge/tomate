@@ -1,4 +1,7 @@
 
+.. currentmodule :: data_loader
+
+
 Expanding the package
 =====================
 
@@ -9,30 +12,31 @@ File formats
 ------------
 
 To use a new file format, one should subclass
-:class:`FilegroupLoad<data_loader.filegroup.FilegroupLoad>`, and
+:class:`FilegroupLoad<filegroup.filegroup_load.FilegroupLoad>`, and
 overwrite a couple of functions.
 
 First
-:func:`open_file<data_loader.filegroup.filegroup_scan.FilegroupScan.open_file>`
+:func:`open_file<filegroup.filegroup_scan.FilegroupScan.open_file>`
 and
-:func:`close_file<data_loader.filegroup.filegroup_scan.FilegroupScan.close_file>`
+:func:`close_file<filegroup.filegroup_scan.FilegroupScan.close_file>`
 should be implemented.
 `open_file` should return a file object passed to various scanning and loading
 functions. Exception handling is already taken care of by the package.
 
 Then the
-:func:`load_cmd<data_loader.filegroup.FilegroupLoad.load_cmd>` function should
-be implemented. For more details, see :ref:`Executing the command`.
+:func:`load_cmd<filegroup.filegroup_load.FilegroupLoad.load_cmd>` function
+should be implemented.
+For more details, see :ref:`Executing the command`.
 
 All those functions should handle logging, especially the loading function, in
 which the log provides means to check if the correct data is loaded. See
 :doc:`log`.
 It is advised to look at
-:class:`FilegroupNetCDF<data_loader.filegroup.FilegroupNetCDF>`
-for a practical example of a file format.
+:class:`FilegroupNetCDF<filegroup.filegroup_netcdf.FilegroupNetCDF>`
+for a practical example of a file format expansion.
 
 A new file format will recquire new scanning function. One can take example
-at the :mod:`scan_library<data_loader.scan_library>` module.
+at the :mod:`data_loader.scan_library`
 
 
 Data base type
@@ -40,27 +44,22 @@ Data base type
 
 Additional features can be added to the data base object.
 Any method can be added to or modified from the
-:class:`DataBase<data_loader.DataBase>` class.
+:class:`DataBase<data_base.DataBase>` class.
 The data object class can then be chosen from any of these
 subclasses, or from a combination of thoses.
-See :ref:`Database`, :ref:`The data object`, and
-:func:`constructor.create_data_class<data_loader.constructor.create_data_class>`
-for details.
+See :ref:`Additional methods` for details.
 
-It is also possible to change how the data is stored.
-To do that, it necessary to modify the
-:func:`allocate_memory<data_loader.DataBase.allocate_memory>`
-static function.
+It is also possible to change how the data is stored, or accessed.
+To do that, it is necessary to modify the
+:ref:`Accessors` class.
 
 One can look at
-:class:`DataMasked<data_loader.masked.DataMasked>` and
-:class:`DataPlot<data_loader.data_plot.DataPlot>`
+:class:`DataMasked<masked.data_masked.DataMasked>` and
+:class:`DataPlot<data_plot.DataPlot>`
 for inspiration.
-
-See :ref:`Database`
 
 
 Coordinates subclasses
 ----------------------
 
-See :doc:`coord`
+See :doc:`coord`.

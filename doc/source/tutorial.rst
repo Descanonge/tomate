@@ -1,4 +1,7 @@
 
+.. currentmodule :: data_loader
+
+
 Constructing a database
 =======================
 
@@ -6,6 +9,7 @@ A data object needs a few objects to be functionnal, namely coordinates,
 a vi, and filegroups. Creating these can be a bit daunting. The
 constructor module provides ways to create a data object, and do a couple
 of additional checks that ease the creation of a database.
+Especially when loading from disk.
 
 This page will break down a typical database creation script, and present
 the main features of the package.
@@ -15,8 +19,8 @@ Adding Coordinates
 ------------------
 
 First we will define the coordinates that we will encounter in our database.
-Here we use a simple :class:`Coord<data_loader.Coord>` for the latitude and
-longitude, and :class:`Time<data_loader.Time>` for the time as this will provide
+Here we use a simple :class:`Coord<coordinates.coord.Coord>` for the latitude and
+longitude, and :class:`Time<coordinates.time.Time>` for the time as this will provide
 useful functionalities for working with dates.
 We could use any kind of subclass of the Coord class, eventually a user made one.
 
@@ -40,7 +44,7 @@ by using a list of strings.
 
 The order of `coords` is of great importance, as this will dictate in what
 order the data will be stored. Here the ranks of the data numpy array will be
-(lat, lon, time).
+(variables, lat, lon, time).
 
 
 Adding Variables
@@ -48,14 +52,14 @@ Adding Variables
 
 We must now specify the variables we are interested in. This will construct a
 :doc:`VariablesInfo<variables_info>` object (abbreviated VI).
-For that, we will use a :class:`Constructor<data_loader.constructor.Constructor>` object.
+For that, we will use a :class:`Constructor<constructor.Constructor>` object.
 We must supply a root directory, where all files are contained, as well as
 the coordinates created before.
 For each variable we will specify its name and eventually a serie of attributes.
 
 ::
 
-    from data_loader.constructor import Constructor
+    from data_loader import Constructor
 
     cstr = Constructor('/Data/', coords)
 
@@ -75,7 +79,7 @@ For each variable we will specify its name and eventually a serie of attributes.
 If more information can be found in the files, we can set the filegroups to
 scan for them a little latter. This will overide the attributes we set.
 Note that we indicated the 'ncname' attribute that will be detrimental for scanning
-netCDF files.
+netCDF files, as it correspond to the name of the variable in the file.
 
 
 Adding filegroups
@@ -89,7 +93,7 @@ We must thus give them all the information necessary to accomplish those
 tasks.
 
 A filegroup regroups similar files that have the same format,
-that contain the same variables, and in whiwh the data is arranged
+that contain the same variables, and in which the data is arranged
 in the same fashion.
 
 Our files are organized as such::
@@ -110,12 +114,12 @@ time dimension and variable from which we can extract the time values for
 that file.
 For the SST on the other hand, the sole information on the time value for each
 step is found in the filename.
-For both file groups, the latitude and longitude are in each file, and do not
-vary from file to file.
+For both file groups, the latitude and longitude are contained in each file, and
+do not vary from file to file.
 Note this example is in no way a requirement, the package can accomodate with
 many more ways of organizing data in various subfolders and files.
 
-We start by importing a FilegroupLoad subclass, here all our files are NetCDF,
+We start by importing a FilegroupLoad subclass, here all both file groups are NetCDF,
 so we will use FilegroupNetCDF.
 
 ::
@@ -142,7 +146,7 @@ if not precised, the root directory from the constructor will be used.
 
 We must now tell where are the files, more precisely how is constructed
 their filename. By filename, we mean the whole string starting after the
-root directory.
+root directory, folders included.
 For that, a pre-regex is used. It is a regular expression with a few
 added features. It will be transformed in a standard regex that will be
 used to find the files.
@@ -155,7 +159,7 @@ filegroup will consider that all files are in fact equal to the first
 filename that matched ('SST/A_2007001-2007008.nc' here).
 
 For that reason, we must tell for what coordinates the filenames are varying.
-We use for that :class:`Matchers<data_loader.coord_scan.Matcher>`::
+We use for that :class:`Matchers<filegroup.coord_scan.Matcher>`::
 
     pregex = r"SSH_%(time:Y)%(time:mm)%(time:dd)\.nc"
 
@@ -165,7 +169,7 @@ Here 'Y' means the match will be the date year: the matcher will be replaced by
 the correspond regex (4 digits in this case), and the string found in each
 filename will be used to find the date year.
 The elements available are defined in the
-:class:`Matcher<data_loader.coord_scan.Matcher>` class.
+:class:`Matcher<filegroup.coord_scan.Matcher>` class.
 (see :ref:`Pre-regex` for a list of defaults elements)
 
 To simplify a bit the pre-regex, we can specify some replacements. We obtain::
@@ -189,7 +193,7 @@ either by looking at the filename, or inside the file.
 This is done by standardized functions. There are a number of
 pre-existing functions that can be found in
 :mod:`scan_library<data_loader.scan_library>`,
-but user-defined function can also be used.
+but user-defined functions can also be used.
 Here, all coordinates values are found in the netCDF files, we use an existing
 function::
 
@@ -258,16 +262,16 @@ We could also want to combine those functionalities.
 
 We thus instruct the constructor a class of data to use.
 This can be a subclass of
-:class:`DataBase<data_loader.DataBase>`, or a list of
+:class:`DataBase<data_base.DataBase>`, or a list of
 subclasses.
 In case multiple child classes are indicated, a new data type will
 be dynamically created using those classes as bases. The order of that list
 gives the priority in the method resolution (first one in the list is the
 first class checked).
 
-Here we will use :class:`DataMasked<data_loader.masked.DataMasked>`, adapted
+Here we will use :class:`DataMasked<masked.data_masked.DataMasked>`, adapted
 for data with masked values, and
-:class:`DataPlot<data_loader.data_plot.DataPlot>` which helps in plotting data::
+:class:`DataPlot<data_plot.DataPlot>` which helps in plotting data::
 
     from data_loader.masked import DataMasked
     from data_loader.data_plot import DataPlot
@@ -280,7 +284,7 @@ If the coordinates from different filegroups have different ranges, only
 the common part of the data will be available for loading.
 
 During the scanning of the file, information is logged at the 'debug' level.
-More information on logging: :doc:`log`
+More information on logging: :doc:`log`.
 
 
 Loading data
@@ -312,19 +316,6 @@ coordinates are in sync with the data.
 Once loaded, the data can be sliced further using::
 
     dt.slice_data('SST', time=[0, 1, 2, 5, 10])
-
-If no data is currently loaded, we can still slice the coordinates.
-In the following example, we prepare to slice only a small
-window in our data. This underlines that whatever we already
-loaded or sliced, when loading data we specify slices and indexes
-with regard to what is available *on disk*::
-
-    slice_lat = dt['lat'].subset(21., 40.)
-    slice_lon = dt['lon'].subset(-70., -60.)
-    dt.set_slice('SST', lat=slice_lat, lon=slice_lon)
-    print(dt.shape, dt.vi.var, dt.slices)
-
-    dt.load_data(dt.vi.var, **dt.slices)
 
 
 To go further

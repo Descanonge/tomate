@@ -5,6 +5,7 @@ API Reference
 .. automodule:: data_loader
 
 .. image:: ../diagram.*
+           :alt: Diagram of inheritance and structure around Data object.
 
 .. rubric:: Content
 .. autosummary::

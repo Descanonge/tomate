@@ -1,4 +1,6 @@
 
+.. currentmodule :: data_loader
+
 Accessing data
 ====================
 
@@ -17,9 +19,9 @@ to indices of the data coordinates.
 A selection along a coordinate is done using a 'key'. It can be an integer,
 a list of integer, or a slice.
 Multiple keys are regrouped into a single object: a
-:class:`Keyring<data_loader.Keyring>`.
+:class:`Keyring<key.Keyring>`.
 This object is similar to a dictionnary. The keys are stored in a
-:class:`Key<data_loader.key.Key>` class.
+:class:`Key<key.Key>` class.
 In the rest of the documentation a key designates either a Key object, or the
 actual variable the user is demanding.
 A 'key-like object', or a 'key value' designates unambiguously the latter.
@@ -32,20 +34,24 @@ arguments, the easiest way to convert a keyring to keywords arguments is::
 
   some_function(**keyring.kw)
 
+Some functions can take both a keyring and keys in argument. The class function
+:func:`key.Keyring.get_default` combines the two argument. It also make a copy
+of the keyring, to avoid in-place modifications.
 Developpers are invited to look at the API doc-strings for further information.
 
 
 Accessors
 ---------
 
-Array can be accessed and manipulated using a
-:class:`Accessor<data_loader.accessor.Accessor>` object.
+Arrays can be accessed and manipulated using a
+:class:`Accessor<accessor.Accessor>` object.
 This class is a collection of static and class methods,
 it does not need instanciation per se.
 One can subclass it to modify the implementation of data storage.
 
 It is available a class attribute of the Data class
-(:attr:`Data.acs<data_loader.DataBase.acs>`),
+(:attr:`Data.acs<data_base.DataBase.acs>`),
+and of the filegroup class.
 It can be changed either by writing a subclass of Data, or when dynamically
 creating a data class using the constructor.
 
@@ -74,8 +80,8 @@ depending on the demanded keyring.
 
 First way is if there is no particular issue with normal indexing.
 The keys values are then converted into a tuple and passed to the array
-(see :func:`get_array_simple<data_loader.Accessor.take_normal>`
-and :func:`place_simple<data_loader.Accessor.place_normal>`).
+(see :func:`get_array_simple<accessor.Accessor.take_normal>`
+and :func:`place_simple<accessor.Accessor.place_normal>`).
 
 Second way is if there is an issue with normal indexing such that more complicated
 means are necessary.
@@ -85,8 +91,8 @@ In this case, multiple successive access to the array are made,
 so `array[0, [0, 1, 2], :, [1]]` is transformed into
 `array[0][[0, 1, 2]][:, :][:, :, [1]]`.
 To write data, a loop is done.
-(see :func:`get_array_complex<data_loader.Accessor.take_complex>`
-and :func:`place_complex<data_loader.Accessor.place_complex>`)
+(see :func:`get_array_complex<accessor.Accessor.take_complex>`
+and :func:`place_complex<accessor.Accessor.place_complex>`)
 
 Examples::
 
@@ -113,7 +119,7 @@ As with numpy normal indexing, an integer key will result in the dimension
 being squeezed, but a list of length one (or the corresponding slice) will
 keep the dimension.
 The expection to this rule is when using
-:func:`load_data<data_loader.DataBase.load_data>` and
-:func:`slice_data<data_loader.DataBase.slice_data>` (or other functions
-acting on the data). The data object will always keep the same number of
-dimensions (ie the number of coordinates).
+:func:`load_data<data_base.DataBase.load_data>` and
+:func:`slice_data<data_base.DataBase.slice_data>` (or other functions
+acting on the data attribute). The data object will always keep the same number
+of dimensions.

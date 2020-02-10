@@ -25,10 +25,12 @@ that can be passed to the `add_...` function, to have
 even more options for loading slightly different data
 at runtime.
 Here the source of the SSH data can be picked at runtime.
+
+/!\ SCRIPT NOT UP TO DATE /!\
 """
 
 from data_loader import Coord, Time
-from data_loader.constructor import Constructor
+from data_loader import Constructor
 from data_loader.filegroup import FilegroupNetCDF
 from data_loader.masked import DataMasked
 import data_loader.scan_library as scanlib
@@ -47,15 +49,15 @@ coords = [time, lat, lon]
 def add_ssh(cstr, source):
     """Add the SSH to the VI and filegroups."""
     name = "SSH"
-    infos = {'fullname': 'Sea Surface Height',
+    attrs = {'fullname': 'Sea Surface Height',
              'ncname': 'ssh'}
-    cstr.add_var(name, infos)
+    cstr.add_variable(name, **attrs)
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
 
-    pregex = ('%(dir)/%(prefix)_'
+    pregex = ('%(prefix)_'
               '%(time:Y)%(time:mm)%(time:dd)'
               '%(suffix)')
     replacements = {'dir': source + '/SSH/',

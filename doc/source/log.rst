@@ -19,3 +19,5 @@ Some aspects of the logging can be modified using functions from the
 :mod:`log<data_loader.log>` module.
 More experienced users can directly modify the global logger, whose
 name is 'data_loader'.
+
+If you really don't want those in your terminal ((ง •̀_•́)ง), use the following code::

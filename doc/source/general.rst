@@ -2,19 +2,28 @@
 Introduction to Data Loader
 ===========================
 
-Data Loader allows to load data that can span different files and directories,
-and that can be accessed in various ways.
-The data must be all on the same grid.
+Data Loader provides ways to manipulate data under the form of a
+multi-dimensional array.
+It manages multiples variables, as well as the coordinates along
+which the data varies.
+It also provides multiple convenience functions to retrieve
+subpart of the data, do computations, or plot the data.
+
+The data can be retrieved from disk, where it can be arranged
+in multiple ways and formats.
+The data can span multiple files and directories.
+Information on the data, such as variable attributes,
+or coordinates values can be retrieved automatically
+during the 'scanning' process.
 
 The data, and all information about it, is represented by a
 python class instance, see :doc:`data`.
-
-The data object provides:
+This object provides:
 
 * :doc:`Coordinates<coord>` which give information on the data
   coordinates, or dimensions
 * :doc:`VariablesInfo<variables_info>` which supply
-  information about the variables available
+  information about the variables, and the data in general.
 * Various optional convenience functions
 * Eventually, :doc:`Filegroups<filegroup>` which inform on where to
   find the data files, and how to load data.
