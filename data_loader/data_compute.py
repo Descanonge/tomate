@@ -12,6 +12,12 @@ class DataCompute(DataBase):
     See :class:`DataBase` for more information.
     """
 
+    def histogram(self, variable, bins=None, bounds=None,
+                  density=False, **keys):
+        data = self.view(variable, **keys).compressed()
+        return np.histogram(data, bins=bins, range=bounds,
+                            density=density)
+
     def gradient(self, variable, coords, fill=None):
         """Compute a n-dimensional gradient.
 

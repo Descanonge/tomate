@@ -388,3 +388,12 @@ class DataPlot(DataBase):
         pass
 
     # TODO: hoevmuller plot
+
+    def plot_histogram(self, ax, variable, kwargs=None, **keys):
+        if kwargs is None:
+            kwargs = {}
+
+        kw = {'density': True}
+        kw.update(kwargs)
+        data = self.view(variable, **keys).compressed()
+        ax.hist(data, **kw)
