@@ -2,12 +2,12 @@
 
 This package offers an important feature: if the different
 filegroups have distinct ranges, only the overlap is loaded.
-However it is sometime useful to load all available for one
-filegroup.
+However it is sometime useful to load everything available for
+one filegroup.
 
 This example show how this can be easily achieved.
 It uses the same kind of data as the tutorial.
-Separate function are used to add a single filegroup
+Separate functions are used to add a single filegroup
 and the corresponding variables.
 
 The use of a hidden `_get_data` function encapsulated
@@ -25,8 +25,6 @@ that can be passed to the `add_...` function, to have
 even more options for loading slightly different data
 at runtime.
 Here the source of the SSH data can be picked at runtime.
-
-/!\ SCRIPT NOT UP TO DATE /!\
 """
 
 from data_loader import Coord, Time
@@ -55,46 +53,44 @@ def add_ssh(cstr, source):
 
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root=source+'SSH')
 
     pregex = ('%(prefix)_'
               '%(time:Y)%(time:mm)%(time:dd)'
               '%(suffix)')
-    replacements = {'dir': source + '/SSH/',
-                    'prefix': 'SSH',
+    replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
 
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
-    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
+    cstr.set_scan_attribute_func(scanlib.scan_attributes_nc)
 
 
 def add_sst(cstr):
     """Add the SST to the VI and filegroups."""
 
     name = "SST"
-    infos = {'fullname': 'Sea Surface Temperature',
+    attrs = {'fullname': 'Sea Surface Temperature',
              'ncname': 'sst',
              'unit': 'deg C',
              'vmin': -2, 'vmax': 30}
-    cstr.add_var(name, infos)
+    cstr.add_variable(name, **attrs)
 
     contains = ['SST']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg)
+    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SST')
 
-    pregex = ('%(dir)/%(prefix)_'
+    pregex = ('%(prefix)_'
               r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
               r'%(time:Y:dummy)%(time:doy:custom=\d\d\d:dummy)'
               '%(selfuffix)')
-    replacements = {'dir': 'SSH/',
-                    'prefix': 'SSH',
+    replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
 
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
     cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
-    cstr.set_scan_attribute_func(scanlib.scan_attribute_nc)
+    cstr.set_scan_attribute_func(scanlib.scan_attributes_nc)
 
 def _get_data(cstr, groups, **kwargs):
     if groups is None:

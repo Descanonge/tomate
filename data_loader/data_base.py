@@ -570,7 +570,7 @@ class DataBase():
         --------
         get_subscope
         """
-        self.select = self.get_subscope(variables, keyring, scope, **keys)
+        self.select = self.get_subscope(scope, variables, keyring, **keys)
 
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
