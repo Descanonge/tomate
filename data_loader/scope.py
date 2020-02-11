@@ -87,7 +87,7 @@ class Scope():
     @property
     def idx(self) -> Dict[str, int]:
         """Index of variables in data array."""
-        return IterDict(dict(zip(self.var, range(len(self.var)))))
+        return IterDict({var: i for i, var in enumerate(self.var)})
 
     @property
     def shape(self) -> List[int]:
