@@ -308,6 +308,12 @@ For instance::
     # The variables order in data is reversed
     dt.load_data(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
+    # Load by value instead of index
+    slice_lat = dt.avail.lat.subset(10, 30)
+    dt.load_data(None, lat=slice_lat)
+    # or directly
+    dt.load_data_value(None, lat=slice(10, 30))
+
     print(dt.data)
 
 After loading data, the coordinates of the data will be also sliced, so that the

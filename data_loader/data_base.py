@@ -594,6 +594,48 @@ class DataBase():
         self.data = None
         self.loaded = self.avail.copy()
 
+    def load_data_value(self, variables=None, **keys):
+        """Load part of data from disk into memory.
+
+        Part of the data to load is specified by values.
+
+        Parameters
+        ----------
+        variables: str or List[str], optional
+            Variables to load.
+        keys: list[float], float, int, slice, optional
+            Values to select for a coordinate.
+            If is slice, use start and stop as boundaries. Step has no effect.
+            If is float, int, or a list of, closest index for each value is taken.
+
+        Examples
+        --------
+        Load latitudes from 10N to 30N.
+        >>> dt.load_data_value('SST', lat=slice(10, 30))
+
+        Load latitudes from 5N to maximum available.
+        >>> dt.load_data_value('SST', lat=slice(5, None))
+
+        Load depth closest to 500.
+        >>> dt.load_data_value(None, depth=500.)
+
+        Load depths closest to 0, 10, 50
+        >>> dt.load_data_value(None, depth=[0, 10, 50])
+        """
+        keys_ = {}
+        for name, c in self.avail.coords.items():
+            key = keys.get(name)
+            if key is None:
+                key = slice(None, None)
+            elif isinstance(key, slice):
+                key = c.subset(key.start, key.stop)
+            elif isinstance(key, (list, tuple, np.ndarray)):
+                key = [c.get_index(k) for k in key]
+            else:
+                key = c.get_index(key)
+            keys_[name] = key
+        self.load_data(variables, **keys_)
+
     def load_data(self, variables, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
