@@ -3,6 +3,12 @@
 Use user settings to set locales.
 """
 
+# This file is part of the 'data-loader' project
+# (http://github.com/Descanonges/data-loader)
+# and subject to the MIT License as defined in file 'LICENSE',
+# in the root of this project. © 2020 Clément HAËCK
+
+
 import locale
 from typing import Sequence
 
@@ -108,6 +114,7 @@ class Time(Coord):
         int, List[int]:
             Return a list if the input was a list.
         """
+        # TODO: to deprecate in favor of a more general get_indices
         if not _has_netcdf:
             raise ImportError("netCDF4 package necessary for date2index.")
 
@@ -145,6 +152,15 @@ class Time(Coord):
         self._array = change_units(self._array, self.units, units)
         self.units = units
 
+    def get_index(self, value, loc='closest') -> int:
+        if isinstance(value, (list, tuple)):
+            value = datetime(*value)
+        if isinstance(value, datetime):
+            if not _has_netcdf:
+                raise ImportError("netCDF4 package necessary for get_index with dates.")
+            value = nc.date2num(value, self.units)
+        return super().get_index(value, loc)
+       
     @staticmethod
     def format(value, fmt=None) -> str:
         """Format value.

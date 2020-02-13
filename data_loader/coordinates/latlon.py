@@ -1,5 +1,11 @@
 """Latitude and Longitude support."""
 
+# This file is part of the 'data-loader' project
+# (http://github.com/Descanonges/data-loader)
+# and subject to the MIT License as defined in file 'LICENSE',
+# in the root of this project. © 2020 Clément HAËCK
+
+
 from data_loader.coordinates.coord import Coord
 
 

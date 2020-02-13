@@ -4,6 +4,12 @@ Files containing the same variables and having the same filenames are
 regrouped into a same Filegroup.
 """
 
+# This file is part of the 'data-loader' project
+# (http://github.com/Descanonges/data-loader)
+# and subject to the MIT License as defined in file 'LICENSE',
+# in the root of this project. © 2020 Clément HAËCK
+
+
 import logging
 from typing import List
 
