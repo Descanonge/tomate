@@ -1,4 +1,7 @@
 
+.. currentmodule:: data_loader
+
+
 Filegroups
 ==========
 
@@ -9,25 +12,25 @@ It also manages the loading of the data (actually opening the files), to
 do this, it must first look into the files to see how the data is arranged.
 
 The scanning functionalities are written in the
-:class:`FilegroupScan<data_loader.filegroup.filegroup_scan.FilegroupScan>`.
+:class:`FilegroupScan<filegroup.filegroup_scan.FilegroupScan>`.
 The loading functions are specified in the class
-:class:`FilegroupLoad<data_loader.filegroup.filegroup_load.FilegroupLoad>`.
-The former is to be subclassed for file-format specific functions.
+:class:`FilegroupLoad<filegroup.filegroup_load.FilegroupLoad>`.
+The latter is to be subclassed for file-format specific functions.
 
 
 Pre-regex
 ---------
 
 Most of the scanning is coordinate specific, thus it is mainly handled
-by :class:`CoordScan<data_loader.coord_scan.CoordScan>`
+by :class:`CoordScan<filegroup.coord_scan.CoordScan>`
 objects (see :doc:`scanning`).
 The filegroup orchestrate the scanning, and is also responsible for
 variables attribute scanning, and filename scanning.
 
-To find informations in the filename, and keep track of how it
-changes along a dimension, we must tell the database the structure of
-the filenames. This is done using a pre-regex: a regular expression with
-added features.
+To keep track of the different files, and to eventually extract
+information from filenames, we must tell the database the structure of
+the filenames.
+This is done using a pre-regex: a regular expression with added features.
 
 Any regex can be used in the pre-regex, however, it will be replaced
 by its match as found in the first file and then considered constant.
@@ -37,8 +40,8 @@ would match correctly all files, but the program would consider that
 *all* filenames are 'sst_2003-01-01.nc'
 
 Instead, we must specify what part of the filename varies, and along
-with which dimension / coordinate.
-To this end, we use :class:`Matchers<data_loader.coord_scan.Matcher>`.
+which dimension / coordinate.
+To this end, we use :class:`matchers<filegroup.coord_scan.Matcher>`.
 This is a part of the pre-regex, enclosed in parenthesis and preceded
 by a `%`. It specifies the coordinate name and the element of the coordinate.
 
@@ -63,7 +66,7 @@ Hard coded elements are available:
 +----------------+-------------------------+------------------+
 |      char      |          \\S*           |     Character    |
 +----------------+-------------------------+------------------+
-|        x       |     \d\d\d\d\d\d\d\d    |       Date       |
+|        x       |    \d\d\d\d\d\d\d\d     |       Date       |
 +----------------+-------------------------+------------------+
 |        Y       |      \\d\\d\\d\\d       |       Year       |
 +----------------+-------------------------+------------------+
@@ -101,7 +104,7 @@ Loading
 -------
 
 The filegroup also manages the loading of data. It receives from the database
-object the variables to load, and the parts of the coordinates to load.
+object the variables to load, and the parts of each coordinates to load.
 The filegroup ellaborates a list of 'loading commands', which contain the file
 to open, the parts of the data to take from that file, and where to put them in
 the data array in memory.
@@ -166,13 +169,13 @@ Executing the command
 
 The construction of the loading commands is completely remote from the file
 format. The only function to depend on the file format is
-:func:`load_cmd<data_loader.filegroup.FilegroupLoad.load_cmd>`.
+:func:`load_cmd<filegroup.filegroup_load.FilegroupLoad.load_cmd>`.
 Thus, to add a file format, one has to mainly rewrite this function, as
 well as two functions that open and close a file.
 
 The function takes a single command and a file object in argument.
 The file object is created by
-:func:`open_file<data_loader.filegroup.filegroup_scan.FilegroupScan.open_file>`.
+:func:`open_file<filegroup.filegroup_scan.FilegroupScan.open_file>`.
 For each key in the command, the function should take a 'chunk' of data
 corresponding to the in-file key.
 
@@ -182,7 +185,7 @@ The file format might permit to retrieve this order, otherwise the order
 of the coordinates indicated to the filegroup at its creation is used.
 The data chunk may has to be reordered to fit into the data array.
 This is done by the
-:func:`reorder_chunk<data_loader.filegroup.FilegroupLoad.reorder_chunk>`
+:func:`reorder_chunk<filegroup.filegroup_load.FilegroupLoad.reorder_chunk>`
 function.
 
 Note that the loading should be robust against coordinates mismatch.
