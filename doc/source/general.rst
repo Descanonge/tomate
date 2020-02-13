@@ -21,7 +21,7 @@ python class instance, see :doc:`data`.
 This object provides:
 
 * :doc:`Coordinates<coord>` which give information on the data
-  coordinates, or dimensions
+  coordinates, (ie dimensions)
 * :doc:`VariablesInfo<variables_info>` which supply
   information about the variables, and the data in general.
 * Various optional convenience functions

@@ -1,13 +1,17 @@
 Data Loader
 ===========
 
-The data is a multidimensional array, of multiple
-variables varying along any number of dimensions.
+Data Loader provides ways to manipulate data under the form of a
+multi-dimensional array.
+It manages multiples variables, as well as the coordinates along
+which the data varies.
+It also provides multiple convenience functions to retrieve
+subpart of the data, do computations, or plot the data.
 
-This packages allows to manage this data, its variables
-and coordinates.
-It also allows to easily load the data, that can be
-arranged in various ways on disk.
+The data can be retrieved from disk, where it can be arranged
+in multiple ways and formats.
+Information on the data, such as variable attributes,
+or coordinates values can be retrieved automatically.
 
 **This is still in alpha, use at your own risk !**
 
