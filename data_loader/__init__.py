@@ -29,7 +29,7 @@ from .data_base import DataBase
 from .constructor import Constructor
 
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 __all__ = [
     'Coord',
