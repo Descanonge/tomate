@@ -56,6 +56,7 @@ class Scope():
 
         self.from_scope = None
         self.from_keyring = Keyring(**{c.name: slice(None) for c in coords})
+        self.from_keyring.set_shape(self.coords)
 
         self.name = name
 
@@ -154,6 +155,8 @@ class Scope():
         keyring.make_int_list()
         for c, k in keyring.items_values():
             self[c].slice(k)
+
+        self.from_keyring *= keyring
 
     def copy(self) -> "Scope":
         """Return a copy of self."""
