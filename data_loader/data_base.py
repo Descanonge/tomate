@@ -556,9 +556,10 @@ class DataBase():
             Copy of input scope, sliced with specified keys.
         """
         scope = self.get_scope(scope)
-        scope = scope.copy()
-        scope.slice(variables, keyring, **keys)
-        return scope
+        subscope = scope.copy()
+        subscope.slice(variables, keyring, **keys)
+        subscope.from_scope = scope
+        return subscope
 
     def select_from_scope(self, variables=None, keyring=None, scope='avail', **keys):
         """Set selected scope from another scope.
