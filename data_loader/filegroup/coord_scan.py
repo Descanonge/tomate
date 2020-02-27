@@ -305,18 +305,18 @@ class CoordScan(Coord):
         in_idx = None
         if 'attributes' in self.scan and not self.scanned:
             log.debug("Scanning attributes in file for '%s'", self.name)
-            attributes = self.scan_attributes(file) #pylint: disable=not-callable
+            attributes = self.scan_attributes(file)
             for name, attr in attributes.items():
                 if attr is not None:
                     self.coord.__setattr__(name, attr)
 
         if 'filename' in self.scan:
-            values = self.scan_filename(self, **self.scan_filename_kwargs) # pylint: disable=not-callable
+            values = self.scan_filename(self, **self.scan_filename_kwargs)
             log.debug("Scanning filename for '%s'", self.name)
 
         if 'in' in self.scan:
             log.debug("Scanning in file for '%s'", self.name)
-            values, in_idx = self.scan_in_file(self, file, values, # pylint: disable=not-callable
+            values, in_idx = self.scan_in_file(self, file, values,
                                                **self.scan_in_file_kwargs)
 
         if isinstance(values, (int, float, type(None))):
