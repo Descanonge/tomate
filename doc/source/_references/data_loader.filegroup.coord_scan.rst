@@ -24,6 +24,12 @@ data\_loader.filegroup.coord\_scan
    
        get_coordscan
    
+       scan_attributes_default
+   
+       scan_filename_default
+   
+       scan_in_file_default
+   
 
 
 
@@ -51,3 +57,6 @@ data\_loader.filegroup.coord\_scan
       :undoc-members:
       :private-members:
    .. autofunction:: get_coordscan
+   .. autofunction:: scan_attributes_default
+   .. autofunction:: scan_filename_default
+   .. autofunction:: scan_in_file_default

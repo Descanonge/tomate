@@ -118,7 +118,17 @@ class CoordScan(Coord):
         subset of :{ in | filename | manual | attributes }.
     scanned: bool
         If the coordinate has been scanned.
+<<<<<<< HEAD
     scan_filename_kwargs: Dict[str, Any]
+=======
+    scan_attributes: Callable
+        Function used to scan coordinate attributes.
+    scan_filename: Callable
+        Function used to scan filename.
+    scan_in_file: Callable
+        Function used to scan in file.
+    scan_filename_kwargs: Dict
+>>>>>>> Up coordscan autodoc
         Keyword arguments to pass to the scan_filename function.
     scan_in_file_kwargs: Dict[str, Any]
         Keyword arguments to pass to the scan_in_file function.
