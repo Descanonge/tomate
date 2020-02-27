@@ -471,6 +471,30 @@ class Keyring():
         for key in self.keys:
             key.simplify()
 
+    def __mul__(self, other):
+        """Subset keyring by another.
+
+        If `B = A[self]`
+        and `C = B[other]`
+        then `C = A[self*other]`
+
+        Parameters
+        ----------
+        other: Keyring
+
+        Returns
+        -------
+        Keyring
+            self*other
+        """
+        res = Keyring()
+        other_ = other.copy()
+        other_.make_full(self.dims)
+        other_.make_total()
+        for name, key in self.items():
+            res[name] = key * other_[name]
+        return res
+
 
 def list2slice_simple(L):
     """Transform a list into a slice when possible.
