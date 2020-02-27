@@ -174,7 +174,7 @@ class Constructor():
 
         Notes
         -----
-        See CoordScan.scan_in_file() for a better description of
+        See coord_scan.scan_in_file_default() for a better description of
         the function interface.
         """
         fg = self.current_fg
@@ -197,7 +197,7 @@ class Constructor():
 
         Notes
         -----
-        See CoordScan.scan_filename() for a better description of
+        See coord_scan.scan_filename_default() for a better description of
         the function interface.
         """
         fg = self.current_fg
@@ -242,7 +242,7 @@ class Constructor():
 
         Notes
         -----
-        See CoordScan.scan_attributes() for a better description
+        See coord_scan.scan_attributes_default for a better description
         of the function interface.
         """
         fg = self.current_fg
@@ -261,7 +261,7 @@ class Constructor():
 
         Notes
         -----
-        See FilegroupScan.scan_attributes() for a better description
+        See filegroup_scan.scan_attributes_default() for a better description
         of the function interface.
         """
         fg = self.current_fg
