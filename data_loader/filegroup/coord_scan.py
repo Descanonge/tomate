@@ -13,6 +13,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
+from typing import Sequence
 
 import numpy as np
 
