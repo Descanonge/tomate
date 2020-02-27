@@ -45,10 +45,9 @@ class CoordScan(Coord):
         Parent coordinate object.
     shared: bool
         If the coordinate is shared accross files.
-
-    values: List[float]
+    values: Array[float]
         Temporary list of values found for this coordinate.
-    in_idx: List[int]
+    in_idx: Array[int]
         List of the index for each value inside the files.
 
     scan: Dict[str, List[List[str], Callable, Dict]]
@@ -207,7 +206,7 @@ class CoordScan(Coord):
         elts: List[str]
             Elements to scan ('values', 'in_idx')
         kwargs: Any
-       
+
         See also
         --------
         scan_in_file_default: for the function signature.
