@@ -580,6 +580,7 @@ class DataBase():
         get_subscope
         """
         self.select = self.get_subscope(scope, variables, keyring, **keys)
+        self.select.name = 'select'
 
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
@@ -602,6 +603,7 @@ class DataBase():
         """Remove data, return coordinates and variables to all available."""
         self.data = None
         self.loaded = self.avail.copy()
+        self.loaded.name = 'loaded'
 
     def load_data_value(self, variables=None, **keys):
         """Load part of data from disk into memory.
@@ -696,7 +698,8 @@ class DataBase():
         keyring.make_full(self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        self.loaded = self.get_subscope('avail', variables, keyring, **kw_keys)
+        self.loaded = self.get_subscope('avail', variables, keyring)
+        self.loaded.name = 'loaded'
 
         self.data = self.allocate(self.shape)
 
