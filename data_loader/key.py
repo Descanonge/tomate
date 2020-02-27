@@ -135,6 +135,50 @@ class Key():
                 self.type = 'slice'
             self.value = key
 
+    def __mul__(self, other):
+        """Subset key by another.
+
+        If `B = A[self]`
+        and `C = B[other]`
+        then `C = A[self*other]`
+
+        The type of the resulting key is of the strongest
+        type of the two keys (int > list > slice).
+
+        Parameters
+        ----------
+        other: Key
+
+        Returns
+        -------
+        Key
+            self*other
+        """
+        a = self.value
+        if self.type == 'int':
+            a = [a]
+        elif self.type == 'slice':
+            try:
+                a = list(range(*self.value.indices(self.shape)))
+            except TypeError:
+                raise TypeError("%s has not had its shape specified." % self.value)
+
+        key = other.value
+        if other.type == 'int':
+            key = [key]
+        if other.type == 'slice':
+            res = a[key]
+        else:
+            res = [a[k] for k in key]
+
+        if self.type == 'int' or other.type == 'int':
+            return Key(int(res[0]))
+        if self.type == 'list' or other.type == 'list':
+            return Key(list(res))
+        res_slc = Key(list2slice_simple(res))
+        res_slc.shape = len(res)
+        return res_slc
+
 
 class Keyring():
     """Object for indexing an array.
