@@ -305,7 +305,7 @@ class CoordScan(Coord):
         in_idx = None
         if 'attributes' in self.scan and not self.scanned:
             log.debug("Scanning attributes in file for '%s'", self.name)
-            attributes = self.scan_attributes(file)
+            attributes = self.scan_attributes(self, file)
             for name, attr in attributes.items():
                 if attr is not None:
                     self.coord.__setattr__(name, attr)
