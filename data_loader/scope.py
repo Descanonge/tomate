@@ -40,6 +40,10 @@ class Scope():
         Variables present in the scope.
     coords: Dict[Coord]
         Coordinates present in the scope.
+    from_scope: Scope
+        The parent scope if this object is a subpart of it.
+    from_keyring: Keyring
+        The keyring used to get this scope.
     """
 
     def __init__(self, variables=None, coords=None, name=None):
@@ -50,6 +54,8 @@ class Scope():
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
 
+        self.from_scope = None
+        self.from_keyring = Keyring(**{c.name: slice(None) for c in coords})
 
         self.name = name
 
