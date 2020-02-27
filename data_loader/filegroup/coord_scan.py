@@ -315,12 +315,12 @@ class CoordScan(Coord):
                     self.coord.__setattr__(name, attr)
 
         if 'filename' in self.scan:
-            values = self.scan_filename(**self.scan_filename_kwargs) # pylint: disable=not-callable
+            values = self.scan_filename(self, **self.scan_filename_kwargs) # pylint: disable=not-callable
             log.debug("Scanning filename for '%s'", self.name)
 
         if 'in' in self.scan:
             log.debug("Scanning in file for '%s'", self.name)
-            values, in_idx = self.scan_in_file(file, values, # pylint: disable=not-callable
+            values, in_idx = self.scan_in_file(self, file, values, # pylint: disable=not-callable
                                                **self.scan_in_file_kwargs)
 
         if isinstance(values, (int, float, type(None))):
@@ -491,17 +491,18 @@ def get_coordscan(filegroup, coord, shared):
     return CoordScanType(filegroup, coord)
 
 
-def scan_filename_default(self, **kwargs):
+def scan_filename_default(cs, **kwargs):
     """Scan filename to find values.
 
     Matches found by the regex are accessible from
     the matchers objects in the CoordScan object passed
-    to the function (as self).
+    to the function (as cs).
     Do not forget the function needs a CoordScan in
     first argument !
 
     Parameters
     ----------
+    cs: CoordScan
     kwargs
         Static keywords arguments set by
         Constructor.set_scan_filename_func()
@@ -521,16 +522,17 @@ def scan_filename_default(self, **kwargs):
     See scan_library for various examples.
     get_date_from_matches() for instance.
     """
-    raise NotImplementedError("scan_filename was not set for '%s'" % self.name)
+    raise NotImplementedError("scan_filename was not set for '%s'" % cs.name)
 
 
-def scan_in_file_default(self, file, values, **kwargs):
+def scan_in_file_default(cs, file, values, **kwargs):
     """Scan values and in-file indices inside file.
 
     Scan file to find values and in-file indices.
 
     Parameters
     ----------
+    cs: CoordScan
     file:
         Object to access file.
         The file is already opened by FilegroupScan.open_file().
@@ -557,16 +559,17 @@ def scan_in_file_default(self, file, values, **kwargs):
     See scan_library for various examples.
     scan_in_file_nc() for instance.
     """
-    raise NotImplementedError("scan_in_file was not set for '%s" % self.name)
+    raise NotImplementedError("scan_in_file was not set for '%s" % cs.name)
 
 
-def scan_attributes_default(self, file):
+def scan_attributes_default(cs, file):
     """Scan coordinate attributes.
 
     Only `units` attribute supported for now.
 
     Parameters
     ----------
+    cs: CoordScan
     file:
         Object to access file.
         The file is already opened by FilegroupScan.open_file().
@@ -582,4 +585,4 @@ def scan_attributes_default(self, file):
     NotImplementedError
         If scan_attribute was not set.
     """
-    raise NotImplementedError("scan_attributes was not set for '%s" % self.name)
+    raise NotImplementedError("scan_attributes was not set for '%s" % cs.name)
