@@ -7,7 +7,6 @@
 
 
 import logging
-from types import MethodType
 from typing import Dict, List
 
 import numpy as np
@@ -81,6 +80,9 @@ class DataBase():
 
     acs: Accessor (or subclass)
         Object to use to access the data.
+
+    do_post_load: Callable
+        Function applied after loading data.
     """
 
     acs = Accessor()
@@ -108,6 +110,8 @@ class DataBase():
         self.data = None
 
         self.link_filegroups()
+
+        self.do_post_load = do_post_load_default
 
     def __str__(self):
         s = ["Data object"]
@@ -702,7 +706,7 @@ class DataBase():
             fg.load_data(var_load, keyring)
 
         try:
-            self.do_post_load() #pylint: disable=not-callable
+            self.do_post_load(self)
         except NotImplementedError:
             pass
 
@@ -758,17 +762,7 @@ class DataBase():
             of the function interface.
 
         """
-        self.do_post_load = MethodType(func, self)
-
-    def do_post_load(self): #pylint: disable=method-hidden
-        """Do post loading treatments.
-
-        Raises
-        ------
-        NotImplementedError
-            If do_post_load was not set.
-        """
-        raise NotImplementedError("do_post_load was not set.")
+        self.do_post_load = func
 
     def set_data(self, var, data):
         """Set the data for a single variable.
@@ -894,3 +888,14 @@ def subset_slices(key, key_subset):
             key_new = [i*key.step + key.start for i in key_subset]
 
     return key_new
+
+
+def do_post_load_default(dt): #pylint: disable=method-hidden
+    """Do post loading treatments.
+
+    Raises
+    ------
+    NotImplementedError
+        If do_post_load was not set.
+    """
+    raise NotImplementedError("do_post_load was not set.")
