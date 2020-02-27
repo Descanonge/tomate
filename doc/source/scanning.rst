@@ -1,10 +1,6 @@
 
 .. currentmodule :: data_loader
 
-<<<<<<< HEAD
-
-=======
->>>>>>> Up scanning doc
 Scanning
 ========
 
@@ -26,7 +22,6 @@ There could also be more than one date per file, for instance a file for each
 month with daily images.
 
 The scanning is done independantly in each filegroup through the
-<<<<<<< HEAD
 :class:`CoordScan<filegroup.coord_scan.CoordScan>` object, dynamically derived
 from a :class:`Coord<coordinates.coord.Coord>`, or any of its subclass.
 
@@ -44,19 +39,6 @@ If needed, the data will be reversed to accomodate (see
 :ref:`Reversing dimensions`).
 
 In-coordinates scan only one file, the first one found.
-=======
-:class:`CoordScan<filegroup.coord_scan.CoordScan>`, derived from
-a :class:`Coord<coordinates.coord.Coord>`, or any of its subclass
-(see :doc:`coord`).
-The CoordScan object stores the values of the corresponding coordinate,
-the in file index (noted in_idx), and for shared coordinates the
-matches which are used to find the corresponding filenames.
-All of those are indexed on the values, so when we ask for the
-i_th value of a coordinate, we take the i_th matches to get the
-corresponding filename.
-
-In coordinates scan only one file, the first one found.
->>>>>>> Up scanning doc
 Shared coordinates scan all the files available.
 The actual scanning (opening files) is done by user-defined
 functions. These are set at runtime using the filegroups constructors.
@@ -91,11 +73,7 @@ this dimension will be reversed.
 If no information on the in-file index can be found inside the file,
 the `in_idx` attribute CoordScan will be set to a list of `None`.
 The index descending property can still be set manually by calling
-<<<<<<< HEAD
-:func:`constructor.Constructor.set_coord_descending`
-=======
 :func:`Constructor.set_coord_descending(coord_name)<constructor.Constructor.set_coord_descending>`
->>>>>>> Up scanning doc
 on the filegroup constructor.
 
 This only works for 'in' coordinates.
@@ -107,13 +85,9 @@ Scanning in file
 ----------------
 
 The scanning function is set by
-<<<<<<< HEAD
-:func:`constructor.Constructor.set_scan_in_file_func`.
-=======
 :func:`Constructor.set_scan_in_file_func<constructor.Constructor.set_scan_in_file_func>`
 (a wrapper around
 :func:`filegroup.coord_scan.CoordScan.set_scan_in_file_func`).
->>>>>>> Up scanning doc
 The function should receive a CoordScan object, a filename, and
 values previously scanned in the filename (see below).
 It must returns one or more values, and the corresponding indices in the file.
@@ -139,14 +113,9 @@ Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
 of the corresponding coordinates.
 Again, the CoordScan calls a user-defined function set with
-<<<<<<< HEAD
-:func:`constructor.Constructor.set_scan_filename_func`,
-eventually with functions already defined in :mod:`data_loader.scan_library`.
-=======
 :func:`Constructor.set_scan_filename_func<constructor.Constructor.set_scan_filename_func>`
 (a wrapper around
 :func:`filegroup.coord_scan.CoordScan.set_scan_filename_func` ),
 eventually with functions already in :mod:`scan_library<data_loader.scan_library>`.
->>>>>>> Up scanning doc
 The function receives a Coordscan instance, and must returns one
 or more values.
