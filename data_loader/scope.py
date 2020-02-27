@@ -31,16 +31,18 @@ class Scope():
     ----------
     coords: List[Coord]
     variables: List[str]
+    name: str
 
     Attributes
     ----------
+    name: str
     var: List[str]
         Variables present in the scope.
     coords: Dict[Coord]
         Coordinates present in the scope.
     """
 
-    def __init__(self, variables=None, coords=None):
+    def __init__(self, variables=None, coords=None, name=None):
         if variables is None:
             variables = []
         self.var = list(variables).copy()
@@ -48,8 +50,13 @@ class Scope():
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
 
+
+        self.name = name
+
     def __str__(self):
         s = []
+        if self.name is not None:
+            s.append('name: %s' % self.name)
         if not self.is_empty():
             s += ['variables: %s' % self.var]
             s += ['%s: %s, %s' % (name, c.get_extent_str(), c.size)

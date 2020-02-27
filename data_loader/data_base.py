@@ -90,12 +90,15 @@ class DataBase():
 
         names = [c.name for c in coords]
         self.coords_name = names
-        self.avail = Scope(vi.var, coords)
 
+        self.avail = Scope(vi.var, coords)
         self.loaded = self.avail.copy()
         self.select = self.avail.copy()
         self.loaded.empty()
         self.select.empty()
+        self.avail.name = 'available'
+        self.loaded.name = 'loaded'
+        self.select.name = 'selected'
 
         self._fg_idx = {}
         self.filegroups = filegroups
