@@ -269,6 +269,33 @@ class DataBase():
         keyring.sort_by(['var'] + self.coords_name)
         return self.acs.take(keyring, self.data)
 
+    def view_selected(self, scope=None):
+        """Returns a subset of loaded data.
+
+        Subset is specified by a scope.
+        The selection scope is expected to be created from
+        the loaded one.
+
+        Parameters
+        ----------
+        scope: Scope
+            Selected scope created from loaded scope.
+            Defaults to `self.select`.
+
+        Returns
+        -------
+        Array
+        """
+        if scope is None:
+            scope = self.select
+        if scope.is_empty():
+            raise Exception("Selection scope is empty ('%s')." % scope.name)
+        if scope.parent_scope != self.loaded:
+            raise Exception("The parent scope is not the loaded data scope."
+                            " (is '%s')" % scope.parent_scope.name)
+
+        return self.view(scope.var, scope.parent_keyring)
+
     def view_scope(self, scope):
         """Returns a subset of loaded data.
 
@@ -712,6 +739,29 @@ class DataBase():
             self.do_post_load() #pylint: disable=not-callable
         except NotImplementedError:
             pass
+
+    def load_selected(self, scope=None):
+        """Load data from a child scope of available.
+
+        Subset is specified by a scope.
+        The selection scope is expected to be created from
+        the available one.
+
+        Parameters
+        ----------
+        scope: Scope
+            Selected scope created from available scope.
+            Defaults to `self.select`.
+        """
+        if scope is None:
+            scope = self.select
+        if scope.is_empty():
+            raise Exception("Selection scope is empty ('%s')." % scope.name)
+        if scope.parent_scope != self.avail:
+            raise Exception("The parent scope is not the available data scope."
+                            " (is '%s')" % scope.parent_scope.name)
+
+        self.load_data(scope.var, **scope.parent_keyring.kw)
 
     def allocate(self, shape):
         """Allocate data array.
