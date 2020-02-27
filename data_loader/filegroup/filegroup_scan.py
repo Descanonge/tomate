@@ -15,7 +15,6 @@ from typing import List
 
 import os
 import re
-from types import MethodType
 
 import data_loader.filegroup.coord_scan as dlcs
 
@@ -66,6 +65,10 @@ class FilegroupScan():
         Global VariablesInfo instance.
     scan_attr: bool
         If the variables attributes have to be scanned.
+    scan_attributes: Callable
+        Function used to scan variables attributes.
+    scan_infos: Callable
+        Function used to scan general attributes.
     """
 
     def __init__(self, root, contains, db, coords, vi):
@@ -82,6 +85,9 @@ class FilegroupScan():
 
         self.vi = vi
         self.scan_attr = False
+
+        self.scan_attributes = scan_attributes_default
+        self.scan_infos = scan_infos_default
 
         self.make_coord_scan(coords)
 
@@ -291,7 +297,7 @@ class FilegroupScan():
             File object.
         """
         try:
-            attrs = self.scan_attributes(file, self.contains)
+            attrs = self.scan_attributes(self, file, self.contains)
         except NotImplementedError:
             pass
         else:
@@ -301,7 +307,7 @@ class FilegroupScan():
             self.scan_attr = False
 
         try:
-            infos = self.scan_infos(file)
+            infos = self.scan_infos(self, file)
         except NotImplementedError:
             pass
         else:
@@ -413,25 +419,7 @@ class FilegroupScan():
             of the function interface.
         """
         self.scan_attr = True
-        self.scan_attributes = MethodType(func, self)
-
-    def scan_attributes(self, file, variables): #pylint: disable=method-hidden
-        """Scan attributes in file for specified variables.
-
-        Parameters
-        ----------
-        file:
-            Object to access file.
-            The file is already opened by FilegroupScan.open_file().
-        variables: List[str]
-            Variables to look for attributes.
-
-        Returns
-        -------
-        attributes: Dict[str, Dict[str, Any]]
-            Attributes found: {'attribute name': {'variable name': Any}}
-        """
-        raise NotImplementedError("scan_attribute was not set for (%s)" % self.contains)
+        self.scan_attributes = func
 
     def set_scan_infos_func(self, func):
         """Set a function for scanning general data attributes.
@@ -442,19 +430,40 @@ class FilegroupScan():
                        [Dict[info name, Any]]]
         """
         self.scan_attr = True
-        self.scan_infos = MethodType(func, self)
+        self.scan_infos = func
 
-    def scan_infos(self, file):
-        """Scan general attributes in file.
 
-        Parameters
-        ----------
-        file:
-            Object to access file.
-            The file is already opened by FilegroupSan.open_file()
+def scan_attributes_default(fg, file, variables):
+    """Scan attributes in file for specified variables.
 
-        Returns
-        -------
-        infos: Dict[str, Any]
-        """
-        raise NotImplementedError("scan_infos was not set for (%s)" % self.contains)
+    Parameters
+    ----------
+    fg: FilegroupScan
+    file:
+        Object to access file.
+        The file is already opened by FilegroupScan.open_file().
+    variables: List[str]
+        Variables to look for attributes.
+
+    Returns
+    -------
+    attributes: Dict[str, Dict[str, Any]]
+        Attributes found: {'attribute name': {'variable name': Any}}
+    """
+    raise NotImplementedError("scan_attribute was not set for (%s)" % fg.contains)
+
+def scan_infos_default(fg, file):
+    """Scan general attributes in file.
+
+    Parameters
+    ----------
+    fg: FilegroupScan
+    file:
+        Object to access file.
+        The file is already opened by FilegroupSan.open_file()
+
+    Returns
+    -------
+    infos: Dict[str, Any]
+    """
+    raise NotImplementedError("scan_infos was not set for (%s)" % fg.contains)
