@@ -65,6 +65,9 @@ class Key():
     def __str__(self):
         return str(self.value)
 
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
+
     def copy(self) -> "Key":
         """Return copy of self."""
         if self.type == 'list':
@@ -340,6 +343,9 @@ class Keyring():
         for c, key in self.items():
             s.append('%s: %s' % (c, str(key)))
         return str(', '.join(s))
+
+    def __repr__(self):
+        return '\n'.join([super().__repr__(), str(self)])
 
     def copy(self) -> "Keyring":
         """Return copy of self."""
