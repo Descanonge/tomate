@@ -88,15 +88,15 @@ dt = cstr.make_data([DataPlot, DataMasked])
 print(dt.vi.fullname)
 
 # Load all SST
-dt.load_data('SST')
+dt.load('SST')
 
 # Load first time step of SST and SSH
-dt.load_data(['SST', 'SSH'], time=0)
-dt.load_data(None, 0)
+dt.load(['SST', 'SSH'], time=0)
+dt.load(None, 0)
 
 
 # Load a subpart of all variables.
 # The variables order in data is reversed
-dt.load_data(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
+dt.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
 print(dt.data)

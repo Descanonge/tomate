@@ -298,21 +298,21 @@ an integer, a list of integers, or a slice.
 For instance::
 
     # Load all SST
-    dt.load_data('SST')
+    dt.load('SST')
 
     # Load first time step of SST and SSH
-    dt.load_data(['SST', 'SSH'], time=0)
-    dt.load_data(None, 0)
+    dt.load(['SST', 'SSH'], time=0)
+    dt.load(None, 0)
 
     # Load a subpart of all variables.
     # The variables order in data is reversed
-    dt.load_data(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
+    dt.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
     # Load by value instead of index
     slice_lat = dt.avail.lat.subset(10, 30)
-    dt.load_data(None, lat=slice_lat)
+    dt.load(None, lat=slice_lat)
     # or directly
-    dt.load_data_value(None, lat=slice(10, 30))
+    dt.load_value(None, lat=slice(10, 30))
 
     print(dt.data)
 

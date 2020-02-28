@@ -650,6 +650,19 @@ class DataBase():
 
         Part of the data to load is specified by values.
 
+        .. deprecated:: 0.3.1
+            Is replaced by DataBase.load_by_value().
+            Will be removed in 0.4.
+        """
+        log.warning("load_data_value() is replaced by load_by_value()"
+                    " and will be removed in 0.4.")
+        self.load_by_value(variables=variables, **keys)
+
+    def load_by_value(self, variables=None, **keys):
+        """Load part of data from disk into memory.
+
+        Part of the data to load is specified by values.
+
         Parameters
         ----------
         variables: str or List[str], optional
@@ -662,16 +675,16 @@ class DataBase():
         Examples
         --------
         Load latitudes from 10N to 30N.
-        >>> dt.load_data_value('SST', lat=slice(10, 30))
+        >>> dt.load_by_value('SST', lat=slice(10, 30))
 
         Load latitudes from 5N to maximum available.
-        >>> dt.load_data_value('SST', lat=slice(5, None))
+        >>> dt.load_by_value('SST', lat=slice(5, None))
 
         Load depth closest to 500.
-        >>> dt.load_data_value(None, depth=500.)
+        >>> dt.load_by_value(None, depth=500.)
 
         Load depths closest to 0, 10, 50
-        >>> dt.load_data_value(None, depth=[0, 10, 50])
+        >>> dt.load_by_value(None, depth=[0, 10, 50])
         """
         keys_ = {}
         for name, c in self.avail.coords.items():
@@ -685,9 +698,20 @@ class DataBase():
             else:
                 key = c.get_index(key)
             keys_[name] = key
-        self.load_data(variables, **keys_)
+        self.load(variables, **keys_)
 
     def load_data(self, variables, *keys, **kw_keys):
+        """Load part of data from disk into memory.
+
+        .. deprecated:: 0.3.1
+            Is replaced by DataBase.load().
+            Will be removed in 0.4.
+        """
+        log.warning("load_data() is replaced by load()"
+                    " and will be removed in 0.4.")
+        self.load(variables, *keys, **kw_keys)
+
+    def load(self, variables, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -712,24 +736,24 @@ class DataBase():
         --------
         Load everything available
 
-        >>> dt.load_data(None)
+        >>> dt.load(None)
 
         Load first index of the first coordinate for the SST variable
 
-        >>> dt.load_data("SST", 0)
+        >>> dt.load("SST", 0)
 
         Load everything for SST and Chla variables.
 
-        >>> dt.load_data(["SST", "Chla"], slice(None, None), None)
+        >>> dt.load(["SST", "Chla"], slice(None, None), None)
 
         Load time steps 0, 10, and 12 of all variables.
 
-        >>> dt.load_data(None, time=[0, 10, 12])
+        >>> dt.load(None, time=[0, 10, 12])
 
         Load first index of the first coordinate, and a slice of lat
         for the SST variable.
 
-        >>> dt.load_data("SST", 0, lat=slice(200, 400))
+        >>> dt.load("SST", 0, lat=slice(200, 400))
         """
         self.unload_data()
 
@@ -773,7 +797,7 @@ class DataBase():
             raise Exception("The parent scope is not the available data scope."
                             " (is '%s')" % scope.parent_scope.name)
 
-        self.load_data(scope.var, **scope.parent_keyring.kw)
+        self.load(scope.var, **scope.parent_keyring.kw)
 
     def allocate(self, shape):
         """Allocate data array.

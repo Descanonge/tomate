@@ -63,10 +63,10 @@ Various functions act on the current scope (either
 loaded or available). The method docstring should contain
 information on the scope they are acting on.
 For instance,
-:func:`data_base.DataBase.load_data`
+:func:`data_base.DataBase.load`
 acts on available scope, such that::
 
-  dt.load_data(None, lat=slice(10, 30))
+  dt.load(None, lat=slice(10, 30))
 
 will load a part of the data on disk, corresponding to the index
 10 to 30 of all the **available** latitude coordinate.

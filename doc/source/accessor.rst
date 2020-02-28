@@ -119,7 +119,7 @@ As with numpy normal indexing, an integer key will result in the dimension
 being squeezed, but a list of length one (or the corresponding slice) will
 keep the dimension.
 The expection to this rule is when using
-:func:`load_data<data_base.DataBase.load_data>` and
+:func:`load<data_base.DataBase.load>` and
 :func:`slice_data<data_base.DataBase.slice_data>` (or other functions
 acting on the data attribute). The data object will always keep the same number
 of dimensions.
