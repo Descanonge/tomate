@@ -373,7 +373,7 @@ class DataBase():
         array = self.acs.take(keyring, self.data)
         return self.acs.reorder(keyring, array, order)
 
-    def iter_slices(self, coord, size_slice=12):
+    def iter_slices(self, coord, size=12):
         """Iter through slices of a coordinate.
 
         Scope will be loaded if not empty, available otherwise.
@@ -384,14 +384,14 @@ class DataBase():
         ----------
         coord: str
             Coordinate to iterate along to.
-        size_slice: int, optional
+        size: int, optional
             Size of the slices to take.
 
         Returns
         -------
         List[slice]
         """
-        return self.scope.iter_slices(coord, size_slice)
+        return self.scope.iter_slices(coord, size)
 
     def iter_slices_month(self, coord='time'):
         """Iter through monthes of a time coordinate.

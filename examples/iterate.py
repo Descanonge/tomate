@@ -37,7 +37,7 @@ slice_lon = dt.lon.subset(-71, -62)
 # the last slice can be smaller than this.
 size_slice = 12
 
-for slice_time in dt.avail.iter_slices('time', size_slice=size_slice):
+for slice_time in dt.avail.iter_slices('time', size=size_slice):
     dt.load_data('SST', time=slice_time, lat=slice_lat, lon=slice_lon)
 
     avg = np.nanmean(dt['SST'], axis=[1, 2])

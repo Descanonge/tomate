@@ -162,7 +162,7 @@ class Scope():
         """Return a copy of self."""
         return Scope(self.var, self.coords.values())
 
-    def iter_slices(self, coord, size_slice=12):
+    def iter_slices(self, coord, size=12):
         """Iter through slices of a coordinate.
 
         The prescribed slice size is a maximum, the last
@@ -172,7 +172,7 @@ class Scope():
         ----------
         coord: str
             Coordinate to iterate along to.
-        size_slice: int, optional
+        size: int, optional
             Size of the slices to take.
 
         Returns
@@ -180,11 +180,11 @@ class Scope():
         List[slice]
         """
         c = self[coord]
-        n_slices = int(np.ceil(c.size / size_slice))
+        n_slices = int(np.ceil(c.size / size))
         slices = []
         for i in range(n_slices):
-            start = i*size_slice
-            stop = min((i+1)*size_slice, c.size)
+            start = i*size
+            stop = min((i+1)*size, c.size)
             slices.append(slice(start, stop))
 
         return slices
