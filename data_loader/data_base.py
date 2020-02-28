@@ -610,6 +610,20 @@ class DataBase():
         self.select = self.get_subscope(scope, variables, keyring, **keys)
         self.select.name = 'select'
 
+    def select_from_avail(self, variables=None, keyring=None, **keys):
+        """Set selected scope from available.
+
+        Wrapper around select_from_scope().
+        """
+        self.select_from_scope(scope='avail', variables=variables, keyring=keyring, **keys)
+
+    def select_from_loaded(self, variables=None, keyring=None, **keys):
+        """Set selected scope from loaded.
+
+        Wrapper around select_from_scope().
+        """
+        self.select_from_scope(scope='loaded', variables=variables, keyring=keyring, **keys)
+
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
 
