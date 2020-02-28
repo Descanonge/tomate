@@ -269,7 +269,7 @@ class DataBase():
         keyring.sort_by(['var'] + self.coords_name)
         return self.acs.take(keyring, self.data)
 
-    def view_selected(self, scope=None):
+    def view_selected(self, variables=None, keyring=None, **keys):
         """Returns a subset of loaded data.
 
         Subset is specified by a scope.
@@ -278,23 +278,21 @@ class DataBase():
 
         Parameters
         ----------
-        scope: Scope
-            Selected scope created from loaded scope.
-            Defaults to `self.select`.
 
         Returns
         -------
         Array
         """
-        if scope is None:
-            scope = self.select
+        scope = self.select
         if scope.is_empty():
             raise Exception("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.loaded:
             raise Exception("The parent scope is not the loaded data scope."
                             " (is '%s')" % scope.parent_scope.name)
 
-        return self.view(scope.var, scope.parent_keyring)
+        scope_ = scope.copy()
+        scope_.slice(variables, keyring, **keys)
+        return self.view(scope_.var, scope_.parent_keyring)
 
     def view_scope(self, scope):
         """Returns a subset of loaded data.
