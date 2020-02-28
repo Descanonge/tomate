@@ -291,7 +291,7 @@ class DataBase():
                             " (is '%s')" % scope.parent_scope.name)
 
         scope_ = scope.copy()
-        scope_.slice(variables, keyring, **keys)
+        scope_.slice(variables, keyring, int2list=False, **keys)
         return self.view(scope_.var, scope_.parent_keyring)
 
     def view_scope(self, scope):
