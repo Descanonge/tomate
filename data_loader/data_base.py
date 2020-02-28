@@ -588,19 +588,19 @@ class DataBase():
         subscope.parent_scope = scope
         return subscope
 
-    def select_from_scope(self, variables=None, keyring=None, scope='avail', **keys):
+    def select_from_scope(self, scope='avail', variables=None, keyring=None, **keys):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
 
         Parameters
         ----------
-        variables: str, List[str], optional
-        keyring: Keyring, optional
         scope: str, Scope, optional
             Scope to subset.
             If str, can be {'avail', 'loaded', 'select'},
             corresponding scope of data will then be taken.
+        variables: str, List[str], optional
+        keyring: Keyring, optional
         keys: Key-like, optional
 
         See also
