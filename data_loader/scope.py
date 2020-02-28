@@ -129,7 +129,7 @@ class Scope():
         for c in self.coords.values():
             c.empty()
 
-    def slice(self, variables=None, keyring=None, **keys):
+    def slice(self, variables=None, keyring=None, int2list=True, **keys):
         """Slices coordinates and variables.
 
         If a parameter is None, no change is made for
@@ -139,6 +139,10 @@ class Scope():
         ----------
         variables: str, List[str], optional
         keyring: Keyring, optional
+        int2list: Bool, optional
+            Transform int keys into lists, too make
+            sure the dimension is not squezed.
+            Default is True.
         keys: Key-like, optional
         """
         if variables is not None:
@@ -152,7 +156,8 @@ class Scope():
             keyring = keyring.copy()
         keyring.update(keys)
         keyring.make_total()
-        keyring.make_int_list()
+        if int2list:
+            keyring.make_int_list()
         for c, k in keyring.items_values():
             self[c].slice(k)
 

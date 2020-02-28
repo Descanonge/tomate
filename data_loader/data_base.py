@@ -562,7 +562,8 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def get_subscope(self, scope='avail', variables=None, keyring=None, **keys):
+    def get_subscope(self, scope='avail', variables=None, keyring=None,
+                     int2list=True, **keys):
         """Return subset of scope.
 
         Parameters
@@ -582,7 +583,7 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
-        subscope.slice(variables, keyring, **keys)
+        subscope.slice(variables, keyring, int2list=int2list, **keys)
         subscope.parent_scope = scope
         return subscope
 
@@ -605,7 +606,8 @@ class DataBase():
         --------
         get_subscope
         """
-        self.select = self.get_subscope(scope, variables, keyring, **keys)
+        self.select = self.get_subscope(scope, variables, keyring,
+                                        int2list=False, **keys)
         self.select.name = 'select'
 
     def select_from_avail(self, variables=None, keyring=None, **keys):
