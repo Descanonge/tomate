@@ -77,7 +77,7 @@ class Coord():
 
         Parameters
         ----------
-        array: Sequence
+        values: Sequence, Float
             New values.
 
         Raises
@@ -88,17 +88,19 @@ class Coord():
             If the data is not sorted.
         """
         self._array = np.array(values, dtype=np.float64)
-        if len(self._array.shape) > 1:
+        if len(self._array.shape) == 0:
+            self._array = self._array.reshape(1)
+        elif len(self._array.shape) > 1:
             raise TypeError("Data not 1D")
         self._size = self._array.size
 
-        diff = np.diff(values)
+        diff = np.diff(self._array)
         if len(diff) > 0:
             desc = np.all(diff < 0)
         else:
             desc = False
         self._descending = desc
-        if not np.all(np.diff(values) > 0) and not self._descending:
+        if not np.all(diff > 0) and not self._descending:
             raise ValueError("Data not sorted")
 
     @property
