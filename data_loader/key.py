@@ -71,8 +71,12 @@ class Key():
     def copy(self) -> "Key":
         """Return copy of self."""
         if self.type == 'list':
-            return self.value.copy()
-        return self.value
+            value = self.value.copy()
+        else:
+            value = self.value
+        key = Key(value)
+        key.shape = self.shape
+        return key
 
     def set_shape(self):
         """Set shape if possible.

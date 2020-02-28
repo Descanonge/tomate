@@ -165,7 +165,10 @@ class Scope():
 
     def copy(self) -> "Scope":
         """Return a copy of self."""
-        return Scope(self.var, self.coords.values())
+        scope = Scope(self.var, self.coords.values())
+        scope.parent_scope = self.parent_scope
+        scope.parent_keyring = self.parent_keyring.copy()
+        return scope
 
     def iter_slices(self, coord, size=12):
         """Iter through slices of a coordinate.
