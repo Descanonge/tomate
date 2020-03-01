@@ -587,8 +587,11 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
-        subscope.slice(variables, keyring, int2list=int2list, **keys)
+
+        subscope.reset_parent()
         subscope.parent_scope = scope
+
+        subscope.slice(variables, keyring, int2list=int2list, **keys)
         return subscope
 
     def select_from_scope(self, scope='avail', variables=None, keyring=None, **keys):

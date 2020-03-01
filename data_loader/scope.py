@@ -54,11 +54,15 @@ class Scope():
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
 
-        self.parent_scope = None
-        self.parent_keyring = Keyring(**{c.name: slice(None) for c in coords})
-        self.parent_keyring.set_shape(self.coords)
+        self.reset_parent()
 
         self.name = name
+
+    def reset_parent(self):
+        """."""
+        self.parent_scope = None
+        self.parent_keyring = Keyring(**{c: slice(None) for c in self.coords.keys()})
+        self.parent_keyring.set_shape(self.coords)
 
     def __str__(self):
         s = []
