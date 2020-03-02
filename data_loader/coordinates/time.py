@@ -160,7 +160,55 @@ class Time(Coord):
                 raise ImportError("netCDF4 package necessary for get_index with dates.")
             value = nc.date2num(value, self.units)
         return super().get_index(value, loc)
-       
+
+    def subset_day(self, dmin=None, dmax=None) -> slice:
+        """Return slice between days dmin and dmax.
+
+        Full day is selected (from 0am to 0pm).
+
+        Parameters
+        ----------
+        dmin, dmax: float, datetime, List[int], optional
+            Bounds days to select.
+            If None, min and max of coordinate are taken.
+        """
+        if dmin is None:
+            dmin = self.index2date(0)
+        if dmax is None:
+            dmax = self.index2date(-1)
+        bounds = []
+        for day in [dmin, dmax]:
+            if isinstance(day, float):
+                if not _has_netcdf:
+                    raise ImportError ("netCDF package necessary for subset_day with floats.")
+                day = nc.num2date(day, self.units)
+            elif isinstance(day, (list, tuple)):
+                day = datetime(*day)
+
+            bounds.append(day)
+
+        tmin = datetime(bounds[0].year, bounds[0].month, bounds[0].day)
+        tmax = datetime(bounds[1].year, bounds[1].month, bounds[1].day + 1)
+        day_min = tmin.date()
+        day_max = tmax.date().replace(day=bounds[1].day)
+        slc = self.subset(tmin, tmax)
+
+        start, stop, step = slc.start, slc.stop, slc.step
+        idx = list(range(*slc.indices(self.size)))
+        i1, i2 = idx[0], idx[-1]
+
+        if not self.is_descending():
+            if self.index2date(i1).date() < day_min:
+                start += 1
+            if self.index2date(i2).date() > day_max:
+                stop -= 1
+        else:
+            if self.index2date(i2).date() < day_min:
+                stop -= 1
+            if self.index2date(i1).date() > day_max:
+                start += 1
+        return slice(start, stop, step)
+
     @staticmethod
     def format(value, fmt=None) -> str:
         """Format value.
