@@ -11,6 +11,8 @@ import bisect
 
 import numpy as np
 
+from data_loader.key import reverse_slice
+
 
 log = logging.getLogger(__name__)
 
@@ -203,17 +205,16 @@ class Coord():
             stop = self.size
         else:
             stop = self.get_index(vmax, ["above", "below"][exclude])
-        if not self.is_descending():
-            stop += 1
-            step = 1
-        else:
-            start += 1
-            if stop == 0:
-                stop = None
-            else:
-                stop -= 1
-            step = -1
-        return slice(start, stop, step)
+
+        step = [1, -1][self.is_descending()]
+        stop += step
+        if stop < 0:
+            stop = None
+        slc = slice(start, stop, step)
+        if self.is_descending():
+            slc = reverse_slice(slc, size=self.size)
+
+        return slc
 
     def select(self, vmin=None, vmax=None, exclude=False):
         """Select values slice."""
