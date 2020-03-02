@@ -64,16 +64,12 @@ class DataPlot(DataBase):
             else:
                 scope = self.avail
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-        keyring.update(keys)
 
+        keyring = Keyring.get_default(keyring, **keys)
         if coords:
             names = coords
         elif keyring.kw:
-            name = keyring.coords
+            name = keyring.dims
         else:
             names = scope.get_high_dim()
         keyring.make_full(names)
@@ -127,7 +123,7 @@ class DataPlot(DataBase):
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % list(image.shape))
 
-        self.plotted = self.get_subscope(variable, keyring, 'loaded')
+        self.plotted = self.get_subscope('loaded', variable, keyring)
 
         kwargs_def = {'origin': 'lower'}
         if kwargs is not None:
@@ -138,7 +134,7 @@ class DataPlot(DataBase):
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
-            self.set_limits(ax, self.plotted, *coords)
+            self.set_limits(ax, *coords, scope=self.plotted)
 
         return im
 
@@ -167,7 +163,7 @@ class DataPlot(DataBase):
             variable = self.plotted.var[0]
         self.plotted.var = [variable]
 
-        self.plotted = self.get_subscope(variable, scope='loaded', **keys)
+        self.plotted = self.get_subscope('loaded', variable, **keys)
 
         image = self.view_ordered(self.plot_coords[::-1], variable, **keys)
         if image.ndim != 2:
@@ -374,7 +370,7 @@ class DataPlot(DataBase):
             Passed to func.
         """
         if variables is None:
-            variables = self.vi.var
+            variables = self.loaded.var
         if iterables is None:
             iterables = []
         iterables = [np.array(c) for c in iterables]
