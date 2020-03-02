@@ -76,6 +76,7 @@ class Key():
             value = self.value
         key = Key(value)
         key.shape = self.shape
+        key.parent_shape = self.parent_shape
         return key
 
     def set_shape(self):
@@ -93,6 +94,7 @@ class Key():
             self.shape = len(self.value)
         else:
             self.shape = None
+        self.parent_shape = None
 
     def set_shape_coord(self, coord):
         """Set shape using a coordinate.
@@ -103,6 +105,7 @@ class Key():
             The coordinate that would be used.
         """
         self.shape = coord[self.value].size
+        self.parent_shape = coord.size
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -165,10 +168,9 @@ class Key():
         if self.type == 'int':
             a = [a]
         elif self.type == 'slice':
-            try:
-                a = list(range(*self.value.indices(self.shape)))
-            except TypeError:
-                raise TypeError("%s has not had its shape specified." % self.value)
+            if self.parent_shape is None:
+                raise TypeError("%s has not had its parent shape specified." % self.value)
+            a = list(range(*self.value.indices(self.parent_shape)))
 
         key = other.value
         if other.type == 'int':
@@ -184,6 +186,7 @@ class Key():
             return Key(list(res))
         res_slc = Key(list2slice_simple(res))
         res_slc.shape = len(res)
+        res_slc.parent_shape = self.parent_shape
         return res_slc
 
 

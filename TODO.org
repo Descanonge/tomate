@@ -1,15 +1,10 @@
 #+TITLE: Data Loader
 
 * TODO: say storage order (for coords order)
-
 * TODO: compute linear combinations
-
 * TODO: Make acs attribute class rather than instance
-
 * TODO: Save metadata to file
 To not need to scan files each time
-
 * TODO: Select by value
-
 * TODO: Multiple selections
 in a subclass of database ?
