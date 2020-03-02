@@ -261,12 +261,7 @@ class DataBase():
         """
         self._check_loaded()
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
         keyring.make_total()
@@ -361,12 +356,7 @@ class DataBase():
         """
         self._check_loaded()
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
         keyring.make_total()

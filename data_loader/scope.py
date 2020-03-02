@@ -150,11 +150,7 @@ class Scope():
                 variables = [variables]
             self.var = [v for v in variables if v in self.var]
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_total()
         if int2list:
             keyring.make_int_list()
