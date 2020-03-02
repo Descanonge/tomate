@@ -12,7 +12,7 @@ Use user settings to set locales.
 import locale
 from typing import Sequence
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 try:
     import netCDF4 as nc
@@ -188,7 +188,7 @@ class Time(Coord):
             bounds.append(day)
 
         tmin = datetime(bounds[0].year, bounds[0].month, bounds[0].day)
-        tmax = datetime(bounds[1].year, bounds[1].month, bounds[1].day + 1)
+        tmax = datetime(bounds[1].year, bounds[1].month, bounds[1].day) + timedelta(days=1)
         day_min = tmin.date()
         day_max = tmax.date().replace(day=bounds[1].day)
         slc = self.subset(tmin, tmax)
