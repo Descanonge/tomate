@@ -157,18 +157,18 @@ class FilegroupLoad(FilegroupScan):
         rgx_idxs = []
         in_idxs = []
         for name, cs in self.iter_shared(True).items():
-            key = keyring[name]
+            key = keyring[name].no_int()
             match = []
             rgx_idx_matches = []
             for i, rgx in enumerate(cs.matchers):
-                match.append(cs.matches[key.no_int(), i])
+                match.append(cs.matches[key, i])
                 rgx_idx_matches.append(rgx.idx)
 
             # Matches are stored by regex index, we
             # need to transpose to have a list by filename
             match = np.array(match)
             matches.append(match.T)
-            in_idxs.append(cs.in_idx[key.no_int()])
+            in_idxs.append(cs.in_idx[key])
             rgx_idxs.append(rgx_idx_matches)
 
         return matches, rgx_idxs, in_idxs

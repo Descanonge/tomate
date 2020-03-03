@@ -390,8 +390,8 @@ class CoordScanShared(CoordScan):
     ----------
     matchers: List[Matcher]
         Matcher objects corresponding to this coordinate.
-    matches: List[List[str]]
-        List of matches in the filename, for each file
+    matches: Array[str]
+        List of matches in the filename, for each file.
     """
 
     def __init__(self, *args, **kwargs):
