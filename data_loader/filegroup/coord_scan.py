@@ -271,7 +271,7 @@ class CoordScan(Coord):
         self.set_values(values)
         self.in_idx = in_idx
 
-    def set_scan_attributes(self, func):
+    def set_scan_attributes_func(self, func):
         """Set function for scanning attributes in file.
 
         See also

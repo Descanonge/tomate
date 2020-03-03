@@ -248,7 +248,7 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_attributes(func)
+            cs.set_scan_attributes_func(func)
 
     def set_scan_variables_attributes_func(self, func):
         """Set a function for scanning variables specific attributes.
