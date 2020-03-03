@@ -197,7 +197,7 @@ class CoordScan(Coord):
         self.in_idx = self.in_idx[order]
 
         if self.in_idx.dtype.kind in 'iuf':
-            self._idx_descending = np.all(np.diff(self.in_idx) < 0)
+            self._idx_descending = all(np.diff(self.in_idx) < 0)
 
         return order
 
