@@ -5,6 +5,9 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
+
+# TODO: Coordinates values are not stored exactly (they pass as text)
+
 from importlib import import_module
 import logging
 import json
@@ -97,22 +100,37 @@ def read_filegroup(j_fg, coords, vi):
     cls = read_type(j_fg['class'])
 
     coords_d = {c.name: c for c in coords}
-    coords_fg = [[coords_d[c['name']], c['shared']]
-                 for c in j_fg['cs']]
+    coords_fg = [read_coord_scan(j, coords_d[j['name']]) for j in j_fg['cs']]
 
     fg = cls(root, contains, None, coords_fg, vi)
 
+    fg.add_scan_regex(j_fg['pregex'])
+    assert fg.regex == j_fg['regex'], "Regex was not found identical."
+    fg.segments = j_fg['segments']
+
     for j_cs in j_fg['cs']:
         name = j_cs['name']
+        cs = fg.cs[name]
         in_idx = np.array(j_cs['in_idx'])
         values = np.array(j_cs['values'])
+
         scan_filename_kwargs = j_cs['scan_filename_kwargs']
         scan_in_file_kwargs = j_cs['scan_in_file_kwargs']
+        scan_filename = j_cs['scan_filename']
+        scan_in_file = j_cs['scan_in_file']
+        scan_attributes = j_cs['scan_attributes']
 
-        cs = fg.cs[name]
+        cs.set_scan_filename_func(scan_filename, **scan_filename_kwargs)
+        cs.set_scan_in_file_func(scan_in_file, **scan_in_file_kwargs)
+        cs.set_scan_attributes_func(scan_attributes)
+        cs.scan = set(j_cs['scan'])
+
         cs.in_idx = in_idx
-        cs.set_values(values)
+        cs.values = values
         cs.assign_values()
+
+        if cs.shared:
+            cs.matches = np.array(j_cs['matches'])
 
     return fg
 
@@ -120,22 +138,27 @@ def read_filegroup(j_fg, coords, vi):
 def serialize_coord_scan(cs):
     """."""
     tp = cs.__class__
-    shared = 'Shared' in tp.__name__
     base = tp.__bases__[1].__bases__[1]
 
     top = {"name": cs.name,
-           "shared": shared,
+           "shared": cs.shared,
            "base": serialize_type(tp),
            "values": cs[:].tolist(),
            "in_idx": cs.in_idx.tolist(),
+
            "scan": list(cs.scan),
            "scanned": cs.scanned,
+
            "scan_filename_kwargs": cs.scan_filename_kwargs,
-           "scan_in_file_kwargs": cs.scan_in_file_kwargs}
+           "scan_in_file_kwargs": cs.scan_in_file_kwargs,
 
-    # TODO: write used functions
+           "scan_filename": serialize_type(cs.scan_filename),
+           "scan_in_file": serialize_type(cs.scan_in_file),
+           "scan_attributes": serialize_type(cs.scan_attributes),
 
-    if shared:
+           "is_descending": cs.is_idx_descending()}
+
+    if cs.shared:
         top["matches"] = cs.matches.tolist()
 
     return top
