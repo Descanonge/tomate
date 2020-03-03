@@ -180,7 +180,7 @@ class FilegroupScan():
 
         return cs
 
-    def add_scan_regex(self, pregex, replacements):
+    def add_scan_regex(self, pregex, **replacements):
         """Specify the pre-regex.
 
         Create a proper regex from the pre-regex.
@@ -191,9 +191,9 @@ class FilegroupScan():
         ----------
         pregex: str
             Pre-regex.
-        replacements: Dict[str, str]
-            Dictionnary of matchers to be replaced by a constant.
-            The keys must match a matcher in the pre-regex.
+        replacements: str
+            Matchers to be replaced by a constant.
+            The arguments names must match a matcher in the pre-regex.
 
         Example
         -------
