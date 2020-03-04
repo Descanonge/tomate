@@ -159,7 +159,7 @@ class Constructor():
         """
         if replacements is None:
             replacements = {}
-        self.current_fg.add_scan_regex(pregex, replacements)
+        self.current_fg.add_scan_regex(pregex, **replacements)
 
     def set_scan_in_file_func(self, func, *coords):
         """Set function for scanning coordinates values in file.
