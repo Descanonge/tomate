@@ -210,6 +210,42 @@ class Scope():
 
         return slices
 
+    def iter_slices_parent(self, coord, size=12):
+        """Iter through slices of parent scope.
+
+        The coordinate of the parent scope is
+        itered through. Pre-selection is made
+        by parent keyring.
+
+        Parameters
+        ----------
+        coord: str
+            Coordinate to iterate along to.
+        size: int, optional
+            Size of the slices to take.
+
+        Returns
+        -------
+        List[Key-like]
+
+        See also
+        --------
+        iter_slices
+
+        Examples
+        --------
+        We make a selection, and iterate through it.
+        >>> dt.select_from_available(time=slice(10, 15))
+        >>> for time_slice in dt.select.iter_slices_parent('time', 3):
+        ...     print(time_slice)
+        slice(10, 12, 1)
+        slice(12, 14, 1)
+        [14]
+        """
+        if self.parent_scope is None:
+            raise Exception("No parent scope.")
+        key = self.parent_keyring[coord].value
+        slices = self.parent_scope.iter_slices(coord, size, key)
         return slices
 
     def iter_slices_month(self, coord='time'):
