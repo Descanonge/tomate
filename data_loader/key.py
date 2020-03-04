@@ -177,13 +177,7 @@ class Key():
         Key
             self*other
         """
-        a = self.value
-        if self.type == 'int':
-            a = [a]
-        elif self.type == 'slice':
-            if self.parent_shape is None:
-                raise TypeError("%s has not had its parent shape specified." % self.value)
-            a = list(range(*self.value.indices(self.parent_shape)))
+        a = self.tolist()
 
         key = other.value
         if other.type == 'int':
@@ -194,13 +188,14 @@ class Key():
             res = [a[k] for k in key]
 
         if self.type == 'int' or other.type == 'int':
-            return Key(int(res[0]))
-        if self.type == 'list' or other.type == 'list':
-            return Key(list(res))
-        res_slc = Key(list2slice_simple(res))
-        res_slc.shape = len(res)
-        res_slc.parent_shape = self.parent_shape
-        return res_slc
+            key = Key(int(res[0]))
+        elif self.type == 'list' or other.type == 'list':
+            key = Key(list(res))
+        else:
+            key = Key(list2slice_simple(res))
+            key.shape = len(res)
+        key.parent_shape = self.parent_shape
+        return key
 
     def __add__(self, other):
         """Expand a key by another.
