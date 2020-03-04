@@ -230,6 +230,11 @@ class Key():
 
         return Key(key)
 
+    def sort(self):
+        if self.type == 'list':
+            self.value = list(set(self.value))
+            self.value.sort()
+
 
 class Keyring():
     """Object for indexing an array.
@@ -524,6 +529,17 @@ class Keyring():
         """
         for key in self.keys:
             key.simplify()
+
+    def sort_keys(self, *dims):
+        """Sort keys.
+
+        Remove redondant indices.
+        Sort by indices.
+        """
+        if dims is None:
+            dims = self.dims
+        for d in dims:
+            d.sort()
 
     def __mul__(self, other):
         """Subset keyring by another.
