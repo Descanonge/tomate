@@ -248,7 +248,7 @@ class Scope():
         slices = self.parent_scope.iter_slices(coord, size, key)
         return slices
 
-    def iter_slices_month(self, coord='time'):
+    def iter_slices_month(self, coord='time', key=None):
         """Iter through monthes of a time coordinate.
 
         Parameters
@@ -265,12 +265,18 @@ class Scope():
         --------
         iter_slices: Iter through any coordinate
         """
+        if key is None:
+            key = slice(None)
+        key = Key(key)
+
         c = self[coord]
+        key.set_shape_coord(c)
+   
         if not issubclass(type(c), Time):
             raise TypeError("'%s' is not a subclass of Time (is %s)"
                             % (coord, type(coord)))
 
-        dates = c.index2date()
+        dates = c.index2date(key.value)
         slices = []
         indices = []
         m_old = dates[0].month
@@ -279,7 +285,9 @@ class Scope():
             m = d.month
             y = d.year
             if m != m_old or y != y_old:
-                slices.append(indices)
+                key_out = key * Key(indices)
+                key_out.simplify()
+                slices.append(key_out.value)
                 indices = []
             indices.append(i)
             m_old = m
