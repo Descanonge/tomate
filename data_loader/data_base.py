@@ -631,6 +631,22 @@ class DataBase():
         """
         self.select_from_scope(scope='loaded', variables=variables, keyring=keyring, **keys)
 
+    def add_to_select(self, keyring=None, **keys):
+        """Add to selection.
+
+        Keys act upon the parent scope of selection.
+        TODO: Keys are always sorted in increasing order
+        """
+        scope = self.select
+        if scope.is_empty():
+            # TODO: adapt args
+            self.select_from_avail(keyring=keyring, **keys)
+
+        keyring = Keyring.get_default(keyring, **keys)
+        keyring = keyring + scope.parent_keyring
+        keyring.sort_keys()
+        self.select_from_scope(scope=scope.parent_scope, keyring=keyring)
+
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
 
