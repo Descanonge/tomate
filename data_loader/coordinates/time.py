@@ -188,9 +188,10 @@ class Time(Coord):
             bounds.append(day)
 
         tmin = datetime(bounds[0].year, bounds[0].month, bounds[0].day)
-        tmax = datetime(bounds[1].year, bounds[1].month, bounds[1].day) + timedelta(days=1)
+        tmax = datetime(bounds[1].year, bounds[1].month, bounds[1].day)
         day_min = tmin.date()
-        day_max = tmax.date().replace(day=bounds[1].day)
+        day_max = tmax.date()
+        tmax = tmax + timedelta(days=1)
         slc = self.subset(tmin, tmax)
 
         start, stop, step = slc.start, slc.stop, slc.step
