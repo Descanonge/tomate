@@ -202,6 +202,34 @@ class Key():
         res_slc.parent_shape = self.parent_shape
         return res_slc
 
+    def __add__(self, other):
+        """Expand a key by another.
+
+        If `B = A[self]` and `C=A[other]`
+        concatenate(B, C) = A[self + other]
+
+        The type of the resulting key is a list,
+        or a slice if one of the argument is a slice
+        and the result can be written as one.
+
+        Parameters
+        ----------
+        other: Key
+
+        Returns
+        -------
+        Key
+            self + other
+        """
+        a = self.tolist()
+        b = other.tolist()
+        key = a + b
+
+        if self.type == 'slice' or other.type == 'slice':
+            key = list2slice_simple(key)
+
+        return Key(key)
+
 
 class Keyring():
     """Object for indexing an array.
