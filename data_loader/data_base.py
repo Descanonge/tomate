@@ -641,11 +641,13 @@ class DataBase():
         if scope.is_empty():
             # TODO: adapt args
             self.select_from_avail(keyring=keyring, **keys)
-
-        keyring = Keyring.get_default(keyring, **keys)
-        keyring = keyring + scope.parent_keyring
-        keyring.sort_keys()
-        self.select_from_scope(scope=scope.parent_scope, keyring=keyring)
+        else:
+            keyring = Keyring.get_default(keyring, **keys)
+            keyring.set_shape(scope.parent_scope.coords)
+            keyring = keyring + scope.parent_keyring
+            keyring.sort_keys()
+            keyring.simplify()
+            self.select_from_scope(scope=scope.parent_scope, keyring=keyring)
 
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
