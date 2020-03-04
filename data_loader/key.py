@@ -407,8 +407,8 @@ class Keyring():
         ----------
         coords: Dict[Coord]
         """
-        for name, c in coords.items():
-            self[name].set_shape_coord(c)
+        for name, k in self.items():
+            k.set_shape_coord(coords[name])
 
     def get_non_zeros(self) -> List[str]:
         """Return dimensions name with a non zero shape.
