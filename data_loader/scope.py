@@ -10,7 +10,7 @@ from typing import List, Dict
 
 import numpy as np
 
-from data_loader.key import Keyring
+from data_loader.key import Keyring, Key
 from data_loader.iter_dict import IterDict
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
@@ -174,7 +174,7 @@ class Scope():
         scope.parent_keyring = self.parent_keyring.copy()
         return scope
 
-    def iter_slices(self, coord, size=12):
+    def iter_slices(self, coord, size=12, key=None):
         """Iter through slices of a coordinate.
 
         The prescribed slice size is a maximum, the last
@@ -186,18 +186,29 @@ class Scope():
             Coordinate to iterate along to.
         size: int, optional
             Size of the slices to take.
+        key: Key-like, optional
+            Subpart of coordinate to iter through.
 
         Returns
         -------
-        List[slice]
+        List[Key-like]
         """
+        if key is None:
+            key = slice(None)
+        key = Key(key)
+
         c = self[coord]
-        n_slices = int(np.ceil(c.size / size))
+        key.set_shape_coord(c)
+
+        n_slices = int(np.ceil(key.shape / size))
         slices = []
         for i in range(n_slices):
             start = i*size
-            stop = min((i+1)*size, c.size)
-            slices.append(slice(start, stop))
+            stop = min((i+1)*size, key.shape)
+            key_out = key * Key(slice(start, stop))
+            slices.append(key_out.value)
+
+        return slices
 
         return slices
 
