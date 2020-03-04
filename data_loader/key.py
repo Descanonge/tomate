@@ -560,6 +560,16 @@ class Keyring():
             res[name] = key * other_[name]
         return res
 
+    def __add__(self, other):
+        """Expand keyring with another."""
+        res = self.copy()
+        for d in other:
+            if d in self:
+                res[d] = self[d] + other[d]
+            else:
+                res[d] = other[d]
+        return res
+
 
 def list2slice_simple(L):
     """Transform a list into a slice when possible.
