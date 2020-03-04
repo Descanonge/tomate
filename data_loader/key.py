@@ -145,6 +145,19 @@ class Key():
                 self.type = 'slice'
             self.value = key
 
+    def tolist(self):
+        """Transform key into list."""
+        a = self.value
+        if self.type == 'int':
+            a = [a]
+        elif self.type == 'list':
+            a = a.copy()
+        elif self.type == 'slice':
+            if self.parent_shape is None:
+                raise TypeError("%s has not had its parent shape specified." % self.value)
+            a = list(range(*self.value.indices(self.parent_shape)))
+        return a
+
     def __mul__(self, other):
         """Subset key by another.
 
