@@ -533,7 +533,7 @@ class Keyring():
         """
         if dims is None:
             dims = self.dims
-        for d in dims:
+        for d in self.keys:
             d.sort()
 
     def __mul__(self, other):
