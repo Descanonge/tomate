@@ -41,7 +41,7 @@ The data object contains 3 different scopes by default.
 |loaded   |`loaded`        |Data that is currently  |
 |         |                |loaded in memory        |
 +---------+----------------+------------------------+
-|select   |`select`        |Data that is selected   |
+|selected |`selected`      |Data that is selected   |
 +---------+----------------+------------------------+
 
 Some attributs in scopes can be accessed directly from

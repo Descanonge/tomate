@@ -75,7 +75,7 @@ class DataBase():
         Scope of available data (on disk)
     loaded: Scope
         Scope of loaded data
-    select: Scope
+    selected: Scope
         Scope of selected data.
 
     acs: Accessor (or subclass)
@@ -95,12 +95,12 @@ class DataBase():
 
         self.avail = Scope(vi.var, coords)
         self.loaded = self.avail.copy()
-        self.select = self.avail.copy()
+        self.selected = self.avail.copy()
         self.loaded.empty()
-        self.select.empty()
+        self.selected.empty()
         self.avail.name = 'available'
         self.loaded.name = 'loaded'
-        self.select.name = 'selected'
+        self.selected.name = 'selected'
 
         self._fg_idx = {}
         self.filegroups = filegroups
@@ -133,10 +133,10 @@ class DataBase():
             s.append('Data loaded: \n%s' % str(self.loaded))
         s.append('')
 
-        if self.select.is_empty():
+        if self.selected.is_empty():
             s.append('No data selected')
         else:
-            s.append('Data selected: \n%s' % str(self.select))
+            s.append('Data selected: \n%s' % str(self.selected))
         s.append('')
 
         s.append("%d Filegroups:" % len(self.filegroups))
@@ -226,7 +226,7 @@ class DataBase():
         if isinstance(scope, str):
             scope = {'avail': self.avail,
                      'loaded': self.loaded,
-                     'select': self.select}[scope]
+                     'select': self.selected}[scope]
         return scope
 
     @property
@@ -287,7 +287,7 @@ class DataBase():
         -------
         Array
         """
-        scope = self.select
+        scope = self.selected
         if scope.is_empty():
             raise Exception("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.loaded:
@@ -594,7 +594,7 @@ class DataBase():
         subscope.slice(variables, keyring, int2list=int2list, **keys)
         return subscope
 
-    def select_from_scope(self, scope='avail', variables=None, keyring=None, **keys):
+    def select(self, scope='avail', variables=None, keyring=None, **keys):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
@@ -603,7 +603,7 @@ class DataBase():
         ----------
         scope: str, Scope, optional
             Scope to subset.
-            If str, can be {'avail', 'loaded', 'select'},
+            If str, can be {'avail', 'loaded', 'selected'},
             corresponding scope of data will then be taken.
         variables: str, List[str], optional
         keyring: Keyring, optional
@@ -613,23 +613,9 @@ class DataBase():
         --------
         get_subscope
         """
-        self.select = self.get_subscope(scope, variables, keyring,
-                                        int2list=False, **keys)
-        self.select.name = 'select'
-
-    def select_from_avail(self, variables=None, keyring=None, **keys):
-        """Set selected scope from available.
-
-        Wrapper around select_from_scope().
-        """
-        self.select_from_scope(scope='avail', variables=variables, keyring=keyring, **keys)
-
-    def select_from_loaded(self, variables=None, keyring=None, **keys):
-        """Set selected scope from loaded.
-
-        Wrapper around select_from_scope().
-        """
-        self.select_from_scope(scope='loaded', variables=variables, keyring=keyring, **keys)
+        self.selected = self.get_subscope(scope, variables, keyring,
+                                          int2list=False, **keys)
+        self.selected.name = 'selected'
 
     def select_by_value(self, scope='avail', **keys):
         """Select by value.
@@ -656,7 +642,7 @@ class DataBase():
             else:
                 key = c.get_index(key)
             keys_[name] = key
-        self.select_from_scope(scope, **keys_)
+        self.select(scope, **keys_)
 
     def add_to_select(self, keyring=None, **keys):
         """Add to selection.
@@ -664,17 +650,17 @@ class DataBase():
         Keys act upon the parent scope of selection.
         TODO: Keys are always sorted in increasing order
         """
-        scope = self.select
+        scope = self.selected
         if scope.is_empty():
             # TODO: adapt args
-            self.select_from_avail(keyring=keyring, **keys)
+            self.select('avail', keyring=keyring, **keys)
         else:
             keyring = Keyring.get_default(keyring, **keys)
             keyring.set_shape(scope.parent_scope.coords)
             keyring = keyring + scope.parent_keyring
             keyring.sort_keys()
             keyring.simplify()
-            self.select_from_scope(scope=scope.parent_scope, keyring=keyring)
+            self.select(scope=scope.parent_scope, keyring=keyring)
 
     def slice_data(self, variables=None, keyring=None, **keys):
         """Slice loaded data.
@@ -841,10 +827,10 @@ class DataBase():
         ----------
         scope: Scope
             Selected scope created from available scope.
-            Defaults to `self.select`.
+            Defaults to `self.selected`.
         """
         if scope is None:
-            scope = self.select
+            scope = self.selected
         if scope.is_empty():
             raise Exception("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.avail:
