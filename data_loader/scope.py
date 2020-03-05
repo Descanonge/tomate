@@ -362,11 +362,3 @@ class Scope():
         for name, key in keyring.items_values():
             extent += self[name].get_extent(key)
         return extent
-
-    def get_keyring(self, supscope):
-        keyring = Keyring()
-        for name, c in self.coords.items():
-            # FIXME: and list ?
-            key = supscope[name].subset(*c.get_limits())
-            keyring[name] = key
-        return keyring
