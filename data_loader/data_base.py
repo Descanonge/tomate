@@ -631,6 +631,33 @@ class DataBase():
         """
         self.select_from_scope(scope='loaded', variables=variables, keyring=keyring, **keys)
 
+    def select_by_value(self, scope='avail', **keys):
+        """Select by value.
+
+        Parameters
+        ----------
+        scope: str, Scope, optional
+            Default to available.
+        keys: Key-like, optional
+
+        See also
+        --------
+        load_by_value:
+           Similar management of keys arguments.
+        """
+        scope = self.get_scope(scope)
+        keys_ = {}
+        for name, key in keys.items():
+            c = scope[name]
+            if isinstance(key, slice):
+                key = c.subset(key.start, key.stop)
+            elif isinstance(key, (list, tuple, np.ndarray)):
+                key = [c.get_index(k) for k in key]
+            else:
+                key = c.get_index(key)
+            keys_[name] = key
+        self.select_from_scope(scope, **keys_)
+
     def add_to_select(self, keyring=None, **keys):
         """Add to selection.
 
