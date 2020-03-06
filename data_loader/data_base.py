@@ -61,8 +61,6 @@ class DataBase():
     data: Numpy array
         Data array if loaded.
     filegroups: List[Filegroup]
-    _fg_idx: Dict[variable: str, int]
-        Index of filegroup for each variable
 
     vi: VariablesInfo
         Information on the variables and data.
@@ -102,11 +100,7 @@ class DataBase():
         self.loaded.name = 'loaded'
         self.select.name = 'selected'
 
-        self._fg_idx = {}
         self.filegroups = filegroups
-        for i, fg in enumerate(filegroups):
-            for var in fg.contains:
-                self._fg_idx.update({var: i})
 
         self.vi = vi
 
@@ -813,6 +807,10 @@ class DataBase():
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.
 
+        This defines in what order the filegroups will be loaded.
+        Currently, the order is that of the filegroups (in what
+        order they were set).
+
         Parameters
         ----------
         variables: List[str]
@@ -823,16 +821,12 @@ class DataBase():
             A list of the filegroups with the corresponding variables.
         """
 
-        # find the filegroups we need to load
         fg_var = []
-        for var in variables:
-            fg = self.filegroups[self._fg_idx[var]]
-            try:
-                idx = [z[0] for z in fg_var].index(fg)
-            except ValueError:
-                fg_var.append([fg, []])
-                idx = -1
-            fg_var[idx][1].append(var)
+        for fg in self.filegroups:
+            variables_fg = [var for var in fg.contains
+                            if var in variables]
+            if variables_fg:
+                fg_var.append([fg, variables_fg])
 
         return fg_var
 
