@@ -11,6 +11,8 @@ from typing import List
 
 import numpy as np
 
+from data_loader.coordinates.variables import Variables
+
 
 log = logging.getLogger(__name__)
 
@@ -32,27 +34,45 @@ class Key():
     value: None, int, List[int], slice
     type: str
         {'none', 'int', 'list', 'slice'}
+    repr: Any
+        Representation of the key.
+        Useful for variables keys that are
+        transformed from str to int.
+    to_var: bool
+        If the key has to be transformed
+        from str to int.
     """
 
     int_types = (int, np.integer)
 
     def __init__(self, key):
+        self.to_var = False
+        self.repr = None
+       
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
-            reject = not all(isinstance(z, self.int_types) for z in key)
+            reject = any(not isinstance(z, (str, *self.int_types)) for z in key)
             tp = 'list'
-            key = [int(z) for z in key]
+            key = [int(k) if isinstance(k, self.int_types)
+                   else k for k in key]
+            self.to_var = any(isinstance(k, str) for k in key)
         elif isinstance(key, self.int_types):
             tp = 'int'
             key = int(key)
+        elif isinstance(key, str):
+            tp = 'int'
+            key = key
+            self.to_var = True
         elif isinstance(key, slice):
             tp = 'slice'
+            if any([isinstance(z, str) for z in [key.start, key.stop, key.step]]):
+                self.to_var = True
         elif key is None:
             tp = 'none'
         else:
             reject = True
         if reject:
-            raise TypeError("Key is not int, List[int], or slice"
+            raise TypeError("Key is not int/str, List[int/str], or slice"
                             " (is %s)" % type(key))
         self.value = key
         self.type = tp
@@ -102,7 +122,30 @@ class Key():
         coord: Coord
             The coordinate that would be used.
         """
-        self.shape = coord[self.value].size
+        if self.to_var:
+            self.make_var_key(coord)
+        self.shape = len(coord[self.value])
+        self.parent_shape = coord.size
+
+    def make_var_key(self, variables):
+        """."""
+        if self.type == 'int':
+            idx = variables.idx(self.value)
+            repr = variables.names(self.value)
+        elif self.type == 'list':
+            idx = [variables.idx(k) for k in self.value]
+            repr = [variables.names(k) for k in self.value]
+        elif self.type == 'slice':
+            idxs = [variables.idx(k) for k in
+                    [self.value.start, self.value.stop, self.value.step]]
+            idx = slice(*idxs)
+            names = [variables.names(k) for k in
+                        [self.value.start, self.value.stop]]
+            repr = slice(*names, idx.step)
+
+        self.repr = repr
+        self.value = idx
+        self.to_var = False
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -115,7 +158,7 @@ class Key():
             return [self.value]
         return self.value
 
-    def reverse(self, size):
+    def reverse(self, size=None):
         """Reverse key.
 
         Parameters
@@ -123,6 +166,8 @@ class Key():
         size: int
             Size of the coordinate.
         """
+        if size is None:
+            size = self.parent_shape
         if self.type == 'int':
             self.value = size - self.value
         elif self.type == 'list':
@@ -136,7 +181,7 @@ class Key():
         Transform a list into a slice if the list is
         a serie of integers of fixed step.
         """
-        if self.type == 'list':
+        if self.type == 'list' and not self.to_var:
             key = list2slice_simple(self.value)
             if isinstance(key, slice):
                 self.type = 'slice'
@@ -202,7 +247,7 @@ class Keyring():
     """
 
     @classmethod
-    def get_default(cls, keyring=None, **keys) -> "Keyring":
+    def get_default(cls, keyring=None, variables=None, **keys) -> "Keyring":
         """Return a new keyring, eventually updated.
 
         Parameters
@@ -217,6 +262,12 @@ class Keyring():
         else:
             keyring = keyring.copy()
         keyring.update(keys)
+
+        if variables is not None:
+            for k in keyring.keys:
+                if k.to_var:
+                    k.make_var_key(variables)
+           
         return keyring
 
     def __init__(self, **keys):
@@ -289,7 +340,7 @@ class Keyring():
     @property
     def shape(self) -> List[int]:
         """Return shape of all keys."""
-        return [k.shape for k in self.keys]
+        return [k.shape for k in self.keys if k.shape != 0]
 
     def __bool__(self):
         """If the keyring has keys."""
