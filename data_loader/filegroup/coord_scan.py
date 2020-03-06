@@ -150,7 +150,8 @@ class CoordScan(Coord):
 
         self._idx_descending = False
 
-        super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
+        super().__init__(name=coord.name, array=coord._array,
+                         units=coord.units, name_alt=coord.name_alt)
 
     def __str__(self):
         s = [super().__str__()]

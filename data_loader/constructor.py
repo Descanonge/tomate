@@ -13,6 +13,7 @@ import inspect
 from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.coord import select_overlap
 from data_loader.accessor import Accessor
+from data_loader.coordinates.variables import Variables
 
 
 log = logging.getLogger(__name__)
@@ -95,7 +96,8 @@ class Constructor():
         """
         self.vi.add_infos(**infos)
 
-    def add_filegroup(self, fg_type, contains, coords, root=None, **kwargs):
+    def add_filegroup(self, fg_type, contains, coords, root=None,
+                      variables_shared=False, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -138,6 +140,8 @@ class Constructor():
         root = os.path.join(self.root, root)
 
         contains = list(contains)
+        coords.insert(0, [Variables(contains), variables_shared])
+        self.set_variables_infile()
 
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
@@ -160,6 +164,39 @@ class Constructor():
         if replacements is None:
             replacements = {}
         self.current_fg.add_scan_regex(pregex, replacements)
+
+    def set_variables_infile(self, *variables, **kw_variables):
+        """Set variables position in the file.
+
+        This information will be transmitted to the filegroup
+        when loading.
+        It can be a integer, a string (to indicate a name)
+        under which the variable is found in file,
+        or None, in which case the filegroup will manage it.
+
+        Parameters
+        ----------
+        variables: int, str, None, optional
+            Argument in the order of variables indicated
+            when adding the last filegroup.
+        kw_variables: int, str, None, optional
+            Argument name is the variable name.
+            Takes precedence over `variables`.
+        """
+        fg = self.current_fg
+        for i, inf in enumerate(variables):
+            var = fg.contains[i]
+            if var not in kw_variables:
+                kw_variables[var] = inf
+
+        cs = fg.cs['var']
+        cs.values = []
+        cs.in_idx = []
+        for i, var in enumerate(fg.contains):
+            inf = kw_variables.get(var, None)
+            cs.values.append(i)
+            cs.in_idx.append(inf)
+        cs.set_values()
 
     def set_scan_in_file_func(self, func, *coords):
         """Set function for scanning coordinates values in file.
