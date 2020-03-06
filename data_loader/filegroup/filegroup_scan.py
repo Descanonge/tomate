@@ -405,7 +405,7 @@ class FilegroupScan():
             if len(cs.values) == 0:
                 raise ValueError("No values detected ({0}, {1})".format(
                     cs.name, self.contains))
-            cs.sort_values()
+            cs.set_values()
             cs.update_values(cs.values)
 
     def set_scan_attributes_func(self, func):

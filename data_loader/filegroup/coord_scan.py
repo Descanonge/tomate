@@ -173,9 +173,11 @@ class CoordScan(Coord):
         """
         return self._idx_descending
 
-    def set_values(self, values: Sequence[float]):
+    def set_values(self):
         """Set values."""
-        self.values = values
+        self.values = np.array(self.values)
+        self.in_idx = np.array(self.in_idx)
+        self.sort_values()
 
     def assign_values(self):
         """Update parent coord with found values."""
@@ -189,9 +191,6 @@ class CoordScan(Coord):
         order: List[int]
             The order used to sort values.
         """
-        self.values = np.array(self.values)
-        self.in_idx = np.array(self.in_idx)
-
         order = np.argsort(self.values)
         self.values = self.values[order]
         self.in_idx = self.in_idx[order]
@@ -268,8 +267,9 @@ class CoordScan(Coord):
         self.scan.discard('in')
         self.scan.discard('filename')
         self.scan.add('manual')
-        self.set_values(values)
+        self.values = values
         self.in_idx = in_idx
+        self.set_values()
 
     def set_scan_attributes(self, func):
         """Set function for scanning attributes in file.
@@ -415,9 +415,11 @@ class CoordScanShared(CoordScan):
         """Add a matcher."""
         self.matchers.append(matcher)
 
-    def sort_values(self):
+    def set_values(self):
         self.matches = np.array(self.matches)
+        super().set_values()
 
+    def sort_values(self):
         order = super().sort_values()
         self.matches = self.matches[order]
 
