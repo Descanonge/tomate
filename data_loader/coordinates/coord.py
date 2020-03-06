@@ -70,7 +70,7 @@ class Coord():
         if array is not None:
             self.update_values(array)
 
-    def update_values(self, values):
+    def update_values(self, values, dtype=None):
         """Change values.
 
         Check if new values are monoteous
@@ -79,6 +79,9 @@ class Coord():
         ----------
         values: Sequence, Float
             New values.
+        dtype: Numpy dtype
+            Dtype of the array.
+            Default to np.float64
 
         Raises
         ------
@@ -87,7 +90,9 @@ class Coord():
         ValueError
             If the data is not sorted.
         """
-        self._array = np.array(values, dtype=np.float64)
+        if dtype is None:
+            dtype = np.float64
+        self._array = np.array(values, dtype=dtype)
         if len(self._array.shape) == 0:
             self._array = self._array.reshape(1)
         elif len(self._array.shape) > 1:
