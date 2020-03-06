@@ -108,6 +108,9 @@ class Coord():
         if not np.all(diff > 0) and not self._descending:
             raise ValueError("Data not sorted")
 
+    def __len__(self):
+        return self.size
+
     @property
     def size(self) -> int:
         """Length of coordinate."""
