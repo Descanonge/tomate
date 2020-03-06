@@ -79,7 +79,7 @@ class VariablesInfo():
 
     def __iter__(self):
         """Enumerate over var."""
-        return enumerate(self.var)
+        return iter(self.var)
 
     def __getitem__(self, item):
         """Return VariableInfo slice.

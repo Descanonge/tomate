@@ -145,9 +145,6 @@ class Constructor():
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
 
-        # Add default for infile information on variables
-        self.set_variables_infile()
-
     def set_fg_regex(self, pregex, replacements=None):
         """Add the pre-regex to the current filegroup.
 
@@ -192,13 +189,9 @@ class Constructor():
                 kw_variables[var] = inf
 
         cs = fg.cs['var']
-        cs.values = []
-        cs.in_idx = []
-        for var in fg.contains:
-            inf = kw_variables.get(var, None)
-            cs.values.append(var)
-            cs.in_idx.append(inf)
-        cs.set_values()
+        values = [var for var in fg.contains]
+        in_idx = [kw_variables.get(var, None) for var in fg.contains]
+        cs.set_scan_manual(values, in_idx)
 
     def set_scan_in_file_func(self, func, *coords):
         """Set function for scanning coordinates values in file.
@@ -416,7 +409,19 @@ class Constructor():
             self.scan_files()
             self.check_scan()
 
+        for fg in self.filegroups:
+            if not fg.cs['var'].scan:
+                self.set_variables_infile()
+                fg.cs['var'].set_values()
+
         dt_class = create_data_class(dt_types, accessor)
+
+        variables = list(self.vi.var)
+        for fg in self.filegroups:
+            variables += fg.contains
+        for var in variables:
+            if var not in self.vi:
+                self.vi.add_variable(var)
 
         dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
