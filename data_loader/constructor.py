@@ -138,6 +138,8 @@ class Constructor():
             root = ''
         root = os.path.join(self.root, root)
 
+        if contains is None:
+            contains = []
         contains = list(contains)
 
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
@@ -192,9 +194,9 @@ class Constructor():
         cs = fg.cs['var']
         cs.values = []
         cs.in_idx = []
-        for i, var in enumerate(fg.contains):
+        for var in fg.contains:
             inf = kw_variables.get(var, None)
-            cs.values.append(i)
+            cs.values.append(var)
             cs.in_idx.append(inf)
         cs.set_values()
 

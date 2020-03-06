@@ -342,6 +342,21 @@ class CoordScan(Coord):
         return n_values
 
 
+class CoordScanVar(CoordScan):
+    """Coord used for scanning variables."""
+
+    def set_values(self):
+        self.values = np.array(self.values)
+        self.in_idx = np.array(self.in_idx)
+
+        contains = list(self.values)
+        self.filegroup.contains = contains
+
+    def sort_values(self):
+        order = range(list(self.size))
+        return order
+
+
 class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
 
@@ -478,7 +493,11 @@ def get_coordscan(filegroup, coord, shared):
         If the coordinate is shared.
     """
     coord_type = type(coord)
-    CoordScanRB = type("CoordScanRB", (CoordScan, coord_type), {})
+    if coord.name == 'var':
+        coordscan_type = CoordScanVar
+    else:
+        coordscan_type = CoordScan
+    CoordScanRB = type("CoordScanRB", (coordscan_type, coord_type), {})
 
     if shared:
         CoordScanType = type("CoordScanSharedRB",
