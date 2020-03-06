@@ -5,43 +5,78 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-class Variables():
-    """.
+
+import numpy as np
+from data_loader.coordinates.coord import Coord
+
+
+class Variables(Coord):
+    """List of variables.
+
+    With easy access to their index in a potential
+    array.
+    Akin to a Coord coordinate object.
 
     Parameters
     ----------
     variables: str, List[str], optional
     """
 
-    def __init__(self, *variables):
-        self.var = [v for v in variables]
-        self.name = 'var'
+    def __init__(self, array=None, **kwargs):
+        kwargs.pop('name', None)
+        kwargs.pop('array', None)
+        super().__init__('var', None, **kwargs)
+
+        if array is not None:
+            self.update_values(array, dtype=None)
+
+    def update_values(self, values, dtype=None):
+        if isinstance(values, str):
+            values = [values]
+        self._array = np.array(values, dtype=dtype)
+        self._size = self._array.size
 
     def __str__(self):
-        return str(self.var)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
+        s = "Variables: " + ', '.join([v for v in self])
+        return s
 
     def idx(self, y):
+        """Return index of variable.
+
+        Parameters
+        ----------
+        y: str, int
+            Name or index of variable.
+        """
         if isinstance(y, str):
-            return self.var.index(y)
+            y = np.where(self._array == y)[0][0]
         return y
 
-    def name(self, y):
+    def get_index(self, value, loc=None):
+        return self.idx(value)
+
+    def get_name(self, y):
+        """Return name of variable.
+
+        Parameters
+        ----------
+        y: int, str
+            Index or name of variable.
+        """
         if isinstance(y, str):
             return y
-        return self.var[y]
+        return self._array[y]
 
     def __getitem__(self, y):
-        """.
+        """Return name of variable.
 
         Parameters
         ----------
         y: int, str, List[int], List[str], slice
+            Index or name of variable(s).
         """
         if isinstance(y, (int, str)):
-            return self.var[self.idx(y)]
+            return self._array[self.idx(y)]
 
         if isinstance(y, slice):
             start = self.idx(y.start)
@@ -49,40 +84,31 @@ class Variables():
             y = slice(start, stop, y.step)
             y = list(range(*y.indices(self.size)))
 
-        out = [self.var[self.idx(i)] for i in y]
+        out = [self._array[self.idx(i)] for i in y]
         return out
 
     def __iter__(self):
-        return iter(self.var)
+        """Iter variables names."""
+        return iter(self._array)
 
-    @property
-    def size(self):
-        return len(self.var)
+    def slice(self, key=None):
+        """Slice variables.
 
-    def slice(self, variables=None, keyring=None):
-        """.
+        Keep only variables overlaping with arguments.
 
         Parameters
         ----------
+        keyring: Keyring
+            The key must be named 'var'.
         variables: int, str, List[int], List[str]
+            Variables names or index (a key-like argument).
+            Takes precedence over keyring.
         """
-        if keyring is not None and 'var' in keyring:
-            var = keyring['var']
-        if variables is not None:
-            var = variables
-        if isinstance(var, str):
-            var = [var]
-
-        self.var = [self.var[self.idx(v)] for v in var]
+        if key is None:
+            key = slice(None)
+        self.update_values(self[key])
 
     def copy(self):
-        return Variables(self.var)
-
-    def empty(self):
-        self.var = None
-
-    def has_data(self):
-        return self.is_empty()
-
-    def is_empty(self):
-        return self.var is None
+        """Return a copy."""
+        return Variables(self[:], units=self.units, name_alt=self.name_alt,
+                         fullname=self.fullname)
