@@ -71,7 +71,8 @@ class FilegroupScan():
         Function used to scan general attributes.
     """
 
-    def __init__(self, root, contains, db, coords, vi):
+    def __init__(self, root, contains, db, coords, vi,
+                 variables_shared=False):
         self.root = root
         self.contains = contains
         self.db = db
@@ -89,7 +90,8 @@ class FilegroupScan():
         self.scan_attributes = scan_attributes_default
         self.scan_infos = scan_infos_default
 
-        self.make_coord_scan(coords)
+        coords_fg = [[Variables(contains), variables_shared]] + coords
+        self.make_coord_scan(coords_fg)
 
     def __str__(self):
         s = [self.__class__.__name__]

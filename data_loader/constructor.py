@@ -96,8 +96,7 @@ class Constructor():
         """
         self.vi.add_infos(**infos)
 
-    def add_filegroup(self, fg_type, contains, coords, root=None,
-                      variables_shared=False, **kwargs):
+    def add_filegroup(self, fg_type, contains, coords, root=None, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -140,11 +139,12 @@ class Constructor():
         root = os.path.join(self.root, root)
 
         contains = list(contains)
-        coords.insert(0, [Variables(contains), variables_shared])
-        self.set_variables_infile()
 
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
         self.filegroups.append(fg)
+
+        # Add default for infile information on variables
+        self.set_variables_infile()
 
     def set_fg_regex(self, pregex, replacements=None):
         """Add the pre-regex to the current filegroup.
