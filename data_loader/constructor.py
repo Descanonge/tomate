@@ -191,7 +191,7 @@ class Constructor():
                 kw_variables[var] = inf
 
         cs = fg.cs['var']
-        values = [var for var in fg.contains]
+        values = fg.contains.copy()
         in_idx = [kw_variables.get(var, None) for var in fg.contains]
         cs.set_scan_manual(values, in_idx)
 
