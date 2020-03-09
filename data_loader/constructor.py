@@ -338,6 +338,10 @@ class Constructor():
         Find coordinates values and eventually, in-file indices.
         """
         for fg in self.filegroups:
+            if not fg.cs['var'].scan:
+                self.set_variables_infile()
+                fg.cs['var'].set_values()
+
             fg.scan_files()
 
     def check_scan(self, threshold=1e-5):
@@ -410,11 +414,6 @@ class Constructor():
             self.check_regex()
             self.scan_files()
             self.check_scan()
-
-        for fg in self.filegroups:
-            if not fg.cs['var'].scan:
-                self.set_variables_infile()
-                fg.cs['var'].set_values()
 
         dt_class = create_data_class(dt_types, accessor)
 
