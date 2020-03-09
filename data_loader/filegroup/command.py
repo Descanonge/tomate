@@ -116,7 +116,6 @@ class Command():
 
     def __init__(self):
         self.filename = ""
-        self.var_list = []
         self.keyrings = []
 
     def __iter__(self) -> Iterator[CmdKeyrings]:
@@ -126,8 +125,6 @@ class Command():
     def __str__(self):
         s = []
         s.append("file: %s" % self.filename)
-        if self.var_list:
-            s.append("variables: " + str(self.var_list))
         s.append("keyrings: %s" % '\n      '.join([str(k) for k in self]))
         return "\n".join(s)
 

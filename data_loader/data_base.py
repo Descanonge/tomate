@@ -549,8 +549,7 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def get_subscope(self, scope='avail', variables=None, keyring=None,
-                     int2list=True, **keys):
+    def get_subscope(self, scope='avail', keyring=None, int2list=True, **keys):
         """Return subset of scope.
 
         Parameters
@@ -570,7 +569,7 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
-        subscope.slice(variables, keyring, int2list=int2list, **keys)
+        subscope.slice(keyring, int2list=int2list, **keys)
         subscope.parent_scope = scope
         return subscope
 
@@ -700,7 +699,7 @@ class DataBase():
                     " and will be removed in 0.4.")
         self.load(variables, *keys, **kw_keys)
 
-    def load(self, variables, *keys, **kw_keys):
+    def load(self, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -711,8 +710,6 @@ class DataBase():
 
         Parameters
         ----------
-        variables: str or List[str]
-            Variables to load.
         keys: int, slice, List[int], optional
             What subset of coordinate to load. The order is that
             of self.coords.
@@ -720,6 +717,7 @@ class DataBase():
         kw_keys: int, slice, or List[int], optional
             What subset of coordinate to load. Takes precedence
             over positional `coords`.
+            Variables key argument should be named 'var'.
 
         Examples
         --------
@@ -748,17 +746,18 @@ class DataBase():
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
+        keyring.make_full(['var'] + self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        self.loaded = self.get_subscope('avail', variables, keyring)
+        keyring.make_var_names(self.avail.var)
+
+        self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
-        self.data = self.allocate(self.shape)
+        self.data = self.allocate(self.loaded.shape)
 
-        fg_var = self._get_filegroups_for_variables(self.loaded.var)
-        for fg, var_load in fg_var:
-            fg.load_data(var_load, keyring)
+        for fg in self.filegroups:
+            fg.load_data(keyring)
 
         try:
             self.do_post_load(self)

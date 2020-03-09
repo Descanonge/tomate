@@ -32,7 +32,7 @@ class FilegroupLoad(FilegroupScan):
 
     acs = Accessor()
 
-    def get_commands(self, var_list, keyring):
+    def get_commands(self, keyring):
         """Get load commands.
 
         Recreate filenames from matches and find shared coords keys.
@@ -55,6 +55,7 @@ class FilegroupLoad(FilegroupScan):
         commands = self._get_commands_shared(keyring)
         commands = command.merge_cmd_per_file(commands)
 
+        # When there is no shared coordinate.
         if len(commands) == 0:
             commands = self._get_commands_no_shared()
 
@@ -73,7 +74,9 @@ class FilegroupLoad(FilegroupScan):
             for key in cmd:
                 key.modify(key_inf, key_mem)
 
-            cmd.order_keys(self.db.coords_name)
+            self.add_variables(cmd, keyring)
+
+            cmd.order_keys(['var'] + self.db.coords_name)
 
         return commands
 
@@ -157,18 +160,18 @@ class FilegroupLoad(FilegroupScan):
         rgx_idxs = []
         in_idxs = []
         for name, cs in self.iter_shared(True).items():
-            key = keyring[name]
+            key = keyring[name].no_int()
             match = []
             rgx_idx_matches = []
             for i, rgx in enumerate(cs.matchers):
-                match.append(cs.matches[key.no_int(), i])
+                match.append(cs.matches[key, i])
                 rgx_idx_matches.append(rgx.idx)
 
             # Matches are stored by regex index, we
             # need to transpose to have a list by filename
             match = np.array(match)
             matches.append(match.T)
-            in_idxs.append(cs.in_idx[key.no_int()])
+            in_idxs.append(cs.in_idx[key])
             rgx_idxs.append(rgx_idx_matches)
 
         return matches, rgx_idxs, in_idxs
@@ -197,12 +200,24 @@ class FilegroupLoad(FilegroupScan):
         """
         krg_mem = Keyring()
         for name in self.iter_shared(False):
-            key_mem = list(range(self.db[name].size))
+            key_mem = slice(0, self.db.loaded[name].size, 1)
             krg_mem[name] = key_mem
-        krg_mem.simplify()
         return krg_mem
 
-    def load_data(self, var_list, keyring):
+    def add_variables(self, cmd, keyring):
+        """."""
+        keyrings = cmd.keyrings
+        cmd.remove_keyrings()
+        for krg_inf, krg_mem in keyrings:
+            for i, var in enumerate(keyring['var'].value):
+                krg_inf_ = krg_inf.copy()
+                krg_mem_ = krg_mem.copy()
+                krg_inf_['var'] = var
+                krg_mem_['var'] = i
+                cmd.append(krg_inf_, krg_mem_)
+        return cmd
+
+    def load_data(self, keyring):
         """Load data for that filegroup.
 
         Retrieve load commands.
@@ -214,17 +229,20 @@ class FilegroupLoad(FilegroupScan):
             Variables to load
         keyring: Keyring
         """
-        commands = self.get_commands(var_list, keyring)
-        for cmd in commands:
-            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
-            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
-            try:
-                self.load_cmd(file, cmd)
-            except:
-                self.close_file(file)
-                raise
-            else:
-                self.close_file(file)
+        var_load = [var for var in keyring['var'] if var in self.contains]
+        if var_load:
+            keyring = Keyring.get_default(keyring, var=var_load)
+            commands = self.get_commands(keyring)
+            for cmd in commands:
+                log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
+                file = self.open_file(cmd.filename, mode='r', log_lvl='info')
+                try:
+                    self.load_cmd(file, cmd)
+                except:
+                    self.close_file(file)
+                    raise
+                else:
+                    self.close_file(file)
 
     def load_cmd(self, file, cmd):
         """Load data from one file using a load command.

@@ -17,6 +17,7 @@ import os
 import re
 
 import data_loader.filegroup.coord_scan as dlcs
+from data_loader.coordinates.variables import Variables
 
 
 log = logging.getLogger(__name__)

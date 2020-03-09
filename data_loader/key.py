@@ -88,6 +88,15 @@ class Key():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
+    def __iter__(self):
+        if self.type == 'slice':
+            raise TypeError("Slice type key is not iterable.")
+        if self.type == 'int':
+            val = [self.value]
+        elif self.type == 'list':
+            val = self.value
+        return iter(val)
+
     def copy(self) -> "Key":
         """Return copy of self."""
         if self.type == 'list':
@@ -127,19 +136,39 @@ class Key():
         self.shape = len(coord[self.value])
         self.parent_shape = coord.size
 
-    def make_var_key(self, variables):
+    def make_var_names(self, variables):
         """."""
         if self.type == 'int':
-            idx = variables.idx(self.value)
-            repr = variables.names(self.value)
+            names = variables.get_name(self.value)
+            repr = names
         elif self.type == 'list':
-            idx = [variables.idx(k) for k in self.value]
-            repr = [variables.names(k) for k in self.value]
+            names = [variables.get_name(k) for k in self.value]
+            repr = names
         elif self.type == 'slice':
             idxs = [variables.idx(k) for k in
                     [self.value.start, self.value.stop, self.value.step]]
             idx = slice(*idxs)
-            names = [variables.names(k) for k in
+            names = variables[idx]
+            repr = slice(*names, idx.step)
+            self.type = 'list'
+
+        self.repr = repr
+        self.value = names
+        self.to_var = True
+
+    def make_var_idx(self, variables):
+        """."""
+        if self.type == 'int':
+            idx = variables.idx(self.value)
+            repr = variables.get_name(self.value)
+        elif self.type == 'list':
+            idx = [variables.idx(k) for k in self.value]
+            repr = [variables.get_name(k) for k in self.value]
+        elif self.type == 'slice':
+            idxs = [variables.idx(k) for k in
+                    [self.value.start, self.value.stop, self.value.step]]
+            idx = slice(*idxs)
+            names = [variables.get_name(k) for k in
                         [self.value.start, self.value.stop]]
             repr = slice(*names, idx.step)
 
@@ -517,6 +546,14 @@ class Keyring():
         for c, k in self.items():
             if c in dims and k.type == 'int':
                 self[c] = [k.value]
+
+    def make_var_names(self, variables):
+        """."""
+        self['var'].make_var_names(variables)
+
+    def make_var_idx(self, variables):
+        """."""
+        self['var'].make_var_idx(variables)
 
     def get_high_dim(self) -> List[str]:
         """Returns coordinates of size higher than one."""

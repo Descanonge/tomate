@@ -14,6 +14,7 @@ from data_loader.key import Keyring
 from data_loader.iter_dict import IterDict
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
+from data_loader.coordinates.variables import Variables
 
 
 class Scope():
@@ -38,6 +39,7 @@ class Scope():
     name: str
     var: List[str]
         Variables present in the scope.
+        In the order they are present in a potential array.
     coords: Dict[Coord]
         Coordinates present in the scope.
     parent_scope: Scope
@@ -49,14 +51,13 @@ class Scope():
     def __init__(self, variables=None, coords=None, name=None):
         if variables is None:
             variables = []
-        self.var = list(variables).copy()
+        self.var = Variables(variables)
         if coords is None:
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
 
         self.parent_scope = None
-        self.parent_keyring = Keyring(**{c.name: slice(None) for c in coords})
-        self.parent_keyring.set_shape(self.coords)
+        self.reset_parent_keyring()
 
         self.name = name
 
@@ -156,7 +157,7 @@ class Scope():
         for c in self.coords.values():
             c.empty()
 
-    def slice(self, variables=None, keyring=None, int2list=True, **keys):
+    def slice(self, keyring=None, int2list=True, **keys):
         """Slices coordinates and variables.
 
         If a parameter is None, no change is made for
@@ -164,7 +165,6 @@ class Scope():
 
         Parameters
         ----------
-        variables: str, List[str], optional
         keyring: Keyring, optional
         int2list: Bool, optional
             Transform int keys into lists, too make
@@ -172,13 +172,9 @@ class Scope():
             Default is True.
         keys: Key-like, optional
         """
-        if variables is not None:
-            if isinstance(variables, str):
-                variables = [variables]
-            self.var = [v for v in variables if v in self.var]
-
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_total()
+        keyring.make_var_idx(self.var)
         if int2list:
             keyring.make_int_list()
         for c, k in keyring.items_values():
