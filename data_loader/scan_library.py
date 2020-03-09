@@ -150,6 +150,13 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     return in_values, in_idx
 
 
+def scan_variables_nc(cs, file, values): #pylint: disable=unused-argument
+    """Scan netCDF file for variables names."""
+    variables = [var for var in file.variables.keys()
+                 if var not in cs.filegroup.cs.keys()]
+    return variables, variables
+
+
 def scan_in_file_nc_idx_only(cs, file, values):
     """Scan netCDF for in-file index only."""
     _, in_idx = scan_in_file_nc(cs, file, values)
@@ -169,6 +176,7 @@ def scan_attributes_nc(fg, file, variables):
         attrs[var] = attrs_var
 
     return attrs
+
 
 def scan_infos_nc(fg, file):
     """Scan for general attributes in a netCDF file."""
