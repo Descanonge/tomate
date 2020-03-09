@@ -60,6 +60,15 @@ class Scope():
 
         self.name = name
 
+    def reset_parent_keyring(self):
+        """Reset parent keyring.
+
+        Reset to taking everything in parent scope.
+        """
+        self.parent_keyring = Keyring(**{name: slice(None)
+                                         for name in self.dims.keys()})
+        self.parent_keyring.set_shape(self.dims)
+
     def __str__(self):
         s = []
         if self.name is not None:
