@@ -186,7 +186,7 @@ class DataBase():
         """
         if isinstance(y, str):
             if y in self.loaded.var:
-                y = self.idx[y]
+                y = self.idx(y)
                 return self.data[y]
             if y in self.coords_name:
                 return self.scope[y]
@@ -223,13 +223,12 @@ class DataBase():
                      'select': self.select}[scope]
         return scope
 
-    @property
-    def idx(self) -> Dict[str, int]:
-        """Index of each variable in the data array.
+    def idx(self, variable: str) -> int:
+        """Index of a variable in the data array.
 
         {variable name: index}
         """
-        return self.loaded.idx
+        return self.loaded.idx(variable)
 
     def view(self, variables=None, keyring=None, **keys):
         """Returns a subset of loaded data.

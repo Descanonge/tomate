@@ -104,15 +104,21 @@ class Scope():
         """
         return {c: self.coords[c] for c in coords}
 
-    @property
-    def idx(self) -> Dict[str, int]:
-        """Index of variables in data array."""
-        return IterDict({var: i for i, var in enumerate(self.var)})
+    def idx(self, variables):
+        """Get index of variables in the array.
+
+        Wrapper around Variables.idx()
+
+        Parameters
+        ----------
+        variables: str, List[str], int, List[int], slice
+        """
+        return self.var.idx(variables)
 
     @property
     def shape(self) -> List[int]:
         """Shape of data."""
-        shape = [len(self.var)] + [c.size for c in self.coords.values()]
+        shape = [d.size for d in self.dims.values()]
         return shape
 
     def is_empty(self) -> bool:
