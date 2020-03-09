@@ -442,12 +442,12 @@ class DataBase():
             If the name is not found.
         """
         # First check name
-        for c_name in self.avail:
+        for c_name in self.avail.dims:
             if c_name == name:
                 return c_name
 
         # Then check name_alt
-        for c_name, coord in self.avail.coords.items():
+        for c_name, coord in self.avail.dims.items():
             if name in coord.name_alt:
                 return c_name
 

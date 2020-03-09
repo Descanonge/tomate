@@ -90,9 +90,21 @@ class Scope():
             raise KeyError("'%s' not in scope coordinates" % item)
         return self.coords[item]
 
-    def __iter__(self) -> List[str]:
-        """List of coordinates names."""
-        return iter(self.coords.keys())
+    @property
+    def dims(self):
+        """Dictionnary of all dimensions.
+
+        ie coordinates + variables.
+
+        Returns
+        -------
+        Dict
+            {dimension name: dimension}
+        """
+        out = {'var': self.var}
+        for name, c in self.coords.items():
+            out[name] = c
+        return out
 
     def subset(self, coords) -> Dict[str, Coord]:
         """Return coordinates objects.
