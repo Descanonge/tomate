@@ -140,6 +140,8 @@ class Constructor():
 
         if contains is None:
             contains = []
+        elif isinstance(contains, str):
+            contains = [contains]
         contains = list(contains)
 
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
