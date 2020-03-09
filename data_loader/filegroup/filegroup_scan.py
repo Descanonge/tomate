@@ -103,7 +103,7 @@ class FilegroupScan():
         s.append('')
 
         s.append("Coordinates for scan:")
-        for name, cs in self.iter_scan().items():
+        for name, cs in self.cs.items():
             s1 = ["\t%s " % name]
             s1.append(["(in)", "(shared)"][cs.shared])
             if cs.scanned:
@@ -154,7 +154,7 @@ class FilegroupScan():
         return cs
 
     def iter_scan(self, scan=None):
-        """Iter through CoordScan objects.
+        """Iter through scannable CoordScan objects.
 
         Parameters
         ----------
@@ -171,11 +171,13 @@ class FilegroupScan():
         for name, c in self.cs.items():
             add = False
             if scan is None:
-                add = True
-            elif scan == "scannable":
                 add = len(c.scan) > 0
-            else:
+            elif isinstance(scan, str):
                 add = scan in c.scan
+            elif scan:
+                add = c.is_scannable()
+            elif not scan:
+                add = not c.is_scannable()
 
             if add:
                 cs[name] = c
@@ -285,7 +287,7 @@ class FilegroupScan():
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
         to_open = False
-        for cs in self.iter_scan("scannable").values():
+        for cs in self.iter_scan(True).values():
             to_open = to_open or cs.is_to_open()
         to_open = to_open or self.scan_attr
         return to_open
@@ -351,7 +353,7 @@ class FilegroupScan():
             if self.scan_attr:
                 self.scan_attributes_and_infos(file)
 
-            for cs in self.iter_scan("scannable").values():
+            for cs in self.iter_scan(True).values():
                 cs.scan_file(m, file)
         except:
             self.close_file(file)
@@ -403,7 +405,7 @@ class FilegroupScan():
             raise NameError("No file matching the regex found ({0}, regex={1})".format(
                 self.contains, self.regex))
 
-        for cs in self.iter_scan("scannable").values():
+        for cs in self.iter_scan().values():
             if len(cs.values) == 0:
                 raise ValueError("No values detected ({0}, {1})".format(
                     cs.name, self.contains))

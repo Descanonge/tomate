@@ -358,7 +358,7 @@ class Constructor():
         for name in self.coords:
             coords = []
             for fg in self.filegroups:
-                for name_cs, cs in fg.iter_scan("scannable").items():
+                for name_cs, cs in fg.iter_scan().items():
                     if name == name_cs:
                         coords.append(cs)
 

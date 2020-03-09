@@ -820,7 +820,6 @@ class DataBase():
         fg_var: List[List[Filegroup, List[str]]
             A list of the filegroups with the corresponding variables.
         """
-
         fg_var = []
         for fg in self.filegroups:
             variables_fg = [var for var in fg.contains

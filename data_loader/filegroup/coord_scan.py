@@ -229,6 +229,13 @@ class CoordScan(Coord):
 
         return key_data
 
+    def is_scannable(self) -> bool:
+        """Return if the coord needs scanning."""
+        out = ('in' in self.scan
+               or 'filename' in self.scan
+               or 'attributes' in self.scan)
+        return out
+
     def is_to_open(self) -> bool:
         """Return if the coord needs to open the current file."""
         raise NotImplementedError
