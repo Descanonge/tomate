@@ -58,17 +58,15 @@ class FilegroupNetCDF(FilegroupLoad):
             variables to load, in file keys, and
             where to place the data.
         """
-        for var in cmd.var_list:
-            ncname = self.get_ncname(var)
-            i_var = self.db.loaded.idx[var]
-            log.info("Looking at variable %s", ncname)
+        for krg_inf, krg_mem in cmd:
+            for ncname in krg_inf['var']:
+                log.info("Looking at variable %s", ncname)
 
-            for krg_inf, krg_mem in cmd:
                 chunk = self._load_slice_single_var(file, krg_inf, ncname)
 
                 log.info("Placing it in %s",
-                         [i_var] + krg_mem.keys_values)
-                self.acs.place(krg_mem, self.db.data[i_var], chunk)
+                            krg_mem.print())
+                self.acs.place(krg_mem, self.db.data, chunk)
 
     def _load_slice_single_var(self, file, keyring, ncname):
         """Load data for a single variable.
@@ -85,7 +83,7 @@ class FilegroupNetCDF(FilegroupLoad):
         order = self._get_order(file, ncname)
         int_krg = self._get_internal_keyring(order, keyring)
 
-        log.info("Taking keys %s", int_krg.keys_values)
+        log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take(int_krg, file[ncname])
 
         int_krg.set_shape(self.db.avail.subset(int_krg.dims))
@@ -94,7 +92,9 @@ class FilegroupNetCDF(FilegroupLoad):
                                                        "shape, has %s, expected %s"
                                                        % (list(chunk.shape), expected_shape))
 
-        chunk = self.reorder_chunk(chunk, keyring.dims, order, variables=False)
+        dims = list(keyring.dims)
+        dims.remove('var')
+        chunk = self.reorder_chunk(chunk, dims, order, variables=False)
         return chunk
 
     def _get_order(self, file, ncname):
