@@ -174,7 +174,7 @@ class Scope():
         """
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_total()
-        keyring.make_var_idx(self.var)
+        keyring.make_variables(self.var)
         if int2list:
             keyring.make_int_list()
         for c, k in keyring.items_values():

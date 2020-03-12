@@ -749,7 +749,7 @@ class DataBase():
         keyring.make_full(['var'] + self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        keyring.make_var_names(self.avail.var)
+        keyring.make_variables(self.avail.var)
 
         self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'

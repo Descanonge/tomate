@@ -34,45 +34,27 @@ class Key():
     value: None, int, List[int], slice
     type: str
         {'none', 'int', 'list', 'slice'}
-    repr: Any
-        Representation of the key.
-        Useful for variables keys that are
-        transformed from str to int.
-    to_var: bool
-        If the key has to be transformed
-        from str to int.
     """
 
     int_types = (int, np.integer)
 
     def __init__(self, key):
-        self.to_var = False
-        self.repr = None
-       
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
-            reject = any(not isinstance(z, (str, *self.int_types)) for z in key)
+            reject = any(not isinstance(z, self.int_types) for z in key)
             tp = 'list'
-            key = [int(k) if isinstance(k, self.int_types)
-                   else k for k in key]
-            self.to_var = any(isinstance(k, str) for k in key)
+            key = [int(k) for k in key]
         elif isinstance(key, self.int_types):
             tp = 'int'
             key = int(key)
-        elif isinstance(key, str):
-            tp = 'int'
-            key = key
-            self.to_var = True
         elif isinstance(key, slice):
             tp = 'slice'
-            if any([isinstance(z, str) for z in [key.start, key.stop, key.step]]):
-                self.to_var = True
         elif key is None:
             tp = 'none'
         else:
             reject = True
         if reject:
-            raise TypeError("Key is not int/str, List[int/str], or slice"
+            raise TypeError("Key is not int, List[int], or slice"
                             " (is %s)" % type(key))
         self.value = key
         self.type = tp
@@ -131,50 +113,8 @@ class Key():
         coord: Coord
             The coordinate that would be used.
         """
-        if self.to_var:
-            self.make_var_key(coord)
-        self.shape = len(coord[self.value])
+        self.shape = len(coord[self.no_int()])
         self.parent_shape = coord.size
-
-    def make_var_names(self, variables):
-        """."""
-        if self.type == 'int':
-            names = variables.get_name(self.value)
-            repr = names
-        elif self.type == 'list':
-            names = [variables.get_name(k) for k in self.value]
-            repr = names
-        elif self.type == 'slice':
-            idxs = [variables.idx(k) for k in
-                    [self.value.start, self.value.stop, self.value.step]]
-            idx = slice(*idxs)
-            names = variables[idx]
-            repr = slice(*names, idx.step)
-            self.type = 'list'
-
-        self.repr = repr
-        self.value = names
-        self.to_var = True
-
-    def make_var_idx(self, variables):
-        """."""
-        if self.type == 'int':
-            idx = variables.idx(self.value)
-            repr = variables.get_name(self.value)
-        elif self.type == 'list':
-            idx = [variables.idx(k) for k in self.value]
-            repr = [variables.get_name(k) for k in self.value]
-        elif self.type == 'slice':
-            idxs = [variables.idx(k) for k in
-                    [self.value.start, self.value.stop, self.value.step]]
-            idx = slice(*idxs)
-            names = [variables.get_name(k) for k in
-                        [self.value.start, self.value.stop]]
-            repr = slice(*names, idx.step)
-
-        self.repr = repr
-        self.value = idx
-        self.to_var = False
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -210,7 +150,7 @@ class Key():
         Transform a list into a slice if the list is
         a serie of integers of fixed step.
         """
-        if self.type == 'list' and not self.to_var:
+        if self.type == 'list':
             key = list2slice_simple(self.value)
             if isinstance(key, slice):
                 self.type = 'slice'
@@ -260,6 +200,123 @@ class Key():
         res_slc.shape = len(res)
         return res_slc
 
+class KeyVar(Key):
+    """."""
+
+    def __init__(self, key, variables=None):
+        if isinstance(key, self.int_types):
+            tp = 'int'
+            idx = int(key)
+            name = None
+        elif isinstance(key, str):
+            tp = 'int'
+            idx = None
+            name = key
+        elif isinstance(key, (list, tuple, np.ndarray)):
+            tp = 'list'
+            idx = [int(k) if isinstance(k, self.int_types)
+                   else None for k in key]
+            name = [k if isinstance(k, str)
+                    else None for k in key]
+        elif isinstance(key, slice):
+            tp = 'slice'
+            slc_idx = [None, None, None]
+            slc_name = [None, None, None]
+            for i, z in enumerate([key.start, key.stop]):
+                if isinstance(z, str):
+                    slc_name[i] = z
+                else:
+                    slc_idx[i] = z
+            slc_idx[2] = key.step
+            slc_name[2] = key.step
+            idx = slice(*slc_idx)
+            name = slice(*slc_name)
+        elif key is None:
+            tp = 'none'
+            idx = None
+            name = None
+        else:
+            raise TypeError("Not valid type for key (%s)" % type(key))
+
+        self.value = idx
+        self.name = name
+        self.type = tp
+
+        self.shape = None
+        self.set_shape()
+
+        self.variables = variables
+        if variables is not None:
+            self.set_variables(variables)
+
+    @property
+    def idx(self):
+        return self.value
+
+    def set_shape_coord(self, variables):
+        if self.variables is None:
+            self.set_variables(variables)
+        super().set_shape_coord(variables)
+
+    def set_variables(self, variables):
+        if self.type == 'int':
+            if self.name is None and self.idx is not None:
+                self.name = variables.get_name(self.idx)
+            elif self.idx is None and self.name is not None:
+                self.idx = variables.get_index(self.name)
+        if self.type == 'list':
+            for i, (idx, name) in enumerate(zip(self.idx, self.name)):
+                if name is None and idx is not None:
+                    self.name[i] = variables.get_name(idx)
+                elif idx is None and name is not None:
+                    self.idx[i] = variables.get_index(name)
+        if self.type == 'slice':
+            slc_idx = [self.idx.start, self.idx.stop, self.idx.step]
+            slc_name = [self.name.start, self.name.stop, self.name.step]
+
+            if slc_idx[0] is None and slc_name[0] is None:
+                slc_idx[0] = 0
+            if slc_idx[1] is None and slc_name[1] is None:
+                slc_idx[1] = variables.size
+
+            for i, (idx, name) in enumerate(zip(slc_idx[:2], slc_name[:2])):
+                if name is None:
+                    slc_name[i] = variables.get_name(idx - i)
+                elif idx is None:
+                    slc_idx[i] = variables.get_index(name) - i
+            self.value = slice(*slc_idx)
+            self.name = slice(*slc_name)
+
+        self.variables = variables
+        self.set_shape_coord(variables)
+
+    def __iter__(self):
+        if self.type == 'slice':
+            if self.variables is None:
+                raise RuntimeError("Variables were not set for this key.")
+            val = self.variables[self.idx]
+        elif self.type == 'int':
+            val = [self.name]
+        elif self.type == 'list':
+            val = self.name
+        return iter(val)
+
+    def __str__(self):
+        return '%s | %s' % (self.idx, self.name)
+
+    def copy(self):
+        if self.type == 'list':
+            idx = self.idx.copy()
+            name = self.name.copy()
+        else:
+            idx = self.idx
+            name = self.name
+        key = KeyVar(idx)
+        key.shape = self.shape
+        key.name = name
+        key.variable = self.variables
+        return key
+
 
 class Keyring():
     """Object for indexing an array.
@@ -274,6 +331,8 @@ class Keyring():
         What part of the data must be selected
         for a given dimension.
     """
+
+    VAR_DIM_NAMES = ('var',)
 
     @classmethod
     def get_default(cls, keyring=None, variables=None, **keys) -> "Keyring":
@@ -293,10 +352,8 @@ class Keyring():
         keyring.update(keys)
 
         if variables is not None:
-            for k in keyring.keys:
-                if k.to_var:
-                    k.make_var_key(variables)
-           
+            keyring.make_variables(variables)
+
         return keyring
 
     def __init__(self, **keys):
@@ -324,8 +381,11 @@ class Keyring():
             Dimension name
         value: Key, key-like
         """
-        if not isinstance(value, Key):
-            value = Key(value)
+        if not issubclass(value.__class__, Key):
+            if item in self.VAR_DIM_NAMES:
+                value = KeyVar(value)
+            else:
+                value = Key(value)
         self._keys[item] = value
 
     def __iter__(self):
@@ -547,13 +607,12 @@ class Keyring():
             if c in dims and k.type == 'int':
                 self[c] = [k.value]
 
-    def make_var_names(self, variables):
-        """."""
-        self['var'].make_var_names(variables)
 
-    def make_var_idx(self, variables):
         """."""
-        self['var'].make_var_idx(variables)
+
+    def make_variables(self, variables):
+        if 'var' in self:
+            self['var'].set_variables(variables)
 
     def get_high_dim(self) -> List[str]:
         """Returns coordinates of size higher than one."""
