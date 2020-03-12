@@ -197,7 +197,13 @@ class FilegroupLoad(FilegroupScan):
         """
         krg_mem = Keyring()
         for name in self.iter_shared(False):
-            key_mem = slice(0, self.db.loaded[name].size, 1)
+            key = keyring[name]
+            if key.type == 'int':
+                key_mem = 0
+            elif key.type == 'list':
+                key_mem = list(range(0, self.db.loaded[name].size, 1))
+            elif key.type == 'slice':
+                key_mem = slice(0, self.db.loaded[name].size, 1)
             krg_mem[name] = key_mem
         return krg_mem
 
