@@ -680,6 +680,34 @@ class Keyring():
             res[name] = key * other_[name]
         return res
 
+    def print(self):
+        """."""
+        s = []
+        for k in self.keys:
+            if k.type == 'int':
+                s.append(str(k.value))
+            elif k.type == 'list':
+                if len(k.value) <= 4:
+                    s.append(str(k.value))
+                else:
+                    z = '[%s, %s, ..., %s, %s]' % (*k.value[:2], *k.value[:-2])
+                    s.append(z)
+            elif k.type == 'slice':
+                z = []
+                start, stop, step = k.value.start, k.value.stop, k.value.step
+                if start is None:
+                    z.append('')
+                else:
+                    z.append(str(start))
+                if stop is None:
+                    z.append('')
+                else:
+                    z.append(str(stop))
+                if step is not None and step != 1:
+                    z.append(str(step))
+                s.append(':'.join(z))
+        return '[%s]' % ', '.join(s)
+
 
 def list2slice_simple(L):
     """Transform a list into a slice when possible.
