@@ -200,6 +200,12 @@ class Key():
         res_slc.shape = len(res)
         return res_slc
 
+    def make_list_int(self):
+        if self.type == 'list' and len(self.value) == 1:
+            self.type = 'int'
+            self.value = self.value[0]
+            self.shape = 0
+
 class KeyVar(Key):
     """."""
 
@@ -316,6 +322,13 @@ class KeyVar(Key):
         key.name = name
         key.variable = self.variables
         return key
+
+    def make_list_int(self):
+        if self.type == 'list' and len(self.value) == 1:
+            self.type = 'int'
+            self.value = self.value[0]
+            self.name = self.name[0]
+            self.shape = 0
 
 
 class Keyring():
@@ -607,6 +620,21 @@ class Keyring():
             if c in dims and k.type == 'int':
                 self[c] = [k.value]
 
+    def make_list_int(self, *dims):
+        """Turn lists of length one in integers.
+
+        Parameters
+        ----------
+        dims: str
+             Dimensions names to change if
+             necessary. If not specified, all are
+             selected.
+        """
+        if not dims:
+            dims = self.dims
+        for c, k in self.items():
+            if c in dims:
+                k.make_list_int()
 
         """."""
 
