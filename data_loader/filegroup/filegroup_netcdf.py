@@ -127,19 +127,6 @@ class FilegroupNetCDF(FilegroupLoad):
 
         return order
 
-    def get_ncname(self, var: str) -> str:
-        """Get the infile variable name.
-
-        Try to get it in the `ncname` attribute
-        in the vi. If not present, or None, the
-        variable name is used.
-        """
-        ncname = self.vi.get_attr_safe('ncname', var)
-
-        if ncname is None:
-            ncname = var
-        return ncname
-
     def write(self, filename, wd, variables):
         """Write data to disk."""
         if wd is None:
