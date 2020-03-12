@@ -225,7 +225,7 @@ class CoordScan(Coord):
             if self.is_idx_descending():
                 key_data.reverse(self.size)
         else:
-            key_data = Key(self.in_idx[key.value])
+            key_data = key.__class__(self.in_idx[key.value])
 
         return key_data
 
