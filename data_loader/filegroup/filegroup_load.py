@@ -231,7 +231,7 @@ class FilegroupLoad(FilegroupScan):
         """
         var_load = [var for var in keyring['var'] if var in self.contains]
         if var_load:
-            keyring = Keyring.get_default(keyring, var=var_load)
+            keyring = Keyring.get_default(keyring, var=var_load, variables=self.contains)
             commands = self.get_commands(keyring)
             for cmd in commands:
                 log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))

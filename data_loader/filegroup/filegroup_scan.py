@@ -75,7 +75,7 @@ class FilegroupScan():
     def __init__(self, root, contains, db, coords, vi,
                  variables_shared=False):
         self.root = root
-        self.contains = contains
+        self.contains = Variables(contains)
         self.db = db
 
         self.found_file = False
@@ -91,7 +91,7 @@ class FilegroupScan():
         self.scan_attributes = scan_attributes_default
         self.scan_infos = scan_infos_default
 
-        coords_fg = [[Variables(contains), variables_shared]] + coords
+        coords_fg = [[self.contains, variables_shared]] + coords
         self.make_coord_scan(coords_fg)
 
     def __str__(self):
