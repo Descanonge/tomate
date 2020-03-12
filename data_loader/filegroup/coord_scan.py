@@ -355,9 +355,6 @@ class CoordScanVar(CoordScan):
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
 
-        contains = list(self.values)
-        self.filegroup.contains = contains
-
     def sort_values(self):
         order = range(list(self.size))
         return order
