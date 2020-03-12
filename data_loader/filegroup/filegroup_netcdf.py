@@ -86,12 +86,6 @@ class FilegroupNetCDF(FilegroupLoad):
         log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take(int_krg, file[ncname])
 
-        int_krg.set_shape(self.db.avail.subset(int_krg.dims))
-        expected_shape = int_krg.shape
-        assert (expected_shape == list(chunk.shape)), ("Chunk does not have correct "
-                                                       "shape, has %s, expected %s"
-                                                       % (list(chunk.shape), expected_shape))
-
         dims = list(keyring.dims)
         dims.remove('var')
         chunk = self.reorder_chunk(chunk, dims, order, variables=False)
