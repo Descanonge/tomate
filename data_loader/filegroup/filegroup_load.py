@@ -59,22 +59,19 @@ class FilegroupLoad(FilegroupScan):
         if len(commands) == 0:
             commands = self._get_commands_no_shared()
 
-        key_inf = self._get_key_infile(keyring)
-        key_mem = self._get_key_memory(keyring)
+        key_in_inf = self._get_key_infile(keyring)
+        key_in_mem = self._get_key_memory(keyring)
 
         for cmd in commands:
             cmd.join_filename(self.root)
-            cmd.var_list = var_list
 
             cmd.merge_keys()
-            for krg_inf, krg_mem in cmd:
-                krg_inf.make_int_list()
-                krg_mem.make_int_list()
-
             for key in cmd:
-                key.modify(key_inf, key_mem)
+                key.modify(key_in_inf, key_in_mem)
 
-            self.add_variables(cmd, keyring)
+            for krg_inf, krg_mem in cmd:
+                krg_inf.make_list_int()
+                krg_mem.make_list_int()
 
             cmd.order_keys(['var'] + self.db.coords_name)
 
@@ -203,19 +200,6 @@ class FilegroupLoad(FilegroupScan):
             key_mem = slice(0, self.db.loaded[name].size, 1)
             krg_mem[name] = key_mem
         return krg_mem
-
-    def add_variables(self, cmd, keyring):
-        """."""
-        keyrings = cmd.keyrings
-        cmd.remove_keyrings()
-        for krg_inf, krg_mem in keyrings:
-            for i, var in enumerate(keyring['var'].value):
-                krg_inf_ = krg_inf.copy()
-                krg_mem_ = krg_mem.copy()
-                krg_inf_['var'] = var
-                krg_mem_['var'] = i
-                cmd.append(krg_inf_, krg_mem_)
-        return cmd
 
     def load_data(self, keyring):
         """Load data for that filegroup.
