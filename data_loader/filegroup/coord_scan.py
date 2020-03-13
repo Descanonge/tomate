@@ -342,7 +342,7 @@ class CoordScan(Coord):
                           n_values, values[0], values[n_values-1])
 
             if n_values != len(in_idx):
-                raise IndexError("Not as much values as infile indices.")
+                raise IndexError("Not as much values as infile indices. (%s)" % self.name)
 
             self.values += values
             self.in_idx += in_idx

@@ -141,7 +141,7 @@ class Command():
         """Get i-th keyrings duo."""
         return self.keyrings[i]
 
-    def __iadd__(self, other: "CmdKeyring") -> "CmdKeyring":
+    def __iadd__(self, other: "Command") -> "Command":
         """Merge two commands.
 
         Add the keys of one into the other.

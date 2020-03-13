@@ -65,7 +65,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 chunk = self._load_slice_single_var(file, krg_inf, ncname)
 
                 log.info("Placing it in %s",
-                            krg_mem.print())
+                         krg_mem.print())
                 self.acs.place(krg_mem, self.db.data, chunk)
 
     def _load_slice_single_var(self, file, keyring, ncname):
