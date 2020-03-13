@@ -473,9 +473,9 @@ class CoordScanShared(CoordScan):
         # there is more than one shared coord.
         if matches not in self.matches:
             n_values = self.scan_file_values(file)
-
-            matches = [matches for _ in range(n_values)]
-            self.matches += matches
+            if n_values is not None:
+                matches = [matches for _ in range(n_values)]
+                self.matches += matches
 
     def is_to_open(self) -> bool:
         to_open = False
