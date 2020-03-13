@@ -193,7 +193,8 @@ class FilegroupLoad(FilegroupScan):
         Parameter
         ---------
         keyring: Keyring
-            Not used at the moment.
+            Keyring asked to the filegroup.
+            NOTE: Could be replaced by the in-file keyring ?
         """
         krg_mem = Keyring()
         for name in self.iter_shared(False):

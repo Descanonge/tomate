@@ -294,8 +294,8 @@ class FilegroupScan():
         to_open = to_open or self.scan_attr
         return to_open
 
-    def scan_attributes_and_infos(self, file):
-        """Scan for attributes and infos.
+    def scan_attributes(self, file):
+        """Scan for attributes.
 
         Parameters
         ----------
@@ -303,17 +303,7 @@ class FilegroupScan():
             File object.
         """
         try:
-            attrs = self.scan_attributes(self, file, self.contains)
-        except NotImplementedError:
-            pass
-        else:
-            for var, attr in attrs.items():
-                log.debug("Found for '%s' attributes %s", var, list(attr.keys()))
-                self.vi.add_attrs_per_variable(var, attr)
-            self.scan_attr = False
-
-        try:
-            infos = self.scan_infos(self, file)
+            infos = self.scan_attr(self, file)
         except NotImplementedError:
             pass
         else:
@@ -331,7 +321,7 @@ class FilegroupScan():
         If not done already, scan attributes and infos.
 
         Scan per coordinate.
-       
+
         Close file.
         """
         m = re.match(self.regex, filename)
@@ -353,7 +343,7 @@ class FilegroupScan():
 
         try:
             if self.scan_attr:
-                self.scan_attributes_and_infos(file)
+                self.scan_attributes(file)
 
             for cs in self.iter_scan(True).values():
                 cs.scan_file(m, file)
@@ -425,40 +415,10 @@ class FilegroupScan():
             of the function interface.
         """
         self.scan_attr = True
-        self.scan_attributes = func
-
-    def set_scan_infos_func(self, func):
-        """Set a function for scanning general data attributes.
-
-        Parameters
-        ----------
-        func: Callable[[file],
-                       [Dict[info name, Any]]]
-        """
-        self.scan_attr = True
-        self.scan_infos = func
+        self.scan_attributes_func = func
 
 
-def scan_attributes_default(fg, file, variables):
-    """Scan attributes in file for specified variables.
-
-    Parameters
-    ----------
-    fg: FilegroupScan
-    file:
-        Object to access file.
-        The file is already opened by FilegroupScan.open_file().
-    variables: List[str]
-        Variables to look for attributes.
-
-    Returns
-    -------
-    attributes: Dict[str, Dict[str, Any]]
-        Attributes found: {'attribute name': {'variable name': Any}}
-    """
-    raise NotImplementedError("scan_attribute was not set for (%s)" % fg.contains)
-
-def scan_infos_default(fg, file):
+def scan_attributes_default(fg, file):
     """Scan general attributes in file.
 
     Parameters

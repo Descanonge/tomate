@@ -283,23 +283,6 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_attributes_func(func)
 
-    def set_scan_variables_attributes_func(self, func):
-        """Set a function for scanning variables specific attributes.
-
-        Parameters
-        ----------
-        func: Callable[[file, variables: List[str]],
-                       [Dict[variable name, Dict[attr name, Any]]]]
-            Function that recovers variable specific attributes in file.
-
-        Notes
-        -----
-        See filegroup_scan.scan_attributes_default() for a better description
-        of the function interface.
-        """
-        fg = self.current_fg
-        fg.set_scan_attributes_func(func)
-
     def set_scan_general_attributes(self, func):
         """Set a function for scanning general data attributes.
 
