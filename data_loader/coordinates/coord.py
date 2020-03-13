@@ -149,6 +149,15 @@ class Coord():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
+    def set_attr(self, name, attr):
+        """Set attribute."""
+        if name not in ('units', 'fullname', 'longname'):
+            raise AttributeError("'%s' attribute cannot be set" % name)
+        if name == 'units':
+            self.units = attr
+        elif name == 'fullname' or name == 'longname':
+            self.fullname = attr
+
     def get_extent_str(self) -> str:
         """Return the extent as string."""
         return "%s - %s" % tuple(self.format(v) for v in self.get_extent())
