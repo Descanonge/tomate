@@ -22,13 +22,15 @@ class Variables(Coord):
     variables: str, List[str], optional
     """
 
-    def __init__(self, array=None, **kwargs):
+    def __init__(self, array=None, vi=None, **kwargs):
         kwargs.pop('name', None)
         kwargs.pop('array', None)
         super().__init__('var', None, **kwargs)
 
         if array is not None:
             self.update_values(array, dtype=None)
+
+        self.vi = vi
 
     def update_values(self, values, dtype=None):
         if isinstance(values, str):
@@ -112,3 +114,6 @@ class Variables(Coord):
         """Return a copy."""
         return Variables(self[:], units=self.units, name_alt=self.name_alt,
                          fullname=self.fullname)
+
+    def set_attr(self, name, attr):
+        self.vi.add_attrs_per_variable(name, attr)
