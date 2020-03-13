@@ -136,7 +136,7 @@ class CoordScan(Coord):
         self.coord = coord
 
         self.shared = shared
-        self.scan = set()
+        self.scan = {}
         self.scanned = False
 
         self.values = []
@@ -145,8 +145,6 @@ class CoordScan(Coord):
         self.scan_attributes = scan_attributes_default
         self.scan_filename = scan_filename_default
         self.scan_in_file = scan_in_file_default
-        self.scan_filename_kwargs = {}
-        self.scan_in_file_kwargs = {}
 
         self._idx_descending = False
 
@@ -248,9 +246,9 @@ class CoordScan(Coord):
         scan_filename: for the function signature.
         Constructor.set_scan_filename_func: for more details.
         """
-        self.scan.add("filename")
+        self.scan.pop('filename', None)
+        self.scan['filename'] = kwargs
         self.scan_filename = func
-        self.scan_filename_kwargs = kwargs
 
     def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
@@ -260,9 +258,9 @@ class CoordScan(Coord):
         scan_in_file: for the function signature.
         Constructor.set_scan_in_file_func: for more details.
         """
-        self.scan.add("in")
+        self.scan.pop('in', None)
+        self.scan['in'] = kwargs
         self.scan_in_file = func
-        self.scan_in_file_kwargs = kwargs
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually.
@@ -272,13 +270,13 @@ class CoordScan(Coord):
         values: List[float]
         in_idx: List[int]
         """
-        self.scan.discard('in')
-        self.scan.discard('filename')
-        self.scan.add('manual')
+        self.scan.pop('in', None)
+        self.scan.pop('filename', None)
+        self.scan['manual'] = None
         self.values = values
         self.in_idx = in_idx
 
-    def set_scan_attributes(self, func):
+    def set_scan_attributes(self, func, **kwargs):
         """Set function for scanning attributes in file.
 
         See also
@@ -286,7 +284,8 @@ class CoordScan(Coord):
         scan_attributes: for the function signature
         and Constructor.set_scan_coords_attributes: for more details.
         """
-        self.scan.add("attributes")
+        self.scan.pop('attributes', None)
+        self.scan['attributes'] = kwargs
         self.scan_attributes = func
 
     def scan_file_values(self, file):
@@ -310,21 +309,22 @@ class CoordScan(Coord):
         """
         values = None
         in_idx = None
-        if 'attributes' in self.scan and not self.scanned:
-            log.debug("Scanning attributes in file for '%s'", self.name)
-            attributes = self.scan_attributes(self, file)
-            for name, attr in attributes.items():
-                if attr is not None:
-                    self.coord.__setattr__(name, attr)
+        for to_scan, kwargs in self.scan.items():
+            if to_scan == 'attributes' and not self.scanned:
+                log.debug("Scanning attributes in file for '%s'", self.name)
+                attributes = self.scan_attributes(self, file, **kwargs)
+                for name, attr in attributes.items():
+                    if attr is not None:
+                        self.coord.set_attr(name, attr)
+                        self.set_attr(name, attr)
 
-        if 'filename' in self.scan:
-            values = self.scan_filename(self, **self.scan_filename_kwargs)
-            log.debug("Scanning filename for '%s'", self.name)
+            if to_scan == 'filename':
+                values = self.scan_filename(self, values, **kwargs)
+                log.debug("Scanning filename for '%s'", self.name)
 
-        if 'in' in self.scan:
-            log.debug("Scanning in file for '%s'", self.name)
-            values, in_idx = self.scan_in_file(self, file, values,
-                                               **self.scan_in_file_kwargs)
+            if to_scan == 'in':
+                log.debug("Scanning in file for '%s'", self.name)
+                values, in_idx = self.scan_in_file(self, file, values, **kwargs)
 
         if isinstance(values, (int, float, type(None))):
             values = [values]
