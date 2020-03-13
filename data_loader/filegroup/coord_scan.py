@@ -309,6 +309,8 @@ class CoordScan(Coord):
         """
         values = None
         in_idx = None
+        n_values = None
+
         for to_scan, kwargs in self.scan.items():
             if to_scan == 'attributes' and not self.scanned:
                 log.debug("Scanning attributes in file for '%s'", self.name)
@@ -326,23 +328,25 @@ class CoordScan(Coord):
                 log.debug("Scanning in file for '%s'", self.name)
                 values, in_idx = self.scan_in_file(self, file, values, **kwargs)
 
-        if isinstance(values, (int, float, type(None))):
-            values = [values]
-        if isinstance(in_idx, (int, float, type(None))):
-            in_idx = [in_idx]
+        if 'in' in self.scan or 'filename' in self.scan:
+            if isinstance(values, (int, float, type(None))):
+                values = [values]
+            if isinstance(in_idx, (int, float, type(None))):
+                in_idx = [in_idx]
 
-        n_values = len(values)
-        if n_values == 1:
-            log.debug("Found value %s", values[0])
-        else:
-            log.debug("Found %s values between %s and %s",
-                      n_values, values[0], values[n_values-1])
+            n_values = len(values)
+            if n_values == 1:
+                log.debug("Found value %s", values[0])
+            else:
+                log.debug("Found %s values between %s and %s",
+                          n_values, values[0], values[n_values-1])
 
-        if n_values != len(in_idx):
-            raise IndexError("not as much values as infile indices")
+            if n_values != len(in_idx):
+                raise IndexError("Not as much values as infile indices.")
 
-        self.values += values
-        self.in_idx += in_idx
+            self.values += values
+            self.in_idx += in_idx
+
         self.scanned = True
 
         return n_values
