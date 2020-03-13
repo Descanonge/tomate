@@ -313,6 +313,11 @@ class KeyVar(Key):
             val = self.name
         return iter(val)
 
+    def iter(self):
+        name = self.__iter__()
+        idx = super().__iter__()
+        return zip(idx, name)
+
     def __str__(self):
         return '%s | %s' % (self.idx, self.name)
 
