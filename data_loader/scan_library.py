@@ -163,12 +163,12 @@ def scan_in_file_nc_idx_only(cs, file, values):
     return values, in_idx
 
 
-def scan_attributes_nc(fg, file, variables):
-    """Scan for variables attributes in a netCDF file."""
+def scan_attributes_nc(cs, file):
+    """."""
     attrs = {}
-    for var in variables:
+    for i, var in enumerate(cs):
         attrs_var = {}
-        nc_var = file[fg.get_ncname(var)]
+        nc_var = file[cs.in_idx[i]]
         attributes = nc_var.ncattrs()
         for attr in attributes:
             attrs_var[attr] = nc_var.getncattr(attr)
