@@ -544,7 +544,7 @@ class DataBase():
         {'time': [0, 1], 'lat': slice(0, 10)}
         """
         for i, key in enumerate(keys):
-            name = self.coords_name[i]
+            name = (['var'] + self.coords_name)[i]
             if name not in kw_keys:
                 kw_keys[name] = key
         return kw_keys
