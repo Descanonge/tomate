@@ -568,7 +568,7 @@ class Keyring():
             if c not in self:
                 self[c] = fill
 
-    def make_total(self, *dims, miss=None):
+    def make_total(self, *dims):
         """Fill missing keys by total slices.
 
         Parameters
@@ -576,16 +576,14 @@ class Keyring():
         dims: str, optional
             Dimensions names to fill if missing.
             If not specified, all are selected.
-        miss: Any, optional
-            Value of the key to flag as missing.
         """
         if not dims:
             dims = self.dims
-        for c, v in self.items_values():
-            if c in dims and v == miss:
+        for c, k in self.items():
+            if c in dims and k.type == 'none':
                 self[c] = slice(None, None)
 
-    def make_single(self, *dims, idx=0, miss=None):
+    def make_single(self, *dims, idx=0):
         """Fill missing keys by an index.
 
         Parameters
@@ -595,13 +593,11 @@ class Keyring():
             If not specified, all are selected.
         idx: int, optional
             Index to set as value.
-        miss: Any
-            Value of the key to flag as missing.
         """
         if not dims:
             dims = self.dims
-        for c, v in self.items_values():
-            if c in dims and v == miss:
+        for c, k in self.items():
+            if c in dims and k.type == 'none':
                 self[c] = idx
 
     def make_int_list(self, *dims):
