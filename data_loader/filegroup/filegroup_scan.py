@@ -88,8 +88,7 @@ class FilegroupScan():
         self.vi = vi
         self.scan_attr = False
 
-        self.scan_attributes = scan_attributes_default
-        self.scan_infos = scan_infos_default
+        self.scan_attributes_func = scan_attributes_default
 
         coords_fg = [[self.contains, variables_shared]] + coords
         self.make_coord_scan(coords_fg)

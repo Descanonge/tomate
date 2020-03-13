@@ -13,3 +13,4 @@ To not need to scan files each time
 
 * TODO: Multiple selections
 in a subclass of database ?
+* TODO: ensure VI stays global

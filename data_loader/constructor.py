@@ -194,7 +194,7 @@ class Constructor():
         in_idx = [kw_variables.get(var, None) for var in fg.contains]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_in_file_func(self, func, *coords):
+    def set_scan_in_file(self, func, *coords):
         """Set function for scanning coordinates values in file.
 
         Parameters
@@ -218,7 +218,7 @@ class Constructor():
                             cs.name, fg.contains)
             cs.set_scan_in_file_func(func)
 
-    def set_scan_filename_func(self, func, *coords, **kwargs):
+    def set_scan_filename(self, func, *coords, **kwargs):
         """Set function for scanning coordinates values from filename.
 
         Parameters
@@ -263,7 +263,7 @@ class Constructor():
         cs = fg.cs[coord]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_coords_attributes_func(self, func, *coords):
+    def set_scan_coords_attributes(self, func, *coords):
         """Set a function for scanning coordinate attributes.
 
         Parameters
@@ -281,7 +281,7 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_attributes(func)
+            cs.set_scan_attributes_func(func)
 
     def set_scan_variables_attributes_func(self, func):
         """Set a function for scanning variables specific attributes.
@@ -300,7 +300,7 @@ class Constructor():
         fg = self.current_fg
         fg.set_scan_attributes_func(func)
 
-    def set_scan_infos_func(self, func):
+    def set_scan_general_attributes(self, func):
         """Set a function for scanning general data attributes.
 
         Parameters
@@ -314,7 +314,7 @@ class Constructor():
         of the function interface.
         """
         fg = self.current_fg
-        fg.set_scan_infos_func(func)
+        fg.set_scan_attributes_func(func)
 
     def set_coord_descending(self, *coords):
         """Set coordinates as descending in the filegroup.

@@ -142,9 +142,9 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
-        self.scan_attributes = scan_attributes_default
-        self.scan_filename = scan_filename_default
-        self.scan_in_file = scan_in_file_default
+        self.scan_attributes_func = scan_attributes_default
+        self.scan_filename_func = scan_filename_default
+        self.scan_in_file_func = scan_in_file_default
 
         self._idx_descending = False
 
@@ -248,7 +248,7 @@ class CoordScan(Coord):
         """
         self.scan.pop('filename', None)
         self.scan['filename'] = kwargs
-        self.scan_filename = func
+        self.scan_filename_func = func
 
     def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
@@ -260,7 +260,7 @@ class CoordScan(Coord):
         """
         self.scan.pop('in', None)
         self.scan['in'] = kwargs
-        self.scan_in_file = func
+        self.scan_in_file_func = func
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually.
@@ -276,7 +276,7 @@ class CoordScan(Coord):
         self.values = values
         self.in_idx = in_idx
 
-    def set_scan_attributes(self, func, **kwargs):
+    def set_scan_attributes_func(self, func, **kwargs):
         """Set function for scanning attributes in file.
 
         See also
@@ -286,7 +286,7 @@ class CoordScan(Coord):
         """
         self.scan.pop('attributes', None)
         self.scan['attributes'] = kwargs
-        self.scan_attributes = func
+        self.scan_attributes_func = func
 
     def scan_file_values(self, file):
         """Find values for a file.
@@ -314,19 +314,19 @@ class CoordScan(Coord):
         for to_scan, kwargs in self.scan.items():
             if to_scan == 'attributes' and not self.scanned:
                 log.debug("Scanning attributes in file for '%s'", self.name)
-                attributes = self.scan_attributes(self, file, **kwargs)
+                attributes = self.scan_attributes_func(self, file, **kwargs)
                 for name, attr in attributes.items():
                     if attr is not None:
                         self.coord.set_attr(name, attr)
                         self.set_attr(name, attr)
 
             if to_scan == 'filename':
-                values = self.scan_filename(self, values, **kwargs)
+                values = self.scan_filename_func(self, values, **kwargs)
                 log.debug("Scanning filename for '%s'", self.name)
 
             if to_scan == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
-                values, in_idx = self.scan_in_file(self, file, values, **kwargs)
+                values, in_idx = self.scan_in_file_func(self, file, values, **kwargs)
 
         if 'in' in self.scan or 'filename' in self.scan:
             if isinstance(values, (int, float, type(None))):
