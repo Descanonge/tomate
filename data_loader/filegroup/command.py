@@ -94,6 +94,11 @@ class CmdKeyrings():
         if memory is not None:
             self.memory.update(memory)
 
+    def copy(self):
+        infile = self.infile.copy()
+        memory = self.memory.copy()
+        return CmdKeyrings(infile, memory)
+
 
 class Command():
     """Information for loading slices of data from one file.
@@ -194,6 +199,15 @@ class Command():
     def remove_keyrings(self):
         """Remove all keys."""
         self.keyrings = []
+
+    def copy(self):
+        new = Command()
+        new.filename = self.filename
+
+        for krg in self:
+            krg_ = krg.copy()
+            new.append(*krg_)
+        return new
 
     def order_keys(self, order):
         """Modify all keys order.
