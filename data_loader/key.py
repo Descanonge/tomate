@@ -206,6 +206,12 @@ class Key():
             self.value = self.value[0]
             self.shape = 0
 
+    def make_int_list(self):
+        if self.type == 'int':
+            self.type = 'list'
+            self.value = [self.value]
+            self.shape = 1
+
 class KeyVar(Key):
     """."""
 
@@ -325,10 +331,18 @@ class KeyVar(Key):
 
     def make_list_int(self):
         if self.type == 'list' and len(self.value) == 1:
-            self.type = 'int'
-            self.value = self.value[0]
+            super().make_list_int()
             self.name = self.name[0]
-            self.shape = 0
+
+    def make_int_list(self):
+        if self.type == 'int':
+            super().make_int_list()
+            self.name = [self.name]
+            print(self)
+
+    def simplify(self):
+        pass
+      
 
 
 class Keyring():
@@ -614,7 +628,7 @@ class Keyring():
             dims = self.dims
         for c, k in self.items():
             if c in dims and k.type == 'int':
-                self[c] = [k.value]
+                self[c].make_int_list()
 
     def make_list_int(self, *dims):
         """Turn lists of length one in integers.
