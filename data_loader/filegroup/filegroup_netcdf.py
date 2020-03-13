@@ -16,7 +16,7 @@ except ImportError:
 else:
     _has_netcdf = True
 
-from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.filegroup.filegroup_load import FilegroupLoad, multiply_commands_variables
 from data_loader.key import Keyring
 
 
@@ -46,6 +46,11 @@ class FilegroupNetCDF(FilegroupLoad):
 
     def close_file(self, file):
         file.close()
+
+    def get_commands(self, keyring):
+        commands = super().get_commands(keyring)
+        commands = multiply_commands_variables(commands)
+        return commands
 
     def load_cmd(self, file, cmd):
         """Load data from one file using a command.
