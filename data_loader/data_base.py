@@ -573,7 +573,7 @@ class DataBase():
         subscope.parent_scope = scope
         return subscope
 
-    def select_from_scope(self, scope='avail', variables=None, keyring=None, **keys):
+    def select_from_scope(self, scope='avail', keyring=None, **keys):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
@@ -592,7 +592,7 @@ class DataBase():
         --------
         get_subscope
         """
-        self.select = self.get_subscope(scope, variables, keyring,
+        self.select = self.get_subscope(scope, keyring,
                                         int2list=False, **keys)
         self.select.name = 'select'
 
