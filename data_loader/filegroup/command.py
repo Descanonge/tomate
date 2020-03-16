@@ -345,7 +345,6 @@ def separate_variables(commands):
     """
     commands_ = []
     for cmd in commands:
-        print(cmd)
         cmd_ = cmd.copy()
         cmd_.remove_keyrings()
         for krg in cmd:

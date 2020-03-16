@@ -139,8 +139,7 @@ class CoordScan(Coord):
         self.scan = {}
         self.scanned = False
 
-        self.values = []
-        self.in_idx = []
+        self.reset()
 
         self.scan_attributes_func = scan_attributes_default
         self.scan_filename_func = scan_filename_default
@@ -198,6 +197,10 @@ class CoordScan(Coord):
             self._idx_descending = np.all(np.diff(self.in_idx) < 0)
 
         return order
+
+    def reset(self):
+        self.values = []
+        self.in_idx = []
 
     def set_idx_descending(self):
         """Set coordinate as descending."""
@@ -363,6 +366,12 @@ class CoordScan(Coord):
 class CoordScanVar(CoordScan):
     """Coord used for scanning variables."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.has_data():
+            self.values = self._array.tolist()
+            self.in_idx = self.values.copy()
+
     def set_values(self):
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
@@ -429,7 +438,6 @@ class CoordScanShared(CoordScan):
         super().__init__(*args, **kwargs, shared=True)
 
         self.matchers = []
-        self.matches = []
 
     def __str__(self):
         s = [super().__str__()]
@@ -453,6 +461,10 @@ class CoordScanShared(CoordScan):
     def sort_values(self):
         order = super().sort_values()
         self.matches = self.matches[order]
+
+    def reset(self):
+        super().reset()
+        self.matches = []
 
     def slice(self, key):
         self.matches = self.matches[key]
