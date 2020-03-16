@@ -340,8 +340,8 @@ class Constructor():
         for name in self.coords:
             coords = []
             for fg in self.filegroups:
-                for name_cs, cs in fg.iter_scan().items():
-                    if name == name_cs:
+                for name_cs, cs in fg.cs.items():
+                    if cs.is_to_check() and name_cs == name:
                         coords.append(cs)
 
             check_range(coords)

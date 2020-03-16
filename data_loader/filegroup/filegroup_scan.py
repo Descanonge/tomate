@@ -155,37 +155,6 @@ class FilegroupScan():
 
         return cs
 
-    def iter_scan(self, scan=None):
-        """Iter through scannable CoordScan objects.
-
-        Parameters
-        ----------
-        scan: bool, optional
-            To iterate only scannable coordinates (scan=True),
-            or only not scannable coordinates (scan=False).
-            If left to None, iter all coordinates.
-
-        Returns
-        -------
-        Dict[str, CoordScan]
-        """
-        cs = {}
-        for name, c in self.cs.items():
-            add = False
-            if scan is None:
-                add = len(c.scan) > 0
-            elif isinstance(scan, str):
-                add = scan in c.scan
-            elif scan:
-                add = c.is_scannable()
-            elif not scan:
-                add = not c.is_scannable()
-
-            if add:
-                cs[name] = c
-
-        return cs
-
     def add_scan_regex(self, pregex, replacements):
         """Specify the pre-regex.
 
@@ -345,8 +314,9 @@ class FilegroupScan():
             if self.scan_attr:
                 self.scan_attributes(file)
 
-            for cs in self.iter_scan(True).values():
-                cs.scan_file(m, file)
+            for cs in self.cs.values():
+                if cs.is_to_scan():
+                    cs.scan_file(m, file)
         except:
             self.close_file(file)
             raise
@@ -389,6 +359,10 @@ class FilegroupScan():
         ValueError
             If no values were detected.
         """
+        for cs in self.cs.values():
+            if cs.is_to_scan_values():
+                cs.reset()
+
         files = self.find_files()
         for file in files:
             self.scan_file(file)
@@ -397,8 +371,8 @@ class FilegroupScan():
             raise NameError("No file matching the regex found ({0}, regex={1})".format(
                 self.contains, self.regex))
 
-        for cs in self.iter_scan().values():
-            if len(cs.values) == 0:
+        for cs in self.cs.values():
+            if cs.is_to_scan_values() and len(cs.values) == 0:
                 raise ValueError("No values detected ({0}, {1})".format(
                     cs.name, self.contains))
             cs.set_values()
