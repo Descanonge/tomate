@@ -72,7 +72,7 @@ class Coord():
         if array is not None:
             self.update_values(array)
 
-    def update_values(self, values):
+    def update_values(self, values, dtype=None):
         """Change values.
 
         Check if new values are monoteous
@@ -81,6 +81,9 @@ class Coord():
         ----------
         values: Sequence, Float
             New values.
+        dtype: Numpy dtype
+            Dtype of the array.
+            Default to np.float64
 
         Raises
         ------
@@ -89,7 +92,9 @@ class Coord():
         ValueError
             If the data is not sorted.
         """
-        self._array = np.array(values, dtype=np.float64)
+        if dtype is None:
+            dtype = np.float64
+        self._array = np.array(values, dtype=dtype)
         if len(self._array.shape) == 0:
             self._array = self._array.reshape(1)
         elif len(self._array.shape) > 1:
@@ -104,6 +109,9 @@ class Coord():
         self._descending = desc
         if not np.all(diff > 0) and not self._descending:
             raise ValueError("Data not sorted")
+
+    def __len__(self):
+        return self.size
 
     @property
     def size(self) -> int:
@@ -142,6 +150,15 @@ class Coord():
 
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
+
+    def set_attr(self, name, attr):
+        """Set attribute."""
+        if name not in ('units', 'fullname', 'longname'):
+            raise AttributeError("'%s' attribute cannot be set" % name)
+        if name == 'units':
+            self.units = attr
+        elif name == 'fullname' or name == 'longname':
+            self.fullname = attr
 
     def get_extent_str(self) -> str:
         """Return the extent as string."""

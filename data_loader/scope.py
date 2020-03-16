@@ -14,6 +14,7 @@ from data_loader.key import Keyring, Key
 from data_loader.iter_dict import IterDict
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
+from data_loader.coordinates.variables import Variables
 
 
 class Scope():
@@ -38,6 +39,7 @@ class Scope():
     name: str
     var: List[str]
         Variables present in the scope.
+        In the order they are present in a potential array.
     coords: Dict[Coord]
         Coordinates present in the scope.
     parent_scope: Scope
@@ -49,20 +51,24 @@ class Scope():
     def __init__(self, variables=None, coords=None, name=None):
         if variables is None:
             variables = []
-        self.var = list(variables).copy()
+        self.var = Variables(variables)
         if coords is None:
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
 
-        self.reset_parent()
+        self.parent_scope = None
+        self.reset_parent_keyring()
 
         self.name = name
 
-    def reset_parent(self):
-        """."""
-        self.parent_scope = None
-        self.parent_keyring = Keyring(**{c: slice(None) for c in self.coords.keys()})
-        self.parent_keyring.set_shape(self.coords)
+    def reset_parent_keyring(self):
+        """Reset parent keyring.
+
+        Reset to taking everything in parent scope.
+        """
+        self.parent_keyring = Keyring(**{name: slice(None)
+                                         for name in self.dims.keys()})
+        self.parent_keyring.set_shape(self.dims)
 
     def __str__(self):
         s = []
@@ -94,9 +100,21 @@ class Scope():
             raise KeyError("'%s' not in scope coordinates" % item)
         return self.coords[item]
 
-    def __iter__(self) -> List[str]:
-        """List of coordinates names."""
-        return iter(self.coords.keys())
+    @property
+    def dims(self):
+        """Dictionnary of all dimensions.
+
+        ie coordinates + variables.
+
+        Returns
+        -------
+        Dict
+            {dimension name: dimension}
+        """
+        out = {'var': self.var}
+        for name, c in self.coords.items():
+            out[name] = c
+        return out
 
     def subset(self, coords) -> Dict[str, Coord]:
         """Return coordinates objects.
@@ -108,15 +126,21 @@ class Scope():
         """
         return {c: self.coords[c] for c in coords}
 
-    @property
-    def idx(self) -> Dict[str, int]:
-        """Index of variables in data array."""
-        return IterDict({var: i for i, var in enumerate(self.var)})
+    def idx(self, variables):
+        """Get index of variables in the array.
+
+        Wrapper around Variables.idx()
+
+        Parameters
+        ----------
+        variables: str, List[str], int, List[int], slice
+        """
+        return self.var.idx(variables)
 
     @property
     def shape(self) -> List[int]:
         """Shape of data."""
-        shape = [len(self.var)] + [c.size for c in self.coords.values()]
+        shape = [d.size for d in self.dims.values()]
         return shape
 
     def is_empty(self) -> bool:
@@ -133,7 +157,7 @@ class Scope():
         for c in self.coords.values():
             c.empty()
 
-    def slice(self, variables=None, keyring=None, int2list=True, **keys):
+    def slice(self, keyring=None, int2list=True, **keys):
         """Slices coordinates and variables.
 
         If a parameter is None, no change is made for
@@ -141,7 +165,6 @@ class Scope():
 
         Parameters
         ----------
-        variables: str, List[str], optional
         keyring: Keyring, optional
         int2list: Bool, optional
             Transform int keys into lists, too make
@@ -149,17 +172,9 @@ class Scope():
             Default is True.
         keys: Key-like, optional
         """
-        if variables is not None:
-            if isinstance(variables, str):
-                variables = [variables]
-            self.var = [v for v in variables if v in self.var]
-
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_total()
+        keyring.make_variables(self.var)
         if int2list:
             keyring.make_int_list()
         for c, k in keyring.items_values():
@@ -271,7 +286,7 @@ class Scope():
 
         c = self[coord]
         key.set_shape_coord(c)
-   
+
         if not issubclass(type(c), Time):
             raise TypeError("'%s' is not a subclass of Time (is %s)"
                             % (coord, type(coord)))

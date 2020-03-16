@@ -139,11 +139,22 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
             in_idx = list(range(len(in_values)))
 
             if name == 'time':
-                units = nc_var.getncattr('units')
-                in_values = list(change_units(in_values, units, cs.units))
+                try:
+                    units = nc_var.getncattr('units')
+                except AttributeError:
+                    pass
+                else:
+                    in_values = list(change_units(in_values, units, cs.units))
             break
 
     return in_values, in_idx
+
+
+def scan_variables_nc(cs, file, values): #pylint: disable=unused-argument
+    """Scan netCDF file for variables names."""
+    variables = [var for var in file.variables.keys()
+                 if var not in cs.filegroup.cs.keys()]
+    return variables, variables
 
 
 def scan_in_file_nc_idx_only(cs, file, values):
@@ -152,12 +163,12 @@ def scan_in_file_nc_idx_only(cs, file, values):
     return values, in_idx
 
 
-def scan_attributes_nc(fg, file, variables):
-    """Scan for variables attributes in a netCDF file."""
+def scan_attributes_nc(cs, file):
+    """."""
     attrs = {}
-    for var in variables:
+    for i, var in enumerate(cs):
         attrs_var = {}
-        nc_var = file[fg.get_ncname(var)]
+        nc_var = file[cs.in_idx[i]]
         attributes = nc_var.ncattrs()
         for attr in attributes:
             attrs_var[attr] = nc_var.getncattr(attr)
@@ -165,6 +176,7 @@ def scan_attributes_nc(fg, file, variables):
         attrs[var] = attrs_var
 
     return attrs
+
 
 def scan_infos_nc(fg, file):
     """Scan for general attributes in a netCDF file."""

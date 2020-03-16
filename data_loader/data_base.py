@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 
 class DataBase():
-    """Encapsulate data array and info about the variables.
+    r"""Encapsulate data array and info about the variables.
 
     The data itself is stored in the data attribute.
     It can be loaded from disk using multiple `Filegroups`.
@@ -61,8 +61,6 @@ class DataBase():
     data: Numpy array
         Data array if loaded.
     filegroups: List[Filegroup]
-    _fg_idx: Dict[variable: str, int]
-        Index of filegroup for each variable
 
     vi: VariablesInfo
         Information on the variables and data.
@@ -102,11 +100,7 @@ class DataBase():
         self.loaded.name = 'loaded'
         self.selected.name = 'selected'
 
-        self._fg_idx = {}
         self.filegroups = filegroups
-        for i, fg in enumerate(filegroups):
-            for var in fg.contains:
-                self._fg_idx.update({var: i})
 
         self.vi = vi
 
@@ -192,7 +186,7 @@ class DataBase():
         """
         if isinstance(y, str):
             if y in self.loaded.var:
-                y = self.idx[y]
+                y = self.idx(y)
                 return self.data[y]
             if y in self.coords_name:
                 return self.scope[y]
@@ -229,13 +223,12 @@ class DataBase():
                      'select': self.selected}[scope]
         return scope
 
-    @property
-    def idx(self) -> Dict[str, int]:
-        """Index of each variable in the data array.
+    def idx(self, variable: str) -> int:
+        """Index of a variable in the data array.
 
         {variable name: index}
         """
-        return self.loaded.idx
+        return self.loaded.idx(variable)
 
     def view(self, variables=None, keyring=None, **keys):
         """Returns a subset of loaded data.
@@ -261,12 +254,7 @@ class DataBase():
         """
         self._check_loaded()
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
         keyring.make_total()
@@ -361,12 +349,7 @@ class DataBase():
         """
         self._check_loaded()
 
-        if keyring is None:
-            keyring = Keyring()
-        else:
-            keyring = keyring.copy()
-
-        keyring.update(keys)
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
         keyring.make_total()
@@ -459,12 +442,12 @@ class DataBase():
             If the name is not found.
         """
         # First check name
-        for c_name in self.avail:
+        for c_name in self.avail.dims:
             if c_name == name:
                 return c_name
 
         # Then check name_alt
-        for c_name, coord in self.avail.coords.items():
+        for c_name, coord in self.avail.dims.items():
             if name in coord.name_alt:
                 return c_name
 
@@ -561,13 +544,12 @@ class DataBase():
         {'time': [0, 1], 'lat': slice(0, 10)}
         """
         for i, key in enumerate(keys):
-            name = self.coords_name[i]
+            name = (['var'] + self.coords_name)[i]
             if name not in kw_keys:
                 kw_keys[name] = key
         return kw_keys
 
-    def get_subscope(self, scope='avail', variables=None, keyring=None,
-                     int2list=True, **keys):
+    def get_subscope(self, scope='avail', keyring=None, int2list=True, **keys):
         """Return subset of scope.
 
         Parameters
@@ -587,14 +569,12 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
-
-        subscope.reset_parent()
+        subscope.reset_parent_keyring()
         subscope.parent_scope = scope
-
-        subscope.slice(variables, keyring, int2list=int2list, **keys)
+        subscope.slice(keyring, int2list=int2list, **keys)
         return subscope
 
-    def select(self, scope='avail', variables=None, keyring=None, **keys):
+    def select(self, scope='avail', keyring=None, **keys):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
@@ -613,7 +593,7 @@ class DataBase():
         --------
         get_subscope
         """
-        self.selected = self.get_subscope(scope, variables, keyring,
+        self.selected = self.get_subscope(scope, keyring,
                                           int2list=False, **keys)
         self.selected.name = 'selected'
 
@@ -751,7 +731,7 @@ class DataBase():
                     " and will be removed in 0.4.")
         self.load(variables, *keys, **kw_keys)
 
-    def load(self, variables, *keys, **kw_keys):
+    def load(self, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -762,8 +742,6 @@ class DataBase():
 
         Parameters
         ----------
-        variables: str or List[str]
-            Variables to load.
         keys: int, slice, List[int], optional
             What subset of coordinate to load. The order is that
             of self.coords.
@@ -771,6 +749,7 @@ class DataBase():
         kw_keys: int, slice, or List[int], optional
             What subset of coordinate to load. Takes precedence
             over positional `coords`.
+            Variables key argument should be named 'var'.
 
         Examples
         --------
@@ -799,17 +778,18 @@ class DataBase():
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
+        keyring.make_full(['var'] + self.coords_name)
         keyring.make_total()
         keyring.make_int_list()
-        self.loaded = self.get_subscope('avail', variables, keyring)
+        keyring.make_variables(self.avail.var)
+
+        self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
-        self.data = self.allocate(self.shape)
+        self.data = self.allocate(self.loaded.shape)
 
-        fg_var = self._get_filegroups_for_variables(self.loaded.var)
-        for fg, var_load in fg_var:
-            fg.load_data(var_load, keyring)
+        for fg in self.filegroups:
+            fg.load_data(keyring)
 
         try:
             self.do_post_load(self)
@@ -857,6 +837,10 @@ class DataBase():
     def _get_filegroups_for_variables(self, variables):
         """Find the filegroups corresponding to variables.
 
+        This defines in what order the filegroups will be loaded.
+        Currently, the order is that of the filegroups (in what
+        order they were set).
+
         Parameters
         ----------
         variables: List[str]
@@ -866,17 +850,12 @@ class DataBase():
         fg_var: List[List[Filegroup, List[str]]
             A list of the filegroups with the corresponding variables.
         """
-
-        # find the filegroups we need to load
         fg_var = []
-        for var in variables:
-            fg = self.filegroups[self._fg_idx[var]]
-            try:
-                idx = [z[0] for z in fg_var].index(fg)
-            except ValueError:
-                fg_var.append([fg, []])
-                idx = -1
-            fg_var[idx][1].append(var)
+        for fg in self.filegroups:
+            variables_fg = [var for var in fg.contains
+                            if var in variables]
+            if variables_fg:
+                fg_var.append([fg, variables_fg])
 
         return fg_var
 

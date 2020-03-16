@@ -94,6 +94,11 @@ class CmdKeyrings():
         if memory is not None:
             self.memory.update(memory)
 
+    def copy(self):
+        infile = self.infile.copy()
+        memory = self.memory.copy()
+        return CmdKeyrings(infile, memory)
+
 
 class Command():
     """Information for loading slices of data from one file.
@@ -116,7 +121,6 @@ class Command():
 
     def __init__(self):
         self.filename = ""
-        self.var_list = []
         self.keyrings = []
 
     def __iter__(self) -> Iterator[CmdKeyrings]:
@@ -126,8 +130,6 @@ class Command():
     def __str__(self):
         s = []
         s.append("file: %s" % self.filename)
-        if self.var_list:
-            s.append("variables: " + str(self.var_list))
         s.append("keyrings: %s" % '\n      '.join([str(k) for k in self]))
         return "\n".join(s)
 
@@ -139,7 +141,7 @@ class Command():
         """Get i-th keyrings duo."""
         return self.keyrings[i]
 
-    def __iadd__(self, other: "CmdKeyring") -> "CmdKeyring":
+    def __iadd__(self, other: "Command") -> "Command":
         """Merge two commands.
 
         Add the keys of one into the other.
@@ -197,6 +199,15 @@ class Command():
     def remove_keyrings(self):
         """Remove all keys."""
         self.keyrings = []
+
+    def copy(self):
+        new = Command()
+        new.filename = self.filename
+
+        for krg in self:
+            krg_ = krg.copy()
+            new.append(*krg_)
+        return new
 
     def order_keys(self, order):
         """Modify all keys order.
@@ -325,3 +336,22 @@ def simplify_keys(keys):
         return key.value
 
     raise TypeError("Different types of keys not mergeable.")
+
+
+def separate_variables(commands):
+    """.
+
+    Does not support slices (yet).
+    """
+    commands_ = []
+    for cmd in commands:
+        cmd_ = cmd.copy()
+        cmd_.remove_keyrings()
+        for krg in cmd:
+            for inf, mem in zip(krg.infile['var'].iter(), krg.memory['var'].iter()):
+                krg_ = krg.copy()
+                krg_.infile['var'].set(inf[0], inf[1])
+                krg_.memory['var'].set(mem[0], mem[1])
+                cmd_.append(*krg_)
+        commands_.append(cmd_)
+    return commands_

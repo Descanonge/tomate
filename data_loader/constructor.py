@@ -137,6 +137,10 @@ class Constructor():
             root = ''
         root = os.path.join(self.root, root)
 
+        if contains is None:
+            contains = []
+        elif isinstance(contains, str):
+            contains = [contains]
         contains = list(contains)
 
         fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
@@ -161,7 +165,36 @@ class Constructor():
             replacements = {}
         self.current_fg.add_scan_regex(pregex, **replacements)
 
-    def set_scan_in_file_func(self, func, *coords):
+    def set_variables_infile(self, *variables, **kw_variables):
+        """Set variables position in the file.
+
+        This information will be transmitted to the filegroup
+        when loading.
+        It can be a integer, a string (to indicate a name)
+        under which the variable is found in file,
+        or None, in which case the filegroup will manage it.
+
+        Parameters
+        ----------
+        variables: int, str, None, optional
+            Argument in the order of variables indicated
+            when adding the last filegroup.
+        kw_variables: int, str, None, optional
+            Argument name is the variable name.
+            Takes precedence over `variables`.
+        """
+        fg = self.current_fg
+        for i, inf in enumerate(variables):
+            var = fg.contains[i]
+            if var not in kw_variables:
+                kw_variables[var] = inf
+
+        cs = fg.cs['var']
+        values = fg.contains.copy()
+        in_idx = [kw_variables.get(var, None) for var in fg.contains]
+        cs.set_scan_manual(values, in_idx)
+
+    def set_scan_in_file(self, func, *coords):
         """Set function for scanning coordinates values in file.
 
         Parameters
@@ -185,7 +218,7 @@ class Constructor():
                             cs.name, fg.contains)
             cs.set_scan_in_file_func(func)
 
-    def set_scan_filename_func(self, func, *coords, **kwargs):
+    def set_scan_filename(self, func, *coords, **kwargs):
         """Set function for scanning coordinates values from filename.
 
         Parameters
@@ -230,7 +263,7 @@ class Constructor():
         cs = fg.cs[coord]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_coords_attributes_func(self, func, *coords):
+    def set_scan_coords_attributes(self, func, *coords):
         """Set a function for scanning coordinate attributes.
 
         Parameters
@@ -250,24 +283,7 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_attributes_func(func)
 
-    def set_scan_variables_attributes_func(self, func):
-        """Set a function for scanning variables specific attributes.
-
-        Parameters
-        ----------
-        func: Callable[[file, variables: List[str]],
-                       [Dict[variable name, Dict[attr name, Any]]]]
-            Function that recovers variable specific attributes in file.
-
-        Notes
-        -----
-        See filegroup_scan.scan_attributes_default() for a better description
-        of the function interface.
-        """
-        fg = self.current_fg
-        fg.set_scan_attributes_func(func)
-
-    def set_scan_infos_func(self, func):
+    def set_scan_general_attributes(self, func):
         """Set a function for scanning general data attributes.
 
         Parameters
@@ -281,7 +297,7 @@ class Constructor():
         of the function interface.
         """
         fg = self.current_fg
-        fg.set_scan_infos_func(func)
+        fg.set_scan_attributes_func(func)
 
     def set_coord_descending(self, *coords):
         """Set coordinates as descending in the filegroup.
@@ -304,6 +320,10 @@ class Constructor():
         Find coordinates values and eventually, in-file indices.
         """
         for fg in self.filegroups:
+            if not fg.cs['var'].scan:
+                self.set_variables_infile()
+                fg.cs['var'].set_values()
+
             fg.scan_files()
 
     def check_scan(self, threshold=1e-5):
@@ -320,8 +340,8 @@ class Constructor():
         for name in self.coords:
             coords = []
             for fg in self.filegroups:
-                for name_cs, cs in fg.iter_scan("scannable").items():
-                    if name == name_cs:
+                for name_cs, cs in fg.cs.items():
+                    if cs.is_to_check() and name_cs == name:
                         coords.append(cs)
 
             check_range(coords)
@@ -378,6 +398,13 @@ class Constructor():
             self.check_scan()
 
         dt_class = create_data_class(dt_types, accessor)
+
+        variables = list(self.vi.var)
+        for fg in self.filegroups:
+            variables += fg.contains
+        for var in variables:
+            if var not in self.vi:
+                self.vi.add_variable(var)
 
         dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt

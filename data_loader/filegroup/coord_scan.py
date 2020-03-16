@@ -136,21 +136,19 @@ class CoordScan(Coord):
         self.coord = coord
 
         self.shared = shared
-        self.scan = set()
+        self.scan = {}
         self.scanned = False
 
-        self.values = []
-        self.in_idx = []
+        self.reset()
 
-        self.scan_attributes = scan_attributes_default
-        self.scan_filename = scan_filename_default
-        self.scan_in_file = scan_in_file_default
-        self.scan_filename_kwargs = {}
-        self.scan_in_file_kwargs = {}
+        self.scan_attributes_func = scan_attributes_default
+        self.scan_filename_func = scan_filename_default
+        self.scan_in_file_func = scan_in_file_default
 
         self._idx_descending = False
 
-        super().__init__(coord.name, coord._array, coord.units, coord.name_alt)
+        super().__init__(name=coord.name, array=coord._array,
+                         units=coord.units, name_alt=coord.name_alt)
 
     def __str__(self):
         s = [super().__str__()]
@@ -173,9 +171,11 @@ class CoordScan(Coord):
         """
         return self._idx_descending
 
-    def set_values(self, values: Sequence[float]):
+    def set_values(self):
         """Set values."""
-        self.values = values
+        self.values = np.array(self.values)
+        self.in_idx = np.array(self.in_idx)
+        self.sort_values()
 
     def assign_values(self):
         """Update parent coord with found values."""
@@ -189,9 +189,6 @@ class CoordScan(Coord):
         order: List[int]
             The order used to sort values.
         """
-        self.values = np.array(self.values)
-        self.in_idx = np.array(self.in_idx)
-
         order = np.argsort(self.values)
         self.values = self.values[order]
         self.in_idx = self.in_idx[order]
@@ -200,6 +197,10 @@ class CoordScan(Coord):
             self._idx_descending = all(np.diff(self.in_idx) < 0)
 
         return order
+
+    def reset(self):
+        self.values = []
+        self.in_idx = []
 
     def set_idx_descending(self):
         """Set coordinate as descending."""
@@ -225,13 +226,28 @@ class CoordScan(Coord):
             if self.is_idx_descending():
                 key_data.reverse(self.size)
         else:
-            key_data = Key(self.in_idx[key.value])
+            key_data = key.__class__(self.in_idx[key.value])
 
         return key_data
 
-    def is_to_open(self) -> bool:
-        """Return if the coord needs to open the current file."""
-        raise NotImplementedError
+    def is_to_scan(self) -> bool:
+        """Return if the coord needs scanning."""
+        out = ('in' in self.scan
+               or 'filename' in self.scan
+               or 'attributes' in self.scan)
+        return out
+
+    def is_to_scan_values(self) -> bool:
+        """."""
+        out = ('in' in self.scan
+               or 'filename' in self.scan)
+        return out
+
+    def is_to_check(self) -> bool:
+        """."""
+        out = (self.is_to_scan_values()
+               or 'manual' in self.scan)
+        return out
 
     def set_scan_filename_func(self, func, **kwargs):
         """Set function for scanning values.
@@ -241,9 +257,9 @@ class CoordScan(Coord):
         scan_filename: for the function signature.
         Constructor.set_scan_filename_func: for more details.
         """
-        self.scan.add("filename")
-        self.scan_filename = func
-        self.scan_filename_kwargs = kwargs
+        self.scan.pop('filename', None)
+        self.scan['filename'] = kwargs
+        self.scan_filename_func = func
 
     def set_scan_in_file_func(self, func, **kwargs):
         """Set function for scanning values in file.
@@ -253,9 +269,9 @@ class CoordScan(Coord):
         scan_in_file: for the function signature.
         Constructor.set_scan_in_file_func: for more details.
         """
-        self.scan.add("in")
-        self.scan_in_file = func
-        self.scan_in_file_kwargs = kwargs
+        self.scan.pop('in', None)
+        self.scan['in'] = kwargs
+        self.scan_in_file_func = func
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually.
@@ -265,13 +281,13 @@ class CoordScan(Coord):
         values: List[float]
         in_idx: List[int]
         """
-        self.scan.discard('in')
-        self.scan.discard('filename')
-        self.scan.add('manual')
-        self.set_values(values)
+        self.scan.pop('in', None)
+        self.scan.pop('filename', None)
+        self.scan['manual'] = None
+        self.values = values
         self.in_idx = in_idx
 
-    def set_scan_attributes_func(self, func):
+    def set_scan_attributes_func(self, func, **kwargs):
         """Set function for scanning attributes in file.
 
         See also
@@ -279,8 +295,9 @@ class CoordScan(Coord):
         scan_attributes: for the function signature
         and Constructor.set_scan_coords_attributes: for more details.
         """
-        self.scan.add("attributes")
-        self.scan_attributes = func
+        self.scan.pop('attributes', None)
+        self.scan['attributes'] = kwargs
+        self.scan_attributes_func = func
 
     def scan_file_values(self, file):
         """Find values for a file.
@@ -303,42 +320,65 @@ class CoordScan(Coord):
         """
         values = None
         in_idx = None
-        if 'attributes' in self.scan and not self.scanned:
-            log.debug("Scanning attributes in file for '%s'", self.name)
-            attributes = self.scan_attributes(self, file)
-            for name, attr in attributes.items():
-                if attr is not None:
-                    self.coord.__setattr__(name, attr)
+        n_values = None
 
-        if 'filename' in self.scan:
-            values = self.scan_filename(self, **self.scan_filename_kwargs)
-            log.debug("Scanning filename for '%s'", self.name)
+        for to_scan, kwargs in self.scan.items():
+            if to_scan == 'attributes' and not self.scanned:
+                log.debug("Scanning attributes in file for '%s'", self.name)
+                attributes = self.scan_attributes_func(self, file, **kwargs)
+                for name, attr in attributes.items():
+                    if attr is not None:
+                        self.coord.set_attr(name, attr)
+                        self.set_attr(name, attr)
 
-        if 'in' in self.scan:
-            log.debug("Scanning in file for '%s'", self.name)
-            values, in_idx = self.scan_in_file(self, file, values,
-                                               **self.scan_in_file_kwargs)
+            if to_scan == 'filename':
+                values = self.scan_filename_func(self, values, **kwargs)
+                log.debug("Scanning filename for '%s'", self.name)
 
-        if isinstance(values, (int, float, type(None))):
-            values = [values]
-        if isinstance(in_idx, (int, float, type(None))):
-            in_idx = [in_idx]
+            if to_scan == 'in':
+                log.debug("Scanning in file for '%s'", self.name)
+                values, in_idx = self.scan_in_file_func(self, file, values, **kwargs)
 
-        n_values = len(values)
-        if n_values == 1:
-            log.debug("Found value %s", values[0])
-        else:
-            log.debug("Found %s values between %s and %s",
-                      n_values, values[0], values[n_values-1])
+        if 'in' in self.scan or 'filename' in self.scan:
+            if isinstance(values, (int, float, type(None))):
+                values = [values]
+            if isinstance(in_idx, (int, float, type(None))):
+                in_idx = [in_idx]
 
-        if n_values != len(in_idx):
-            raise IndexError("not as much values as infile indices")
+            n_values = len(values)
+            if n_values == 1:
+                log.debug("Found value %s", values[0])
+            else:
+                log.debug("Found %s values between %s and %s",
+                          n_values, values[0], values[n_values-1])
 
-        self.values += values
-        self.in_idx += in_idx
+            if n_values != len(in_idx):
+                raise IndexError("Not as much values as infile indices. (%s)" % self.name)
+
+            self.values += values
+            self.in_idx += in_idx
+
         self.scanned = True
 
         return n_values
+
+
+class CoordScanVar(CoordScan):
+    """Coord used for scanning variables."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.has_data():
+            self.values = self._array.tolist()
+            self.in_idx = self.values.copy()
+
+    def set_values(self):
+        self.values = np.array(self.values)
+        self.in_idx = np.array(self.in_idx)
+
+    def sort_values(self):
+        order = range(list(self.size))
+        return order
 
 
 class CoordScanIn(CoordScan):
@@ -398,7 +438,6 @@ class CoordScanShared(CoordScan):
         super().__init__(*args, **kwargs, shared=True)
 
         self.matchers = []
-        self.matches = []
 
     def __str__(self):
         s = [super().__str__()]
@@ -415,11 +454,17 @@ class CoordScanShared(CoordScan):
         """Add a matcher."""
         self.matchers.append(matcher)
 
-    def sort_values(self):
+    def set_values(self):
         self.matches = np.array(self.matches)
+        super().set_values()
 
+    def sort_values(self):
         order = super().sort_values()
         self.matches = self.matches[order]
+
+    def reset(self):
+        super().reset()
+        self.matches = []
 
     def slice(self, key):
         self.matches = self.matches[key]
@@ -448,9 +493,9 @@ class CoordScanShared(CoordScan):
         # there is more than one shared coord.
         if matches not in self.matches:
             n_values = self.scan_file_values(file)
-
-            matches = [matches for _ in range(n_values)]
-            self.matches += matches
+            if n_values is not None:
+                matches = [matches for _ in range(n_values)]
+                self.matches += matches
 
     def is_to_open(self) -> bool:
         to_open = False
@@ -475,7 +520,11 @@ def get_coordscan(filegroup, coord, shared):
         If the coordinate is shared.
     """
     coord_type = type(coord)
-    CoordScanRB = type("CoordScanRB", (CoordScan, coord_type), {})
+    if coord.name == 'var':
+        coordscan_type = CoordScanVar
+    else:
+        coordscan_type = CoordScan
+    CoordScanRB = type("CoordScanRB", (coordscan_type, coord_type), {})
 
     if shared:
         CoordScanType = type("CoordScanSharedRB",

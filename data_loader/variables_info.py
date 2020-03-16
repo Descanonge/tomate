@@ -79,7 +79,7 @@ class VariablesInfo():
 
     def __iter__(self):
         """Enumerate over var."""
-        return enumerate(self.var)
+        return iter(self.var)
 
     def __getitem__(self, item):
         """Return VariableInfo slice.
@@ -173,12 +173,15 @@ class VariablesInfo():
             Values for some or all variables.
             Variables not specified will be filled with None.
         """
-        if attr not in self.attrs:
-            self._attrs[attr] = IterDict(dict(zip(self.var, [None]*self.n)))
+        if attr in self.__class__.__dict__.keys():
+            log.warning("'%s' attribute is reserved.", attr)
+        else:
+            if attr not in self.attrs:
+                self._attrs[attr] = IterDict(dict(zip(self.var, [None]*self.n)))
 
-        if values is None:
-            values = {}
-        self._attrs[attr].update(values)
+            if values is None:
+                values = {}
+            self._attrs[attr].update(values)
 
     def add_attrs_per_variable(self, var, attrs):
         """Add attributes for a single variable.
@@ -245,4 +248,7 @@ class VariablesInfo():
     def add_infos(self, **infos):
         """Add infos."""
         for name, value in infos.items():
-            self._infos[name] = value
+            if name in self.__class__.__dict__.keys():
+                log.warning("'%s' attribute is reserved.", name)
+            else:
+                self._infos[name] = value
