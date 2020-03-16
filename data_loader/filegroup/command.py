@@ -350,14 +350,8 @@ def separate_variables(commands):
         for krg in cmd:
             for inf, mem in zip(krg.infile['var'].iter(), krg.memory['var'].iter()):
                 krg_ = krg.copy()
-                krg_.infile['var'].value = inf[0]
-                krg_.infile['var'].name = inf[1]
-                krg_.infile['var'].type = 'int'
-                krg_.infile['var'].shape = 0
-                krg_.memory['var'].value = mem[0]
-                krg_.memory['var'].name = mem[1]
-                krg_.memory['var'].type = 'int'
-                krg_.memory['var'].shape = 0
+                krg_.infile['var'].set(inf[0], inf[1])
+                krg_.memory['var'].set(mem[0], mem[1])
                 cmd_.append(*krg_)
         commands_.append(cmd_)
     return commands_
