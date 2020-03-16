@@ -269,7 +269,7 @@ class FilegroupScan():
             File object.
         """
         try:
-            infos = self.scan_attr(self, file)
+            infos = self.scan_attributes_func(self, file)
         except NotImplementedError:
             pass
         else:
