@@ -39,6 +39,14 @@ class Key():
     int_types = (int, np.integer)
 
     def __init__(self, key):
+        self.value = None
+        self.type = ''
+        self.parent_shape = None
+        self.shape = None
+        self.set(key)
+
+    def set(self, key):
+        """."""
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
             reject = any(not isinstance(z, self.int_types) for z in key)
@@ -56,9 +64,9 @@ class Key():
         if reject:
             raise TypeError("Key is not int, List[int], or slice"
                             " (is %s)" % type(key))
+
         self.value = key
         self.type = tp
-        self.shape = None
         self.set_shape()
 
     def __eq__(self, other):
@@ -343,7 +351,6 @@ class KeyVar(Key):
         if self.type == 'int':
             super().make_int_list()
             self.name = [self.name]
-            print(self)
 
     def simplify(self):
         pass
