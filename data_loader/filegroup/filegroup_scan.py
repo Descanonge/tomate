@@ -257,10 +257,7 @@ class FilegroupScan():
 
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
-        to_open = False
-        for cs in self.iter_scan(True).values():
-            to_open = to_open or cs.is_to_open()
-        to_open = to_open or self.scan_attr
+        to_open = any([cs.is_to_open() for cs in self.cs.values()])
         return to_open
 
     def scan_attributes(self, file):
