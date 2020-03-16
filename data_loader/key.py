@@ -85,6 +85,8 @@ class Key():
             val = [self.value]
         elif self.type == 'list':
             val = self.value
+        else:
+            val = []
         return iter(val)
 
     def copy(self) -> "Key":
@@ -348,6 +350,8 @@ class KeyVar(Key):
             val = [self.name]
         elif self.type == 'list':
             val = self.name
+        else:
+            val = []
         return iter(val)
 
     def iter(self):
