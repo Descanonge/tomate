@@ -224,20 +224,37 @@ class KeyVar(Key):
     """."""
 
     def __init__(self, key, variables=None):
+        self.name = None
+        self.variables = None
+
+        super().__init__(key)
+
+        if variables is not None:
+            self.set_variables(variables)
+
+    def set(self, key, name=None, variables=None):
+        """.
+
+        key: key-like, str
+        name: str
+        """
         if isinstance(key, self.int_types):
             tp = 'int'
             idx = int(key)
-            name = None
+            name_ = name
         elif isinstance(key, str):
             tp = 'int'
             idx = None
-            name = key
+            name_ = key
         elif isinstance(key, (list, tuple, np.ndarray)):
             tp = 'list'
             idx = [int(k) if isinstance(k, self.int_types)
                    else None for k in key]
-            name = [k if isinstance(k, str)
-                    else None for k in key]
+            if name is None:
+                name_ = [k if isinstance(k, str)
+                         else None for k in key]
+            else:
+                name_ = name
         elif isinstance(key, slice):
             tp = 'slice'
             slc_idx = [None, None, None]
@@ -250,22 +267,34 @@ class KeyVar(Key):
             slc_idx[2] = key.step
             slc_name[2] = key.step
             idx = slice(*slc_idx)
-            name = slice(*slc_name)
+            if name is None:
+                name_ = slice(*slc_name)
+            else:
+                name_ = name
         elif key is None:
-            tp = 'none'
-            idx = None
-            name = None
+            name_ = name
+            if name is None:
+                tp = 'none'
+                idx = None
+            else:
+                if isinstance(name, (list, tuple, np.ndarray)):
+                    tp = 'list'
+                    idx = [None for _ in range(len(name))]
+                elif isinstance(name, slice):
+                    tp = 'slice'
+                    idx = slice(None)
+                else:
+                    tp = 'int'
+                    idx = None
         else:
             raise TypeError("Not valid type for key (%s)" % type(key))
 
         self.value = idx
-        self.name = name
+        self.name = name_
         self.type = tp
 
-        self.shape = None
         self.set_shape()
 
-        self.variables = variables
         if variables is not None:
             self.set_variables(variables)
 
