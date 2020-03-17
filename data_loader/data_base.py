@@ -215,6 +215,11 @@ class DataBase():
             return self.loaded
         return self.avail
 
+    @property
+    def dims(self) -> List[str]:
+        """List of dimensions names."""
+        return ['var'] + self.coords_name
+
     def get_scope(self, scope) -> Scope:
         """Get scope by name."""
         if isinstance(scope, str):
@@ -255,10 +260,10 @@ class DataBase():
         self._check_loaded()
 
         keyring = Keyring.get_default(keyring, **keys)
-        keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
+        keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.sort_by(['var'] + self.coords_name)
+        keyring.sort_by(self.dims)
         return self.acs.take(keyring, self.data)
 
     def view_selected(self, variables=None, keyring=None, **keys):
@@ -350,10 +355,10 @@ class DataBase():
         self._check_loaded()
 
         keyring = Keyring.get_default(keyring, **keys)
-        keyring.make_full(self.coords_name)
         keyring['var'] = self.idx[variables]
+        keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.sort_by(['var'] + self.coords_name)
+        keyring.sort_by(self.dims)
 
         array = self.acs.take(keyring, self.data)
         return self.acs.reorder(keyring, array, order)
@@ -406,7 +411,7 @@ class DataBase():
     @property
     def ndim(self) -> int:
         """Number of dimensions."""
-        return len(self.coords_name) + 1
+        return len(self.dims)
 
     @property
     def n_coords(self) -> int:
@@ -544,7 +549,7 @@ class DataBase():
         {'time': [0, 1], 'lat': slice(0, 10)}
         """
         for i, key in enumerate(keys):
-            name = (['var'] + self.coords_name)[i]
+            name = self.dims[i]
             if name not in kw_keys:
                 kw_keys[name] = key
         return kw_keys
@@ -778,7 +783,7 @@ class DataBase():
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring(**kw_keys)
-        keyring.make_full(['var'] + self.coords_name)
+        keyring.make_full(self.dims)
         keyring.make_total()
         keyring.make_int_list()
         keyring.make_variables(self.avail.var)
