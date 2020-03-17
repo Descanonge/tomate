@@ -235,7 +235,7 @@ class DataBase():
         """
         return self.loaded.idx(variable)
 
-    def view(self, variables=None, keyring=None, **keys):
+    def view(self, keyring=None, **keys):
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
@@ -244,8 +244,6 @@ class DataBase():
 
         Parameters
         ----------
-        variables: str or List[str], optional
-            If None, all variables are taken.
         keyring: Keyring, optional
             Keyring specifying parts of coordinates to take.
         keys: Key-like, optional
@@ -259,14 +257,14 @@ class DataBase():
         """
         self._check_loaded()
 
-        keyring = Keyring.get_default(keyring, **keys)
-        keyring['var'] = self.idx[variables]
+        keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.sort_by(self.dims)
+        log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
 
-    def view_selected(self, variables=None, keyring=None, **keys):
+    def view_selected(self, keyring=None, **keys):
         """Returns a subset of loaded data.
 
         Subset is specified by a scope.
@@ -288,33 +286,8 @@ class DataBase():
                             " (is '%s')" % scope.parent_scope.name)
 
         scope_ = scope.copy()
-        scope_.slice(variables, keyring, int2list=False, **keys)
-        return self.view(scope_.var, scope_.parent_keyring)
-
-    def view_scope(self, scope):
-        """Returns a subset of loaded data.
-
-        Subset is specified by common range of coordinates
-        of scope parameter, and loaded scope.
-
-        Parameters
-        ----------
-        scope: Scope
-
-        Returns
-        -------
-        Array
-        """
-        log.warning("Not functionnal.")
-        if scope.is_empty():
-            raise RuntimeError("Scope is empty.")
-
-        variables = scope.var
-        keyring = Keyring()
-        for name, c in scope.coords.items():
-            key = self.loaded[name].subset(*c.get_limits())
-            keyring[name] = key
-        return self.view(variables, keyring)
+        scope_.slice(keyring, int2list=False, **keys)
+        return self.view(scope_.parent_keyring)
 
     def view_ordered(self, order, variables=None, keyring=None, **keys):
         """Returns a reordered subset of data.
@@ -354,13 +327,14 @@ class DataBase():
         """
         self._check_loaded()
 
-        keyring = Keyring.get_default(keyring, **keys)
-        keyring['var'] = self.idx[variables]
+        keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.sort_by(self.dims)
 
+        log.debug('Taking keys in data: %s', keyring.print())
         array = self.acs.take(keyring, self.data)
+        # TODO: log reorder
         return self.acs.reorder(keyring, array, order)
 
     def iter_slices(self, coord, size=12):
