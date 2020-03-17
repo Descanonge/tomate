@@ -152,12 +152,21 @@ class Coord():
         return '\n'.join([super().__repr__(), str(self)])
 
     def set_attr(self, name, attr):
-        """Set attribute."""
-        if name not in ('units', 'fullname', 'longname'):
+        """Set attribute.
+
+        Parameters
+        ----------
+        name: str
+            Name of the attribute.
+            Only 'units' and 'fullname' supported.
+        attr: Any
+            Value of the attribute.
+        """
+        if name not in ('units', 'fullname'):
             raise AttributeError("'%s' attribute cannot be set" % name)
         if name == 'units':
             self.units = attr
-        elif name == 'fullname' or name == 'longname':
+        elif name == 'fullname':
             self.fullname = attr
 
     def get_extent_str(self) -> str:

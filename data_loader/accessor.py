@@ -60,7 +60,7 @@ class Accessor():
         array: Array
         """
         if any(k is not None and a != k
-                for a, k in zip(cls.shape(array), keyring.shape)):
+               for a, k in zip(cls.shape(array), keyring.shape)):
             raise ValueError("Mismatch between selected data "
                              "and keyring shape (array: %s, keyring: %s)"
                              % (cls.shape(array), keyring.shape))
@@ -101,7 +101,7 @@ class Accessor():
         """Retrieve part of an array.
 
         Amounts to `return array[keyring]`.
-       
+
         Uses numpy normal indexing when possible.
         If not, uses more complex method to access array.
 
