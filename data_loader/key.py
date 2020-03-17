@@ -355,13 +355,13 @@ class KeyVar(Key):
             if self.name is None and self.idx is not None:
                 self.name = variables.get_name(self.idx)
             elif self.idx is None and self.name is not None:
-                self.idx = variables.get_index(self.name)
+                self.value = variables.get_index(self.name)
         if self.type == 'list':
             for i, (idx, name) in enumerate(zip(self.idx, self.name)):
                 if name is None and idx is not None:
                     self.name[i] = variables.get_name(idx)
                 elif idx is None and name is not None:
-                    self.idx[i] = variables.get_index(name)
+                    self.value[i] = variables.get_index(name)
         if self.type == 'slice':
             slc_idx = [self.idx.start, self.idx.stop, self.idx.step]
             slc_name = [self.name.start, self.name.stop, self.name.step]
