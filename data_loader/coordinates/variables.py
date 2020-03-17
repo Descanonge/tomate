@@ -40,7 +40,7 @@ class Variables(Coord):
         self._size = self._array.size
 
     def __str__(self):
-        s = "Variables: " + ', '.join([v for v in self])
+        s = "Variables: " + ', '.join(self[:])
         return s
 
     def idx(self, y):
