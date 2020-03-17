@@ -414,7 +414,7 @@ class DataBase():
         return len(self.dims)
 
     @property
-    def n_coords(self) -> int:
+    def ncoord(self) -> int:
         """Number of coordinates."""
         return len(self.coords_name)
 
@@ -895,10 +895,10 @@ class DataBase():
         ValueError
             If the data is not of the shape of current selection.
         """
-        if self.acs.ndim(data) != self.n_coords:
+        if self.acs.ndim(data) != self.ncoord:
             # TODO: Expand dimensions of size one
             raise IndexError("data of wrong dimension (%s, expected %s)" %
-                             (data.ndim, self.n_coords))
+                             (data.ndim, self.ncoord))
 
         if self.acs.shape(data) != self.shape[1:]:
             raise ValueError("data of wrong shape (%s, expected %s)" %
