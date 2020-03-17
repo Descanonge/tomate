@@ -337,7 +337,7 @@ class DataBase():
         # TODO: log reorder
         return self.acs.reorder(keyring, array, order)
 
-    def iter_slices(self, coord, size=12):
+    def iter_slices(self, coord, size=12, key=None):
         """Iter through slices of a coordinate.
 
         Scope will be loaded if not empty, available otherwise.
@@ -350,14 +350,16 @@ class DataBase():
             Coordinate to iterate along to.
         size: int, optional
             Size of the slices to take.
+        key: Key-like, optional
+            Subpart of coordinate to iter through.
 
         Returns
         -------
-        List[slice]
+        List[Key-like]
         """
-        return self.scope.iter_slices(coord, size)
+        return self.scope.iter_slices(coord, size, key)
 
-    def iter_slices_month(self, coord='time'):
+    def iter_slices_month(self, coord='time', key=None):
         """Iter through monthes of a time coordinate.
 
         Parameters
@@ -365,6 +367,8 @@ class DataBase():
         coord: str, optional
             Coordinate to iterate along to.
             Must be subclass of Time.
+        key: Key-like, optional
+            Subpart of coordinate to iter through.
 
         Returns
         -------
@@ -374,7 +378,7 @@ class DataBase():
         --------
         iter_slices: Iter through any coordinate
         """
-        return self.scope.iter_slices_month(coord)
+        return self.scope.iter_slices_month(coord, key)
 
     def link_filegroups(self):
         """Link filegroups and data."""
