@@ -127,10 +127,7 @@ class Constructor():
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
                                      % (list(shared_corres.keys()),
                                         contains, c.name))
-            if shared == "shared":
-                shared = True
-            elif shared == "in":
-                shared = False
+                shared = shared_corres[shared]
             coords[i][1] = shared
 
         if root is None:
