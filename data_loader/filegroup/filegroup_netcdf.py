@@ -156,14 +156,15 @@ class FilegroupNetCDF(FilegroupLoad):
                     dt.setncattr(info, self.db.vi.get_info(info))
 
             for var in variables:
-                name = self.get_ncname(var)
+                cs = self.cs['var']
+                name = cs.in_idx[cs.idx(var)]
                 try:
                     t = self.db.vi.nctype[var]
                 except AttributeError:
                     t = 'f'
-                dt.createVariable(var, t, self.db.coords_name)
-                dt[var][:] = self.db[var]
+                dt.createVariable(name, t, self.db.coords_name)
+                dt[name][:] = self.db[var]
 
                 for attr in self.db.vi.attrs:
                     if not attr.startswith('_'):
-                        dt[var].setncattr(attr, self.db.vi.get_attr(attr, var))
+                        dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
