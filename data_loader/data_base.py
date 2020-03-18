@@ -610,7 +610,7 @@ class DataBase():
             keys_[name] = key
         self.select(scope, **keys_)
 
-    def add_to_select(self, keyring=None, **keys):
+    def add_to_selection(self, keyring=None, **keys):
         """Add to selection.
 
         Keys act upon the parent scope of selection.
