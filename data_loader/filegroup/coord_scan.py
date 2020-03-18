@@ -153,14 +153,16 @@ class CoordScan(Coord):
     def __str__(self):
         s = [super().__str__()]
         s.append(["In", "Shared"][self.shared])
-        s.append("To scan: %s" % str(self.scan))
+        s.append("To scan: %s" % ', '.join(self.scan.keys()))
         if self.scanned:
             s.append("Scanned")
-            s.append("Found %d values, kept %d" % (len(self.values), self.size))
-            if all([c == self.in_idx[0] for c in self.in_idx]):
-                s.append("In-file index is %s" % str(self.in_idx[0]))
         else:
             s.append("Not scanned")
+        if self.is_to_check():
+            s.append("Found %d values, kept %d" % (len(self.values), self.size))
+        if len(self.in_idx) > 0:
+            if all([c == self.in_idx[0] for c in self.in_idx]):
+                s.append("In-file index is %s" % str(self.in_idx[0]))
         return '\n'.join(s)
 
     def is_idx_descending(self) -> bool:
