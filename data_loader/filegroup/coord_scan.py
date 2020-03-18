@@ -370,6 +370,15 @@ class CoordScan(Coord):
 class CoordScanVar(CoordScan):
     """Coord used for scanning variables."""
 
+    def set_values_default(self, variables):
+        """.
+
+        variables: List[str]
+        """
+        self.values = variables.copy()
+        self.in_idx = variables.copy()
+        self.set_values()
+        self.update_values(self.values)
 
     def set_values(self):
         self.values = np.array(self.values)
