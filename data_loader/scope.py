@@ -174,9 +174,8 @@ class Scope():
             Default is True.
         keys: Key-like, optional
         """
-        keyring = Keyring.get_default(keyring, **keys)
+        keyring = Keyring.get_default(keyring, **keys, variables=self.var)
         keyring.make_total()
-        keyring.make_variables(self.var)
         if int2list:
             keyring.make_int_list()
         for c, k in keyring.items_values():
@@ -186,7 +185,7 @@ class Scope():
 
     def copy(self) -> "Scope":
         """Return a copy of self."""
-        scope = Scope(self.var, self.coords.values())
+        scope = Scope(self.var, self.coords.values(), self.name)
         scope.parent_scope = self.parent_scope
         scope.parent_keyring = self.parent_keyring.copy()
         return scope

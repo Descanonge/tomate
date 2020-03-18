@@ -621,14 +621,14 @@ class DataBase():
             # TODO: adapt args
             self.select('avail', keyring=keyring, **keys)
         else:
-            keyring = Keyring.get_default(keyring, **keys)
-            keyring.set_shape(scope.parent_scope.coords)
+            keyring = Keyring.get_default(keyring, **keys, variables=self.avail.var)
+            keyring.set_shape(scope.parent_scope.dims)
             keyring = keyring + scope.parent_keyring
             keyring.sort_keys()
             keyring.simplify()
             self.select(scope=scope.parent_scope, keyring=keyring)
 
-    def slice_data(self, variables=None, keyring=None, **keys):
+    def slice_data(self, keyring=None, **keys):
         """Slice loaded data.
 
         Keys act on loaded scope.
@@ -642,8 +642,10 @@ class DataBase():
         keys: Key-like, optional
         """
         self._check_loaded()
-        self.loaded = self.get_subscope(variables, keyring, 'loaded', **keys)
-        self.data = self.view(variables, keyring, **keys)
+        keyring = Keyring.get_default(keyring, **keys)
+        keyring.make_int_list()
+        self.loaded = self.get_subscope('loaded', keyring)
+        self.data = self.view(keyring)
 
     def unload_data(self):
         """Remove data, return coordinates and variables to all available."""
