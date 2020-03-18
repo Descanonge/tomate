@@ -371,11 +371,13 @@ class FilegroupScan():
                 self.contains, self.regex))
 
         for cs in self.cs.values():
-            if cs.is_to_scan_values() and len(cs.values) == 0:
-                raise ValueError("No values detected ({0}, {1})".format(
-                    cs.name, self.contains))
             cs.set_values()
-            cs.update_values(cs.values)
+            if cs.is_to_scan_values():
+                if len(cs.values) == 0:
+                    raise ValueError("No values detected ({0}, {1})".format(
+                        cs.name, self.contains))
+            if cs.is_to_check():
+                cs.update_values(cs.values)
 
     def set_scan_attributes_func(self, func):
         """Set function for scanning variables attributes.
