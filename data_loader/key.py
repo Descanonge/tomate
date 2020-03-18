@@ -669,7 +669,10 @@ class Keyring():
     def copy(self) -> "Keyring":
         """Return copy of self."""
         args = {c: k.copy() for c, k in self.items()}
-        return Keyring(**args)
+        keyring = Keyring(**args)
+        if 'var' in self and self['var'].variables is not None:
+            keyring['var'].set_variables(self['var'].variables)
+        return keyring
 
     def set_shape(self, coords):
         """Set shape of all keys using coordinates.
