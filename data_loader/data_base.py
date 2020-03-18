@@ -224,7 +224,7 @@ class DataBase():
         if isinstance(scope, str):
             scope = {'avail': self.avail,
                      'loaded': self.loaded,
-                     'select': self.selected}[scope]
+                     'selected': self.selected}[scope]
         return scope
 
     def idx(self, variable: str) -> int:
