@@ -417,6 +417,67 @@ class KeyVar(Key):
         key.variable = self.variables
         return key
 
+    def tolist_name(self):
+        a = self.name
+        if self.type == 'int':
+            a = [a]
+        elif self.type == 'list':
+            a = a.copy()
+        elif self.type == 'slice':
+            if self.variables is None:
+                raise RuntimeError("%s has not had its variables set." % self.name)
+            a = self.variables[self.idx].copy()
+        return a
+
+    def __mul__(self, other):
+        a = Key(self.value)
+        b = Key(other.value)
+        a.set_shape_coord(self.variables)
+
+        key = KeyVar((a * b).value)
+        key.set_variables(self.variables)
+        return key
+
+    def __add__(self, other):
+        a_i = self.tolist()
+        a_n = self.tolist_name()
+        b_i = other.tolist()
+        b_n = other.tolist_name()
+
+        idx = a_i + b_i
+        name = a_n + b_n
+
+        key = KeyVar(None)
+        key.set(idx, name)
+
+        return key
+
+
+    # def __mul__(self, other):
+    #     a = self.tolist()
+    #     b = self.tolist_name()
+
+    #     key = other.value
+    #     if other.type == 'int':
+    #         key = [key]
+    #     if other.type == 'slice':
+    #         res_i = a[key]
+    #         res_n = b[key]
+    #     else:
+    #         res_i = [a[k] for k in key]
+    #         res_n = [b[k] for k in key]
+
+    #     if self.type == 'int' or other.type == 'int':
+    #         key = KeyVar(None)
+    #         key.set(res_i, res_n, variables=self.variables)
+    #     elif self.type == 'list' or other.type == 'list':
+    #         key = KeyVar(None)
+    #         key.set(res_i, res_n, variables=self.variables)
+    #     else:
+    #         key = KeyVar(list2slice_simple(res_i))
+    #         key.set_variables(self.variables)
+    #     return key
+
     def make_list_int(self):
         if self.type == 'list' and len(self.value) == 1:
             super().make_list_int()
