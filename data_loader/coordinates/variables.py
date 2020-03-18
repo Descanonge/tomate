@@ -18,9 +18,21 @@ class Variables(Coord):
     array.
     Akin to a Coord coordinate object.
 
+    Its name is always 'var'.
+
     Parameters
     ----------
-    variables: str, List[str], optional
+    array: Sequence[str], optional
+        Variables names.
+    vi: VariablesInfo, optional
+        VI containing information about those variables.
+    kwargs:
+        See Coord signature.
+
+    Attributes
+    ----------
+    vi: VariablesInfo
+        VI containing information about variables.
     """
 
     def __init__(self, array=None, vi=None, **kwargs):
@@ -34,6 +46,16 @@ class Variables(Coord):
         self.vi = vi
 
     def update_values(self, values, dtype=None):
+        """Change variables names.
+
+        Parameters
+        ----------
+        values: Sequence[str], str
+            New variables names.
+        dtype: Numpy dtype
+            Dtype of the array.
+            Default to a variation of np.U#.
+        """
         if isinstance(values, str):
             values = [values]
         self._array = np.array(values, dtype=dtype)
@@ -43,7 +65,7 @@ class Variables(Coord):
         s = "Variables: " + ', '.join(self[:])
         return s
 
-    def idx(self, y):
+    def idx(self, y) -> int:
         """Return index of variable.
 
         Parameters
@@ -55,10 +77,10 @@ class Variables(Coord):
             y = np.where(self._array == y)[0][0]
         return y
 
-    def get_index(self, value, loc=None):
+    def get_index(self, value, loc=None) -> int:
         return self.idx(value)
 
-    def get_name(self, y):
+    def get_name(self, y) -> str:
         """Return name of variable.
 
         Parameters
@@ -70,7 +92,7 @@ class Variables(Coord):
             return y
         return self._array[y]
 
-    def __getitem__(self, y):
+    def __getitem__(self, y) -> str:
         """Return name of variable.
 
         Parameters
@@ -97,13 +119,9 @@ class Variables(Coord):
     def slice(self, key=None):
         """Slice variables.
 
-        Keep only variables overlaping with arguments.
-
         Parameters
         ----------
-        keyring: Keyring
-            The key must be named 'var'.
-        variables: int, str, List[int], List[str]
+        key: key-like
             Variables names or index (a key-like argument).
             Takes precedence over keyring.
         """

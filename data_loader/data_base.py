@@ -26,23 +26,22 @@ class DataBase():
     It can be loaded from disk using multiple `Filegroups`.
     The data can be conveniently accessed using the `view` method.
 
-    The data varies along coordinates (akin to dimensions).
-    An ensemble of coordinates and variables constitutes a `Scope`
-    This object has three different scopes:
+    The data consists in multiple variables varying along
+    multiple coordinates.
+    An ensemble of coordinates and variables makes a `Scope`.
+    The data object has three different scopes:
     \*avail: all data available on disk
     \*loaded: part of that data that is loaded in memory
-    \*select: part of data selected
+    \*selected: part of data selected
 
-    Coordinates objects, the list of variables, and the shape
-    of data, attributes of the different scopes objects, are
-    directly accessible from the data object.
+    Coordinates objects, the list of variables, the shape
+    of data, and other attributes of the different scopes objects,
+    are directly accessible from the data object.
     If data has been loaded, the 'loaded' scope is used,
     otherwise the 'available' scope is used.
 
     Data and coordinates can be accessed as items:
     `Data[{name of variable | name of coordinate}]`.
-    Coordinates can be accessed as attributes:
-    `Data.name_of_coordinate`.
 
     See :doc:`../data` for more information.
 
@@ -54,12 +53,12 @@ class DataBase():
     vi: VariablesInfo
         Information on the variables and data.
     coords: Coord
-        Coordinates.
+        Coordinates, in the order the data should be kept.
 
     Attributes
     ----------
     data: Numpy array
-        Data array if loaded.
+        Data array if loaded, None otherwise.
     filegroups: List[Filegroup]
 
     vi: VariablesInfo
@@ -229,9 +228,13 @@ class DataBase():
         return scope
 
     def idx(self, variable: str) -> int:
-        """Index of a variable in the data array.
+        """Index of variables in the data array.
 
-        {variable name: index}
+        Wrapper around loaded Scope.idx()
+
+        Parameters
+        ----------
+        variable: str, List[str], slice
         """
         return self.loaded.idx(variable)
 

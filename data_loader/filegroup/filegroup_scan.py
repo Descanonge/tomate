@@ -382,8 +382,8 @@ class FilegroupScan():
         ----------
         func: Callable[[file, variables: List[str]], [Dict]]
             Function that recovers variables attributes in file.
-            See FilegroupScan.scan_attributes for a better description
-            of the function interface.
+            See filegroup_scan.scan_attributes_default() for a better
+            description of the function interface.
         """
         self.scan_attr = True
         self.scan_attributes_func = func
@@ -402,5 +402,9 @@ def scan_attributes_default(fg, file):
     Returns
     -------
     infos: Dict[str, Any]
+        Dictionnary of attributes.
+        {attribute name: attribute value}.
+        Attribute is then set to a Coord object
+        using Coord.set_attr(name, attr).
     """
     raise NotImplementedError("scan_infos was not set for (%s)" % fg.contains)

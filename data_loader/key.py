@@ -298,6 +298,7 @@ class KeyVar(Key):
                          else None for k in key]
             else:
                 name_ = name
+
         elif isinstance(key, slice):
             tp = 'slice'
             slc_idx = [None, None, None]
@@ -732,9 +733,8 @@ class Keyring():
             if c in dims:
                 k.make_list_int()
 
-        """."""
-
     def make_variables(self, variables):
+        """."""
         if 'var' in self:
             self['var'].set_variables(variables)
 

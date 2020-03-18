@@ -221,10 +221,10 @@ class CoordScan(Coord):
         -------
         key_data: List[int], Slice
         """
-        if self.size is None:
+        if self.size == 0:
             key_data = key
             if self.is_idx_descending():
-                key_data.reverse(self.size)
+                key_data.reverse(self.coord.size)
         else:
             key_data = key.__class__(self.in_idx[key.value])
 

@@ -29,14 +29,14 @@ class Constructor():
     root: str
         Root directory of all files.
     coords: List[Coord]
-        Coordinates in the order the data should be kept.
+        Coordinates, in the order the data should be kept.
 
     Attributes
     ----------
     root: str
         Root directory of all files.
     coords: Dict[str, Coord]
-        Coordinates in the order the data should be kept.
+        Coordinates, in the order the data should be kept.
     filegroups: List[Filegroup]
         Filegroups added so far.
     vi: VariablesInfo
@@ -101,7 +101,7 @@ class Constructor():
         Parameters
         ----------
         fg_type: FilegroupLoad subclass
-            Class of filegroup to add. Dependand on the file-format.
+            Class of filegroup to add. Dependant on the file-format.
         contains: List[str]
             List of variables contained in this grouping
             of files.
@@ -166,13 +166,17 @@ class Constructor():
         self.current_fg.add_scan_regex(pregex, **replacements)
 
     def set_variables_infile(self, *variables, **kw_variables):
-        """Set variables position in the file.
+        """Set variables index in the file.
 
         This information will be transmitted to the filegroup
         when loading.
-        It can be a integer, a string (to indicate a name)
-        under which the variable is found in file,
-        or None, in which case the filegroup will manage it.
+        It can be a integer or a string (to indicate a name)
+        under which the variable is found in file.
+        If not specified, None value is assigned, and the
+        filegroup subclass should manage this case.
+
+        This is similar to using Constructor.set_scan_manual()
+        for the 'Variables' coordinate.
 
         Parameters
         ----------
@@ -182,6 +186,12 @@ class Constructor():
         kw_variables: int, str, None, optional
             Argument name is the variable name.
             Takes precedence over `variables`.
+
+        Examples
+        --------
+        >>> cstr.set_variables_infile('SST', 'CHL')
+
+        >>> cstr.set_variables_infile(sst='SST')
         """
         fg = self.current_fg
         for i, inf in enumerate(variables):
@@ -275,7 +285,7 @@ class Constructor():
 
         Notes
         -----
-        See coord_scan.scan_attributes_default for a better description
+        See coord_scan.scan_attributes_default() for a better description
         of the function interface.
         """
         fg = self.current_fg
@@ -293,8 +303,8 @@ class Constructor():
 
         Notes
         -----
-        See FilegroupScan.scan_infos() for a better description
-        of the function interface.
+        See filegroup_scan.scan_attributes_default() for a better
+        description of the function interface.
         """
         fg = self.current_fg
         fg.set_scan_attributes_func(func)
@@ -369,14 +379,15 @@ class Constructor():
         Check a regex is present in every filegroup.
         Scan files.
         Check coordinates for consistency across filegroups.
-        Create database object.
+        Create database object from multiple subclasses of data.
 
         Parameters
         ----------
         dt_type: DataBase or subclass (or a list of)
             Database classes to use, in order of
-            priority for method resolution (First one in
-            the list is the first class checked).
+            priority for method resolution (Methods and
+            attributes of the first one in
+            the list take precedence).
 
         Returns
         -------
