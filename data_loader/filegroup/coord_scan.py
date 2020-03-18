@@ -139,7 +139,8 @@ class CoordScan(Coord):
         self.scan = {}
         self.scanned = False
 
-        self.reset()
+        self.values = []
+        self.in_idx = []
 
         self.scan_attributes_func = scan_attributes_default
         self.scan_filename_func = scan_filename_default
@@ -147,7 +148,7 @@ class CoordScan(Coord):
 
         self._idx_descending = False
 
-        super().__init__(name=coord.name, array=coord._array,
+        super().__init__(name=coord.name, array=None,
                          units=coord.units, name_alt=coord.name_alt)
 
     def __str__(self):
@@ -201,6 +202,7 @@ class CoordScan(Coord):
         return order
 
     def reset(self):
+        self.empty()
         self.values = []
         self.in_idx = []
 
@@ -368,11 +370,6 @@ class CoordScan(Coord):
 class CoordScanVar(CoordScan):
     """Coord used for scanning variables."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.has_data():
-            self.values = self._array.tolist()
-            self.in_idx = self.values.copy()
 
     def set_values(self):
         self.values = np.array(self.values)
@@ -437,9 +434,10 @@ class CoordScanShared(CoordScan):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, shared=True)
-
         self.matchers = []
+        self.matches = []
+
+        super().__init__(*args, **kwargs, shared=True)
 
     def __str__(self):
         s = [super().__str__()]
