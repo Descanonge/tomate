@@ -68,7 +68,7 @@ class Coord():
 
         self._array = None
         self._descending = None
-        self._size = 0
+        self._size = None
         if array is not None:
             self.update_values(array)
 
@@ -138,8 +138,8 @@ class Coord():
         s = []
         s.append(str(type(self)))
         s.append("Name: %s" % self.name)
-        s.append("Size: %d" % self.size)
         if self.has_data():
+            s.append("Size: %d" % self.size)
             s.append("Extent: %s" % self.get_extent_str())
             s.append("Descending: %s" % ['no', 'yes'][self.is_descending()])
         if len(self.name_alt) > 0:
@@ -197,7 +197,7 @@ class Coord():
         """Empty values."""
         self._array = None
         self._descending = None
-        self._size = 0
+        self._size = None
 
     def subset(self, vmin=None, vmax=None, exclude=False) -> slice:
         """Return slice between vmin and vmax.
