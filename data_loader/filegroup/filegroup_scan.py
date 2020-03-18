@@ -92,8 +92,10 @@ class FilegroupScan():
 
         coords_fg = [[self.contains, variables_shared]] + coords
         self.make_coord_scan(coords_fg)
-        self.cs['var'].coord.vi = vi
+
+        self.contains.vi = vi
         self.cs['var'].vi = vi
+        self.cs['var'].set_values_default(contains)
 
     def __str__(self):
         s = [self.__class__.__name__]
