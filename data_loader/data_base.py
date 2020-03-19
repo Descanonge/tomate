@@ -769,13 +769,14 @@ class DataBase():
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.make_int_list()
-        keyring.make_variables(self.avail.var)
+        keyring.make_var_idx(self.avail.var)
 
         self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
         self.data = self.allocate(self.loaded.shape)
 
+        keyring.make_idx_var(self.avail.var)
         for fg in self.filegroups:
             fg.load_data(keyring)
 
@@ -892,7 +893,7 @@ class DataBase():
         # No data is loaded
         if self.loaded.is_empty():
             self.loaded = self.avail.copy()
-            self.loaded.var = [var]
+            self.loaded.var.update_values([var])
             self.data = data
 
         # Variable is already loaded
@@ -923,6 +924,7 @@ class DataBase():
         """
         if variable not in self.vi:
             self.vi.add_variable(variable, **attrs)
+            self.avail.var.append(variable)
         if data is not None:
             self.set_data(variable, data)
 

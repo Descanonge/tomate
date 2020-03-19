@@ -220,7 +220,7 @@ class FilegroupLoad(FilegroupScan):
             Variables to load
         keyring: Keyring
         """
-        var_load = [var for var in keyring['var'] if var in self.contains]
+        var_load = self.contains.get_names(keyring['var'].no_int())
         if var_load:
             keyring = Keyring.get_default(keyring, var=var_load, variables=self.contains)
             commands = self.get_commands(keyring)
