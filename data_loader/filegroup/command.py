@@ -348,10 +348,10 @@ def separate_variables(commands):
         cmd_ = cmd.copy()
         cmd_.remove_keyrings()
         for krg in cmd:
-            for inf, mem in zip(krg.infile['var'].iter(), krg.memory['var'].iter()):
+            for inf, mem in zip(krg.infile['var'], krg.memory['var']):
                 krg_ = krg.copy()
-                krg_.infile['var'].set(inf[0], inf[1])
-                krg_.memory['var'].set(mem[0], mem[1])
+                krg_.infile['var'].set(inf)
+                krg_.memory['var'].set(mem)
                 cmd_.append(*krg_)
         commands_.append(cmd_)
     return commands_
