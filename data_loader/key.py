@@ -94,7 +94,7 @@ class Key():
             value = self.value.copy()
         else:
             value = self.value
-        key = Key(value)
+        key = self.__class__(value)
         key.shape = self.shape
         key.parent_shape = self.parent_shape
         return key
@@ -200,21 +200,21 @@ class Key():
             self*other
         """
         a = self.tolist()
-
         key = other.value
         if other.type == 'int':
             key = [key]
+
         if other.type == 'slice':
             res = a[key]
         else:
             res = [a[k] for k in key]
 
         if self.type == 'int' or other.type == 'int':
-            key = Key(int(res[0]))
+            key = self.__class__(int(res[0]))
         elif self.type == 'list' or other.type == 'list':
-            key = Key(list(res))
+            key = self.__class__(list(res))
         else:
-            key = Key(list2slice_simple(res))
+            key = self.__class__(list2slice_simple(res))
             key.shape = len(res)
         key.parent_shape = self.parent_shape
         return key
@@ -245,7 +245,7 @@ class Key():
         if self.type == 'slice' or other.type == 'slice':
             key = list2slice_simple(key)
 
-        return Key(key)
+        return self.__class__(key)
 
     def sort(self):
         if self.type == 'list':
