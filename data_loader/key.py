@@ -78,9 +78,7 @@ class Key():
         return '\n'.join([super().__repr__(), str(self)])
 
     def __iter__(self):
-        if self.type == 'slice':
-            raise TypeError("Slice type key is not iterable.")
-        if self.type == 'int':
+        if self.type in ['int', 'slice']:
             val = [self.value]
         elif self.type == 'list':
             val = self.value
