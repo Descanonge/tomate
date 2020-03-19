@@ -93,6 +93,26 @@ class Variables(Coord):
             return y
         return self._array[y]
 
+    def get_indices(self, y):
+        if isinstance(y, (int, str)):
+            return self.idx(y)
+
+        if isinstance(y, slice):
+            start = self.idx(y.start)
+            stop = self.idx(y.stop)
+            y = slice(start, stop, y.step)
+            y = list(range(*y.indices(self.size)))
+
+        out = [self.idx(i) for i in y]
+        return out
+
+    def get_names(self, y):
+        idx = self.get_indices(y)
+        if isinstance(idx, int):
+            return self._array[idx]
+        out = [self._array[i] for i in idx]
+        return out
+
     def __getitem__(self, y) -> str:
         """Return name of variable.
 
@@ -101,17 +121,7 @@ class Variables(Coord):
         y: int, str, List[int], List[str], slice
             Index or name of variable(s).
         """
-        if isinstance(y, (int, str)):
-            return self._array[self.idx(y)]
-
-        if isinstance(y, slice):
-            start = self.idx(y.start)
-            stop = self.idx(y.stop)
-            y = slice(start, stop, y.step)
-            y = list(range(*y.indices(self.size)))
-
-        out = [self._array[self.idx(i)] for i in y]
-        return out
+        return self.get_names(y)
 
     def __iter__(self):
         """Iter variables names."""
