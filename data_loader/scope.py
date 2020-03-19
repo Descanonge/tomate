@@ -59,7 +59,6 @@ class Scope():
         self.parent_scope = None
         self.parent_keyring = Keyring(**{name: slice(None)
                                          for name in self.dims})
-        self.parent_keyring.make_variables(self.var)
         self.name = name
 
     def reset_parent_keyring(self):
@@ -69,7 +68,6 @@ class Scope():
         """
         self.parent_keyring = Keyring(**{name: slice(None)
                                          for name in self.dims})
-        self.parent_keyring.make_variables(self.var)
         self.parent_keyring.set_shape(self.dims)
 
     def __str__(self):
