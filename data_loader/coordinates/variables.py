@@ -75,6 +75,7 @@ class Variables(Coord):
         """
         if isinstance(y, str):
             y = np.where(self._array == y)[0][0]
+            y = int(y)
         return y
 
     def get_index(self, value, loc=None) -> int:
