@@ -147,3 +147,7 @@ class Variables(Coord):
 
     def set_attr(self, name, attr):
         self.vi.add_attrs_per_variable(name, attr)
+
+    def append(self, var):
+        variables = self[:] + [var]
+        self.update_values(variables)
