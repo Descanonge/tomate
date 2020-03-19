@@ -124,7 +124,9 @@ class Key():
         coord: Coord
             The coordinate that would be used.
         """
-        self.shape = len(coord[self.no_int()])
+        self.set_shape()
+        if self.type == 'slice':
+            self.shape = len(coord[self.value])
         self.parent_shape = coord.size
 
     def no_int(self):
