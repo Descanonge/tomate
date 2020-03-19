@@ -403,7 +403,7 @@ class Keyring():
         keyring.update(keys)
 
         if variables is not None:
-            keyring.make_variables(variables)
+            keyring.make_var_idx(variables)
 
         return keyring
 
@@ -546,8 +546,6 @@ class Keyring():
         """Return copy of self."""
         args = {c: k.copy() for c, k in self.items()}
         keyring = Keyring(**args)
-        if 'var' in self and self['var'].variables is not None:
-            keyring['var'].set_variables(self['var'].variables)
         return keyring
 
     def set_shape(self, coords):
@@ -673,10 +671,13 @@ class Keyring():
             if c in dims:
                 k.make_list_int()
 
-    def make_variables(self, variables):
-        """."""
+    def make_idx_var(self, variables):
         if 'var' in self:
-            self['var'].set_variables(variables)
+            self['var'].make_idx_var(variables)
+
+    def make_var_idx(self, variables):
+        if 'var' in self:
+            self['var'].make_var_idx(variables)
 
     def get_high_dim(self) -> List[str]:
         """Returns coordinates of size higher than one."""
