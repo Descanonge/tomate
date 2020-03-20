@@ -317,7 +317,8 @@ class FilegroupScan():
                 if cs.is_to_scan():
                     cs.scan_file(m, file)
         except:
-            self.close_file(file)
+            if file is not None:
+                self.close_file(file)
             raise
         else:
             if file is not None:
