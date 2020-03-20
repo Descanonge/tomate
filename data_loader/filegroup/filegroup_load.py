@@ -60,7 +60,7 @@ class FilegroupLoad(FilegroupScan):
             commands = self._get_commands_no_shared()
 
         key_in_inf = self._get_key_infile(keyring)
-        key_in_mem = self._get_key_memory(keyring)
+        key_in_mem = self._get_key_memory(key_in_inf)
 
         for cmd in commands:
             cmd.join_filename(self.root)
@@ -194,7 +194,6 @@ class FilegroupLoad(FilegroupScan):
         ---------
         keyring: Keyring
             Keyring asked to the filegroup.
-            NOTE: Could be replaced by the in-file keyring ?
         """
         krg_mem = Keyring()
         for name in self.iter_shared(False):
