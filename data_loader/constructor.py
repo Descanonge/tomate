@@ -160,7 +160,7 @@ class Constructor():
         """
         if replacements is None:
             replacements = {}
-        self.current_fg.add_scan_regex(pregex, **replacements)
+        self.current_fg.set_scan_regex(pregex, **replacements)
 
     def set_variables_infile(self, *variables, **kw_variables):
         """Set variables index in the file.

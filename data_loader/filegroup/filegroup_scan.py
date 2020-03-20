@@ -157,7 +157,7 @@ class FilegroupScan():
 
         return cs
 
-    def add_scan_regex(self, pregex, **replacements):
+    def set_scan_regex(self, pregex, **replacements):
         """Specify the pre-regex.
 
         Create a proper regex from the pre-regex.
