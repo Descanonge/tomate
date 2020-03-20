@@ -785,7 +785,7 @@ class DataBase():
         except NotImplementedError:
             pass
 
-    def load_selected(self, scope=None):
+    def load_selected(self, scope=None, **keys):
         """Load data from a child scope of available.
 
         Subset is specified by a scope.
@@ -806,7 +806,9 @@ class DataBase():
             raise Exception("The parent scope is not the available data scope."
                             " (is '%s')" % scope.parent_scope.name)
 
-        self.load(scope.var, **scope.parent_keyring.kw)
+        scope_ = scope.copy()
+        scope_.slice(int2list=False, **keys)
+        self.load(**scope_.parent_keyring.kw)
 
     def allocate(self, shape):
         """Allocate data array.
