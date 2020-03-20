@@ -150,7 +150,7 @@ class Key():
         if self.type == 'int':
             self.value = size - self.value
         elif self.type == 'list':
-            self.value = [size - z for z in self.value]
+            self.value = [size - z - 1 for z in self.value]
         elif self.type == 'slice':
             self.value = reverse_slice(self.value, size)
 
