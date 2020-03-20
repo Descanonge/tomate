@@ -330,7 +330,7 @@ def simplify_keys(keys):
     if all(k == start for k in keys):
         return start
 
-    if all(isinstance(k, Key.int_types) for k in keys):
+    if all(isinstance(k, Key.INT_TYPES) for k in keys):
         key = Key(keys)
         key.simplify()
         return key.value

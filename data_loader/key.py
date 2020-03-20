@@ -34,8 +34,7 @@ class Key():
         {'none', 'int', 'list', 'slice'}
     """
 
-    # TODO: rename caps
-    int_types = (int, np.integer)
+    INT_TYPES = (int, np.integer)
 
     def __init__(self, key):
         self.value = None
@@ -48,10 +47,10 @@ class Key():
         """."""
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
-            reject = any(not isinstance(z, self.int_types) for z in key)
+            reject = any(not isinstance(z, self.INT_TYPES) for z in key)
             tp = 'list'
             key = [int(k) for k in key]
-        elif isinstance(key, self.int_types):
+        elif isinstance(key, self.INT_TYPES):
             tp = 'int'
             key = int(key)
         elif isinstance(key, slice):
@@ -278,14 +277,14 @@ class KeyVar(Key):
         if isinstance(key, str):
             tp = 'int'
             var = True
-        elif isinstance(key, self.int_types):
+        elif isinstance(key, self.INT_TYPES):
             tp = 'int'
             key = int(key)
         elif isinstance(key, (list, tuple, np.ndarray)):
             if all([isinstance(k, str) for k in key]):
                 tp = 'list'
                 var = True
-            elif all([isinstance(k, self.int_types) for k in key]):
+            elif all([isinstance(k, self.INT_TYPES) for k in key]):
                 tp = 'list'
                 key = [int(k) for k in key]
             else:
@@ -294,7 +293,7 @@ class KeyVar(Key):
             tp = 'slice'
             slc = [key.start, key.stop, key.step]
             for i, s in enumerate(slc):
-                if isinstance(s, self.int_types):
+                if isinstance(s, self.INT_TYPES):
                     slc[i] = int(s)
             start, stop, step = slc
             invalid = False
