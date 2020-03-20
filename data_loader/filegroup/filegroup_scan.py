@@ -192,6 +192,10 @@ class FilegroupScan():
             self.cs[matcher.coord].add_matcher(matcher)
             regex = regex.replace(match.group(), '(' + matcher.rgx + ')')
 
+        for name, cs in self.iter_shared(True).items():
+            if len(cs.matchers) == 0:
+                raise RuntimeError("'%s' has no matcher in the pre-regex." % name)
+
         self.n_matcher = idx + 1
         self.regex = regex
         self.pregex = pregex
