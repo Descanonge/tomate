@@ -202,7 +202,7 @@ class FilegroupLoad(FilegroupScan):
                 key_mem = 0
             elif key.type == 'list':
                 key_mem = list(range(0, self.db.loaded[name].size, 1))
-            elif key.type == 'slice':
+            elif key.type in ['slice', 'none']:
                 key_mem = slice(0, self.db.loaded[name].size, 1)
             krg_mem[name] = key_mem
         return krg_mem
