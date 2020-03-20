@@ -297,7 +297,6 @@ class FilegroupLoad(FilegroupScan):
             Data chunk taken from file and to re-order.
         coords: List[str]
             Dimensions asked for loading.
-            There can be more than thoses present in file.
         order: List[str], optional
             Dimensions names ordered as in file.
         variables: bool, optional
@@ -316,10 +315,10 @@ class FilegroupLoad(FilegroupScan):
         # If we ask for keys that are not in the file.
         # added dimensions are inserted at the begginning
         order_added = order.copy()
-        for k in coords:
-            if k not in order:
-                chunk = chunk.reshape((1, *chunk.shape))
-                order_added.insert(0, k)
+        # for k in coords:
+        #     if k not in order:
+        #         chunk = chunk.reshape((1, *chunk.shape))
+        #         order_added.insert(0, k)
 
         # Reorder array
         if variables:
