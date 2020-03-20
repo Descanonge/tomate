@@ -333,7 +333,7 @@ class CoordScan(Coord):
                         self.set_attr(name, attr)
 
             if to_scan == 'filename':
-                values = self.scan_filename_func(self, values, **kwargs)
+                values, in_idx = self.scan_filename_func(self, values, **kwargs)
                 log.debug("Scanning filename for '%s'", self.name)
 
             if to_scan == 'in':

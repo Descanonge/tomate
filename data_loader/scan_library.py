@@ -13,7 +13,7 @@ import netCDF4 as nc
 from data_loader.coordinates.time import change_units
 
 
-def get_date_from_matches(cs, default_date=None):
+def get_date_from_matches(cs, values=None, default_date=None):
     """Retrieve date from matched elements.
 
     If any element is not found in the filename, it will be
@@ -82,9 +82,9 @@ def get_date_from_matches(cs, default_date=None):
     # TODO: add hours
 
     if match:
-        return nc.date2num(datetime(**date), cs.units)
+        return nc.date2num(datetime(**date), cs.units), None
 
-    return None
+    return None, None
 
 
 def get_value_from_matches(cs):
@@ -93,13 +93,13 @@ def get_value_from_matches(cs):
 
     value = elts.get("value")
     if value is not None:
-        return float(value)
+        return float(value), None
 
     idx = elts.get("idx")
     if idx is not None:
-        return int(idx)
+        return int(idx), None
 
-    return None
+    return None, None
 
 
 def _find_month_number(name):
