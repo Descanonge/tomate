@@ -501,12 +501,13 @@ class CoordScanShared(CoordScan):
         if matches not in self.matches:
             values = self.scan_file_values(file)
             if values is None:
-                raise RuntimeError("'%s' has not scanning functions set." % self.name)
-            for i in range(len(self.values) - len(self.matches)):
-                self.matches.append([])
-            for v in values:
-                i = self.values.index(v)
-                self.matches[i] = matches
+                raise RuntimeError("'%s' has no scanning functions set." % self.name)
+            if 'manual' in self.scan:
+                for v in values:
+                    i = self.values.index(v)
+                    self.matches[i] = matches
+            else:
+                self.matches += [matches for _ in range(len(values))]
 
     def is_to_open(self) -> bool:
         to_open = False
