@@ -248,7 +248,7 @@ class Command():
             keys_mem_to_simplify = []
 
             # First command keyrings
-            ck_start = self[0]
+            ck_start = cks[0]
 
             for ck in cks:
                 merge = True
@@ -259,22 +259,18 @@ class Command():
 
                 if merge:
                     key_inf, key_mem = ck[name]
-                    if key_inf.type == 'list' and len(key_inf.value) == 1:
-                        key_value = key_inf.value[0]
-                    else:
-                        key_value = key_inf.value
-                    assert key_mem.type == 'int', "Memory key is not integer."
-
-                    keys_inf_to_simplify.append(key_value)
-                    keys_mem_to_simplify.append(key_mem.value)
+                    key_inf.make_list_int()
+                    key_mem.make_list_int()
+                    keys_inf_to_simplify.append(key_inf)
+                    keys_mem_to_simplify.append(key_mem)
                 else:
                     cks_new.append(ck)
 
             key_inf_simplified = simplify_keys(keys_inf_to_simplify)
             key_mem_simplified = simplify_keys(keys_mem_to_simplify)
 
-            ck_start.modify({name: key_inf_simplified},
-                            {name: key_mem_simplified})
+            ck_start.modify({name: key_inf_simplified.value},
+                            {name: key_mem_simplified.value})
             cks_new.insert(0, ck_start)
             cks = cks_new
 
@@ -323,15 +319,15 @@ def simplify_keys(keys):
 
     Parameters
     ----------
-    keys: List[int, None, or slice]
+    keys: List[Key]
     """
     start = keys[0]
 
     if all(k == start for k in keys):
         return start
 
-    if all(isinstance(k, Key.INT_TYPES) for k in keys):
-        key = Key(keys)
+    if all(k.type == 'int' for k in keys):
+        key = start.__class__([k.value for k in keys])
         key.simplify()
         return key.value
 
