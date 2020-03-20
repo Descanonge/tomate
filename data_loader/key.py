@@ -744,10 +744,10 @@ class Keyring():
             if k.type == 'int':
                 s.append(str(k.value))
             elif k.type == 'list':
-                if len(k.value) <= 4:
+                if len(k.value) <= 5:
                     s.append(str(k.value))
                 else:
-                    z = '[%s, %s, ..., %s, %s]' % (*k.value[:2], *k.value[:-2])
+                    z = '[%s, %s, ..., %s, %s]' % (*k.value[:2], *k.value[-2:])
                     s.append(z)
             elif k.type == 'slice':
                 z = []
