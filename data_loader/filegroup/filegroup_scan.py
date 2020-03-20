@@ -359,8 +359,10 @@ class FilegroupScan():
             If no values were detected.
         """
         for cs in self.cs.values():
-            if cs.is_to_scan_values():
+            if 'manual' not in cs.scan:
                 cs.reset()
+            if cs.shared:
+                cs.matches = []
 
         files = self.find_files()
         for file in files:

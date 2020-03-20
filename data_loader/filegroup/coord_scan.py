@@ -285,8 +285,6 @@ class CoordScan(Coord):
         values: List[float]
         in_idx: List[int]
         """
-        self.scan.pop('in', None)
-        self.scan.pop('filename', None)
         self.scan['manual'] = None
         self.values = values
         self.in_idx = in_idx
@@ -324,7 +322,6 @@ class CoordScan(Coord):
         """
         values = None
         in_idx = None
-        n_values = None
 
         for to_scan, kwargs in self.scan.items():
             if to_scan == 'attributes' and not self.scanned:
@@ -359,12 +356,13 @@ class CoordScan(Coord):
             if n_values != len(in_idx):
                 raise IndexError("Not as much values as infile indices. (%s)" % self.name)
 
-            self.values += values
-            self.in_idx += in_idx
+            if 'manual' not in self.scan:
+                self.values += values
+                self.in_idx += in_idx
 
         self.scanned = True
 
-        return n_values
+        return values
 
 
 class CoordScanVar(CoordScan):
@@ -501,10 +499,14 @@ class CoordScanShared(CoordScan):
         # If they were not found before, which can happen when
         # there is more than one shared coord.
         if matches not in self.matches:
-            n_values = self.scan_file_values(file)
-            # if n_values is not None:
-            matches = [matches for _ in range(n_values)]
-            self.matches += matches
+            values = self.scan_file_values(file)
+            if values is None:
+                raise RuntimeError("'%s' has not scanning functions set." % self.name)
+            for i in range(len(self.values) - len(self.matches)):
+                self.matches.append([])
+            for v in values:
+                i = self.values.index(v)
+                self.matches[i] = matches
 
     def is_to_open(self) -> bool:
         to_open = False
