@@ -312,20 +312,14 @@ class FilegroupLoad(FilegroupScan):
         if order is None:
             order = list(self.cs.keys())
 
-        # If we ask for keys that are not in the file.
-        # added dimensions are inserted at the begginning
-        order_added = order.copy()
-        # for k in coords:
-        #     if k not in order:
-        #         chunk = chunk.reshape((1, *chunk.shape))
-        #         order_added.insert(0, k)
+        coords = [c for c in coords if c in order]
 
         # Reorder array
         if variables:
-            order_added.insert(0, 'var')
+            order.insert(0, 'var')
             coords.insert(0, 'var')
-        source = [coords.index(n) for n in coords if n in order_added]
-        dest = [coords.index(n) for n in order_added]
+        source = [coords.index(n) for n in coords if n in order]
+        dest = [coords.index(n) for n in order]
 
         if source != dest:
             log.info("reordering %s -> %s", source, dest)
