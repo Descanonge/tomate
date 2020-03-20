@@ -197,8 +197,8 @@ class Constructor():
                 kw_variables[var] = inf
 
         cs = fg.cs['var']
-        values = fg.contains.copy()
-        in_idx = [kw_variables.get(var, None) for var in fg.contains]
+        values = fg.contains[:]
+        in_idx = [kw_variables.get(var, None) for var in values]
         cs.set_scan_manual(values, in_idx)
 
     def set_scan_in_file(self, func, *coords):
