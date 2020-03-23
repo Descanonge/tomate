@@ -294,11 +294,17 @@ class Accessor():
         -------
         Array
         """
-        # TODO: add securities
         # Current data order
         current = keyring.get_non_zeros()
-        source = [current.index(n) for n in current if n in order]
-        dest = [current.index(n) for n in order]
+
+        if len(order) != len(current):
+            if len(order) != 2:
+                raise IndexError("Length of order must be the same as the array, or 2.")
+            dest = [current.index(n) for n in order]
+            source = dest[::-1]
+        else:
+            source = list(range(len(order)))
+            dest = [order.index(n) for n in current]
         if source != dest:
             return cls.moveaxis(array, source, dest)
         return array
