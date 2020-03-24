@@ -20,6 +20,8 @@ data\_loader.filegroup.command
    
        merge_cmd_per_file
    
+       separate_variables
+   
        simplify_keys
    
 
@@ -39,4 +41,5 @@ data\_loader.filegroup.command
       :undoc-members:
       :private-members:
    .. autofunction:: merge_cmd_per_file
+   .. autofunction:: separate_variables
    .. autofunction:: simplify_keys

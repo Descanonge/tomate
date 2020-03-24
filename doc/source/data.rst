@@ -7,13 +7,13 @@ Database
 
 The data object is the main focus of this package,
 and main gateway to its functionalities.
-It holds the data array itself when loaded, and all the information
+It holds the data array itself when loaded, and all the informations
 about variables, coordinates, and files on disk.
-It contains a variety of function to load, select, slice,
-do computations on, or to plot the data.
+It contains a variety of functions to load, select, slice,
+do computations on, or plot the data.
 
 * To learn how data files are managed, see :doc:`filegroup`.
-* To learn how information on data and variales are stored see
+* To learn how information on data and variables are stored see
   :doc:`variables_info`.
 
 
@@ -25,27 +25,43 @@ The first axis of the array corresponds to the different variables,
 and the following axes to the coordinates, in the order they are
 passed to the data object at its creation.
 
-Information about the data dimensions is contained in
+Information about the dimensions is contained in
 :class:`scopes<scope.Scope>`.
-This object holds a list of variables, and of
+This object holds a list of variables, and of the
 :doc:`coordinates objects<coord>`.
 
-The data object contains 3 different scopes by default.
+By default, the data object contains 3 different scopes,
+each corresponding to a specific range of data.
 
-+---------+----------------+------------------------+
-|Name     |Variable name   |Description             |
-+---------+----------------+------------------------+
-|available|`avail`         |Data that is available  |
-|         |                |on disk                 |
-+---------+----------------+------------------------+
-|loaded   |`loaded`        |Data that is currently  |
-|         |                |loaded in memory        |
-+---------+----------------+------------------------+
-|selected |`selected`      |Data that is selected   |
-+---------+----------------+------------------------+
++-----------+----------------+------------------------+
+|Name       |Variable name   |Description             |
++-----------+----------------+------------------------+
+|available  |`avail`         |Data that is available  |
+|           |                |on disk                 |
++-----------+----------------+------------------------+
+|loaded     |`loaded`        |Data that is currently  |
+|           |                |loaded in memory        |
++-----------+----------------+------------------------+
+|selected   |`selected`      |Data that is selected   |
++-----------+----------------+------------------------+
 
-Some attributs in scopes can be accessed directly from
-the data object as attributes for convenience.
+Some methods act on a specific scope. The scope by default is
+'loaded' if data has been loaded, 'available' otherwise.
+The method docstring should contain
+information on the scope they are acting on.
+For instance,
+:func:`data_base.DataBase.load`
+acts on available scope, such that::
+
+  dt.load(None, lat=slice(10, 30))
+
+will load a part of the data on disk, corresponding to the index
+10 to 30 of all the **available** latitude coordinate.
+Extra care should be taken to make sure one is working on
+the relevant scope.
+
+Some scope attributes can be accessed directly from
+the data object for convenience.
 The scope they are taken from is the loaded one, if data
 has been loaded, or available otherwise.
 In a similar fashion, the `scope` attribute return either the
@@ -56,23 +72,9 @@ instance: `data.lat` is equivalent to `data.scope.lat`,
 itself equivalent to `data.avail.lat` if data has not
 been loaded yet.
 
-Similarly, the index of each variable in the data array
-is found in the `idx` attribute.
 
-Various functions act on the current scope (either
-loaded or available). The method docstring should contain
-information on the scope they are acting on.
-For instance,
-:func:`data_base.DataBase.load`
-acts on available scope, such that::
-
-  dt.load(None, lat=slice(10, 30))
-
-will load a part of the data on disk, corresponding to the index
-10 to 30 of all the **available** latitude coordinate.
-
-Extra care should be taken to make sure one is working on
-the relevant scope.
+* More information on :doc:`coordinates<coord>`
+* More information on :ref:`Variables`
 
 
 Additional methods
@@ -95,3 +97,15 @@ See
 Note that the classes should be specified in order of priority for method
 resolution.
 If a clashing in the methods names should arise, warnings will be ensued.
+
+For instance, `create_data_class([DataMasked, DataPlot])` will
+return a type of data supporting masked values, and plotting functions.
+
+
+Selection
+---------
+
+
+
+Post loading function
+---------------------

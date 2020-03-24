@@ -25,6 +25,8 @@ data\_loader.scan\_library
    
        scan_units_nc
    
+       scan_variables_nc
+   
 
 
 
@@ -38,3 +40,4 @@ data\_loader.scan\_library
    .. autofunction:: scan_in_file_nc_idx_only
    .. autofunction:: scan_infos_nc
    .. autofunction:: scan_units_nc
+   .. autofunction:: scan_variables_nc

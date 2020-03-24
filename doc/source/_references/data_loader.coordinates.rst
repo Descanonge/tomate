@@ -25,3 +25,5 @@ data\_loader.coordinates
    
       time
    
+      variables
+   

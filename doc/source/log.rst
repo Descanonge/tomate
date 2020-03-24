@@ -2,7 +2,7 @@
 Logging
 =======
 
-This code make use of the logging built-in module to log information.
+This code make use of the logging built-in module to log out information.
 A global Logger is set when importing the package, and all submodules
 inherits its configuration.
 
@@ -20,4 +20,12 @@ Some aspects of the logging can be modified using functions from the
 More experienced users can directly modify the global logger, whose
 name is 'data_loader'.
 
-If you really don't want those in your terminal ((ง •̀_•́)ง), use the following code::
+If you really don't want logs in your terminal ((ง •̀_•́)ง),
+use the following code::
+
+  from data_loader import log
+  log.set_logging('WARN')
+
+or to redirect it to a file::
+
+  log.set_file_log('log.txt', no_stdout=True)

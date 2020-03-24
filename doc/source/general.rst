@@ -28,8 +28,8 @@ This object provides:
 * Eventually, :doc:`Filegroups<filegroup>` which inform on where to
   find the data files, and how to load data.
 
-To help construct these complex objects, a Constructor can be is used. It acts as
-configuration tools. Examples can be found in /examples.
+To help construct these complex objects, a Constructor can be used. It acts as
+configuration tool. Examples can be found in /examples.
 
 To jump right into using the package, one can immediatly go read the
 :doc:`constructing a database<tutorial>` doc page.

@@ -32,7 +32,8 @@ For data on disk:
   Different file format ? different structure: rows or columns first ? indexing
   origin lower or upper ? a varying number of time steps for each file ?
   This is now all a breeze.
-- Scan the files automatically to find values of coordinates.
+- Scan the files automatically to find values of coordinates, variables
+  attributes, data indexing,...
 - Load only subparts of data.
 - Logs will ensure you are loading what you want to load.
 
@@ -42,7 +43,8 @@ And in general:
 - Fully documented.
 
 As of now, this only supports NetCDF files out of the box. But the package can be
-easily extended for other file formats.
+easily extended for other file formats. See the section 'Expanding the package'
+of the documentation.
 
 Only tested for linux, should work on other OS.
 

@@ -12,6 +12,8 @@ data\_loader.key
    
        Key
    
+       KeyVar
+   
        Keyring
    
 
@@ -33,6 +35,11 @@ data\_loader.key
 
 
    .. autoclass:: Key
+      :show-inheritance:
+      :members:
+      :undoc-members:
+      :private-members:
+   .. autoclass:: KeyVar
       :show-inheritance:
       :members:
       :undoc-members:

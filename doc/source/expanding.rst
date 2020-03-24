@@ -36,7 +36,7 @@ It is advised to look at
 for a practical example of a file format expansion.
 
 A new file format will recquire new scanning function. One can take example
-at the :mod:`data_loader.scan_library`
+at the :mod:`data_loader.scan_library`.
 
 
 Data base type
@@ -44,9 +44,9 @@ Data base type
 
 Additional features can be added to the data base object.
 Any method can be added to or modified from the
-:class:`DataBase<data_base.DataBase>` class.
-The data object class can then be chosen from any of these
-subclasses, or from a combination of thoses.
+:class:`DataBase<data_base.DataBase>` class by creating a subclass.
+The data object class can then be chosen from any  subclasses, or from a
+combination of thoses.
 See :ref:`Additional methods` for details.
 
 It is also possible to change how the data is stored, or accessed.

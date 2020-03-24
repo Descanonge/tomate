@@ -16,6 +16,8 @@ data\_loader.data\_base
 .. rubric:: Functions
 .. autosummary::
    
+       do_post_load_default
+   
        subset_slices
    
 
@@ -29,4 +31,5 @@ data\_loader.data\_base
       :members:
       :undoc-members:
       :private-members:
+   .. autofunction:: do_post_load_default
    .. autofunction:: subset_slices

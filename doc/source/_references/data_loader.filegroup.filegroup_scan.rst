@@ -13,6 +13,11 @@ data\_loader.filegroup.filegroup\_scan
        FilegroupScan
    
 
+.. rubric:: Functions
+.. autosummary::
+   
+       scan_attributes_default
+   
 
 
 
@@ -24,3 +29,4 @@ data\_loader.filegroup.filegroup\_scan
       :members:
       :undoc-members:
       :private-members:
+   .. autofunction:: scan_attributes_default

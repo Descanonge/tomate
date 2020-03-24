@@ -16,6 +16,8 @@ data\_loader.filegroup.coord\_scan
    
        CoordScanShared
    
+       CoordScanVar
+   
        Matcher
    
 
@@ -47,6 +49,11 @@ data\_loader.filegroup.coord\_scan
       :undoc-members:
       :private-members:
    .. autoclass:: CoordScanShared
+      :show-inheritance:
+      :members:
+      :undoc-members:
+      :private-members:
+   .. autoclass:: CoordScanVar
       :show-inheritance:
       :members:
       :undoc-members:

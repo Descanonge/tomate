@@ -4,6 +4,8 @@ Data Loader Documentation
 
 Welcome to the Data Loader package documentation !
 
+Check out the :doc:`general` if you're lost !
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
