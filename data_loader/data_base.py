@@ -293,7 +293,7 @@ class DataBase():
         scope_.slice(keyring, int2list=False, **keys)
         return self.view(scope_.parent_keyring)
 
-    def view_ordered(self, order, variables=None, keyring=None, **keys):
+    def view_ordered(self, order, keyring=None, **keys):
         """Returns a reordered subset of data.
 
         The ranks of the array are rearranged to follow
