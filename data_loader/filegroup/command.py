@@ -329,7 +329,7 @@ def simplify_keys(keys):
     if all(k.type == 'int' for k in keys):
         key = start.__class__([k.value for k in keys])
         key.simplify()
-        return key.value
+        return key
 
     raise TypeError("Different types of keys not mergeable.")
 
