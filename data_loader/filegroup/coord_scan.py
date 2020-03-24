@@ -273,6 +273,7 @@ class CoordScan(Coord):
         scan_in_file: for the function signature.
         Constructor.set_scan_in_file_func: for more details.
         """
+        self.scan.pop('manual', None)
         self.scan.pop('in', None)
         self.scan['in'] = kwargs
         self.scan_in_file_func = func
@@ -285,6 +286,8 @@ class CoordScan(Coord):
         values: List[float]
         in_idx: List[int]
         """
+        self.scan.pop('manual', None)
+        self.scan.pop('in', None)
         self.scan['manual'] = None
         self.values = values
         self.in_idx = in_idx
