@@ -20,6 +20,7 @@ from .log import set_logging
 from .coordinates.coord import Coord
 from .coordinates.time import Time
 from .coordinates.latlon import Lat, Lon
+from .coordinates.variables import Variables
 
 from .key import Keyring
 
@@ -36,6 +37,7 @@ __all__ = [
     'Time',
     'Lat',
     'Lon',
+    'Variables',
     'Keyring',
     'IterDict',
     'VariablesInfo',
