@@ -30,7 +30,7 @@ class FilegroupLoad(FilegroupScan):
     See :doc:`../expanding` for more information about subclassing this.
     """
 
-    acs = Accessor()
+    acs = Accessor
 
     def get_commands(self, keyring):
         """Get load commands.

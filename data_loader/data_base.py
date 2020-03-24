@@ -75,14 +75,14 @@ class DataBase():
     selected: Scope
         Scope of selected data.
 
-    acs: Accessor (or subclass)
-        Object to use to access the data.
+    acs: Type
+        Accessor class (or subclass) to use to access the data.
 
     do_post_load: Callable
         Function applied after loading data.
     """
 
-    acs = Accessor()
+    acs = Accessor
 
     def __init__(self, root, filegroups, vi, *coords):
         self.root = root

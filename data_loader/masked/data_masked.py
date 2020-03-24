@@ -59,7 +59,7 @@ class DataMasked(DataBase):
         Function to compute land mask.
     """
 
-    acs = AccessorMask()
+    acs = AccessorMask
 
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None

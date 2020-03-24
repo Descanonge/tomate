@@ -516,7 +516,7 @@ def create_data_class(dt_types, accessor=None):
         d = {}
         acs_types = set()
         for tp in dt_types:
-            acs_tp = type(tp.acs)
+            acs_tp = tp.acs
             if acs_tp != Accessor:
                 if acs_tp in acs_types:
                     log.warning("Multiple subclasses of Accessor. "
