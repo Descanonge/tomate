@@ -263,6 +263,7 @@ class DataBase():
         keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
         keyring.make_full(self.dims)
         keyring.make_total()
+        keyring.simplify()
         keyring.sort_by(self.dims)
         log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
