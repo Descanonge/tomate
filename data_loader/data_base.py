@@ -824,31 +824,6 @@ class DataBase():
         log.info("Allocating numpy array of shape %s", shape)
         return self.acs.allocate(shape)
 
-    def _get_filegroups_for_variables(self, variables):
-        """Find the filegroups corresponding to variables.
-
-        This defines in what order the filegroups will be loaded.
-        Currently, the order is that of the filegroups (in what
-        order they were set).
-
-        Parameters
-        ----------
-        variables: List[str]
-
-        Returns
-        -------
-        fg_var: List[List[Filegroup, List[str]]
-            A list of the filegroups with the corresponding variables.
-        """
-        fg_var = []
-        for fg in self.filegroups:
-            variables_fg = [var for var in fg.contains
-                            if var in variables]
-            if variables_fg:
-                fg_var.append([fg, variables_fg])
-
-        return fg_var
-
     def set_post_load_func(self, func):
         """Set function for post loading treatements.
 
