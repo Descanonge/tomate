@@ -915,7 +915,7 @@ class DataBase():
             self.data = np.delete(self.data, [keys], axis=0)
             self.loaded.var.remove(variable)
 
-    def write(self, filename, wd=None, variables=None):
+    def write(self, filename, wd=None, **keys):
         """Write variables to disk.
 
         Write to a netcdf file.
@@ -931,16 +931,17 @@ class DataBase():
         variables: str, List[str], optional
             Variables to write. If None, all are written.
         """
-        if variables is None:
-            variables = self.loaded.var
-        else:
-            variables = [v for v in variables if v in self.loaded.var]
-        fg_var = self._get_filegroups_for_variables(variables)
-        for fg, var_list in fg_var:
-            fg.write(filename, wd, var_list)
+        keyring = Keyring(**keys)
+        keyring.make_full(self.dims)
+        keyring.make_total()
+        keyring.make_idx_var(self.loaded.var)
 
-
-
+        for fg in self.filegroups:
+            keyring_fg = keyring.copy()
+            keyring_fg['var'] *= Keyring(var=fg.contains[:])['var']
+            keyring_fg['var'].make_var_idx(fg.contains)
+            if keyring_fg['var'].shape != 0:
+                fg.write(filename, wd, keyring=keyring)
 
 
 def do_post_load_default(dt): #pylint: disable=method-hidden

@@ -133,7 +133,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         return order
 
-    def write(self, filename, wd, variables):
+    def write(self, filename, wd, keyring):
         """Write data to disk."""
         if wd is None:
             wd = self.root
@@ -143,27 +143,28 @@ class FilegroupNetCDF(FilegroupLoad):
         with self.open_file(file, mode='w') as dt:
             log.info("in %s", file)
             for name, coord in self.db.loaded.coords.items():
-                dt.createDimension(name, coord.size)
-                dt.createVariable(name, 'f', [name])
-                dt[name][:] = coord[:]
-                log.info("Laying %s values, extent %s", name, coord.get_extent_str())
+                key = keyring[name].copy()
+                key.set_shape_coord(coord)
+                if key.shape != 0:
+                    dt.createDimension(name, key.shape)
+                    dt.createVariable(name, 'f', [name])
+                    dt[name][:] = coord[key.value]
+                    log.info("Laying %s values, extent %s", name,
+                             coord.get_extent_str(key.no_int()))
 
-                dt[name].setncattr('fullname', coord.fullname)
-                dt[name].setncattr('units', coord.units)
+                    dt[name].setncattr('fullname', coord.fullname)
+                    dt[name].setncattr('units', coord.units)
 
             for info in self.db.vi.infos:
                 if not info.startswith('_'):
                     dt.setncattr(info, self.db.vi.get_info(info))
 
-            for var in variables:
+            for var in keyring['var']:
                 cs = self.cs['var']
                 name = cs.in_idx[cs.idx(var)]
-                try:
-                    t = self.db.vi.nctype[var]
-                except AttributeError:
-                    t = 'f'
+                t = self.vi.get_attr_safe('nctype', var, 'f')
                 dt.createVariable(name, t, self.db.coords_name)
-                dt[name][:] = self.db[var]
+                dt[name][:] = self.db.view(keyring, var=var)
 
                 for attr in self.db.vi.attrs:
                     if not attr.startswith('_'):
