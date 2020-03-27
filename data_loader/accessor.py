@@ -59,15 +59,10 @@ class Accessor():
             Keys used for creating the array.
         array: Array
         """
-        cls.check_shape_none(keyring, cls.shape(array))
-
-    @staticmethod
-    def check_shape_none(keyring, shape):
-        if any(k is not None and a != k
-               for a, k in zip(list(shape), keyring.shape)):
+        if not keyring.is_shape_equivalent(cls.shape(array)):
             raise ValueError("Mismatch between selected data "
                              "and keyring shape (array: %s, keyring: %s)"
-                             % (list(shape), keyring.shape))
+                             % (cls.shape(array), keyring.shape))
 
     @staticmethod
     def allocate(shape):
