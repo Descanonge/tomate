@@ -427,7 +427,7 @@ class KeyVar(Key):
         variables: Variables
         """
         if not self.var:
-            names = variables.get_names(self.no_int())
+            names = variables.get_names(self.value)
             self.set(names)
         self.set_shape_coord(variables)
 
@@ -439,7 +439,7 @@ class KeyVar(Key):
         variables: Variables
         """
         if self.var:
-            idx = variables.get_indices(self.no_int())
+            idx = variables.get_indices(self.value)
             self.set(idx)
         self.set_shape_coord(variables)
 

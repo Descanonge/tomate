@@ -64,7 +64,6 @@ class DataPlot(DataBase):
             else:
                 scope = self.avail
 
-
         keyring = Keyring.get_default(keyring, **keys)
         if coords:
             names = coords
