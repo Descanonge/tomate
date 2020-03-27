@@ -398,6 +398,8 @@ class KeyVar(Key):
     def __mul__(self, other):
         if not other.var:
             return super().__mul__(other)
+        if not self.var:
+            raise TypeError("If other is var, self must be too.")
 
         a = self.tolist()
         key = other.value
@@ -411,7 +413,7 @@ class KeyVar(Key):
             res = [z for z in a if z in key]
 
         if self.type == 'int' or other.type == 'int':
-            key = KeyVar(int(res[0]))
+            key = KeyVar(res[0])
         elif self.type == 'list' or other.type == 'list':
             key = self.__class__(list(res))
         key.parent_shape = self.parent_shape
