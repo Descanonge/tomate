@@ -936,32 +936,7 @@ class DataBase():
             fg.write(filename, wd, var_list)
 
 
-def subset_slices(key, key_subset):
-    """Compound slices and lists when subsetting a coord.
 
-    Parameters
-    ----------
-    key: Slice or List[int]
-        Current slice of a coordinate.
-    key_subset: Slice or List[int]
-        Asked slice of coordinate.
-    """
-    key_new = None
-    if isinstance(key, list):
-        if isinstance(key_subset, slice):
-            key_new = key[key_subset]
-        if isinstance(key_subset, list):
-            key_new = [key[i] for i in key_subset]
-
-    if isinstance(key, slice):
-        if isinstance(key_subset, slice):
-            key_new = slice(key_subset.start + key.start,
-                            key_subset.stop + key.start,
-                            key_subset.step * key.step)
-        if isinstance(key_subset, list):
-            key_new = [i*key.step + key.start for i in key_subset]
-
-    return key_new
 
 
 def do_post_load_default(dt): #pylint: disable=method-hidden
