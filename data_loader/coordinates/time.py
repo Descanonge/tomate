@@ -41,10 +41,10 @@ class Time(Coord):
         Time units.
     """
 
-    def get_extent_str(self) -> str:
+    def get_extent_str(self, slc=None) -> str:
         """Return extent as str."""
         return "%s - %s" % tuple(self.format(v)
-                                 for v in self.index2date([0, -1]))
+                                 for v in self.index2date(slc)[[0, -1]])
 
     def update_values(self, values: Sequence[float]):
         """Update values.

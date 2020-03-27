@@ -169,9 +169,9 @@ class Coord():
         elif name == 'fullname':
             self.fullname = attr
 
-    def get_extent_str(self) -> str:
+    def get_extent_str(self, slc=None) -> str:
         """Return the extent as string."""
-        return "%s - %s" % tuple(self.format(v) for v in self.get_extent())
+        return "%s - %s" % tuple(self.format(v) for v in self.get_extent(slc))
 
     def copy(self) -> "Coord":
         """Return a copy of itself."""
