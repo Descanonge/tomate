@@ -191,5 +191,9 @@ class FilegroupNetCDF(FilegroupLoad):
             chunk = self.db.acs.take(krg_mem, self.db.data)
             chunk = self.reorder_chunk(chunk, krg_inf, order)
 
-            self.db.acs.check_shape_none(krg_inf, ncvar.shape)
+
+            if not krg_inf.is_shape_equivalent(ncvar.shape):
+                raise ValueError("Mismatch between selected data "
+                                "and keyring shape (array: %s, keyring: %s)"
+                                % (ncvar.shape, keyring.shape))
             ncvar[:] = chunk
