@@ -322,16 +322,17 @@ def simplify_keys(keys):
     ----------
     keys: List[Key]
     """
-    assert all(k.type == 'int' for k in keys), "Keys not mergeable."
-
     start = keys[0]
     if all(k == start for k in keys):
         return start
 
-    key = start.__class__([k.value for k in keys])
-    key.simplify()
-    key.shape = len(keys)
-    return key
+    if all(k.type == 'int' for k in keys):
+        key = start.__class__([k.value for k in keys])
+        key.simplify()
+        key.shape = len(keys)
+        return key
+
+    raise ValueError("Keys not mergeable.")
 
 
 def separate_variables(commands):
