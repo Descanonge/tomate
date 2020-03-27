@@ -770,7 +770,11 @@ class DataBase():
 
         keyring.make_idx_var(self.avail.var)
         for fg in self.filegroups:
-            fg.load_data(keyring)
+            keyring_fg = keyring.copy()
+            keyring_fg['var'] *= Keyring(var=fg.contains[:])['var']
+            keyring_fg['var'].make_var_idx(fg.contains)
+            if keyring_fg['var'].shape != 0:
+                fg.load_data(keyring_fg)
 
         try:
             self.do_post_load(self)

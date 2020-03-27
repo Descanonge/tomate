@@ -219,21 +219,17 @@ class FilegroupLoad(FilegroupScan):
             Variables to load
         keyring: Keyring
         """
-        keyring_fg = Keyring(var=self.contains[:])
-        var_load = (keyring_fg['var'] * keyring['var']).value
-        if var_load:
-            keyring = Keyring.get_default(keyring, var=var_load, variables=self.contains)
-            commands = self.get_commands(keyring)
-            for cmd in commands:
-                log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
-                file = self.open_file(cmd.filename, mode='r', log_lvl='info')
-                try:
-                    self.load_cmd(file, cmd)
-                except:
-                    self.close_file(file)
-                    raise
-                else:
-                    self.close_file(file)
+        commands = self.get_commands(keyring)
+        for cmd in commands:
+            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
+            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
+            try:
+                self.load_cmd(file, cmd)
+            except:
+                self.close_file(file)
+                raise
+            else:
+                self.close_file(file)
 
     def load_cmd(self, file, cmd):
         """Load data from one file using a load command.
