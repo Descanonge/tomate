@@ -458,8 +458,6 @@ class Keyring():
         for a given dimension.
     """
 
-    VAR_DIM_NAMES = ('var',)
-
     @classmethod
     def get_default(cls, keyring=None, variables=None, **keys) -> "Keyring":
         """Return a new keyring, eventually updated.
@@ -508,7 +506,7 @@ class Keyring():
         value: Key, key-like
         """
         if not issubclass(value.__class__, Key):
-            if item in self.VAR_DIM_NAMES:
+            if item == 'var':
                 value = KeyVar(value)
             else:
                 value = Key(value)
