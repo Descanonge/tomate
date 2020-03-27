@@ -268,7 +268,7 @@ class DataBase():
         log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
 
-    def view_selected(self, keyring=None, **keys):
+    def view_selected(self, scope=None, keyring=None, **keys):
         """Returns a subset of loaded data.
 
         Subset is specified by a scope.
@@ -288,7 +288,9 @@ class DataBase():
         -------
         Array
         """
-        scope = self.selected
+        if scope is None:
+            scope = 'selected'
+        scope = self.get_scope(scope)
         if scope.is_empty():
             raise Exception("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.loaded:
