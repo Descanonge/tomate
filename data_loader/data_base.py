@@ -669,19 +669,6 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def load_data_value(self, variables=None, **keys):
-        """Load part of data from disk into memory.
-
-        Part of the data to load is specified by values.
-
-        .. deprecated:: 0.3.1
-            Is replaced by DataBase.load_by_value().
-            Will be removed in 0.4.
-        """
-        log.warning("load_data_value() is replaced by load_by_value()"
-                    " and will be removed in 0.4.")
-        self.load_by_value(variables=variables, **keys)
-
     def load_by_value(self, variables=None, **keys):
         """Load part of data from disk into memory.
 
@@ -723,17 +710,6 @@ class DataBase():
                 key = c.get_index(key)
             keys_[name] = key
         self.load(variables, **keys_)
-
-    def load_data(self, variables, *keys, **kw_keys):
-        """Load part of data from disk into memory.
-
-        .. deprecated:: 0.3.1
-            Is replaced by DataBase.load().
-            Will be removed in 0.4.
-        """
-        log.warning("load_data() is replaced by load()"
-                    " and will be removed in 0.4.")
-        self.load(variables, *keys, **kw_keys)
 
     def load(self, *keys, **kw_keys):
         """Load part of data from disk into memory.
