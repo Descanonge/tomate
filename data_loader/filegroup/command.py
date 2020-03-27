@@ -10,7 +10,7 @@ import os
 import logging
 from typing import Iterator
 
-from data_loader.key import Keyring, Key
+from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)

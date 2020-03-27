@@ -945,6 +945,15 @@ class DataBase():
             if keyring_fg['var'].shape != 0:
                 fg.write(filename, wd, keyring=keyring)
 
+    def write_add_variable(self, var, sibling, inf_name=None, **keys):
+        if inf_name is None:
+            inf_name = var
+        scope = self.get_subscope('loaded', var=var, **keys)
+        for fg in self.filegroups:
+            if sibling in fg.contains:
+                fg.write_add_variable(var, sibling, inf_name, scope)
+                break
+
 
 def do_post_load_default(dt): #pylint: disable=method-hidden
     """Do post loading treatments.

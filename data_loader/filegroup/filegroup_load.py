@@ -322,3 +322,23 @@ class FilegroupLoad(FilegroupScan):
             chunk = self.acs.moveaxis(chunk, source, dest)
 
         return chunk
+
+    def write_add_variable(self, var, sibling, inf_name, scope):
+        keyring = scope.parent_keyring.copy()
+        keyring['var'] = sibling
+        keyring.make_var_idx(self.contains)
+
+        commands = self.get_commands(keyring)
+
+        for cmd in commands:
+            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
+            file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
+            for cks in cmd:
+                cks.memory['var'] = self.db.idx(var)
+            try:
+                self.write_variable(file, cmd, var, inf_name)
+            except:
+                self.close_file(file)
+                raise
+            else:
+                self.close_file(file)

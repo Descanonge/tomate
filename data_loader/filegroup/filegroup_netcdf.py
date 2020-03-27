@@ -169,3 +169,27 @@ class FilegroupNetCDF(FilegroupLoad):
                 for attr in self.db.vi.attrs:
                     if not attr.startswith('_'):
                         dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
+
+    def write_variable(self, file, cmd, var, inf_name):
+
+        for krg_inf, krg_mem in cmd:
+            if inf_name not in file.variables:
+
+                t = self.vi.get_attr_safe('nctype', var, 'f')
+                file.createVariable(inf_name, t, self.db.coords_name)
+
+                for attr in self.db.vi.attrs:
+                    # TODO: no attributes for all variables.
+                    if not attr.startswith('_'):
+                        value = self.db.vi.get_attr(attr, var)
+                        if value is not None:
+                            file[inf_name].setncattr(attr, value)
+
+            ncvar = file[var]
+
+            order = self._get_order(file, var)
+            chunk = self.db.acs.take(krg_mem, self.db.data)
+            chunk = self.reorder_chunk(chunk, krg_inf, order)
+
+            self.db.acs.check_shape_none(krg_inf, ncvar.shape)
+            ncvar[:] = chunk
