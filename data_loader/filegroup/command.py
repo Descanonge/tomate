@@ -269,8 +269,8 @@ class Command():
             key_inf_simplified = simplify_keys(keys_inf_to_simplify)
             key_mem_simplified = simplify_keys(keys_mem_to_simplify)
 
-            ck_start.modify({name: key_inf_simplified.value},
-                            {name: key_mem_simplified.value})
+            ck_start.modify({name: key_inf_simplified},
+                            {name: key_mem_simplified})
             assert ck_start.infile[name].shape == ck_start.memory[name].shape, \
                     "Shape issue between shared infile and memory keyrings."
 
@@ -330,6 +330,10 @@ def simplify_keys(keys):
     if all(k == start for k in keys):
         return start
 
+    key = start.__class__([k.value for k in keys])
+    key.simplify()
+    key.shape = len(keys)
+    return key
 
 
 def separate_variables(commands):
