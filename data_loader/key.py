@@ -823,6 +823,25 @@ class Keyring():
                 res[d] = other[d]
         return res
 
+    def is_shape_equivalent(self, other):
+        """Compare keyrings shapes.
+
+        Parameters
+        ----------
+        other: Keyring, Sequence[int, None]
+        """
+        if isinstance(other, Keyring):
+            other = other.shape
+        else:
+            other = list(other)
+
+        out = any(a is None
+                  or b is None
+                  or a == b
+                  for a, b in zip(self.shape, other))
+        return out
+       
+
     def print(self) -> str:
         """Return readable concise string representation."""
         s = []
