@@ -73,7 +73,12 @@ class FilegroupLoad(FilegroupScan):
                 krg_inf.make_list_int()
                 krg_mem.make_list_int()
 
+                if not krg_inf.is_shape_equivalent(krg_mem):
+                    raise IndexError("Infile and memory keyrings have different"
+                                     " shapes (%s)" % str(cmd))
+
             cmd.order_keys(['var'] + self.db.coords_name)
+
 
         return commands
 

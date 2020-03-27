@@ -271,8 +271,6 @@ class Command():
 
             ck_start.modify({name: key_inf_simplified},
                             {name: key_mem_simplified})
-            assert ck_start.infile[name].shape == ck_start.memory[name].shape, \
-                    "Shape issue between shared infile and memory keyrings."
 
             cks_new.insert(0, ck_start)
             cks = cks_new
