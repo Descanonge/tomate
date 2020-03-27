@@ -669,19 +669,18 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def load_by_value(self, variables=None, **keys):
+    def load_by_value(self, *keys, **kw_keys):
         """Load part of data from disk into memory.
 
         Part of the data to load is specified by values.
 
         Parameters
         ----------
-        variables: str or List[str], optional
-            Variables to load.
         keys: list[float], float, int, slice, optional
             Values to select for a coordinate.
             If is slice, use start and stop as boundaries. Step has no effect.
             If is float, int, or a list of, closest index for each value is taken.
+        kw_keys: Same, optional
 
         Examples
         --------
@@ -698,8 +697,9 @@ class DataBase():
         >>> dt.load_by_value(None, depth=[0, 10, 50])
         """
         keys_ = {}
-        for name, c in self.avail.coords.items():
-            key = keys.get(name)
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        for name, c in self.avail.dims.items():
+            key = kw_keys.get(name)
             if key is None:
                 key = slice(None, None)
             elif isinstance(key, slice):
@@ -709,7 +709,7 @@ class DataBase():
             else:
                 key = c.get_index(key)
             keys_[name] = key
-        self.load(variables, **keys_)
+        self.load(**keys_)
 
     def load(self, *keys, **kw_keys):
         """Load part of data from disk into memory.
