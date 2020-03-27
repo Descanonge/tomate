@@ -665,10 +665,9 @@ class DataBase():
         self.data = self.view(keyring)
 
     def unload_data(self):
-        """Remove data, return coordinates and variables to all available."""
+        """Remove data."""
         self.data = None
-        self.loaded = self.avail.copy()
-        self.loaded.name = 'loaded'
+        self.loaded.empty()
 
     def load_data_value(self, variables=None, **keys):
         """Load part of data from disk into memory.
