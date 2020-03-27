@@ -622,7 +622,7 @@ class DataBase():
             keys_[name] = key
         self.select(scope, **keys_)
 
-    def add_to_selection(self, keyring=None, **keys):
+    def add_to_selection(self, scope='avail', keyring=None, **keys):
         """Add to selection.
 
         Keys act upon the parent scope of selection.
@@ -639,8 +639,7 @@ class DataBase():
         """
         scope = self.selected
         if scope.is_empty():
-            # TODO: adapt args
-            self.select('avail', keyring=keyring, **keys)
+            self.select(scope, keyring=keyring, **keys)
         else:
             keyring = Keyring.get_default(keyring, **keys, variables=self.avail.var)
             keyring.set_shape(scope.parent_scope.dims)
