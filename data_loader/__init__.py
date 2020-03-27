@@ -1,10 +1,16 @@
 """Manages sets of data on disk.
 
-Manages
+Data Loader provides ways to manipulate data under the form of a
+multi-dimensional array.
+It manages multiples variables, as well as the coordinates along
+which the data varies.
+It also provides multiple convenience functions to retrieve
+subpart of the data, do computations, or plot the data.
 
-* placement of data on disk
-* loading of subsets of this data
-* variables and their metadata
+The data can be retrieved from disk, where it can be arranged
+in multiple ways and formats.
+Information on the data, such as variable attributes,
+or coordinates values can be retrieved automatically.
 """
 
 # This file is part of the 'data-loader' project
@@ -38,6 +44,7 @@ __all__ = [
     'Lat',
     'Lon',
     'Variables',
+
     'Keyring',
     'IterDict',
     'VariablesInfo',

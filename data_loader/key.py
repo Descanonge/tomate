@@ -29,6 +29,8 @@ class Key():
 
     Attributes
     ----------
+    INT_TYPES: List[Type]
+        Types that are considered integer.
     value: None, int, List[int], slice
     type: str
         {'none', 'int', 'list', 'slice'}
@@ -44,7 +46,17 @@ class Key():
         self.set(key)
 
     def set(self, key):
-        """."""
+        """Set key value.
+
+        Parameters
+        ----------
+        key: Key-like
+
+        Raises
+        ------
+        TypeError
+            If key is not a valid type.
+        """
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
             reject = any(not isinstance(z, self.INT_TYPES) for z in key)
@@ -77,6 +89,7 @@ class Key():
         return '\n'.join([super().__repr__(), str(self)])
 
     def __iter__(self):
+        """Iter through values."""
         if self.type in ['int', 'slice']:
             val = [self.value]
         elif self.type == 'list':
@@ -142,8 +155,9 @@ class Key():
 
         Parameters
         ----------
-        size: int
+        size: int, optional
             Size of the coordinate.
+            Default is the parent coordinate shape.
         """
         if size is None:
             size = self.parent_shape
@@ -167,7 +181,14 @@ class Key():
             self.value = key
 
     def tolist(self):
-        """Transform key into list."""
+        """Transform key into list.
+
+        Raises
+        ------
+        TypeError
+            If key is slice an dhas not had its parent shape
+            specified.
+        """
         a = self.value
         if self.type == 'int':
             a = [a]
@@ -247,17 +268,20 @@ class Key():
         return self.__class__(key)
 
     def sort(self):
+        """Sort indices if in a list."""
         if self.type == 'list':
             self.value = list(set(self.value))
             self.value.sort()
 
     def make_list_int(self):
+        """Make list of length one integer."""
         if self.type == 'list' and len(self.value) == 1:
             self.type = 'int'
             self.value = self.value[0]
             self.shape = 0
 
     def make_int_list(self):
+        """Make integer a list of lenght one."""
         if self.type == 'int':
             self.type = 'list'
             self.value = [self.value]
@@ -265,13 +289,51 @@ class Key():
 
 
 class KeyVar(Key):
-    """."""
+    """Key for indexing Variable dimension.
+
+    Add support for strings keys to Key.
+    Allows to go from variable name to index (and
+    vice-versa).
+
+    Parameters
+    ----------
+    key: None, int, str, List[int], List[str], slice
+        Key-like object.
+        Can also be variable name, list of variables names, or
+        a slice made from strings.
+
+    Attributes
+    ----------
+    var: bool
+        If the key-value can be used only for variables
+        (*ie* it is or contains a string). In which case
+        one can use `make_var_idx`.
+
+    Examples
+    --------
+    Examples of values:
+    >>> 0, [0, 1], 'sst', ['sst'], slice('sst', 'chl', 1)
+    """
 
     def __init__(self, key):
         self.var = False
         super().__init__(key)
 
     def set(self, key):
+        """Set value.
+
+        Parameters
+        ----------
+        key: Key-like
+
+        Raises
+        ------
+        TypeError
+            Key is not of valid type.
+        ValueError:
+            Slice is not valid (step is not integer,
+            or start and stop are not of the same type).
+        """
         reject = False
         var = False
         if isinstance(key, str):
@@ -356,12 +418,24 @@ class KeyVar(Key):
         return key
 
     def make_idx_var(self, variables):
+        """Transform indices into variables names.
+
+        Parameters
+        ----------
+        variables: Variables
+        """
         if not self.var:
             names = variables.get_names(self.no_int())
             self.set(names)
         self.set_shape_coord(variables)
 
     def make_var_idx(self, variables):
+        """Transform variables names into indices.
+
+        Parameters
+        ----------
+        variables: Variables
+        """
         if self.var:
             idx = variables.get_indices(self.no_int())
             self.set(idx)
@@ -671,10 +745,22 @@ class Keyring():
                 k.make_list_int()
 
     def make_idx_var(self, variables):
+        """Transform indices into variables names.
+
+        Parameters
+        ----------
+        variables: Variables
+        """
         if 'var' in self:
             self['var'].make_idx_var(variables)
 
     def make_var_idx(self, variables):
+        """Transform variables names into indices.
+
+        Parameters
+        ----------
+        variables: Variables
+        """
         if 'var' in self:
             self['var'].make_var_idx(variables)
 
@@ -737,8 +823,8 @@ class Keyring():
                 res[d] = other[d]
         return res
 
-    def print(self):
-        """."""
+    def print(self) -> str:
+        """Return readable concise string representation."""
         s = []
         for k in self.keys:
             if k.type == 'int':

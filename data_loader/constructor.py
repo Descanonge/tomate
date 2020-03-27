@@ -67,7 +67,7 @@ class Constructor():
         Parameters
         ----------
         variable: str
-            Id of the variable.
+            Name of the variable.
         attributes: optional
             Variable specific information.
 
@@ -95,7 +95,8 @@ class Constructor():
         """
         self.vi.add_infos(**infos)
 
-    def add_filegroup(self, fg_type, contains, coords, root=None, **kwargs):
+    def add_filegroup(self, fg_type, contains, coords, root=None,
+                      variables_shared=False, **kwargs):
         """Add filegroup.
 
         Parameters
@@ -112,7 +113,10 @@ class Constructor():
             The flag can be 'shared' or 'in'.
         coords: str
             Subfolder from root.
-        kwargs
+        variables_shared: bool, optional
+            If the Variables dimension is shared.
+            Default is False.
+        kwargs: Any, optional
             Passed to the fg_type initializator.
 
         Examples
@@ -140,17 +144,18 @@ class Constructor():
             contains = [contains]
         contains = list(contains)
 
-        fg = fg_type(root, contains, None, coords, self.vi, **kwargs)
+        fg = fg_type(root, contains, None, coords, self.vi,
+                     variables_shared=variables_shared, **kwargs)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex, replacements=None):
-        """Add the pre-regex to the current filegroup.
+        """Set the pre-regex of the current filegroup.
 
         Parameters
         ----------
         pregex: str
             Pre-regex.
-        replacements: Dict[name: str, replacement: Any], optional
+        replacements: Dict[str, str], optional
             Constants to replace in pre-regex.
 
         Examples
@@ -172,6 +177,9 @@ class Constructor():
         If not specified, None value is assigned, and the
         filegroup subclass should manage this case.
 
+        Variables not specified will be attributed the default
+        value (in-file index identical to the variable name).
+
         This is similar to using Constructor.set_scan_manual()
         for the 'Variables' coordinate.
 
@@ -182,7 +190,7 @@ class Constructor():
             when adding the last filegroup.
         kw_variables: int, str, None, optional
             Argument name is the variable name.
-            Takes precedence over `variables`.
+            Takes precedence over `variables` argument.
 
         Examples
         --------
@@ -201,7 +209,7 @@ class Constructor():
         in_idx = [kw_variables.get(var, None) for var in values]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_in_file(self, func, *coords):
+    def set_scan_in_file(self, func, *coords, **kwargs):
         """Set function for scanning coordinates values in file.
 
         Parameters
@@ -209,8 +217,10 @@ class Constructor():
         func: Callable[[CoordScan, file, values: List[float]],
                        [values: List[float], in_idx: List[int]]]
             Function that captures values and in-file index
-        coords: List of str
+        coords: str
             Coordinates to apply this function for.
+        kwargs: Any
+            Keyword arguments that will be passed to the function.
 
         Notes
         -----
@@ -220,17 +230,20 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_in_file_func(func)
+            cs.set_scan_in_file_func(func, **kwargs)
 
     def set_scan_filename(self, func, *coords, **kwargs):
         """Set function for scanning coordinates values from filename.
 
         Parameters
         ----------
-        func: Callable[[], [values: List[float], in_idx: List[int]]
+        func: Callable[[CoordScan, values: List[Float]],
+                       [values: List[float], in_idx: List[int]]
             Function that recover values from filename.
-        coords: List[Coord]
-            Coordinate to apply this function for.
+        coords: str
+            Coordinates to apply this function for.
+        kwargs: Any
+            Keyword arguments that will be passed to the function.
 
         Notes
         -----
@@ -254,8 +267,9 @@ class Constructor():
             Coordinate to set the values for.
         values: List[float]
             Values for the coordinate.
-        in_idx: List[int], optional
+        in_idx: List[int/None], optional
             Values of the in-file index.
+            If not specifile, defaults to None for all values.
         """
         if in_idx is None:
             in_idx = [None for _ in range(len(values))]
@@ -290,7 +304,7 @@ class Constructor():
         Parameters
         ----------
         func: Callable[[file],
-                       [Dict[info name, Any]]]
+                       [Dict[info name: str, Any]]]
 
         Notes
         -----
@@ -305,7 +319,7 @@ class Constructor():
 
         Parameters
         ----------
-        coords: List[str]
+        coords: str
         """
         fg = self.current_fg
         for name in coords:
@@ -332,7 +346,7 @@ class Constructor():
         Parameters
         ----------
         threshold: float = 1e-5
-            Threshold used for float comparison
+            Threshold used for float comparison.
         """
         for name in self.coords:
             coords = []
@@ -374,11 +388,18 @@ class Constructor():
 
         Parameters
         ----------
-        dt_type: DataBase or subclass (or a list of)
-            Database classes to use, in order of
+        dt_type: Type, List[Type]
+            DataBase subclasses to use, in order of
             priority for method resolution (Methods and
             attributes of the first one in
             the list take precedence).
+        accessor: Type, optional
+            Subclass of Accessor.
+            If None, the accessor from the provided data
+            types is used.
+        scan: bool, optional
+            If the files should be scanned.
+            Default is True.
 
         Returns
         -------
@@ -410,6 +431,8 @@ class Constructor():
 
 def check_range(coords):
     """Check coords range, slice if needed.
+
+    Only look at extremal values of a coordinate.
 
     Parameters
     ----------
@@ -444,7 +467,9 @@ def check_values(coords, threshold):
     Parameters
     ----------
     coords: List[CoordScan]
-         CoordScan of different filegroups, linked to the same coordinate.
+        CoordScan of different filegroups, linked to the same coordinate.
+    threshold: float
+        Threshold for float comparison.
 
     Raises
     ------
@@ -482,10 +507,14 @@ def create_data_class(dt_types, accessor=None):
 
     Parameters
     ----------
-    dt_type: DataBase or subclass (or a list of)
-        Database classes to use, in order of
+    dt_type: Type, List[type]
+        DataBase subclasses to use, in order of
         priority for method resolution (First one in
         the list is the first class checked).
+    accessor: Type, optional
+        Accessor subclass to use for data.
+        If None, the accessor found in provided data types
+        will be used (according to mro priority).
 
     Return
     ------

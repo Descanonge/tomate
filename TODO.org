@@ -1,8 +1,6 @@
 #+TITLE: Data Loader
 
-* TODO: say storage order (for coords order)
 * TODO: compute linear combinations
-* TODO: Make acs attribute class rather than instance
 * TODO: Save metadata to file
 To not need to scan files each time
 * TODO: Multiple selections
@@ -11,3 +9,11 @@ in a subclass of database ?
 * TODO: Manage CS idx descending
 ** should enforce idx descending or its contrary
 ** should not be overidden by scanning
+* TODO: doc
+** examples
+** scan variables examples
+** post loading function
+** selection
+* TODO: Write: add to file
+** use existing filegroup information to open some files and add variables
+* TODO: Compute min / max value

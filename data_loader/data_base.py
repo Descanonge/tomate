@@ -242,15 +242,15 @@ class DataBase():
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
-        If a key is an integer (or variables is a single string),
-        the corresponding dimension in the array will be squeezed.
+        If a key is an integer, the corresponding dimension in the
+        array will be squeezed.
 
         Parameters
         ----------
         keyring: Keyring, optional
-            Keyring specifying parts of coordinates to take.
+            Keyring specifying parts of dimensions to take.
         keys: Key-like, optional
-            Parts of coordinates to take.
+            Keys specifying parts of dimensions to take.
             Take precedence over keyring.
 
         Returns
@@ -274,9 +274,15 @@ class DataBase():
         Subset is specified by a scope.
         The selection scope is expected to be created from
         the loaded one.
+        One can further slice the selection using keys.
 
         Parameters
         ----------
+        keyring: Keyring, optional
+            Keyring specifying further slicing of selection.
+        keys: Key-like, optional
+            Keys specifying further slicing of selection.
+            Take precedence over keyring.
 
         Returns
         -------
@@ -303,15 +309,14 @@ class DataBase():
         Parameters
         ----------
         order: List[str]
-            List of coordinates names in required order.
-            The 'var' keyword can also be used to rearrange
-            the variable rank.
-            Not all coordinates need to be specified, but
-            all coordinates specified must be in the subset
-            dimensions.
-        variables: str or List[str], optional
+            List of dimensions names in required order.
+            Either two dimensions (for swapping them)
+            or all of them should be specified.
         keyring: Keyring, optional
+            Keyring specifying parts of dimensions to take.
         keys: Key-like, optional
+            Keys specifying parts of dimensions to take.
+            Take precedence over keyring.
 
         Examples
         --------
@@ -326,7 +331,6 @@ class DataBase():
         See also
         --------
         Accessor.reorder: The underlying function.
-        numpy.moveaxis: The function used in default Accessor.
         view: For details on subsetting data (without reordering).
         """
         self._check_loaded()
@@ -452,6 +456,8 @@ class DataBase():
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
+        scope: str, scope, optional
+            Scope to use. Default is current.
         keyring: Keyring, optional
             Subset coordinates.
         keys: Key-like, optional
@@ -487,6 +493,8 @@ class DataBase():
             Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
+        scope: str, scope, optional
+            Scope to use. Default is current.
         keyring: Keyring, optional
             Subset coordinates.
         keys: Key-like, optional
@@ -541,12 +549,11 @@ class DataBase():
 
         Parameters
         ----------
-        variables: str, List[str], optional
-        keyring: Keyring, optional
         scope: str, Scope, optional
             Scope to subset.
-            If str, can be {'avail', 'loaded', 'select'},
+            If str, can be {'avail', 'loaded', 'selected'},
             corresponding scope of data will then be taken.
+        keyring: Keyring, optional
         keys: Key-like, optional
 
         Returns
@@ -572,9 +579,13 @@ class DataBase():
             Scope to subset.
             If str, can be {'avail', 'loaded', 'selected'},
             corresponding scope of data will then be taken.
-        variables: str, List[str], optional
         keyring: Keyring, optional
         keys: Key-like, optional
+
+        Examples
+        --------
+        >>> dt.select(var='sst', time=20)
+        >>> dt.select('loaded', lat=slice(10, 30))
 
         See also
         --------
@@ -590,7 +601,7 @@ class DataBase():
         Parameters
         ----------
         scope: str, Scope, optional
-            Default to available.
+            Scope to select from.
         keys: Key-like, optional
 
         See also
@@ -616,6 +627,15 @@ class DataBase():
 
         Keys act upon the parent scope of selection.
         TODO: Keys are always sorted in increasing order
+
+
+        Parameters
+        ----------
+        Scope: str, Scope, optional
+            If nothing was selected before, select keys from this scope.
+        keyring: Keyring, optional
+        keys: Key-like, optional
+
         """
         scope = self.selected
         if scope.is_empty():
@@ -636,9 +656,6 @@ class DataBase():
 
         Parameters
         ----------
-        variables: str or List[str], optional
-            Variables to select, from those already loaded.
-            If None, no change are made.
         keyring: Keyring, optional
         keys: Key-like, optional
         """
@@ -795,9 +812,16 @@ class DataBase():
 
         Parameters
         ----------
-        scope: Scope
+        keyring: Keyring, optional
+        scope: Scope, optional
             Selected scope created from available scope.
             Defaults to `self.selected`.
+        keys: Key-like, optional
+
+        Raises
+        ------
+        Exception
+            If selected scope is empty or not a child of available.
         """
         if scope is None:
             scope = self.selected
