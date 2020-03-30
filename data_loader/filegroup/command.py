@@ -95,6 +95,7 @@ class CmdKeyrings():
             self.memory.update(memory)
 
     def copy(self):
+        """Return copy of self."""
         infile = self.infile.copy()
         memory = self.memory.copy()
         return CmdKeyrings(infile, memory)
@@ -201,6 +202,7 @@ class Command():
         self.keyrings = []
 
     def copy(self):
+        """Return copy of self."""
         new = Command()
         new.filename = self.filename
 
@@ -336,9 +338,17 @@ def simplify_keys(keys):
 
 
 def separate_variables(commands):
-    """.
+    """Separate commands with different variables.
 
-    Does not support slices (yet).
+    Make copies of commands.
+
+    Parameters
+    ----------
+    commands: List[Command]
+
+    Returns
+    -------
+    List[Command]
     """
     commands_ = []
     for cmd in commands:

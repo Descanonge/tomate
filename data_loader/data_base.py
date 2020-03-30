@@ -946,6 +946,23 @@ class DataBase():
                 fg.write(filename, wd, keyring=keyring)
 
     def write_add_variable(self, var, sibling, inf_name=None, **keys):
+        """Add variables to files.
+
+        Parameters
+        ----------
+        var: str
+            Variable to add. Must be in loaded scope.
+        sibling: str
+            Variable along which to add the data.
+            New variable will be added to the same files
+            and in same order.
+        inf_name: str, optional
+            Variable in-file name. Default to the variables name.
+        keys: Any, optional
+            If a subpart of data is to be written.
+            The selected data must match in shape that of the
+            sibling data on disk.
+        """
         if inf_name is None:
             inf_name = var
         scope = self.get_subscope('loaded', var=var, **keys)

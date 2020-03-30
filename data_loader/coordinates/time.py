@@ -165,6 +165,16 @@ class Time(Coord):
         self.units = units
 
     def get_index(self, value, loc='closest') -> int:
+        """Return index of value.
+
+        Parameters
+        ----------
+        value: Float, int, List, datetime
+            Time value, can be timestamps corresponding to self units,
+            datetime object, or a list of value that can be transformed
+            to date ([year, month, day [, hours, minutes, ...]])
+        loc: {'closest', 'below', 'above'}
+        """
         if isinstance(value, (list, tuple)):
             value = datetime(*value)
         if isinstance(value, datetime):

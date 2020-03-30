@@ -18,7 +18,6 @@ else:
 
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.filegroup.command import separate_variables
-from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)
@@ -171,6 +170,7 @@ class FilegroupNetCDF(FilegroupLoad):
                         dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
 
     def write_variable(self, file, cmd, var, inf_name):
+        """Add variable to file."""
 
         for krg_inf, krg_mem in cmd:
             if inf_name not in file.variables:
@@ -194,6 +194,6 @@ class FilegroupNetCDF(FilegroupLoad):
 
             if not krg_inf.is_shape_equivalent(ncvar.shape):
                 raise ValueError("Mismatch between selected data "
-                                "and keyring shape (array: %s, keyring: %s)"
-                                % (ncvar.shape, keyring.shape))
+                                 "and keyring shape (array: %s, keyring: %s)"
+                                 % (ncvar.shape, krg_inf.shape))
             ncvar[:] = chunk

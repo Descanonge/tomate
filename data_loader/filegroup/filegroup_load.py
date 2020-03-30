@@ -8,7 +8,6 @@
 
 import itertools
 import logging
-from typing import List
 
 import numpy as np
 
@@ -285,7 +284,7 @@ class FilegroupLoad(FilegroupScan):
             if dim not in int_krg:
                 int_krg[dim] = 0
         return int_krg.subset(order)
-    
+
     def reorder_chunk(self, chunk, coords, order=None, variables=False):
         """Reorder data.
 
@@ -329,6 +328,7 @@ class FilegroupLoad(FilegroupScan):
         return chunk
 
     def write_add_variable(self, var, sibling, inf_name, scope):
+        """Add variable to files."""
         keyring = scope.parent_keyring.copy()
         keyring['var'] = sibling
         keyring.make_var_idx(self.contains)

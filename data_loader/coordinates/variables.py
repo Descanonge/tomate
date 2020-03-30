@@ -165,13 +165,13 @@ class Variables(Coord):
         self.update_values(self[key])
 
     def copy(self):
-        """Return a copy."""
         return Variables(self[:], units=self.units, name_alt=self.name_alt,
                          fullname=self.fullname)
 
     def set_attr(self, name, attr):
         self.vi.add_attrs_per_variable(name, attr)
 
-    def append(self, var):
+    def append(self, var: str):
+        """Add variable."""
         variables = self[:] + [var]
         self.update_values(variables)

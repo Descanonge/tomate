@@ -11,7 +11,6 @@ from typing import List, Dict
 import numpy as np
 
 from data_loader.key import Keyring, Key
-from data_loader.iter_dict import IterDict
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
 from data_loader.coordinates.variables import Variables

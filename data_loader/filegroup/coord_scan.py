@@ -13,12 +13,10 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
-from typing import Sequence
 
 import numpy as np
 
 from data_loader.coordinates.coord import Coord
-from data_loader.key import Key
 
 
 log = logging.getLogger(__name__)
@@ -202,6 +200,7 @@ class CoordScan(Coord):
         return order
 
     def reset(self):
+        """Remove values."""
         self.empty()
         self.values = []
         self.in_idx = []
@@ -235,20 +234,20 @@ class CoordScan(Coord):
         return key_data
 
     def is_to_scan(self) -> bool:
-        """Return if the coord needs scanning."""
+        """If the coord needs any kind of scanning."""
         out = ('in' in self.scan
                or 'filename' in self.scan
                or 'attributes' in self.scan)
         return out
 
     def is_to_scan_values(self) -> bool:
-        """."""
+        """If the coord needs scanning of values."""
         out = ('in' in self.scan
                or 'filename' in self.scan)
         return out
 
     def is_to_check(self) -> bool:
-        """."""
+        """If the coord values need to be checked."""
         out = (self.is_to_scan_values()
                or 'manual' in self.scan)
         return out
@@ -372,8 +371,12 @@ class CoordScanVar(CoordScan):
     """Coord used for scanning variables."""
 
     def set_values_default(self, variables):
-        """.
+        """Set default values.
 
+        In-file index equals variable name.
+
+        Parameters
+        ----------
         variables: List[str]
         """
         self.values = variables.copy()

@@ -38,12 +38,12 @@ class AccessorMask(Accessor):
         axis: int, optional
             The axis along which the arrays will be joined.
             If None, the arrays are flattened.
-       
+
         Returns
         -------
         Array
         """
-        return np.ma.concatenate(arrays, axis)
+        return np.ma.concatenate(arrays, axis=axis)
 
 
 class DataMasked(DataBase):
