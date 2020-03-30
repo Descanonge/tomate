@@ -90,12 +90,10 @@ class Key():
 
     def __iter__(self):
         """Iter through values."""
-        if self.type in ['int', 'slice']:
+        try:
+            val = self.tolist()
+        except TypeError:
             val = [self.value]
-        elif self.type == 'list':
-            val = self.value
-        else:
-            val = []
         return iter(val)
 
     def copy(self) -> "Key":
@@ -198,6 +196,8 @@ class Key():
             if self.parent_shape is None:
                 raise TypeError("%s has not had its parent shape specified." % self.value)
             a = list(range(*self.value.indices(self.parent_shape)))
+        elif self.type == 'none':
+            a = []
         return a
 
     def __mul__(self, other):
