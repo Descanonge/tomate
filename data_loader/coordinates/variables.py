@@ -145,7 +145,7 @@ class Variables(Coord):
         y: int, str, List[int], List[str], slice
             Index or name of variable(s).
         """
-        return self.get_names(y)
+        return self.get_var_names(y)
 
     def __iter__(self):
         """Iter variables names."""
