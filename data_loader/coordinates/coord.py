@@ -342,9 +342,10 @@ class Coord():
         Parameters
         ----------
         values: Sequence[Float]
+            Sequence of values.
         loc: {'closest', 'below', 'above'}
         """
-        indices = [self.get_index(v) for v in values]
+        indices = [self.get_index(v, loc) for v in values]
         return indices
 
     @staticmethod
