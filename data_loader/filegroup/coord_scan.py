@@ -342,7 +342,7 @@ class CoordScan(Coord):
                 log.debug("Scanning in file for '%s'", self.name)
                 values, in_idx = self.scan_in_file_func(self, file, values, **kwargs)
 
-        if 'in' in self.scan or 'filename' in self.scan:
+        if self.is_to_scan_values():
             if isinstance(values, (str, int, float, type(None))):
                 values = [values]
             if isinstance(in_idx, (str, int, float, type(None))):
@@ -421,11 +421,10 @@ class CoordScanIn(CoordScan):
             self.scan_file_values(file)
 
     def is_to_open(self) -> bool:
-        to_open = False
-        if 'in' in self.scan and not self.scanned:
-            to_open = True
-        if 'attributes' in self.scan and not self.scanned:
-            to_open = True
+        """If a file is to be open for scanning."""
+        to_open = (not self.scanned
+                   and ('in' in self.scan
+                        or 'attributes' in self.scan))
         return to_open
 
 
@@ -516,9 +515,10 @@ class CoordScanShared(CoordScan):
                 self.matches += [matches for _ in range(len(values))]
 
     def is_to_open(self) -> bool:
-        to_open = False
-        to_open = to_open or ('in' in self.scan)
-        to_open = to_open or ('attributes' in self.scan and not self.scanned)
+        """If the file must be opened for scanning."""
+        to_open = ('in' in self.scan
+                   or ('attributes' in self.scan
+                       and not self.scanned))
         return to_open
 
 
