@@ -10,7 +10,7 @@ Use user settings to set locales.
 
 
 import locale
-from typing import Sequence
+import logging
 
 from datetime import datetime, timedelta
 
@@ -24,6 +24,7 @@ else:
 from data_loader.coordinates.coord import Coord
 
 
+log = logging.getLogger(__name__)
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -46,8 +47,16 @@ class Time(Coord):
         return "%s - %s" % tuple(self.format(v)
                                  for v in self.index2date(slc)[[0, -1]])
 
-    def update_values(self, values: Sequence[float]):
+    def update_values(self, values, dtype=None):
         """Update values.
+
+        Parameters:
+        -----------
+        values: Sequence[Float]
+            New values. Have matching time units of self.
+        dtype: Numpy dtype
+            Dtype of the array.
+            Default to np.float64.
 
         See also
         --------
@@ -61,7 +70,7 @@ class Time(Coord):
         if self.units == "":
             raise ValueError("%s has no units" % self.name)
 
-        super().update_values(values)
+        super().update_values(values, dtype)
 
     def index2date(self, indices=None):
         """Return datetimes objects corresponding to indices.
@@ -113,8 +122,11 @@ class Time(Coord):
         -------
         int, List[int]:
             Return a list if the input was a list.
+
+        .. deprecated: 0.4.0
+            Is replaced by Time.get_indices().
         """
-        # TODO: to deprecate in favor of a more general get_indices
+        log.warning("date2index() is deprecated. Use get_indices().")
         if not _has_netcdf:
             raise ImportError("netCDF4 package necessary for date2index.")
 
@@ -180,7 +192,7 @@ class Time(Coord):
         for day in [dmin, dmax]:
             if isinstance(day, float):
                 if not _has_netcdf:
-                    raise ImportError ("netCDF package necessary for subset_day with floats.")
+                    raise ImportError("netCDF package necessary for subset_day with floats.")
                 day = nc.num2date(day, self.units)
             elif isinstance(day, (list, tuple)):
                 day = datetime(*day)

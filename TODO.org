@@ -17,6 +17,4 @@ in a subclass of database ?
 * TODO: Write: add to file
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
-* TODO: Shared coordinates have krg_inf with shape None
-** Find a way to find size of shared coordinate inside file ?
 * TODO: get rid of alternative names

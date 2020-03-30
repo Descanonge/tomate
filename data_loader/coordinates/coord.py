@@ -336,6 +336,17 @@ class Coord():
 
         return idx
 
+    def get_indices(self, values, loc='closest') -> int:
+        """Return indices of the elements closest to values.
+
+        Parameters
+        ----------
+        values: Sequence[Float]
+        loc: {'closest', 'below', 'above'}
+        """
+        indices = [self.get_index(v) for v in values]
+        return indices
+
     @staticmethod
     def format(value, fmt='{:.2f}') -> str:
         """Format a scalar value.
