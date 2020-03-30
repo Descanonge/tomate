@@ -65,7 +65,7 @@ class Variables(Coord):
         s = "Variables: " + ', '.join(self[:])
         return s
 
-    def idx(self, y) -> int:
+    def get_var_index(self, y) -> int:
         """Return index of variable.
 
         Parameters
@@ -78,10 +78,11 @@ class Variables(Coord):
             y = int(y)
         return y
 
-    def get_index(self, value, loc=None) -> int:
-        return self.idx(value)
+    def idx(self, y):
+        """Return index of variable."""
+        return self.get_var_index(y)
 
-    def get_name(self, y) -> str:
+    def get_var_name(self, y) -> str:
         """Return name of variable.
 
         Parameters
@@ -93,25 +94,48 @@ class Variables(Coord):
             return y
         return self._array[y]
 
-    def get_indices(self, y):
+    def get_var_indices(self, y):
+        """Returns indices of variables.
+
+        Parameters
+        ----------
+        y: List[int/str], slice, int/str
+            List of variables names or indices,
+            or slice (of integers or strings),
+            or single variable name or index.
+
+        Returns
+        -------
+        List[int], int
+            List of variable indices, or a single
+            variable index.
+        """
         if isinstance(y, (int, str)):
-            return self.idx(y)
+            return self.get_var_index(y)
 
         if isinstance(y, slice):
-            start = self.idx(y.start)
-            stop = self.idx(y.stop)
+            start = self.get_var_index(y.start)
+            stop = self.get_var_index(y.stop)
             y = slice(start, stop, y.step)
             y = list(range(*y.indices(self.size)))
 
-        out = [self.idx(i) for i in y]
-        return out
+        indices = [self.get_var_index(i) for i in y]
+        return indices
 
-    def get_names(self, y):
-        idx = self.get_indices(y)
+    def get_var_names(self, y):
+        """Return variables names.
+
+        Parameters
+        ----------
+        y: List[str/int], str/int
+            List of variables names or indices,
+            or a single variable name or index.
+        """
+        idx = self.get_var_indices(y)
         if isinstance(idx, int):
             return self._array[idx]
-        out = [self._array[i] for i in idx]
-        return out
+        names = [self._array[i] for i in idx]
+        return names
 
     def __getitem__(self, y) -> str:
         """Return name of variable.

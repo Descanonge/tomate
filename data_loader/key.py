@@ -427,7 +427,7 @@ class KeyVar(Key):
         variables: Variables
         """
         if not self.var:
-            names = variables.get_names(self.value)
+            names = variables.get_var_names(self.value)
             self.set(names)
         self.set_shape_coord(variables)
 
@@ -439,7 +439,7 @@ class KeyVar(Key):
         variables: Variables
         """
         if self.var:
-            idx = variables.get_indices(self.value)
+            idx = variables.get_var_indices(self.value)
             self.set(idx)
         self.set_shape_coord(variables)
 
@@ -840,7 +840,6 @@ class Keyring():
                   or a == b
                   for a, b in zip(self.shape, other))
         return out
-       
 
     def print(self) -> str:
         """Return readable concise string representation."""

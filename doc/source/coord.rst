@@ -54,8 +54,8 @@ to the scope (for example, for the loaded scope, it will correspond to the
 order of the variable in the array).
 One can easily retrieve the index of one or more variables using the
 :func:`idx<variables.Variables.idx>`,
-:func:`get_index<variables.Variables.get_index>`, or
-:func:`get_indices<variables.Variables.get_indices>`
+:func:`get_var_index<variables.Variables.get_var_index>`, or
+:func:`get_var_indices<variables.Variables.get_var_indices>`
 methods.
 
 
