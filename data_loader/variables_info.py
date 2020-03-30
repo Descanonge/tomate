@@ -97,6 +97,7 @@ class VariablesInfo():
             return {name: attrs[item] for name, attrs in self._attrs}
         if item in self.attrs:
             return self._attrs[item]
+        raise IndexError("'%s' not in variables or attributes." % item)
 
     def print_variable(self, variable, print_none=False):
         """Print all information about a variable."""
