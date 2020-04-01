@@ -59,7 +59,7 @@ class FilegroupLoad(FilegroupScan):
             commands = self._get_commands_no_shared()
 
         key_in_inf = self._get_key_infile(keyring)
-        key_in_mem = self._get_key_memory(key_in_inf)
+        key_in_mem = self._get_key_memory(keyring)
 
         for cmd in commands:
             cmd.join_filename(self.root)
@@ -209,6 +209,13 @@ class FilegroupLoad(FilegroupScan):
             elif key.type in ['slice', 'none']:
                 key_mem = slice(0, self.db.loaded[name].size, 1)
             krg_mem[name] = key_mem
+
+        key = keyring['var']
+        key.make_idx_var(self.contains)
+        krg_mem['var'] = self.db.loaded.var.get_var_indices(key.value)
+        # FIXME: my god this is so wrong fix me i beg of thee, end my
+        # suffering, i am the worst piece of code ever to tread this earth
+        # i am worthless end me
         return krg_mem
 
     def load_data(self, keyring):
