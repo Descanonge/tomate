@@ -451,8 +451,8 @@ def check_range(coords):
             level = 'WARNING'
 
         log.log(getattr(logging, level),
-                "%s '%s' has range %s",
-                cs.filegroup.contains, cs.name, cs.get_extent_str())
+                "'%s' in %s has range %s",
+                cs.name, cs.filegroup.contains[:], cs.get_extent_str())
 
         cs.slice(overlap[i])
 
