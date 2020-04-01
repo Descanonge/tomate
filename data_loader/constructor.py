@@ -412,6 +412,8 @@ class Constructor():
             create a new data class.
         """
         if scan:
+            if not self.filegroups:
+                raise RuntimeError("No filegroups in constructor.")
             self.check_regex()
             self.scan_files()
             self.check_scan()
