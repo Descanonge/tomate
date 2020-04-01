@@ -109,27 +109,28 @@ class DataPlot(DataBase):
         """
         self._check_loaded()
 
-        keyring = Keyring(**kw_keys)
-        keyring.make_full(self.coords_name)
+        keyring = Keyring(var=variable, **kw_keys)
+        keyring.make_full(self.dims)
         keyring.make_total()
+        keyring.make_var_idx(self.loaded.var)
 
         if coords is None:
             coords = keyring.get_high_dim()[::-1]
         self.plot_coords = coords
 
-        image = self.view_ordered(coords[::-1], variable, keyring)
+        image = self.view_ordered(coords[::-1], keyring)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % list(image.shape))
 
-        self.plotted = self.get_subscope('loaded', variable, keyring)
+        self.plotted = self.get_subscope('loaded', keyring)
 
         kwargs_def = {'origin': 'lower'}
         if kwargs is not None:
             kwargs_def.update(kwargs)
         kwargs = kwargs_def
 
-        extent = self.plotted.get_extent(*coords)
+        extent = self.loaded.get_extent(*coords)
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:
@@ -160,17 +161,18 @@ class DataPlot(DataBase):
         """
         if variable is None:
             variable = self.plotted.var[0]
-        self.plotted.var = [variable]
+        self.plotted = self.get_subscope('loaded', var=variable, **keys)
 
-        self.plotted = self.get_subscope('loaded', variable, **keys)
-
-        image = self.view_ordered(self.plot_coords[::-1], variable, **keys)
+        coords = self.plot_coords
+        image = self.view_ordered(coords[::-1], var=variable, **keys)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
-                             " of an image %s" % image.shape)
+                             " of an image %s" % str(image.shape))
         im.set_data(image)
 
-    def contour(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_coords):
+        # TODO: colorbar
+
+    def contour(self, ax, variable, coords=None, limits=True, kwargs=None, **keys):
         """Plot contour of a variable.
 
         Parameters
@@ -197,28 +199,37 @@ class DataPlot(DataBase):
         IndexError:
             If image has wrong shape.
         """
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self.get_coords_none_total(**kw_coords)
+        self._check_loaded()
 
-        self.set_plot_keys(variable, **kw_coords)
-        image = self.view(variable, **kw_coords)
+        if kwargs is None:
+            kwargs = {}
 
+        keyring = Keyring(var=variable, **keys)
+        keyring.make_full(self.dims)
+        keyring.make_total()
+        keyring.make_var_idx(self.loaded.var)
+
+        if coords is None:
+            coords = keyring.get_high_dim()[::-1]
+        self.plot_coords = coords
+
+        self.plotted = self.get_subscope('loaded', keyring)
+
+        image = self.view_ordered(coords[::-1], keyring)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % image.shape)
 
-        if coords is None:
-            coords = self.guess_image_coords(kw_coords)[::-1]
-        values = [self.coords[name][kw_coords[name]]
-                  for name in coords]
+        coord_values = [self.plotted[name][:]
+                        for name in coords]
 
-        c = ax.contour(*values, image, **kwargs)
+        c = ax.contour(*coord_values, image, **kwargs)
         if limits:
-            self.set_limits(ax, **{name: kw_coords[name] for name in coords})
+            self.set_limits(ax, *coords, scope=self.plotted)
 
         return c
 
-    def update_contour(self, ax, c, variable=None, coords=None, kwargs=None, **kw_coords):
+    def update_contour(self, ax, c, variable=None, coords=None, kwargs=None, **keys):
         """Update a contour plot.
 
         Parameters
@@ -243,25 +254,12 @@ class DataPlot(DataBase):
             If image has wrong shape.
         """
         if variable is None:
-            variable = self.last_plot
-        kw_coords = self.get_coords_full(**kw_coords)
-        kw_coords = self._get_coords_none_previous(**kw_coords)
-        image = self.view(variable, **kw_coords)
-
-        if image.ndim != 2:
-            raise IndexError("Selected data does not have the dimension"
-                             " of an image %s" % image.shape)
-
-        self.set_plot_keys(variable, **kw_coords)
-
-        if coords is None:
-            coords = self.guess_image_coords(kw_coords)[::-1]
-        values = [self.coords[name][kw_coords[name]]
-                  for name in coords]
+            variable = self.plotted.var[0]
 
         for coll in c.collections:
             ax.collections.remove(coll)
-        c = ax.contour(*values, image, **kwargs)
+
+        c = self.contour(ax, variable, coords=coords, limits=False, kwargs=kwargs, **keys)
 
         return c
 
@@ -310,9 +308,12 @@ class DataPlot(DataBase):
 
             return im
 
+        if variables is None:
+            variables = self.loaded.var[:]
         images = self.iter_axes(axes, plot, variables,
                                 limits=limits, kwargs=kwargs, coords=coords,
                                 **kw_coords)
+        self.plotted = self.get_subscope('loaded', var=variables, **kw_coords)
         return images
 
     def update_imshow_all(self, axes, images, variables=None, **kw_coords):
@@ -325,9 +326,12 @@ class DataPlot(DataBase):
         variables: List[str]
         kw_coords: Keys
         """
+        if variables is None:
+            variables = self.plotted.var[:]
         def update(ax, dt, var, im, **kw_coords):
             dt.update_imshow(im, var, **kw_coords)
         self.iter_axes(axes, update, variables, iterables=[images], **kw_coords)
+        self.plotted = self.get_subscope('loaded', var=variables, **kw_coords)
 
     def del_axes_none(self, fig, axes, variables=None):
         """Delete axes for which variables is None.
@@ -341,7 +345,7 @@ class DataPlot(DataBase):
             axis will be removed from figure.
         """
         if variables is None:
-            variables = self.vi.var
+            variables = self.loaded.var[:]
         variables = list(variables)
         for i in range(axes.size - len(variables)):
             variables.append(None)
@@ -369,7 +373,7 @@ class DataPlot(DataBase):
             Passed to func.
         """
         if variables is None:
-            variables = self.loaded.var
+            variables = self.loaded.var[:]
         if iterables is None:
             iterables = []
         iterables = [np.array(c) for c in iterables]

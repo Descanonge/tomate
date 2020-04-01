@@ -18,3 +18,4 @@ in a subclass of database ?
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
 * TODO: get rid of alternative names
+* TODO: iter coordinate (especially time)
