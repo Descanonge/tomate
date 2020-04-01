@@ -74,6 +74,8 @@ class Variables(Coord):
             Name or index of variable.
         """
         if isinstance(y, str):
+            if y not in self._array:
+                raise KeyError("'%s' not in variables." % y)
             y = np.where(self._array == y)[0][0]
             y = int(y)
         return y
