@@ -74,11 +74,15 @@ class Variables(Coord):
             Name or index of variable.
         """
         if isinstance(y, str):
-            if y not in self._array:
-                raise KeyError("'%s' not in variables." % y)
-            y = np.where(self._array == y)[0][0]
-            y = int(y)
+            y = self.get_index(y)
         return y
+
+    def get_index(self, y: str, loc=None) -> int:
+        if y not in self._array:
+            raise KeyError("'%s' not in variables." % y)
+        i = np.where(self._array == y)[0][0]
+        i = int(i)
+        return i
 
     def idx(self, y):
         """Return index of variable."""
