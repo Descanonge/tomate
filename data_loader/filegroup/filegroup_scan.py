@@ -77,6 +77,7 @@ class FilegroupScan():
                  variables_shared=False):
         self.root = root
         self.db = db
+        self.vi = vi
 
         self.found_file = False
         self.n_matcher = 0
@@ -85,20 +86,23 @@ class FilegroupScan():
         self.regex = ""
         self.pregex = ""
 
-        self.vi = vi
         self.scan_attr = False
-
         self.scan_attributes_func = scan_attributes_default
 
-        self.variables = Variables(variables)
-        coords_fg = [[self.variables, variables_shared]] + coords
-        self.make_coord_scan(coords_fg)
+        self.cs = {}
+        if 'var' not in [c[0].name for c in coords]:
+            variables_coord = Variables(variables)
+            coords.insert(0, [variables_coord, variables_shared])
+        self.make_coord_scan(coords)
 
-        self.variables.vi = vi
         self.cs['var'].vi = vi
         self.cs['var'].set_values_default(variables)
 
-        self.contains = Keyring(**{dim: [] for dim in self.cs})
+        self.contains = {dim: [] for dim in self.cs}
+
+    @property
+    def variables(self):
+        return self.cs['var'][:]
 
     def __str__(self):
         s = [self.__class__.__name__]
