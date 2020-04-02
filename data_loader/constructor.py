@@ -54,6 +54,11 @@ class Constructor():
 
         self.selection = []
         self.selection_by_value = []
+
+        self.allow_advanced = False
+
+        self.float_comparison = 1e-5
+
     @property
     def current_fg(self):
         """Current filegroup.
@@ -352,8 +357,68 @@ class Constructor():
 
         Find coordinates values and eventually, in-file indices.
         """
+        self.check_regex()
         for fg in self.filegroups:
             fg.scan_files()
+
+        self.apply_coord_selections()
+
+        values = self.get_coord_values()
+        if not self.allow_advanced:
+            values = self.get_intersection(values)
+        # TODO: check that avail is rectangular ?
+        self.apply_coord_values(values)
+        self.find_contained(values)
+
+    def apply_coord_selections(self):
+        for i, fg in enumerate(self.filegroups):
+            for dim, key in self.selection[i].items():
+                fg.cs[dim].slice(key)
+            for dim, key in self.selection_by_value[i].items():
+                cs = fg.cs[dim]
+                if isinstance(key, slice):
+                    idx = cs.subset(slice.start, slice.stop)
+                else:
+                    idx = cs.get_indices(key)
+                cs.slice(idx)
+
+    def get_coord_values(self):
+        values_c = {}
+        for c in self.coords:
+            values = []
+            for fg in self.filegroups:
+                values += list(fg.cs[c][:])
+
+            values = np.array(values)
+            values.sort()
+            if c != 'var':
+                duplicates = np.abs(np.diff(values)) < self.float_comparison
+                values = np.delete(values, np.where(duplicates))
+
+            values_c[c] = values
+        return values_c
+
+    def get_intersection(self, values):
+        return values
+
+    def apply_coord_values(self, values):
+        for dim, val in values.items():
+            self.coords[dim].update_values(val)
+
+    def find_contained(self, values):
+        for fg in self.filegroups:
+            for dim, cs in fg.cs.items():
+                contains = []
+                c = values[dim]
+                if dim == 'var':
+                    for value in cs[:]:
+                        idx = np.where(c == value)[0][0]
+                        contains.append(idx)
+                else:
+                    for value in cs[:]:
+                        idx = np.where(abs(c-value) < self.float_comparison)[0][0]
+                        contains.append(idx)
+                fg.contains[dim] = contains
 
     def check_scan(self, threshold=1e-5):
         """Check scanned values are compatible accross filegroups.
@@ -432,9 +497,8 @@ class Constructor():
         if scan:
             if not self.filegroups:
                 raise RuntimeError("No filegroups in constructor.")
-            self.check_regex()
             self.scan_files()
-            self.check_scan()
+            # self.check_scan()
 
         dt_class = create_data_class(dt_types, accessor)
 
