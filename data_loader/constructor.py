@@ -403,8 +403,8 @@ class Constructor():
                 values += list(fg.cs[c][:])
 
             values = np.array(values)
-            values.sort()
             if c != 'var':
+                values.sort()
                 duplicates = np.abs(np.diff(values)) < self.float_comparison
                 values = np.delete(values, np.where(duplicates))
 
