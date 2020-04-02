@@ -18,6 +18,7 @@ import re
 
 import data_loader.filegroup.coord_scan as dlcs
 from data_loader.coordinates.variables import Variables
+from data_loader.key import Keyring
 
 
 log = logging.getLogger(__name__)
@@ -75,7 +76,6 @@ class FilegroupScan():
     def __init__(self, root, variables, db, coords, vi,
                  variables_shared=False):
         self.root = root
-        self.contains = Variables(contains)
         self.db = db
 
         self.found_file = False
@@ -98,6 +98,7 @@ class FilegroupScan():
         self.cs['var'].vi = vi
         self.cs['var'].set_values_default(variables)
 
+        self.contains = Keyring(**{dim: [] for dim in self.cs})
 
     def __str__(self):
         s = [self.__class__.__name__]
