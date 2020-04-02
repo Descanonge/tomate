@@ -373,6 +373,9 @@ class Constructor():
 
         self.apply_coord_selections()
 
+        # TODO: raise if duplicates or something
+        # otherwise it will be loaded twice
+
         values = self.get_coord_values()
         if not self.allow_advanced:
             values = self.get_intersection(values)
@@ -420,14 +423,16 @@ class Constructor():
             for dim, cs in fg.cs.items():
                 contains = []
                 c = values[dim]
-                if dim == 'var':
-                    for value in cs[:]:
-                        idx = np.where(c == value)[0][0]
-                        contains.append(idx)
-                else:
-                    for value in cs[:]:
-                        idx = np.where(abs(c-value) < self.float_comparison)[0][0]
-                        contains.append(idx)
+                for value in values[dim]:
+                    if dim == 'var':
+                        idx = np.where(cs[:] == value)[0]
+                    else:
+                        idx = np.where(np.abs(cs[:]-value) < self.float_comparison)[0]
+                    if len(idx) == 0:
+                        idx = None
+                    else:
+                        idx = idx[0]
+                    contains.append(idx)
                 fg.contains[dim] = contains
 
     def check_scan(self, threshold=1e-5):
