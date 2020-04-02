@@ -952,6 +952,13 @@ def simplify_key(key):
         key = list2slice_simple(list(key))
     return key
 
+def get_slice_size(slc):
+    size = None
+    if slc.step is None or slc.step > 0:
+        size = slc.stop
+    else:
+        size = slc.start
+    return size
 
 def reverse_slice(sl, size=None):
     """Reverse a slice.
