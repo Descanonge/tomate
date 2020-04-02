@@ -19,3 +19,6 @@ in a subclass of database ?
 * TODO: Compute min / max value
 * TODO: get rid of alternative names
 * TODO: iter coordinate (especially time)
+* TODO: no type restrictions on keyring
+or maybe a new type of Key, for values
+it could even englob KeyVar (that seems complicated)

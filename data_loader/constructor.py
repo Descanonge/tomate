@@ -10,8 +10,11 @@ import logging
 import os
 import inspect
 
+import numpy as np
+
 from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.coord import select_overlap
+from data_loader.coordinates.variables import Variables
 from data_loader.accessor import Accessor
 
 
@@ -44,11 +47,13 @@ class Constructor():
 
     def __init__(self, root, coords):
         self.root = root
-        self.coords = dict(zip([c.name for c in coords], coords))
+        self.coords = {c.name: c for c in [Variables()] + coords}
         self.vi = VariablesInfo()
 
         self.filegroups = []
 
+        self.selection = []
+        self.selection_by_value = []
     @property
     def current_fg(self):
         """Current filegroup.
@@ -148,6 +153,9 @@ class Constructor():
                      variables_shared=variables_shared, **kwargs)
         self.filegroups.append(fg)
 
+        self.selection.append({})
+        self.selection_by_value.append({})
+
     def set_fg_regex(self, pregex, replacements=None):
         """Set the pre-regex of the current filegroup.
 
@@ -166,6 +174,16 @@ class Constructor():
         if replacements is None:
             replacements = {}
         self.current_fg.set_scan_regex(pregex, **replacements)
+
+    def set_coord_selection(self, **keys):
+        for dim, key in keys.items():
+            self.selection_by_value[-1].pop(dim, None)
+            self.selection[-1][dim] = key
+
+    def set_coord_selection_by_value(self, **keys):
+        for dim, key in keys.items():
+            self.selection[-1].pop(dim, None)
+            self.selection_by_value[-1][dim] = key
 
     def set_variables_infile(self, *variables, **kw_variables):
         """Set variables index in the file.
