@@ -22,3 +22,5 @@ in a subclass of database ?
 * TODO: no type restrictions on keyring
 or maybe a new type of Key, for values
 it could even englob KeyVar (that seems complicated)
+* TODO: coord attribute scanning is flawed
+** From which filegroup do you transfer attributes to master coords ?

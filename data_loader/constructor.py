@@ -47,7 +47,8 @@ class Constructor():
 
     def __init__(self, root, coords):
         self.root = root
-        self.coords = {c.name: c for c in [Variables()] + coords}
+        self.coords = {c.name: c for c in coords}
+        self.var = Variables([])
         self.vi = VariablesInfo()
 
         self.filegroups = []
@@ -58,6 +59,13 @@ class Constructor():
         self.allow_advanced = False
 
         self.float_comparison = 1e-5
+
+    @property
+    def dims(self):
+        out = {'var': self.var}
+        for name, c in self.coords.items():
+            out[name] = c
+        return out
 
     @property
     def current_fg(self):
@@ -88,6 +96,7 @@ class Constructor():
         ...          'max_value': 40.}
         ... cstr.add_variable(name, **attrs)
         """
+        self.var.append(variable)
         self.vi.add_variable(variable, **attributes)
 
     def add_infos(self, **infos):
@@ -154,6 +163,7 @@ class Constructor():
             contains = [contains]
         contains = list(contains)
 
+        coords.insert(0, [self.var, variables_shared])
         fg = fg_type(root, contains, None, coords, self.vi,
                      variables_shared=variables_shared, **kwargs)
         self.filegroups.append(fg)
@@ -384,7 +394,7 @@ class Constructor():
 
     def get_coord_values(self):
         values_c = {}
-        for c in self.coords:
+        for c in self.dims:
             values = []
             for fg in self.filegroups:
                 values += list(fg.cs[c][:])
@@ -403,7 +413,7 @@ class Constructor():
 
     def apply_coord_values(self, values):
         for dim, val in values.items():
-            self.coords[dim].update_values(val)
+            self.dims[dim].update_values(val)
 
     def find_contained(self, values):
         for fg in self.filegroups:
@@ -502,12 +512,12 @@ class Constructor():
 
         dt_class = create_data_class(dt_types, accessor)
 
-        variables = list(self.vi.var)
-        for fg in self.filegroups:
-            variables += fg.variables
-        for var in variables:
-            if var not in self.vi:
-                self.vi.add_variable(var)
+        # variables = list(self.vi.var)
+        # for fg in self.filegroups:
+        #     variables += fg.variables
+        # for var in variables:
+        #     if var not in self.vi:
+        #         self.vi.add_variable(var)
 
         dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
         return dt
