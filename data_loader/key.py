@@ -856,15 +856,18 @@ class Keyring():
         ----------
         other: Keyring, Sequence[int, None]
         """
-        if isinstance(other, Keyring):
+        if isinstance(other, type(self)):
             other = other.shape
         else:
             other = list(other)
 
-        out = any(a is None
-                  or b is None
-                  or a == b
-                  for a, b in zip(self.shape, other))
+        if len(self.shape) == len(other) == 0:
+            out = True
+        else:
+            out = any(a is None
+                      or b is None
+                      or a == b
+                      for a, b in zip(self.shape, other))
         return out
 
     def print(self) -> str:
