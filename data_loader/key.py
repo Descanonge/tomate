@@ -77,6 +77,9 @@ class Key():
         self.type = tp
         self.set_shape()
 
+        if self.type == 'slice':
+            self.make_slice_size(None)
+
     def __eq__(self, other):
         return self.value == other.value
 
@@ -93,6 +96,27 @@ class Key():
         except TypeError:
             val = [self.value]
         return iter(val)
+
+    def make_slice_size(self, size=None):
+        if size is None:
+            size = get_slice_size(self.value)
+        if size is not None:
+            start, stop, step = self.value.start, self.value.stop, self.value.step
+            if step is None or step > 0:
+                if start is None:
+                    start = 0
+                if stop is None:
+                    stop = size
+                else:
+                    stop = min(size, stop)
+            else:
+                if start is None:
+                    start = size - 1
+                else:
+                    start = max(size-1, start)
+
+            self.value = slice(start, stop, step)
+            self.shape = len(list(range(*self.value.indices(size))))
 
     def copy(self) -> "Key":
         """Return copy of self."""
@@ -117,6 +141,8 @@ class Key():
             self.shape = 0
         elif self.type == 'list':
             self.shape = len(self.value)
+        elif self.type == 'slice':
+            self.shape = get_slice_size(self.value)
         else:
             self.shape = None
 
@@ -128,9 +154,8 @@ class Key():
         coord: Coord
             The coordinate that would be used.
         """
-        self.set_shape()
         if self.type == 'slice':
-            self.shape = len(coord[self.value])
+            self.make_slice_size(coord.size)
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -186,6 +211,10 @@ class Key():
         elif self.type == 'list':
             a = a.copy()
         elif self.type == 'slice':
+            size = get_slice_size(self.value)
+            if size is None:
+                raise TypeError("Slice can not be transformed to list ('%s')." % self.value)
+            a = list(range(*self.value.indices(size)))
         elif self.type == 'none':
             a = []
         return a
