@@ -147,7 +147,8 @@ class Variables(Coord):
         y: int, str, List[int], List[str], slice
             Index or name of variable(s).
         """
-        return self.get_var_names(y)
+        indices = self.get_var_indices(y)
+        return self._array[indices]
 
     def __iter__(self):
         """Iter variables names."""
@@ -175,5 +176,5 @@ class Variables(Coord):
 
     def append(self, var: str):
         """Add variable."""
-        variables = self[:] + [var]
+        variables = list(self[:]) + [var]
         self.update_values(variables)
