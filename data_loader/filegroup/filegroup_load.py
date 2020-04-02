@@ -31,7 +31,7 @@ class FilegroupLoad(FilegroupScan):
 
     acs = Accessor
 
-    def get_commands(self, keyring):
+    def get_commands(self, keyring, memory):
         """Get load commands.
 
         Recreate filenames from matches and find shared coords keys.
@@ -51,7 +51,7 @@ class FilegroupLoad(FilegroupScan):
         -------
         commands: List[Command]
         """
-        commands = self._get_commands_shared(keyring)
+        commands = self._get_commands_shared(keyring, memory)
         commands = command.merge_cmd_per_file(commands)
 
         # When there is no shared coordinate.
@@ -59,7 +59,7 @@ class FilegroupLoad(FilegroupScan):
             commands = self._get_commands_no_shared()
 
         key_in_inf = self._get_key_infile(keyring)
-        key_in_mem = self._get_key_memory(keyring)
+        key_in_mem = memory.subset(self.iter_shared(False))
 
         for cmd in commands:
             cmd.join_filename(self.root)
@@ -93,7 +93,7 @@ class FilegroupLoad(FilegroupScan):
         cmd.filename = ''.join(self.segments)
         return [cmd]
 
-    def _get_commands_shared(self, keyring):
+    def _get_commands_shared(self, keyring, memory):
         """Return the combo filename / keys_in for shared coordinates.
 
         Parameters
@@ -129,7 +129,7 @@ class FilegroupLoad(FilegroupScan):
             krgs_mem = Keyring()
             for i_c, name in enumerate(self.iter_shared(True)):
                 krgs_inf[name] = in_idxs[i_c][m[i_c]]
-                krgs_mem[name] = m[i_c]
+                krgs_mem[name] = memory[name].tolist()[m[i_c]]
 
             cmd.append(krgs_inf, krgs_mem)
             commands.append(cmd)
@@ -218,7 +218,7 @@ class FilegroupLoad(FilegroupScan):
         # i am worthless end me
         return krg_mem
 
-    def load_data(self, keyring):
+    def load_data(self, keyring, memory):
         """Load data for that filegroup.
 
         Retrieve load commands.
@@ -230,7 +230,7 @@ class FilegroupLoad(FilegroupScan):
             Variables to load
         keyring: Keyring
         """
-        commands = self.get_commands(keyring)
+        commands = self.get_commands(keyring, memory)
         for cmd in commands:
             log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
             file = self.open_file(cmd.filename, mode='r', log_lvl='info')

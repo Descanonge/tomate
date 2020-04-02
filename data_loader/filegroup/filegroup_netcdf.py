@@ -47,8 +47,8 @@ class FilegroupNetCDF(FilegroupLoad):
     def close_file(self, file):
         file.close()
 
-    def get_commands(self, keyring):
-        commands = super().get_commands(keyring)
+    def get_commands(self, keyring, memory):
+        commands = super().get_commands(keyring, memory)
         commands = separate_variables(commands)
         return commands
 
