@@ -41,7 +41,6 @@ class Key():
     def __init__(self, key):
         self.value = None
         self.type = ''
-        self.parent_shape = None
         self.shape = None
         self.set(key)
 
@@ -74,7 +73,6 @@ class Key():
         if reject:
             raise TypeError("Key is not int, List[int], or slice"
                             " (is %s)" % type(key))
-
         self.value = key
         self.type = tp
         self.set_shape()
@@ -104,7 +102,6 @@ class Key():
             value = self.value
         key = self.__class__(value)
         key.shape = self.shape
-        key.parent_shape = self.parent_shape
         return key
 
     def set_shape(self):
@@ -122,7 +119,6 @@ class Key():
             self.shape = len(self.value)
         else:
             self.shape = None
-        self.parent_shape = None
 
     def set_shape_coord(self, coord):
         """Set shape using a coordinate.
@@ -135,7 +131,6 @@ class Key():
         self.set_shape()
         if self.type == 'slice':
             self.shape = len(coord[self.value])
-        self.parent_shape = coord.size
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -157,8 +152,6 @@ class Key():
             Size of the coordinate.
             Default is the parent coordinate shape.
         """
-        if size is None:
-            size = self.parent_shape
         if self.type == 'int':
             self.value = size - self.value
         elif self.type == 'list':
@@ -193,9 +186,6 @@ class Key():
         elif self.type == 'list':
             a = a.copy()
         elif self.type == 'slice':
-            if self.parent_shape is None:
-                raise TypeError("%s has not had its parent shape specified." % self.value)
-            a = list(range(*self.value.indices(self.parent_shape)))
         elif self.type == 'none':
             a = []
         return a
@@ -236,7 +226,6 @@ class Key():
         else:
             key = self.__class__(list2slice_simple(res))
             key.shape = len(res)
-        key.parent_shape = self.parent_shape
         return key
 
     def __add__(self, other):
@@ -416,7 +405,6 @@ class KeyVar(Key):
             key = KeyVar(res[0])
         elif self.type == 'list' or other.type == 'list':
             key = self.__class__(list(res))
-        key.parent_shape = self.parent_shape
         return key
 
     def make_idx_var(self, variables):
