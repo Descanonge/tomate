@@ -728,7 +728,6 @@ class DataBase():
         keys: int, slice, List[int], optional
             What subset of coordinate to load. The order is that
             of self.coords.
-        # TODO: force: Does not simplify those coords keys
         kw_keys: int, slice, or List[int], optional
             What subset of coordinate to load. Takes precedence
             over positional `coords`.
@@ -765,19 +764,23 @@ class DataBase():
         keyring.make_total()
         keyring.make_int_list()
         keyring.make_var_idx(self.avail.var)
+        keyring.sort_by(self.dims)
 
         self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
         self.data = self.allocate(self.loaded.shape)
 
-        keyring.make_idx_var(self.avail.var)
+        any_loaded = False
         for fg in self.filegroups:
-            keyring_fg = keyring.copy()
-            keyring_fg['var'] *= Keyring(var=fg.variables[:])['var']
-            keyring_fg['var'].make_var_idx(fg.variables)
-            if keyring_fg['var'].shape != 0:
-                fg.load_data(keyring_fg)
+            cmd = fg.get_fg_keyrings(keyring)
+
+            if cmd is not None:
+                any_loaded = True
+                fg.load_data(*cmd)
+
+        if not any_loaded:
+            log.warning("Nothing loaded.")
 
         try:
             self.do_post_load(self)
