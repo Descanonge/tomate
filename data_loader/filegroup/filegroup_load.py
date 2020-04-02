@@ -35,8 +35,8 @@ class FilegroupLoad(FilegroupScan):
         krg_infile = Keyring()
         krg_memory = Keyring()
 
-        for dim, key in keyring.items():
-            infile = np.array(key.apply(self.contains[dim]))
+        for dim, key in keyring.items_values():
+            infile = np.array(self.contains[dim][key])
             memory = np.arange(len(infile))
 
             none = np.where(infile == None)[0]
