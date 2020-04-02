@@ -143,7 +143,7 @@ class Key():
             return [self.value]
         return self.value
 
-    def reverse(self, size=None):
+    def reverse(self, size):
         """Reverse key.
 
         Parameters
@@ -960,7 +960,7 @@ def get_slice_size(slc):
         size = slc.start
     return size
 
-def reverse_slice(sl, size=None):
+def reverse_slice(sl, size):
     """Reverse a slice.
 
     Parameters
@@ -970,9 +970,6 @@ def reverse_slice(sl, size=None):
     size: int, optional
         Size of the list to get indices from.
     """
-    if size is None:
-        size = sl.stop - sl.start
-
     ind = sl.indices(size)
     shift = [-1, 1][ind[2] < 0]
 
