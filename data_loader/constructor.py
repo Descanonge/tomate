@@ -400,7 +400,8 @@ class Constructor():
         for c in self.dims:
             values = []
             for fg in self.filegroups:
-                values += list(fg.cs[c][:])
+                if fg.cs[c].size is not None:
+                    values += list(fg.cs[c][:])
 
             values = np.array(values)
             if c != 'var':
