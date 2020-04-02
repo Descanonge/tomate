@@ -219,6 +219,15 @@ class Key():
             a = []
         return a
 
+    def apply(self, seq):
+        if self.type == 'int':
+            return seq[self.value]
+        if self.type == 'list':
+            return [seq[i] for i in self.value]
+        if self.type == 'slice':
+            return seq[self.value]
+        raise TypeError("Not appliable (key type '%s')." % self.type)
+
     def __mul__(self, other):
         """Subset key by another.
 
