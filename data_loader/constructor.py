@@ -422,18 +422,23 @@ class Constructor():
         for fg in self.filegroups:
             for dim, cs in fg.cs.items():
                 contains = []
-                c = values[dim]
-                for value in values[dim]:
-                    if dim == 'var':
-                        idx = np.where(cs[:] == value)[0]
-                    else:
-                        idx = np.where(np.abs(cs[:]-value) < self.float_comparison)[0]
-                    if len(idx) == 0:
-                        idx = None
-                    else:
-                        idx = idx[0]
-                    contains.append(idx)
-                fg.contains[dim] = contains
+
+                # No information on CS values:
+                # no conversion between avail and FG
+                if cs.size is None:
+                    contains = np.arange(len(values[dim]))
+                else:
+                    for value in values[dim]:
+                        if dim == 'var':
+                            idx = np.where(cs[:] == value)[0]
+                        else:
+                            idx = np.where(np.abs(cs[:]-value) < self.float_comparison)[0]
+                        if len(idx) == 0:
+                            idx = None
+                        else:
+                            idx = idx[0]
+                        contains.append(idx)
+                fg.contains[dim] = np.array(contains)
 
     def check_scan(self, threshold=1e-5):
         """Check scanned values are compatible accross filegroups.
