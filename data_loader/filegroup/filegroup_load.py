@@ -31,6 +31,32 @@ class FilegroupLoad(FilegroupScan):
 
     acs = Accessor
 
+    def get_fg_keyrings(self, keyring):
+        krg_infile = Keyring()
+        krg_memory = Keyring()
+
+        for dim, key in keyring.items():
+            infile = np.array(key.apply(self.contains[dim]))
+            memory = np.arange(len(infile))
+
+            none = np.where(infile == None)[0]
+            infile = np.delete(infile, none)
+            memory = np.delete(memory, none)
+
+            if len(infile) == 0:
+                return None
+
+            krg_infile[dim] = infile
+            krg_memory[dim] = memory
+
+        krg_infile.simplify()
+        krg_memory.simplify()
+
+        msg = "Infile and memory Fg keyrings not shape equivalent."
+        assert krg_infile.is_shape_equivalent(krg_memory), msg
+
+        return command.CmdKeyrings(krg_infile, krg_memory)
+
     def get_commands(self, keyring, memory):
         """Get load commands.
 
