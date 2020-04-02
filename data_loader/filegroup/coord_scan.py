@@ -508,7 +508,7 @@ class CoordScanShared(CoordScan):
                 raise RuntimeError("'%s' has no scanning functions set." % self.name)
             if 'manual' in self.scan:
                 for v in values:
-                    i = self.values.index(v)
+                    i = self.get_index(v)
                     self.matches[i] = matches
             else:
                 self.matches += [matches for _ in range(len(values))]
