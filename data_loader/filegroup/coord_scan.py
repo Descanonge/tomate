@@ -331,7 +331,6 @@ class CoordScan(Coord):
                 attributes = self.scan_attributes_func(self, file, **kwargs)
                 for name, attr in attributes.items():
                     if attr is not None:
-                        self.coord.set_attr(name, attr)
                         self.set_attr(name, attr)
 
             if to_scan == 'filename':
