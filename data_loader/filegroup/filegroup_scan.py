@@ -72,7 +72,7 @@ class FilegroupScan():
         Function used to scan general attributes.
     """
 
-    def __init__(self, root, contains, db, coords, vi,
+    def __init__(self, root, variables, db, coords, vi,
                  variables_shared=False):
         self.root = root
         self.contains = Variables(contains)
@@ -90,16 +90,18 @@ class FilegroupScan():
 
         self.scan_attributes_func = scan_attributes_default
 
-        coords_fg = [[self.contains, variables_shared]] + coords
+        self.variables = Variables(variables)
+        coords_fg = [[self.variables, variables_shared]] + coords
         self.make_coord_scan(coords_fg)
 
-        self.contains.vi = vi
+        self.variables.vi = vi
         self.cs['var'].vi = vi
-        self.cs['var'].set_values_default(contains)
+        self.cs['var'].set_values_default(variables)
+
 
     def __str__(self):
         s = [self.__class__.__name__]
-        s.append("Contains: %s" % ', '.join(self.contains))
+        s.append("Contains: %s" % ', '.join(self.variables))
 
         s.append("Root Directory: %s" % self.root)
         s.append("Pre-regex: %s" % self.pregex)
@@ -377,14 +379,14 @@ class FilegroupScan():
 
         if not self.found_file:
             raise NameError("No file matching the regex found ({0}, regex={1})".format(
-                self.contains, self.regex))
+                self.variables, self.regex))
 
         for cs in self.cs.values():
             cs.set_values()
             if cs.is_to_scan_values():
                 if len(cs.values) == 0:
                     raise ValueError("No values detected ({0}, {1})".format(
-                        cs.name, self.contains))
+                        cs.name, self.variables))
             if cs.is_to_check():
                 cs.update_values(cs.values)
 
@@ -420,4 +422,4 @@ def scan_attributes_default(fg, file):
         Attribute is then set to a Coord object
         using Coord.set_attr(name, attr).
     """
-    raise NotImplementedError("scan_infos was not set for (%s)" % fg.contains)
+    raise NotImplementedError("scan_infos was not set for (%s)" % fg.variables)

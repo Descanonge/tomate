@@ -218,12 +218,12 @@ class Constructor():
         """
         fg = self.current_fg
         for i, inf in enumerate(variables):
-            var = fg.contains[i]
+            var = fg.variables[i]
             if var not in kw_variables:
                 kw_variables[var] = inf
 
         cs = fg.cs['var']
-        values = fg.contains[:]
+        values = fg.variables[:]
         in_idx = [kw_variables.get(var, None) for var in values]
         cs.set_scan_manual(values, in_idx)
 
@@ -344,7 +344,7 @@ class Constructor():
             cs = fg.cs[name]
             if cs.shared:
                 log.warning("%s '%s' is shared, setting it index descending"
-                            " will have no impact.", fg.contains, name)
+                            " will have no impact.", fg.variables, name)
             cs.set_idx_descending()
 
     def scan_files(self):
@@ -393,7 +393,7 @@ class Constructor():
             if len(coords) > 0 and fg.regex == '':
                 mess = ("Filegroup is missing a regex.\n"
                         "Contains: {0}\nCoordinates: {1}").format(
-                            fg.contains, coords)
+                            fg.variables, coords)
                 raise RuntimeError(mess)
 
     def make_data(self, dt_types, accessor=None, scan=True):
@@ -440,7 +440,7 @@ class Constructor():
 
         variables = list(self.vi.var)
         for fg in self.filegroups:
-            variables += fg.contains
+            variables += fg.variables
         for var in variables:
             if var not in self.vi:
                 self.vi.add_variable(var)
@@ -470,7 +470,7 @@ def check_range(coords):
 
         log.log(getattr(logging, level),
                 "'%s' in %s has range %s",
-                cs.name, cs.filegroup.contains[:], cs.get_extent_str())
+                cs.name, cs.filegroup.variables[:], cs.get_extent_str())
 
         cs.slice(overlap[i])
 
@@ -509,11 +509,11 @@ def check_values(coords, threshold):
             if cs.size == 0:
                 raise IndexError("%s '%s' had no values "
                                  "in common with other filegroups." %
-                                 (cs.filegroup.contains, cs.name))
+                                 (cs.filegroup.variables, cs.name))
             log.warning("%s '%s' had %s values ignored"
                         " for consistency accross filegroups."
                         " (threshold: %s)",
-                        cs.filegroup.contains, cs.name, size-cs.size, threshold)
+                        cs.filegroup.variables, cs.name, size-cs.size, threshold)
             log.warning("Values common accross filegroup are kept instead"
                         " of throwing an exception."
                         " This is a new feature. Has not been fully tested,"

@@ -211,7 +211,7 @@ class FilegroupLoad(FilegroupScan):
             krg_mem[name] = key_mem
 
         key = keyring['var']
-        key.make_idx_var(self.contains)
+        key.make_idx_var(self.variables)
         krg_mem['var'] = self.db.loaded.var.get_var_indices(key.value)
         # FIXME: my god this is so wrong fix me i beg of thee, end my
         # suffering, i am the worst piece of code ever to tread this earth
@@ -338,7 +338,7 @@ class FilegroupLoad(FilegroupScan):
         """Add variable to files."""
         keyring = scope.parent_keyring.copy()
         keyring['var'] = sibling
-        keyring.make_var_idx(self.contains)
+        keyring.make_var_idx(self.variables)
 
         commands = self.get_commands(keyring)
 

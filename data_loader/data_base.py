@@ -90,6 +90,7 @@ class DataBase():
         names = [c.name for c in coords]
         self.coords_name = names
 
+        # FIXME: tsktsk vi.var, really ?
         self.avail = Scope(vi.var, coords)
         self.loaded = self.avail.copy()
         self.selected = self.avail.copy()
@@ -133,7 +134,7 @@ class DataBase():
         s.append('')
 
         s.append("%d Filegroups:" % len(self.filegroups))
-        s += ['\t%s' % ', '.join(fg.contains) for fg in self.filegroups]
+        s += ['\t%s' % ', '.join(fg.variables) for fg in self.filegroups]
 
         return '\n'.join(s)
 
@@ -773,8 +774,8 @@ class DataBase():
         keyring.make_idx_var(self.avail.var)
         for fg in self.filegroups:
             keyring_fg = keyring.copy()
-            keyring_fg['var'] *= Keyring(var=fg.contains[:])['var']
-            keyring_fg['var'].make_var_idx(fg.contains)
+            keyring_fg['var'] *= Keyring(var=fg.variables[:])['var']
+            keyring_fg['var'].make_var_idx(fg.variables)
             if keyring_fg['var'].shape != 0:
                 fg.load_data(keyring_fg)
 
@@ -940,8 +941,8 @@ class DataBase():
 
         for fg in self.filegroups:
             keyring_fg = keyring.copy()
-            keyring_fg['var'] *= Keyring(var=fg.contains[:])['var']
-            keyring_fg['var'].make_var_idx(fg.contains)
+            keyring_fg['var'] *= Keyring(var=fg.variables[:])['var']
+            keyring_fg['var'].make_var_idx(fg.variables)
             if keyring_fg['var'].shape != 0:
                 fg.write(filename, wd, keyring=keyring)
 
@@ -967,7 +968,7 @@ class DataBase():
             inf_name = var
         scope = self.get_subscope('loaded', var=var, **keys)
         for fg in self.filegroups:
-            if sibling in fg.contains:
+            if sibling in fg.variables:
                 fg.write_add_variable(var, sibling, inf_name, scope)
                 break
 
