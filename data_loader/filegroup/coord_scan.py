@@ -194,6 +194,11 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
+    def slice(self, key):
+        self.in_idx = self.in_idx[key]
+        self.values = self.values[key]
+        if self.size is not None:
+            super().slice(key)
 
     def get_in_idx(self, key):
         """Get the in file indices.
