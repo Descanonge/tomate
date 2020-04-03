@@ -144,7 +144,7 @@ class CoordScan(Coord):
         self.scan_filename_func = scan_filename_default
         self.scan_in_file_func = scan_in_file_default
 
-        self._idx_descending = False
+        self.force_idx_descending = False
 
         super().__init__(name=coord.name, array=None,
                          units=coord.units, name_alt=coord.name_alt)
@@ -163,14 +163,6 @@ class CoordScan(Coord):
             if all([c == self.in_idx[0] for c in self.in_idx]):
                 s.append("In-file index is %s" % str(self.in_idx[0]))
         return '\n'.join(s)
-
-    def is_idx_descending(self) -> bool:
-        """Is index descending.
-
-        Meaning the in-file index are decreasing
-        when values are increasing.
-        """
-        return self._idx_descending
 
     def set_values(self):
         """Set values."""
@@ -194,9 +186,6 @@ class CoordScan(Coord):
         self.values = self.values[order]
         self.in_idx = self.in_idx[order]
 
-        if self.in_idx.dtype.kind in 'iuf':
-            self._idx_descending = all(np.diff(self.in_idx) < 0)
-
         return order
 
     def reset(self):
@@ -205,9 +194,6 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
-    def set_idx_descending(self):
-        """Set coordinate as descending."""
-        self._idx_descending = True
 
     def get_in_idx(self, key):
         """Get the in file indices.
@@ -226,7 +212,7 @@ class CoordScan(Coord):
         """
         if self.size is None:
             key_data = key
-            if self.is_idx_descending():
+            if self.force_idx_descending:
                 key_data.reverse(self.coord.size)
         else:
             key_data = key.__class__(self.in_idx[key.value])

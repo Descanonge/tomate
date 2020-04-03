@@ -360,7 +360,7 @@ class Constructor():
             if cs.shared:
                 log.warning("%s '%s' is shared, setting it index descending"
                             " will have no impact.", fg.variables, name)
-            cs.set_idx_descending()
+            cs.force_idx_descending = True
 
     def scan_files(self):
         """Scan files.
