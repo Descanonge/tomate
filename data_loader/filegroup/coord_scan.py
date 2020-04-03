@@ -157,8 +157,6 @@ class CoordScan(Coord):
             s.append("Scanned")
         else:
             s.append("Not scanned")
-        if self.is_to_check():
-            s.append("Found %d values, kept %d" % (len(self.values), self.size))
         if len(self.in_idx) > 0:
             if all([c == self.in_idx[0] for c in self.in_idx]):
                 s.append("In-file index is %s" % str(self.in_idx[0]))
