@@ -9,6 +9,7 @@
 import logging
 import os
 import inspect
+import itertools
 
 import numpy as np
 
@@ -374,11 +375,13 @@ class Constructor():
         self.apply_coord_selections()
 
         values = self.get_coord_values()
+        self.find_contained(values)
         if not self.allow_advanced:
             values = self.get_intersection(values)
-        # TODO: check that avail is rectangular ?
-        self.apply_coord_values(values)
-        self.find_contained(values)
+            self.apply_coord_values(values)
+            self.find_contained(values)
+        else:
+            self.apply_coord_values(values)
         self.check_duplicates()
 
     def apply_coord_selections(self):
@@ -411,6 +414,37 @@ class Constructor():
         return values_c
 
     def get_intersection(self, values):
+        # Get mininum intersection of values.
+        # Delete non-overlapping values.
+        for dim in self.coords:
+            any_cut = False
+            for fg in self.filegroups:
+                none = np.equal(fg.contains[dim], None)
+                rem = np.where(none)[0]
+                sel = np.where(~none)[0]
+                if rem.size > 0:
+                    values[dim] = np.delete(values[dim], rem)
+                    for fg_ in self.filegroups:
+                        cs = fg_.cs[dim]
+                        if cs.size is not None:
+                            indices = fg_.contains[dim][sel]
+                            indices = np.delete(indices,
+                                                np.where(np.equal(indices, None))[0])
+                            if indices.size == 0:
+                                raise IndexError("No common values for '%s'." % dim)
+
+                            any_cut = True
+                            if indices.size != cs.size:
+                                log.warning("'%s' in %s: found %d values ranging %s",
+                                            dim, fg_.variables[:], fg_.cs[dim].size,
+                                            fg_.cs[dim].get_extent_str())
+                            cs.slice(indices.astype(int))
+                        fg_.contains[dim] = np.delete(fg_.contains[dim], rem)
+
+            if any_cut:
+                c = self.filegroups[0].cs[dim]
+                log.warning("Common values taken for '%s', %d values ranging %s",
+                            dim, c.size, c.get_extent_str())
         return values
 
     def check_duplicates(self):
