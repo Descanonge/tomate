@@ -65,6 +65,9 @@ class Variables(Coord):
         s = "Variables: " + ', '.join(self[:])
         return s
 
+    def get_extent_str(self):
+        return ' - '.join(self.get_extent())
+
     def get_var_index(self, y) -> int:
         """Return index of variable.
 
