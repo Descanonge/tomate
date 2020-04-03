@@ -39,7 +39,7 @@ class FilegroupLoad(FilegroupScan):
             infile = np.array(self.contains[dim][key])
             memory = np.arange(len(infile))
 
-            none = np.where(infile == None)[0]
+            none = np.where(np.equal(infile, None))[0]
             infile = np.delete(infile, none)
             memory = np.delete(memory, none)
 
