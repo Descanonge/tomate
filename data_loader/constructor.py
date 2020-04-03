@@ -373,15 +373,13 @@ class Constructor():
 
         self.apply_coord_selections()
 
-        # TODO: raise if duplicates or something
-        # otherwise it will be loaded twice
-
         values = self.get_coord_values()
         if not self.allow_advanced:
             values = self.get_intersection(values)
         # TODO: check that avail is rectangular ?
         self.apply_coord_values(values)
         self.find_contained(values)
+        self.check_duplicates()
 
     def apply_coord_selections(self):
         for i, fg in enumerate(self.filegroups):
@@ -414,6 +412,17 @@ class Constructor():
 
     def get_intersection(self, values):
         return values
+
+    def check_duplicates(self):
+        for fg1, fg2 in itertools.combinations(self.filegroups, 2):
+            intersect = []
+            for c1, c2 in zip(fg1.contains.values(), fg2.contains.values()):
+                w1 = np.where(~np.equal(c1, None))[0]
+                w2 = np.where(~np.equal(c2, None))[0]
+                intersect.append(np.intersect1d(w1, w2).size)
+            if all(s > 0 for s in intersect):
+                raise ValueError("Duplicate values in filegroups %s and %s"
+                                 % (fg1.variables, fg2.variables))
 
     def apply_coord_values(self, values):
         for dim, val in values.items():
