@@ -366,25 +366,38 @@ class Constructor():
     def scan_files(self):
         """Scan files.
 
-        Find coordinates values and eventually, in-file indices.
+        Scan files.
+        Apply selection of CS.
+        Find total availables coordinates values
+        accross filegroups.
+        Find what values are contained within each fg.
+        If allowed is not allowed, select only common
+        values accross filegroups.
+        Check if data points are duplicates accross filegroups.
         """
         self.check_regex()
         for fg in self.filegroups:
             fg.scan_files()
 
-        self.apply_coord_selections()
+        self._apply_coord_selections()
 
-        values = self.get_coord_values()
-        self.find_contained(values)
+        values = self._get_coord_values()
+        self._find_contained(values)
         if not self.allow_advanced:
-            values = self.get_intersection(values)
-            self.apply_coord_values(values)
-            self.find_contained(values)
+            self._get_intersection(values)
+            self._apply_coord_values(values)
+            self._find_contained(values)
         else:
-            self.apply_coord_values(values)
+            self._apply_coord_values(values)
         self.check_duplicates()
 
-    def apply_coord_selections(self):
+    def _apply_coord_selections(self):
+        """Apply selection on CoordScan.
+
+        Only treat a subpart of a coordinate.
+        Selection set by user.
+        Non-selected parts are forgotten.
+        """
         for i, fg in enumerate(self.filegroups):
             for dim, key in self.selection[i].items():
                 fg.cs[dim].slice(key)
@@ -396,7 +409,14 @@ class Constructor():
                     idx = cs.get_indices(key)
                 cs.slice(idx)
 
-    def get_coord_values(self):
+    def _get_coord_values(self):
+        """Aggregate all available coordinate values.
+
+        Returns
+        -------
+        Dict[str, Array]
+            Values for each dimension.
+        """
         values_c = {}
         for c in self.dims:
             values = []
@@ -413,60 +433,40 @@ class Constructor():
             values_c[c] = values
         return values_c
 
-    def get_intersection(self, values):
-        # Get mininum intersection of values.
-        # Delete non-overlapping values.
-        for dim in self.coords:
-            any_cut = False
-            for fg in self.filegroups:
-                none = np.equal(fg.contains[dim], None)
-                rem = np.where(none)[0]
-                sel = np.where(~none)[0]
-                if rem.size > 0:
-                    values[dim] = np.delete(values[dim], rem)
-                    for fg_ in self.filegroups:
-                        cs = fg_.cs[dim]
-                        if cs.size is not None:
-                            indices = fg_.contains[dim][sel]
-                            indices = np.delete(indices,
-                                                np.where(np.equal(indices, None))[0])
-                            if indices.size == 0:
-                                raise IndexError("No common values for '%s'." % dim)
 
-                            any_cut = True
-                            if indices.size != cs.size:
-                                log.warning("'%s' in %s: found %d values ranging %s",
-                                            dim, fg_.variables[:], fg_.cs[dim].size,
-                                            fg_.cs[dim].get_extent_str())
-                            cs.slice(indices.astype(int))
-                        fg_.contains[dim] = np.delete(fg_.contains[dim], rem)
+    def _apply_coord_values(self, values):
+        """Set found values to master coordinates.
 
-            if any_cut:
-                c = self.filegroups[0].cs[dim]
-                log.warning("Common values taken for '%s', %d values ranging %s",
-                            dim, c.size, c.get_extent_str())
-        return values
-
-    def check_duplicates(self):
-        for fg1, fg2 in itertools.combinations(self.filegroups, 2):
-            intersect = []
-            for c1, c2 in zip(fg1.contains.values(), fg2.contains.values()):
-                w1 = np.where(~np.equal(c1, None))[0]
-                w2 = np.where(~np.equal(c2, None))[0]
-                intersect.append(np.intersect1d(w1, w2).size)
-            if all(s > 0 for s in intersect):
-                raise ValueError("Duplicate values in filegroups %s and %s"
-                                 % (fg1.variables, fg2.variables))
-
-    def apply_coord_values(self, values):
+        Parameters
+        ----------
+        values: Dict[str, Array]
+        """
         for dim, val in values.items():
             self.dims[dim].update_values(val)
 
-    def get_contained(self, dim, inner, outer):
+    def _get_contained(self, dim, inner, outer):
+        """Find values of inner contained in outer.
+
+        Parameters
+        ----------
+        dim: str
+        inner: Array[Any]
+            Smaller list of values.
+            Can be floats, in which case self.float_comparison
+            is used as a threshold comparison.
+            Can be strings, if `dim` is 'var'.
+        outer: Array[Any]
+            Longer list of values.
+
+        Returns
+        -------
+        contains: List
+            List of the index of the outer values in the
+            inner list. If the value is not contained in
+            inner, the index is `None`.
+        """
         contains = []
 
-        # No information on CS outer:
-        # no conversion between avail and FG
         # TODO: comparison taken in charge by coordinate
         for value in outer:
             if dim == 'var':
@@ -480,7 +480,17 @@ class Constructor():
             contains.append(idx)
         return contains
 
-    def find_contained(self, values):
+    def _find_contained(self, values):
+        """Find what values are contained in each fg.
+
+        Set the `contains` values for all filegroups,
+        according to all available values.
+
+        Parameters
+        ----------
+        values: Dict[str, Array]
+            All available values for each coordinate.
+        """
         for fg in self.filegroups:
             for dim, cs in fg.cs.items():
                 # No information on CS values:
@@ -488,34 +498,95 @@ class Constructor():
                 if cs.size is None:
                     contains = np.arange(len(values[dim]))
                 else:
-                    contains = self.get_contained(dim, cs[:], values[dim])
+                    contains = self._get_contained(dim, cs[:], values[dim])
                     contains = np.array(contains)
                 fg.contains[dim] = contains
 
-    def check_scan(self, threshold=1e-5):
-        """Check scanned values are compatible accross filegroups.
+    def _get_intersection(self, values):
+        """Get intersection of coordinate values.
 
-        Select a common range across filegroups coordinates.
-        Check if coordinates have the same values across filgroups.
+        Only keep coordinates values common to all filegroups.
+        The variables dimensions is excluded from this.
+        Slice CoordScan and `contains` accordingly.
 
         Parameters
         ----------
-        threshold: float = 1e-5
-            Threshold used for float comparison.
+        values: Dict[str, Array]
+            All values available for each dimension.
+            Modified in place to only values common
+            accross filegroups.
         """
-        for name in self.coords:
-            coords = []
+        for dim in self.coords:
+            any_cut = False
             for fg in self.filegroups:
-                for name_cs, cs in fg.cs.items():
-                    if cs.is_to_check() and name_cs == name:
-                        coords.append(cs)
+                none = np.equal(fg.contains[dim], None)
+                rem = np.where(none)[0]
+                sel = np.where(~none)[0]
+                if rem.size > 0:
+                    any_cut = True
+                    self._slice_cs(dim, values, rem, sel)
 
-            check_range(coords)
-            check_values(coords, threshold)
+            if any_cut:
+                c = self.filegroups[0].cs[dim]
+                log.warning("Common values taken for '%s', %d values ranging %s",
+                            dim, c.size, c.get_extent_str())
 
-            # Select the first coordinate found in the filegroups
-            # with that name
-            coords[0].assign_values()
+    def _slice_cs(self, dim, values, remove, select):
+        """Slice all CoordScan according to smaller values.
+
+        Parameters
+        ----------
+        dim: str
+            Dimension to slice.
+        values: Array
+            New values.
+        remove: Array[int]
+            Indices to remove from available.
+        select: Array[int]
+            Indices to keep in available.
+
+        Raises
+        ------
+        IndexError
+            If no common values are found.
+        """
+        values[dim] = np.delete(values[dim], remove)
+        for fg_ in self.filegroups:
+            cs = fg_.cs[dim]
+            if cs.size is not None:
+                indices = fg_.contains[dim][select]
+                indices = np.delete(indices,
+                                    np.where(np.equal(indices, None))[0])
+                if indices.size == 0:
+                    raise IndexError("No common values for '%s'." % dim)
+
+                if indices.size != cs.size:
+                    log.warning("'%s' in %s: found %d values ranging %s",
+                                dim, fg_.variables[:], fg_.cs[dim].size,
+                                fg_.cs[dim].get_extent_str())
+                cs.slice(indices.astype(int))
+            fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
+
+    def check_duplicates(self):
+        """Check for duplicate data points.
+
+        ie if a same data point (according to coordinate values)
+        can be found in two filegroups.
+
+        Raises
+        ------
+        ValueError:
+            If there is a duplicate.
+        """
+        for fg1, fg2 in itertools.combinations(self.filegroups, 2):
+            intersect = []
+            for c1, c2 in zip(fg1.contains.values(), fg2.contains.values()):
+                w1 = np.where(~np.equal(c1, None))[0]
+                w2 = np.where(~np.equal(c2, None))[0]
+                intersect.append(np.intersect1d(w1, w2).size)
+            if all(s > 0 for s in intersect):
+                raise ValueError("Duplicate values in filegroups %s and %s"
+                                 % (fg1.variables, fg2.variables))
 
     def check_regex(self):
         """Check if a pregex has been added where needed.
@@ -585,75 +656,6 @@ class Constructor():
         return dt
 
 
-def check_range(coords):
-    """Check coords range, slice if needed.
-
-    Only look at extremal values of a coordinate.
-
-    Parameters
-    ----------
-    coords: List[CoordScan]
-         CoordScan of different filegroups, linked to the same coordinate.
-    """
-    overlap = select_overlap(*coords)
-    cut = False
-    for i, cs in enumerate(coords):
-        level = 'DEBUG'
-        sl = overlap[i].indices(cs.size)
-        if sl[0] != 0 or sl[1] != len(cs.values):
-            cut = True
-            level = 'WARNING'
-
-        log.log(getattr(logging, level),
-                "'%s' in %s has range %s",
-                cs.name, cs.filegroup.variables[:], cs.get_extent_str())
-
-        cs.slice(overlap[i])
-
-    if cut:
-        cs = coords[0]
-        log.warning("'%s' does not have the same range across"
-                    " all filegroups. A common range is taken. %s",
-                    cs.name, cs.get_extent_str())
-
-
-def check_values(coords, threshold):
-    """Check coords values, keep values in common.
-
-    Parameters
-    ----------
-    coords: List[CoordScan]
-        CoordScan of different filegroups, linked to the same coordinate.
-    threshold: float
-        Threshold for float comparison.
-
-    Raises
-    ------
-    IndexError
-        If a coordinate has no common values across filegroups.
-    """
-    sizes = [cs.size for cs in coords]
-    for i in range(len(coords) - 1):
-        c1 = coords[i]
-        c2 = coords[i+1]
-        i1, i2 = c1.get_collocated_float(c2, threshold)
-        c1.slice(i1)
-        c2.slice(i2)
-
-    for cs, size in zip(coords, sizes):
-        if  cs.size != size:
-            if cs.size == 0:
-                raise IndexError("%s '%s' had no values "
-                                 "in common with other filegroups." %
-                                 (cs.filegroup.variables, cs.name))
-            log.warning("%s '%s' had %s values ignored"
-                        " for consistency accross filegroups."
-                        " (threshold: %s)",
-                        cs.filegroup.variables, cs.name, size-cs.size, threshold)
-            log.warning("Values common accross filegroup are kept instead"
-                        " of throwing an exception."
-                        " This is a new feature. Has not been fully tested,"
-                        " especially for 'in' coordinates. Pay extra care.")
 
 def create_data_class(dt_types, accessor=None):
     """Create a dynamic data class.

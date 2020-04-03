@@ -163,6 +163,7 @@ class FilegroupLoad(FilegroupScan):
         return commands
 
     def _get_commands_shared__get_info(self, keyring):
+        # TODO: simplify
         """For all asked values, retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.
