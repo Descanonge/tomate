@@ -34,6 +34,7 @@ class Constructor():
         Root directory of all files.
     coords: List[Coord]
         Coordinates, in the order the data should be kept.
+        Variables are excluded.
 
     Attributes
     ----------
@@ -44,6 +45,16 @@ class Constructor():
     filegroups: List[Filegroup]
         Filegroups added so far.
     vi: VariablesInfo
+
+    selection: List[Dict[str, Key-like]]
+        Keys for selecting parts of the CoordScan.
+    selection_by_value: List[Dict[str, value Key-like]]
+        Keys for selecting parts of the CoordScan by value.
+
+    allow_advanced: bool
+        If advanced Filegroups arrangement is allowed.
+    float_comparison: float
+        Threshold for float comparison.
     """
 
     def __init__(self, root, coords):
@@ -63,6 +74,7 @@ class Constructor():
 
     @property
     def dims(self):
+        """Dimensions (variables + coordinates)."""
         out = {'var': self.var}
         for name, c in self.coords.items():
             out[name] = c
@@ -107,7 +119,7 @@ class Constructor():
 
         Parameters
         ----------
-        infos: Dict[Any]
+        infos: Any
 
         Examples
         --------
@@ -123,15 +135,17 @@ class Constructor():
         ----------
         fg_type: FilegroupLoad subclass
             Class of filegroup to add. Dependant on the file-format.
-        contains: List[str]
+        contains: List[str], str
             List of variables contained in this grouping
             of files.
+            Superseded by 'var' in `coords` if present.
         coords: List[Coord, shared: str or bool]
             Coordinates used in this grouping of files.
             Each element of the list is a length 2 tuple of
             the coordinate name, and a shared flag.
             The flag can be 'shared' or 'in'.
-        coords: str
+            Variables dimension can be omitted.
+        root: str, optional
             Subfolder from root.
         variables_shared: bool, optional
             If the Variables dimension is shared.
@@ -192,11 +206,42 @@ class Constructor():
         self.current_fg.set_scan_regex(pregex, **replacements)
 
     def set_coord_selection(self, **keys):
+        """Set selection for CoordScan of current filegroup.
+
+        This allows to select only a subpart of a CoordScan.
+        The selection is applied by index, after scanning.
+
+        Parameters
+        ----------
+        keys: Key-like
+
+        Examples
+        --------
+        >>> cstr.set_coord_selection(time=[0, 1, 2], lat=slice(0, 50))
+        """
         for dim, key in keys.items():
             self.selection_by_value[-1].pop(dim, None)
             self.selection[-1][dim] = key
 
     def set_coord_selection_by_value(self, **keys):
+        """Set selection for CoordScan of current filegroup.
+
+        This allows to select only a subpart of a CoordScan.
+        The selection is applied by value, after scanning.
+
+        Parameters
+        ----------
+        keys: int, float, slice
+            Values to select in a CoordScan.
+            If is slice, use start and stop as boundaries.
+            Step has no effect.
+            If is float, int, or a list of, closest index
+            each value is taken.
+
+        Examples
+        --------
+        >>> cstr.set_coord_selection_by_value(depth=250, lat=slice(10., 30))
+        """
         for dim, key in keys.items():
             self.selection[-1].pop(dim, None)
             self.selection_by_value[-1][dim] = key
@@ -206,10 +251,8 @@ class Constructor():
 
         This information will be transmitted to the filegroup
         when loading.
-        It can be a integer or a string (to indicate a name)
+        It can be a integer or a string
         under which the variable is found in file.
-        If not specified, None value is assigned, and the
-        filegroup subclass should manage this case.
 
         Variables not specified will be attributed the default
         value (in-file index identical to the variable name).
@@ -253,7 +296,7 @@ class Constructor():
             Function that captures values and in-file index
         coords: str
             Coordinates to apply this function for.
-        kwargs: Any
+        kwargs: Any, optional
             Keyword arguments that will be passed to the function.
 
         Notes
@@ -276,7 +319,7 @@ class Constructor():
             Function that recover values from filename.
         coords: str
             Coordinates to apply this function for.
-        kwargs: Any
+        kwargs: Any, optional
             Keyword arguments that will be passed to the function.
 
         Notes
@@ -641,7 +684,6 @@ class Constructor():
             if not self.filegroups:
                 raise RuntimeError("No filegroups in constructor.")
             self.scan_files()
-            # self.check_scan()
 
         dt_class = create_data_class(dt_types, accessor)
 
