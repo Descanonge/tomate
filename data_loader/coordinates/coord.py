@@ -30,8 +30,6 @@ class Coord():
         Values of the coordinate.
     units: str, optional
         Coordinate units
-    name_alt: str, List[str], optional
-        Alternative names.
     fullname: str, optional
         Print name.
 
@@ -41,22 +39,14 @@ class Coord():
         Identification of the coordinate.
     units: str
         Coordinate units.
-    name_alt: List[str]
-        Alternative names.
     fullname: str
         Print name.
     size: int
         Length of values.
     """
 
-    def __init__(self, name, array=None, units=None, name_alt=None,
-                 fullname=None):
+    def __init__(self, name, array=None, units=None, fullname=None):
         self.name = name
-        if name_alt is None:
-            name_alt = []
-        if isinstance(name_alt, str):
-            name_alt = [name_alt]
-        self.name_alt = name_alt
 
         if fullname is None:
             fullname = ""
@@ -142,8 +132,6 @@ class Coord():
             s.append("Size: %d" % self.size)
             s.append("Extent: %s" % self.get_extent_str())
             s.append("Descending: %s" % ['no', 'yes'][self.is_descending()])
-        if len(self.name_alt) > 0:
-            s.append("Alternative names: %s" % ', '.join(self.name_alt))
         if self.units:
             s.append("Units: %s" % self.units)
         return '\n'.join(s)
@@ -175,8 +163,7 @@ class Coord():
 
     def copy(self) -> "Coord":
         """Return a copy of itself."""
-        return self.__class__(self.name, self._array, self.units,
-                              self.name_alt, self.fullname)
+        return self.__class__(self.name, self._array, self.units, self.fullname)
 
     def slice(self, key):
         """Slice the coordinate.

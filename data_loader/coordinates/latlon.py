@@ -20,15 +20,13 @@ class Lat(Coord):
         Values of the coordinate.
     units: str, optional
         Coordinate units
-    name_alt: str, List[str], optional
-        Alternative names.
     fullname: str, optional
         Print name.
     """
 
     def __init__(self, name='lat', array=None,
-                 units='deg', name_alt='latitude', fullname='Latitude'):
-        super().__init__(name, array, units, name_alt, fullname)
+                 units='deg', fullname='Latitude'):
+        super().__init__(name, array, units, fullname)
 
     @staticmethod
     def format(value, fmt='.2f') -> str:
@@ -55,16 +53,14 @@ class Lon(Coord):
         Values of the coordinate.
     units: str, optional
         Coordinate units
-    name_alt: str, List[str], optional
-        Alternative names.
     fullname: str, optional
         Print name.
     """
     # TODO: convert to km
 
     def __init__(self, name='lon', array=None,
-                 units='deg', name_alt='longitude', fullname='Longitude'):
-        super().__init__(name, array, units, name_alt, fullname)
+                 units='deg', fullname='Longitude'):
+        super().__init__(name, array, units, fullname)
 
 
     @staticmethod
