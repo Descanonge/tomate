@@ -144,7 +144,9 @@ class Scope():
 
     def is_empty(self) -> bool:
         """Is empty."""
-        return not self.var
+        empty = any((not d.has_data() or d.size == 0)
+                     for d in self.dims.values())
+        return empty
 
     def empty(self):
         """Empty scope.
