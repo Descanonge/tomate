@@ -694,7 +694,7 @@ class Constructor():
         #     if var not in self.vi:
         #         self.vi.add_variable(var)
 
-        dt = dt_class(self.root, self.filegroups, self.vi, *self.coords.values())
+        dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
         return dt
 
 
