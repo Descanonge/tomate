@@ -141,8 +141,8 @@ class FilegroupScan():
         coords: List[[Coord, shared: bool]]
         """
         self.cs = {}
-        for coord, shared in coords:
-            cs = dlcs.get_coordscan(self, coord, shared)
+        for coord, shared, name in coords:
+            cs = dlcs.get_coordscan(self, coord, shared, name)
             self.cs.update({coord.name: cs})
 
     def iter_shared(self, shared=None):
