@@ -101,6 +101,15 @@ def get_value_from_matches(cs, values=None):
 
     return None, None
 
+def get_string_from_match(cs, values=None):
+    """Retrieve string from match.
+
+    Take first not dummy match of element 'text' or 'char'.
+    """
+    for m in cs.matchers:
+        if not m.dummy and m.elt in ['text', 'char']:
+            return m.match, m.match
+    return None, None
 
 def _find_month_number(name):
     """Find a month number from its name.
