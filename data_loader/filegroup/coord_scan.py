@@ -331,9 +331,9 @@ class CoordScan(Coord):
                 values, in_idx = self.scan_in_file_func(self, file, values, **kwargs)
 
         if self.is_to_scan_values():
-            if isinstance(values, (str, int, float, type(None))):
+            if not isinstance(values, (list, tuple)):
                 values = [values]
-            if isinstance(in_idx, (str, int, float, type(None))):
+            if not isinstance(in_idx, (list, tuple)):
                 in_idx = [in_idx]
 
             n_values = len(values)
