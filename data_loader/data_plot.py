@@ -355,7 +355,7 @@ class DataPlot(DataBase):
                 fig.delaxes(ax)
 
     def iter_axes(self, axes, func, variables=None, iterables=None, *args, **kwargs):
-        """Apply function over multiple axes.
+        r"""Apply function over multiple axes.
 
         Parameters
         ----------

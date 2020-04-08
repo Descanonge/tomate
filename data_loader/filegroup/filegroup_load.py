@@ -32,6 +32,23 @@ class FilegroupLoad(FilegroupScan):
     acs = Accessor
 
     def get_fg_keyrings(self, keyring):
+        """Get filegroup specific keyring.
+
+        Use `contains` attribute to translate
+        keyring acting on available scope to acting
+        on the filegroup alone.
+
+        Parameters
+        ----------
+        keyring: Keyring
+            Keyring acting on database avail.
+
+        Returns
+        -------
+        CmdKeyrings, None
+            Infile and memory keyrings for this filegroup.
+            None if there is nothing to load in this filegroup.
+        """
         krg_infile = Keyring()
         krg_memory = Keyring()
 
@@ -274,12 +291,24 @@ class FilegroupLoad(FilegroupScan):
         return list(self.cs.keys())
 
     def _get_order(self, order_file):
+        """Get order of dimensions with their database names.
+
+        Keep the order, change the name of the CoordScan is
+        different from the Coord.
+        If the in-file dimension is not associated with any Coord,
+        keep it as is.
+
+        Parameters
+        ----------
+        order_file: List[str]
+            Dimensions order as in file.
+        """
         rosetta = {cs.name: name for name, cs in self.cs.items()}
         order = [rosetta.get(d, d) for d in order_file]
         return order
 
-
-    def _get_internal_keyring(self, order, keyring) -> Keyring:
+    @staticmethod
+    def _get_internal_keyring(order, keyring) -> Keyring:
         """Get keyring for in file taking.
 
         If dimension that are not known by the filegroup,
@@ -288,6 +317,13 @@ class FilegroupLoad(FilegroupScan):
         Remove any keys from dimension not in the file.
 
         Put the keyring in order.
+
+        Parameters
+        ----------
+        order: List[str]
+            Order of dimensions in-file, rather their associated
+            name in the database if it exists.
+        keyring: Keyring
         """
         int_krg = keyring.copy()
         for dim in order:
@@ -349,7 +385,8 @@ class FilegroupLoad(FilegroupScan):
         keyring['var'] = sibling
         keyring.make_var_idx(self.variables)
 
-        commands = self.get_commands(keyring)
+        # FIXME: memory keyring is wrong
+        commands = self.get_commands(keyring, None)
 
         for cmd in commands:
             log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
