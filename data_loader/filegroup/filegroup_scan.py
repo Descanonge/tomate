@@ -378,7 +378,7 @@ class FilegroupScan():
         for cs in self.cs.values():
             if cs.shared:
                 cs.matches = []
-            if 'manual' not in cs.scan:
+            if cs.is_to_scan_values() and 'manual' not in cs.scan:
                 cs.reset()
             elif cs.shared:
                 cs.matches = [[] for _ in range(len(cs.values))]
