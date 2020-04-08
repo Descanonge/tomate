@@ -218,33 +218,6 @@ class FilegroupLoad(FilegroupScan):
         krg_inf.simplify()
         return krg_inf
 
-    def _get_key_memory(self, keyring):
-        """Get the keys for data in memory.
-
-        Parameter
-        ---------
-        keyring: Keyring
-            Keyring asked to the filegroup.
-        """
-        krg_mem = Keyring()
-        for name in self.iter_shared(False):
-            key = keyring[name]
-            if key.type == 'int':
-                key_mem = 0
-            elif key.type == 'list':
-                key_mem = list(range(0, self.db.loaded[name].size, 1))
-            elif key.type in ['slice', 'none']:
-                key_mem = slice(0, self.db.loaded[name].size, 1)
-            krg_mem[name] = key_mem
-
-        key = keyring['var']
-        key.make_idx_var(self.variables)
-        krg_mem['var'] = self.db.loaded.var.get_var_indices(key.value)
-        # FIXME: my god this is so wrong fix me i beg of thee, end my
-        # suffering, i am the worst piece of code ever to tread this earth
-        # i am worthless end me
-        return krg_mem
-
     def load_data(self, keyring, memory):
         """Load data for that filegroup.
 
