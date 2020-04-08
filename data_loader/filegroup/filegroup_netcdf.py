@@ -85,18 +85,18 @@ class FilegroupNetCDF(FilegroupLoad):
         ncname: str
             Name of the variable in file.
         """
-        order = self._get_order(file, ncname)
+        order_file = self._get_order_in_file(file, ncname)
+        order = self._get_order(order_file)
         int_krg = self._get_internal_keyring(order, keyring)
 
         log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take(int_krg, file[ncname])
 
-        dims = list(keyring.dims)
-        dims.remove('var')
-        chunk = self.reorder_chunk(chunk, dims, order, variables=False)
+        chunk = self.reorder_chunk(chunk, keyring, order, variables=False)
         return chunk
 
-    def _get_order(self, file, ncname):
+    @staticmethod
+    def _get_order_in_file(file, ncname):
         """Get order from netcdf file, reorder keys.
 
         Parameters
@@ -111,25 +111,7 @@ class FilegroupNetCDF(FilegroupLoad):
         order: List[str]
             Coordinate names in order.
         """
-        order_nc = list(file[ncname].dimensions)
-        order = []
-        for coord_nc in order_nc:
-            try:
-                name = self.db.get_coord_name(coord_nc)
-
-            # If the demanded dimension is not in database.
-            except KeyError:
-                dim = file.dimensions[coord_nc].size
-                if dim > 1:
-                    log.warning("Additional dimension %s in file of "
-                                "size > 1. The first index will be used",
-                                coord_nc)
-                name = coord_nc
-                # We do not keep the coord name in `order` for a key equal to zero,
-                # numpy will squeeze the axis.
-            else:
-                order.append(name)
-
+        order = list(file[ncname].dimensions)
         return order
 
     def write(self, filename, wd, keyring):
@@ -187,7 +169,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
             ncvar = file[var]
 
-            order = self._get_order(file, var)
+            order = self._get_order_in_file(file, var)
             chunk = self.db.acs.take(krg_mem, self.db.data)
             chunk = self.reorder_chunk(chunk, krg_inf, order)
 

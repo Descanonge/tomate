@@ -288,22 +288,25 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def _get_order(self, file):
+    def _get_order_in_file(self):
         """Get order of dimensions in file.
 
-        Parameters
-        ----------
-        file: File object
+        Default to the order of `cs` in the filegroup.
 
         Returns
         -------
         order: List[str]
-            Dimensions names, in the order of the file.
+            Dimensions names as in the file, in the order of the file.
         """
-        raise NotImplementedError
+        return list(self.cs.keys())
 
-    @staticmethod
-    def _get_internal_keyring(order, keyring) -> Keyring:
+    def _get_order(self, order_file):
+        rosetta = {cs.name: name for name, cs in self.cs.items()}
+        order = [rosetta.get(d, d) for d in order_file]
+        return order
+
+
+    def _get_internal_keyring(self, order, keyring) -> Keyring:
         """Get keyring for in file taking.
 
         If dimension that are not known by the filegroup,
@@ -315,9 +318,15 @@ class FilegroupLoad(FilegroupScan):
         """
         int_krg = keyring.copy()
         for dim in order:
-            if dim not in int_krg:
-                int_krg[dim] = 0
-        return int_krg.subset(order)
+            if dim not in keyring:
+                log.warning("Additional dimension %s in file."
+                            " Index 0 will be taken.", dim)
+                key = 0
+            else:
+                key = keyring[dim]
+            int_krg[dim] = key
+        int_krg = int_krg.subset(order)
+        return int_krg
 
     def reorder_chunk(self, chunk, coords, order=None, variables=False):
         """Reorder data.
