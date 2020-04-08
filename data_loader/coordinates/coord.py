@@ -175,11 +175,8 @@ class Coord():
 
     def copy(self) -> "Coord":
         """Return a copy of itself."""
-        if self.has_data():
-            a = self._array[:]
-        else:
-            a = None
-        return self.__class__(self.name, a, self.units, self.name_alt, self.fullname)
+        return self.__class__(self.name, self._array, self.units,
+                              self.name_alt, self.fullname)
 
     def slice(self, key):
         """Slice the coordinate.
