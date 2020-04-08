@@ -87,7 +87,7 @@ def get_date_from_matches(cs, values=None, default_date=None):
     return None, None
 
 
-def get_value_from_matches(cs):
+def get_value_from_matches(cs, values=None):
     """Retrieve value from matches."""
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
