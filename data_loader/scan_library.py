@@ -137,25 +137,18 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     Convert time values to CS units. Variable name must
     be 'time'.
     """
-    for name in [cs.name] + cs.name_alt:
+    nc_var = file[cs.name]
+    in_values = list(nc_var[:])
+    in_idx = list(range(len(in_values)))
+
+    # TODO: something else than names for that plz
+    if cs.coord.name == 'time' or cs.name == 'time':
         try:
-            nc_var = file[name]
-        except IndexError:
-            in_values = None
-            in_idx = None
+            units = nc_var.getncattr('units')
+        except AttributeError:
+            pass
         else:
-            in_values = list(nc_var[:])
-            in_idx = list(range(len(in_values)))
-
-            if name == 'time':
-                try:
-                    units = nc_var.getncattr('units')
-                except AttributeError:
-                    pass
-                else:
-                    in_values = list(change_units(in_values, units, cs.units))
-            break
-
+            in_values = list(change_units(in_values, units, cs.units))
     return in_values, in_idx
 
 
@@ -198,13 +191,6 @@ def scan_infos_nc(fg, file):
 
 def scan_units_nc(cs, file):
     """Scan for the units of the time variable."""
-    for name in [cs.name] + cs.name_alt:
-        try:
-            nc_var = file[name]
-        except IndexError:
-            units = None
-        else:
-            units = nc_var.getncattr('units')
-            break
-
+    nc_var = file[cs.name]
+    units = nc_var.getncattr('units')
     return {'units': units}
