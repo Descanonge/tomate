@@ -130,7 +130,7 @@ class DataPlot(DataBase):
             kwargs_def.update(kwargs)
         kwargs = kwargs_def
 
-        extent = self.loaded.get_extent(*coords)
+        extent = self.plotted.get_extent(*coords)
         im = ax.imshow(image, extent=extent, **kwargs)
 
         if limits:

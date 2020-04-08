@@ -586,7 +586,7 @@ class Keyring():
         return len(self.dims) > 0
 
     def subset(self, dims):
-        """Return a subpart of this keyring.
+        """Return a subcopy of this keyring.
 
         Parameters
         ----------
