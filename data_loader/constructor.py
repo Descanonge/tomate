@@ -157,8 +157,11 @@ class Constructor():
         >>> add_filegroup(FilegroupNetCDF, ['Chla', 'Chla_error'],
         ...               [['lat', 'in'], ['lon', 'in'], ['time', 'shared']])
         """
+        for c_fg in coords:
+            if len(c_fg) < 3:
+                c_fg.append(c_fg[0].name)
         shared_corres = {'in': False, 'shared': True}
-        for i, [c, shared] in enumerate(coords):
+        for i, [c, shared, _] in enumerate(coords):
             if not isinstance(shared, bool):
                 if shared not in shared_corres:
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
@@ -177,7 +180,7 @@ class Constructor():
             contains = [contains]
         contains = list(contains)
 
-        coords.insert(0, [self.var, variables_shared])
+        coords.insert(0, [self.var, variables_shared, 'var'])
         fg = fg_type(root, contains, None, coords, self.vi,
                      variables_shared=variables_shared, **kwargs)
         self.filegroups.append(fg)

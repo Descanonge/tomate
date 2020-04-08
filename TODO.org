@@ -18,7 +18,6 @@ in a subclass of database ?
 * TODO: Write: add to file
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
-* TODO: get rid of alternative names
 * TODO: iter coordinate (especially time)
 * TODO: no type restrictions on keyring
 or maybe a new type of Key, for values
