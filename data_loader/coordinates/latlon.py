@@ -27,7 +27,7 @@ class Lat(Coord):
     """
 
     def __init__(self, name='lat', array=None,
-                 units='deg', fullname='Latitude', name_alt='latitude'):
+                 units='deg', name_alt='latitude', fullname='Latitude'):
         super().__init__(name, array, units, name_alt, fullname)
 
     @staticmethod
@@ -63,7 +63,7 @@ class Lon(Coord):
     # TODO: convert to km
 
     def __init__(self, name='lon', array=None,
-                 units='deg', fullname='Longitude', name_alt='longitude'):
+                 units='deg', name_alt='longitude', fullname='Longitude'):
         super().__init__(name, array, units, name_alt, fullname)
 
 
