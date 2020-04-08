@@ -90,13 +90,16 @@ class FilegroupScan():
         self.scan_attributes_func = scan_attributes_default
 
         self.cs = {}
+        if variables is None:
+            variables = []
         if 'var' not in [c[0].name for c in coords]:
             variables_coord = Variables(variables)
             coords.insert(0, [variables_coord, variables_shared])
         self.make_coord_scan(coords)
 
-        self.cs['var'].vi = vi
-        self.cs['var'].set_values_default(variables)
+        csv = self.cs['var']
+        csv.vi = vi
+        csv.set_values_default(variables)
 
         self.contains = {dim: [] for dim in self.cs}
 
