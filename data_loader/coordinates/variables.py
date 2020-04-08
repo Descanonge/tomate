@@ -62,7 +62,10 @@ class Variables(Coord):
         self._size = self._array.size
 
     def __str__(self):
-        s = "Variables: " + ', '.join(self[:])
+        if self.has_data():
+            s = "Variables: " + ', '.join(self[:])
+        else:
+            s = "No variables"
         return s
 
     def get_extent_str(self):
