@@ -239,7 +239,7 @@ class DataBase():
         """
         return self.loaded.idx(variable)
 
-    def view(self, keyring=None, **keys):
+    def view(self, *keys, keyring=None, **kw_keys):
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
@@ -261,7 +261,8 @@ class DataBase():
         """
         self._check_loaded()
 
-        keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        keyring = Keyring.get_default(keyring, **kw_keys, variables=self.loaded.var)
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.simplify()
@@ -300,7 +301,7 @@ class DataBase():
 
         scope_ = scope.copy()
         scope_.slice(keyring, int2list=False, **keys)
-        return self.view(scope_.parent_keyring)
+        return self.view(keyring=scope_.parent_keyring)
 
     def view_ordered(self, order, keyring=None, **keys):
         """Returns a reordered subset of data.
