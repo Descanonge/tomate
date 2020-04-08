@@ -416,38 +416,6 @@ class DataBase():
         """
         return self.scope.shape
 
-    def get_coord_name(self, name: str) -> str:
-        """Return coord name.
-
-        Search within alternative names.
-
-        Parameters
-        ----------
-        name: str
-            Coordinate name or alternative name.
-
-        Returns
-        -------
-        str
-            Coordinate name.
-
-        Raises
-        ------
-        KeyError
-            If the name is not found.
-        """
-        # First check name
-        for c_name in self.avail.dims:
-            if c_name == name:
-                return c_name
-
-        # Then check name_alt
-        for c_name, coord in self.avail.dims.items():
-            if name in coord.name_alt:
-                return c_name
-
-        raise KeyError("%s not found" % name)
-
     def get_limits(self, *coords, scope=None, keyring=None, **keys):
         """Return limits of coordinates.
 
