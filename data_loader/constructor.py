@@ -288,7 +288,9 @@ class Constructor():
         in_idx = [kw_variables.get(var, None) for var in values]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_in_file(self, func, *coords, **kwargs):
+    def set_scan_in_file(self, func, *coords,
+                         only_values=False, only_index=False,
+                         **kwargs):
         """Set function for scanning coordinates values in file.
 
         Parameters
@@ -306,12 +308,19 @@ class Constructor():
         See coord_scan.scan_in_file_default() for a better description of
         the function interface.
         """
+        elts = ['values', 'in_idx']
+        if only_values:
+            elts.remove('in_idx')
+        if only_index:
+            elts.remove('values')
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_in_file_func(func, **kwargs)
+            cs.set_scan_in_file_func(func, elts, **kwargs)
 
-    def set_scan_filename(self, func, *coords, **kwargs):
+    def set_scan_filename(self, func, *coords,
+                          only_values=False, only_index=False,
+                          **kwargs):
         """Set function for scanning coordinates values from filename.
 
         Parameters
@@ -329,10 +338,15 @@ class Constructor():
         See coord_scan.scan_filename_default() for a better description of
         the function interface.
         """
+        elts = ['values', 'in_idx']
+        if only_values:
+            elts.remove('in_idx')
+        if only_index:
+            elts.remove('values')
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_filename_func(func, **kwargs)
+            cs.set_scan_filename_func(func, elts, **kwargs)
 
     def set_scan_manual(self, coord, values, in_idx=None):
         """Set coordinate values manually.

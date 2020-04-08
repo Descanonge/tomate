@@ -179,7 +179,7 @@ class CoordScan(Coord):
                or 'manual' in self.scan)
         return out
 
-    def set_scan_filename_func(self, func, **kwargs):
+    def set_scan_filename_func(self, func, elts, **kwargs):
         """Set function for scanning values.
 
         See also
@@ -188,10 +188,10 @@ class CoordScan(Coord):
         Constructor.set_scan_filename_func: for more details.
         """
         self.scan.pop('filename', None)
-        self.scan['filename'] = kwargs
+        self.scan['filename'] = [elts, kwargs]
         self.scan_filename_func = func
 
-    def set_scan_in_file_func(self, func, **kwargs):
+    def set_scan_in_file_func(self, func, elts, **kwargs):
         """Set function for scanning values in file.
 
         See also
@@ -201,7 +201,7 @@ class CoordScan(Coord):
         """
         self.scan.pop('manual', None)
         self.scan.pop('in', None)
-        self.scan['in'] = kwargs
+        self.scan['in'] = [elts, kwargs]
         self.scan_in_file_func = func
 
     def set_scan_manual(self, values, in_idx):
@@ -252,7 +252,7 @@ class CoordScan(Coord):
         values = None
         in_idx = None
 
-        for to_scan, kwargs in self.scan.items():
+        for to_scan, [elts, kwargs] in self.scan.items():
             if to_scan == 'attributes' and not self.scanned:
                 log.debug("Scanning attributes in file for '%s'", self.name)
                 attributes = self.scan_attributes_func(self, file, **kwargs)
@@ -261,12 +261,17 @@ class CoordScan(Coord):
                         self.set_attr(name, attr)
 
             if to_scan == 'filename':
-                values, in_idx = self.scan_filename_func(self, values, **kwargs)
                 log.debug("Scanning filename for '%s'", self.name)
+                v, i = self.scan_filename_func(self, values, **kwargs)
 
             if to_scan == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
-                values, in_idx = self.scan_in_file_func(self, file, values, **kwargs)
+                v, i = self.scan_in_file_func(self, file, values, **kwargs)
+
+            if 'values' in elts:
+                values = v
+            if 'in_idx' in elts:
+                in_idx = i
 
         if self.is_to_scan_values():
             if not isinstance(values, (list, tuple)):
