@@ -102,7 +102,12 @@ class FilegroupScan():
 
     @property
     def variables(self):
-        return self.cs['var'][:]
+        csv = self.cs['var']
+        if csv.has_data():
+            v = csv[:].tolist()
+        else:
+            v = []
+        return v
 
     def __str__(self):
         s = [self.__class__.__name__]

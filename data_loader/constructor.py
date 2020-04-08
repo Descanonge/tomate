@@ -604,8 +604,8 @@ class Constructor():
                     raise IndexError("No common values for '%s'." % dim)
 
                 if indices.size != cs.size:
-                    log.warning("'%s' in %s: found %d values ranging %s",
-                                dim, fg_.variables[:], fg_.cs[dim].size,
+                    log.warning("'%s' in %s will be cut: found %d values ranging %s",
+                                dim, fg_.variables, fg_.cs[dim].size,
                                 fg_.cs[dim].get_extent_str())
                 cs.slice(indices.astype(int))
             fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
