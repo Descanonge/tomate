@@ -34,11 +34,15 @@ class CoordScan(Coord):
         Parent coordinate.
     shared: bool
         If the coordinate is shared accross files.
+    name: str
+        Name of the coordinate in file.
 
     Attributes
     ----------
     filegroup: FilegroupScan or subclass
         Corresponding filegroup.
+    name: str
+        Name of the coordinate as in file.
     coord: Coord or subclass
         Parent coordinate object.
     shared: bool
@@ -64,7 +68,7 @@ class CoordScan(Coord):
         Keyword arguments to pass to the scan_in_file function.
     """
 
-    def __init__(self, filegroup, coord, shared):
+    def __init__(self, filegroup, coord, shared, name):
         self.filegroup = filegroup
         self.coord = coord
 
@@ -81,8 +85,7 @@ class CoordScan(Coord):
 
         self.force_idx_descending = False
 
-        super().__init__(name=coord.name, array=None,
-                         units=coord.units, name_alt=coord.name_alt)
+        super().__init__(name=name, array=None, units=coord.units)
 
     def __str__(self):
         s = [super().__str__()]
@@ -445,7 +448,7 @@ class CoordScanShared(CoordScan):
         return to_open
 
 
-def get_coordscan(filegroup, coord, shared):
+def get_coordscan(filegroup, coord, shared, name):
     """Get the right CoordScan object derived from a Coord.
 
     Dynamically create a subclass of CoordScanShared
@@ -459,6 +462,8 @@ def get_coordscan(filegroup, coord, shared):
         Coordinate to create a CoordScan object from.
     shared: bool
         If the coordinate is shared.
+    name: str
+        Name of the coordinate in file.
     """
     coord_type = type(coord)
     if coord.name == 'var':
@@ -474,7 +479,7 @@ def get_coordscan(filegroup, coord, shared):
         CoordScanType = type("CoordScanInRB",
                              (CoordScanIn, CoordScanRB), {})
 
-    return CoordScanType(filegroup, coord)
+    return CoordScanType(filegroup, coord, name=name)
 
 
 def scan_filename_default(cs, **kwargs):
