@@ -158,8 +158,7 @@ class Scope():
         No variables.
         All coordinates have no data.
         """
-        self.var = []
-        for c in self.coords.values():
+        for c in self.dims.values():
             c.empty()
 
     def slice(self, keyring=None, int2list=True, **keys):
