@@ -48,12 +48,16 @@ class Scope():
     """
 
     def __init__(self, variables=None, coords=None, name=None):
-        if variables is None:
-            variables = []
-        self.var = Variables(variables)
         if coords is None:
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
+
+        coord_var = self.coords.pop('var', None)
+        if variables is not None:
+            coord_var = Variables(variables)
+        elif coord_var is None:
+            coord_var = Variables([])
+        self.var = coord_var
 
         self.parent_scope = None
         self.parent_keyring = Keyring(**{name: slice(None)

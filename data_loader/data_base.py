@@ -87,11 +87,9 @@ class DataBase():
     def __init__(self, root, filegroups, vi, *coords):
         self.root = root
 
-        names = [c.name for c in coords]
-        self.coords_name = names
+        self.coords_name = [c.name for c in coords if c.name != 'var']
 
-        # FIXME: tsktsk vi.var, really ?
-        self.avail = Scope(vi.var, coords)
+        self.avail = Scope(coords=coords)
         self.loaded = self.avail.copy()
         self.selected = self.avail.copy()
         self.loaded.empty()
