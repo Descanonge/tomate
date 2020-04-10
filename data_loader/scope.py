@@ -77,10 +77,11 @@ class Scope():
         s = []
         if self.name is not None:
             s.append('name: %s' % self.name)
-        if not self.is_empty():
-            s += ['variables: %s' % self.var]
-            s += ['%s: %s, %s' % (name, c.get_extent_str(), c.size)
-                  for name, c in self.coords.items()]
+        for d in self.dims.values():
+            if d.has_data() and d.size > 0:
+                s += ['%s: %s, %s' % (d.name, d.get_extent_str(), d.size)]
+            else:
+                s += ['%s: Empty' % d.name]
         return '\n'.join(s)
 
     def __repr__(self):
