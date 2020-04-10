@@ -632,7 +632,7 @@ class DataBase():
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_int_list()
         self.loaded = self.get_subscope('loaded', keyring)
-        self.data = self.view(keyring)
+        self.data = self.view(keyring=keyring)
 
     def unload_data(self):
         """Remove data."""
