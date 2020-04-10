@@ -121,8 +121,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         file = os.path.join(wd, filename)
 
-        with self.open_file(file, mode='w') as dt:
-            log.info("in %s", file)
+        with self.open_file(file, mode='w', log_lvl='INFO') as dt:
             for name, coord in self.db.loaded.coords.items():
                 key = keyring[name].copy()
                 key.set_shape_coord(coord)
@@ -144,8 +143,10 @@ class FilegroupNetCDF(FilegroupLoad):
                 cs = self.cs['var']
                 name = cs.in_idx[cs.idx(var)]
                 t = self.vi.get_attr_safe('nctype', var, 'f')
-                dt.createVariable(name, t, self.db.coords_name)
-                dt[name][:] = self.db.view(keyring, var=var)
+                dimensions = keyring.get_non_zeros()
+                dimensions.remove('var')
+                dt.createVariable(name, t, dimensions)
+                dt[name][:] = self.db.view(keyring=keyring, var=var)
 
                 for attr in self.db.vi.attrs:
                     if not attr.startswith('_'):

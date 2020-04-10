@@ -907,14 +907,15 @@ class DataBase():
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.make_idx_var(self.loaded.var)
+        keyring['var'].tovarlist(self.loaded.var)
 
         for fg in self.filegroups:
-            keyring_fg = keyring.copy()
-            keyring_fg['var'] *= Keyring(var=fg.variables[:])['var']
-            keyring_fg['var'].make_var_idx(fg.variables)
-            if keyring_fg['var'].shape != 0:
-                fg.write(filename, wd, keyring=keyring)
+            variables = [v for v in keyring['var']
+                         if v in fg.variables]
+            if variables:
+                keyring_fg = keyring.copy()
+                keyring_fg['var'] = variables
+                fg.write(filename, wd, keyring=keyring_fg)
 
     def write_add_variable(self, var, sibling, inf_name=None, **keys):
         """Add variables to files.
