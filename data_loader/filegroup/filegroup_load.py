@@ -379,6 +379,26 @@ class FilegroupLoad(FilegroupScan):
 
         return chunk
 
+    def scan_variables_attributes(self):
+        """Scan for variables specific attributes."""
+        keyring = Keyring(**{dim: 0 for dim in self.cs})
+        keyring['var'] = list(range(self.cs['var'].size))
+        cmds = self.get_commands(keyring, keyring.copy())
+
+        for cmd in cmds:
+            for infile, memory in cmd:
+                memory.make_idx_var(self.cs['var'])
+                log.debug('Scanning %s for variables specific attributes.', cmd.filename)
+                file = self.open_file(cmd.filename, 'r', 'debug')
+                func, _, kwargs = self.scan_attr['var']
+
+                attrs = func(file, infile['var'].tolist(), **kwargs)
+
+                for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
+                    log.debug("Found attributes (%s) for '%s' (%s infile)",
+                              values.keys(), name, name_inf)
+                    self.vi.add_attrs_per_variable(name, values)
+
     def write_add_variable(self, var, sibling, inf_name, scope):
         """Add variable to files."""
         keyring = scope.parent_keyring.copy()

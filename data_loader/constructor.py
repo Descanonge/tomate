@@ -456,6 +456,8 @@ class Constructor():
             self._apply_coord_values(values)
         self.check_duplicates()
 
+        self._scan_variables_attributes()
+
     def _apply_coord_selections(self):
         """Apply selection on CoordScan.
 
@@ -631,6 +633,16 @@ class Constructor():
                                 fg_.cs[dim].get_extent_str())
                 cs.slice(indices.astype(int))
             fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
+
+    def _scan_variables_attributes(self):
+        """Scan variables specific attributes.
+
+        Filegroups should be functionnal for this.
+        """
+        for fg in self.filegroups:
+            # Find first coordinates points of this filegroup.
+            if 'var' in fg.scan_attr:
+                fg.scan_variables_attributes()
 
     def check_duplicates(self):
         """Check for duplicate data points.
