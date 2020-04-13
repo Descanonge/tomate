@@ -334,6 +334,9 @@ class FilegroupLoad(FilegroupScan):
             else:
                 key = keyring[dim]
             int_krg[dim] = key
+
+            if int_krg[dim].type == 'none':
+                int_krg.pop(dim)
         int_krg = int_krg.subset(order)
         return int_krg
 

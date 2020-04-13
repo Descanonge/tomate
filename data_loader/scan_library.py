@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
-from data_loader.coordinates.time import change_units
+from data_loader.coordinates.time import change_units, Time
 
 
 def get_date_from_matches(cs, values=None, default_date=None):
@@ -141,8 +141,7 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     in_values = list(nc_var[:])
     in_idx = list(range(len(in_values)))
 
-    # TODO: something else than names for that plz
-    if cs.coord.name == 'time' or cs.name == 'time':
+    if issubclass(Time, type(cs)):
         try:
             units = nc_var.getncattr('units')
         except AttributeError:
