@@ -143,8 +143,8 @@ class Key():
             self.shape = len(self.value)
         elif self.type == 'slice':
             self.shape = get_slice_size(self.value)
-        else:
-            self.shape = None
+        elif self.type == 'none':
+            self.shape = 0
 
     def set_shape_coord(self, coord):
         """Set shape using a coordinate.
