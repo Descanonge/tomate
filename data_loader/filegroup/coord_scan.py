@@ -110,6 +110,12 @@ class CoordScan(Coord):
         """Update parent coord with found values."""
         self.coord.update_values(self._array)
 
+    def reset(self):
+        """Remove values."""
+        self.empty()
+        self.values = []
+        self.in_idx = []
+
     def sort_values(self):
         """Sort by values.
 
@@ -123,12 +129,6 @@ class CoordScan(Coord):
         self.in_idx = self.in_idx[order]
 
         return order
-
-    def reset(self):
-        """Remove values."""
-        self.empty()
-        self.values = []
-        self.in_idx = []
 
     def slice(self, key):
         self.in_idx = self.in_idx[key]

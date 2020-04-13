@@ -373,13 +373,13 @@ class FilegroupScan():
         ValueError
             If no values were detected.
         """
+        # Reset CoordScan
         for cs in self.cs.values():
-            if cs.shared:
-                cs.matches = []
-            if cs.is_to_scan_values() and 'manual' not in cs.scan:
-                cs.reset()
-            elif cs.shared:
-                cs.matches = [[] for _ in range(len(cs.values))]
+            if cs.is_to_scan():
+                if 'manual' not in cs.scan:
+                    cs.reset()
+                elif cs.shared:
+                    cs.matches = [[] for _ in range(len(cs.values))]
 
         files = self.find_files()
         for file in files:
