@@ -284,14 +284,14 @@ class FilegroupScan():
         file:
             File object.
         """
-        try:
-            infos = self.scan_attributes_func(self, file)
-        except NotImplementedError:
-            pass
-        else:
+        func, scanned, kwargs = self.scan_attr['gen']
+        if not scanned:
+            log.debug('Scanning file for general attributes.')
+            infos = func(self, file, **kwargs)
             log.debug("Found infos %s", list(infos.keys()))
             self.vi.add_infos(**infos)
-            self.scan_attr = False
+
+            self.scan_attr['gen'][1] = True
 
     def scan_file(self, filename: str):
         """Scan a single filename.
