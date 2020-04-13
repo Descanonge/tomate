@@ -391,7 +391,7 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_attributes_func(func)
 
-    def set_scan_general_attributes(self, func):
+    def set_scan_general_attributes(self, func, **kwargs):
         """Set a function for scanning general data attributes.
 
         Parameters
@@ -405,7 +405,11 @@ class Constructor():
         description of the function interface.
         """
         fg = self.current_fg
-        fg.set_scan_attributes_func(func)
+        fg.set_scan_gen_attrs_func(func, **kwargs)
+
+    def set_scan_variables_attributes(self, func, **kwargs):
+        fg = self.current_fg
+        fg.set_scan_var_attrs_func(func, **kwargs)
 
     def set_coord_descending(self, *coords):
         """Set coordinates as descending in the filegroup.
@@ -433,6 +437,8 @@ class Constructor():
         If allowed is not allowed, select only common
         values accross filegroups.
         Check if data points are duplicates accross filegroups.
+
+        Scan for variables specific attributes in all filegroups.
         """
         self.check_regex()
         for fg in self.filegroups:
