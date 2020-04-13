@@ -156,7 +156,13 @@ class CoordScan(Coord):
             if self.force_idx_descending:
                 key_data.reverse(self.coord.size)
         else:
-            key_data = key.__class__(self.in_idx[key.value])
+            try:
+                indices = self.in_idx[key.value]
+            except:
+                log.error("Error in retrieving in-file indices of '%s' for values %s.",
+                          self.name, key.value)
+                raise
+            key_data = key.__class__(indices)
 
         return key_data
 
