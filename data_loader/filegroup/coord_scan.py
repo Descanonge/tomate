@@ -83,10 +83,6 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
-        self.scan_attributes_func = scan_attributes_default
-        self.scan_filename_func = scan_filename_default
-        self.scan_in_file_func = scan_in_file_default
-
         self.force_idx_descending = False
 
         super().__init__(name=name, array=None, units=coord.units)
@@ -191,8 +187,7 @@ class CoordScan(Coord):
         Constructor.set_scan_filename_func: for more details.
         """
         self.scan.pop('filename', None)
-        self.scan['filename'] = [elts, kwargs]
-        self.scan_filename_func = func
+        self.scan['filename'] = [func, elts, kwargs]
 
     def set_scan_in_file_func(self, func, elts, **kwargs):
         """Set function for scanning values in file.
@@ -204,8 +199,7 @@ class CoordScan(Coord):
         """
         self.scan.pop('manual', None)
         self.scan.pop('in', None)
-        self.scan['in'] = [elts, kwargs]
-        self.scan_in_file_func = func
+        self.scan['in'] = [func, elts, kwargs]
 
     def set_scan_manual(self, values, in_idx):
         """Set values manually.
@@ -217,11 +211,11 @@ class CoordScan(Coord):
         """
         self.scan.pop('manual', None)
         self.scan.pop('in', None)
-        self.scan['manual'] = None
+        self.scan['manual'] = [None, ['values', 'in_idx'], {}]
         self.values = values
         self.in_idx = in_idx
 
-    def set_scan_attributes_func(self, func, **kwargs):
+    def set_scan_attributes_func(self, func):
         """Set function for scanning attributes in file.
 
         See also
@@ -254,22 +248,24 @@ class CoordScan(Coord):
         values = None
         in_idx = None
 
-        for to_scan, [elts, kwargs] in self.scan.items():
+        for to_scan, [func, elts, kwargs] in self.scan.items():
+            if to_scan == 'manual':
+                continue
 
             if to_scan == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
-                v, i = self.scan_filename_func(self, values, **kwargs)
+                v, i = func(self, values, **kwargs)
 
             if to_scan == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
-                v, i = self.scan_in_file_func(self, file, values, **kwargs)
+                v, i = func(self, file, values, **kwargs)
 
             if 'values' in elts:
                 values = v
             if 'in_idx' in elts:
                 in_idx = i
 
-        if self.is_to_scan_values():
+        if self.is_to_scan():
             if not isinstance(values, (list, tuple)):
                 values = [values]
             if not isinstance(in_idx, (list, tuple)):
@@ -280,7 +276,7 @@ class CoordScan(Coord):
                 log.debug("Found value %s", values[0])
             else:
                 log.debug("Found %s values between %s and %s",
-                          n_values, values[0], values[n_values-1])
+                          n_values, values[0], values[-1])
 
             if n_values != len(in_idx):
                 raise IndexError("Not as much values as infile indices. (%s)" % self.name)
@@ -288,8 +284,6 @@ class CoordScan(Coord):
             if 'manual' not in self.scan:
                 self.values += values
                 self.in_idx += in_idx
-
-        self.scanned = True
 
         return values
 
