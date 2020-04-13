@@ -85,8 +85,7 @@ class FilegroupScan():
         self.regex = ""
         self.pregex = ""
 
-        self.scan_attr = False
-        self.scan_attributes_func = scan_attributes_default
+        self.scan_attr = {}
 
         self.cs = {}
         self.make_coord_scan(coords)
@@ -277,7 +276,7 @@ class FilegroupScan():
         to_open = any([cs.is_to_open() for cs in self.cs.values()])
         return to_open
 
-    def scan_attributes(self, file):
+    def scan_general_attributes(self, file):
         """Scan for attributes.
 
         Parameters
@@ -314,7 +313,6 @@ class FilegroupScan():
         # Discard completely non matching files
         if m is None:
             return
-
         self.found_file = True
 
         if len(self.segments) == 0:
@@ -325,8 +323,8 @@ class FilegroupScan():
             file = self.open_file(filename, mode='r', log_lvl='debug')
 
         try:
-            if self.scan_attr:
-                self.scan_attributes(file)
+            if 'gen' in self.scan_attr:
+                self.scan_general_attributes(file)
 
             for cs in self.cs.values():
                 cs.scan_attributes(file)
@@ -398,8 +396,8 @@ class FilegroupScan():
                         cs.name, self.variables))
                 cs.update_values(cs.values)
 
-    def set_scan_attributes_func(self, func):
-        """Set function for scanning variables attributes.
+    def set_scan_gen_attrs_func(self, func, **kwargs):
+        """Set function for scanning general attributes.
 
         Parameters
         ----------
@@ -408,9 +406,11 @@ class FilegroupScan():
             See filegroup_scan.scan_attributes_default() for a better
             description of the function interface.
         """
-        self.scan_attr = True
-        self.scan_attributes_func = func
+        self.scan_attr['gen'] = [func, False, kwargs]
 
+    def set_scan_var_attrs_func(self, func, **kwargs):
+        """Set the function for scanning variables specific attributes."""
+        self.scan_attr['var'] = [func, False, kwargs]
 
 def scan_attributes_default(fg, file):
     """Scan general attributes in file.
