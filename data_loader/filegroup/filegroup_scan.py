@@ -73,8 +73,7 @@ class FilegroupScan():
         Function used to scan general attributes.
     """
 
-    def __init__(self, root, variables, db, coords, vi,
-                 variables_shared=False):
+    def __init__(self, root, db, coords, vi, variables=None):
         self.root = root
         self.db = db
         self.vi = vi
@@ -90,21 +89,16 @@ class FilegroupScan():
         self.scan_attributes_func = scan_attributes_default
 
         self.cs = {}
-        if variables is None:
-            variables = []
-        if 'var' not in [c[0].name for c in coords]:
-            variables_coord = Variables(variables)
-            coords.insert(0, [variables_coord, variables_shared])
         self.make_coord_scan(coords)
 
-        csv = self.cs['var']
-        csv.vi = vi
-        csv.set_values_default(variables)
+        if variables is not None:
+            self.cs['var'].update_values(variables)
 
         self.contains = {dim: [] for dim in self.cs}
 
     @property
     def variables(self):
+        """List of variables contained in this filegroup."""
         csv = self.cs['var']
         if csv.has_data():
             v = csv[:].tolist()
@@ -123,6 +117,8 @@ class FilegroupScan():
 
         s.append("Coordinates for scan:")
         for name, cs in self.cs.items():
+            if name == 'var':
+                continue
             s1 = ["\t%s " % name]
             s1.append(["(in)", "(shared)"][cs.shared])
             if cs.scanned:

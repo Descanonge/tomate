@@ -181,8 +181,8 @@ class Constructor():
         contains = list(contains)
 
         coords.insert(0, [self.var, variables_shared, 'var'])
-        fg = fg_type(root, contains, None, coords, self.vi,
-                     variables_shared=variables_shared, **kwargs)
+        fg = fg_type(root, None, coords, self.vi, variables=contains,
+                    **kwargs)
         self.filegroups.append(fg)
 
         self.selection.append({})

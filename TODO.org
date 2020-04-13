@@ -6,9 +6,6 @@ To not need to scan files each time
 * TODO: Multiple selections
 in a subclass of database ?
 * TODO: ensure VI stays global
-* TODO: Manage CS idx descending
-** should enforce idx descending or its contrary
-** should not be overidden by scanning
 * TODO: doc
 ** examples
 ** scan variables examples
