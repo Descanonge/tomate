@@ -232,7 +232,7 @@ class CoordScan(Coord):
         self.scan_attr = True
         self.scan_attributes_func = func
 
-    def scan_file_values(self, file):
+    def scan_values(self, file):
         """Find values for a file.
 
         Parameters
@@ -345,7 +345,7 @@ class CoordScanIn(CoordScan):
             The file is already opened by FilegroupScan.open_file().
         """
         if not self.scanned:
-            self.scan_file_values(file)
+            self.scan_values(file)
 
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
@@ -427,10 +427,9 @@ class CoordScanShared(CoordScan):
 
         log.debug("Found matches %s for filename %s", matches, m.group())
 
-        # If they were not found before, which can happen when
-        # there is more than one shared coord.
+        # If multiple coords, this match could have been found
         if matches not in self.matches:
-            values = self.scan_file_values(file)
+            values = self.scan_values(file)
             if values is None:
                 raise RuntimeError("'%s' has no scanning functions set." % self.name)
             if 'manual' in self.scan:
