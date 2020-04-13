@@ -119,8 +119,7 @@ class FilegroupLoad(FilegroupScan):
                     raise IndexError("Infile and memory keyrings have different"
                                      " shapes (%s)" % str(cmd))
 
-            cmd.order_keys(['var'] + self.db.coords_name)
-
+            cmd.order_keys(keyring.dims)
 
         return commands
 
