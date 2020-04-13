@@ -21,3 +21,5 @@ or maybe a new type of Key, for values
 it could even englob KeyVar (that seems complicated)
 * TODO: coord attribute scanning is flawed
 ** From which filegroup do you transfer attributes to master coords ?
+* TODO: check error when shared cs has no scanning
+* TODO: remove default scanning functions

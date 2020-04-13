@@ -249,8 +249,6 @@ class CoordScan(Coord):
 
         Returns
         -------
-        n_values: int
-            Number of values found.
 
         Raises
         ------
@@ -338,6 +336,7 @@ class CoordScanIn(CoordScan):
         """
         if not self.scanned:
             self.scan_values(file)
+            self.scanned = True
 
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
@@ -391,6 +390,7 @@ class CoordScanShared(CoordScan):
     def sort_values(self):
         order = super().sort_values()
         self.matches = self.matches[order]
+        return order
 
     def reset(self):
         super().reset()

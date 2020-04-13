@@ -314,6 +314,7 @@ class FilegroupLoad(FilegroupScan):
         and thus not in the keyring, take the first index.
 
         Remove any keys from dimension not in the file.
+        (ie when key is None).
 
         Put the keyring in order.
 
