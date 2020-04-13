@@ -226,6 +226,18 @@ class CoordScan(Coord):
         self.scan_attr = True
         self.scan_attributes_func = func
 
+    def scan_attributes(self, file):
+        """Scan coordinate attributes if necessary.
+
+        Using the user defined function.
+        Apply them.
+        """
+        if self.scan_attr:
+            attrs = self.scan_attributes_func(self, file)
+            for name, value in attrs.items():
+                self.set_attr(name, value)
+            self.scan_attr = False
+
     def scan_values(self, file):
         """Find values for a file.
 
