@@ -332,6 +332,7 @@ class FilegroupScan():
         except:
             if file is not None:
                 self.close_file(file)
+            log.error("Error in scanning filegroup %s", self.variables)
             raise
         else:
             if file is not None:
