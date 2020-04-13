@@ -329,8 +329,8 @@ class FilegroupScan():
                 self.scan_attributes(file)
 
             for cs in self.cs.values():
-                if cs.is_to_scan():
-                    cs.scan_file(m, file)
+                cs.scan_attributes(file)
+                cs.scan_file(m, file)
         except:
             if file is not None:
                 self.close_file(file)
@@ -392,11 +392,10 @@ class FilegroupScan():
 
         for cs in self.cs.values():
             cs.set_values()
-            if cs.is_to_scan_values():
+            if cs.is_to_check():
                 if len(cs.values) == 0:
                     raise ValueError("No values detected ({0}, {1})".format(
                         cs.name, self.variables))
-            if cs.is_to_check():
                 cs.update_values(cs.values)
 
     def set_scan_attributes_func(self, func):
