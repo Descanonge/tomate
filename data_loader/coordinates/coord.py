@@ -11,7 +11,7 @@ import bisect
 
 import numpy as np
 
-from data_loader.keys.key import reverse_slice
+from data_loader.keys.key import reverse_slice_order
 
 
 log = logging.getLogger(__name__)
@@ -222,7 +222,8 @@ class Coord():
             stop = None
         slc = slice(start, stop, step)
         if self.is_descending():
-            slc = reverse_slice(slc, size=self.size)
+            # TODO: Untested
+            slc = reverse_slice_order(slc)
 
         return slc
 
