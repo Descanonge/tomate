@@ -9,8 +9,6 @@
 import logging
 from typing import List
 
-import numpy as np
-
 from data_loader.keys.key import Key, KeyVar
 
 
@@ -445,4 +443,3 @@ class Keyring():
                     z.append(str(step))
                 s.append(':'.join(z))
         return '[%s]' % ', '.join(s)
-

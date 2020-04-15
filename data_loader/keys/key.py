@@ -27,6 +27,15 @@ class Key():
     value: None, int, List[int], slice
     type: str
         {'none', 'int', 'list', 'slice'}
+    parent_size: int, None
+        Size of the sequence it would be applied to.
+        Useful for reversing keys, or turning slices into lists.
+    shape: int, None
+        Length of what the key would select.
+        Integer and None keys have shape 0 (they would get
+        a scalar).
+        Is None if the shape is undecidable (for some slices
+        for instance).
     """
 
     INT_TYPES = (int, np.integer)
@@ -169,14 +178,7 @@ class Key():
             self.value = key
 
     def tolist(self):
-        """Transform key into list.
-
-        Raises
-        ------
-        TypeError
-            If key is slice an dhas not had its parent shape
-            specified.
-        """
+        """Return list of key."""
         a = self.value
         if self.type == 'int':
             a = [a]
@@ -193,6 +195,12 @@ class Key():
         return a
 
     def apply(self, seq):
+        """Apply key to a sequence.
+
+        Parameters
+        ----------
+        seq: Sequence
+        """
         if self.type == 'int':
             return seq[self.value]
         if self.type == 'list':
@@ -277,7 +285,7 @@ class Key():
                 self.reverse()
 
     def make_list_int(self):
-        """Make list of length one integer."""
+        """Make list of length one an integer."""
         if self.type == 'list' and len(self.value) == 1:
             self.type = 'int'
             self.value = self.value[0]
@@ -289,6 +297,7 @@ class Key():
             self.type = 'list'
             self.value = [self.value]
             self.shape = 1
+
 
 
 class KeyVar(Key):
@@ -328,6 +337,10 @@ class KeyVar(Key):
         Parameters
         ----------
         key: Key-like
+            Can be integer or string.
+            Can be list of integers or strings (not a mix of both).
+            Can be a slice. Step must be None or integer. Start and
+            Stop can be integers or strings (not a mix of both).
 
         Raises
         ------
