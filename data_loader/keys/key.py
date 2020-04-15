@@ -71,9 +71,6 @@ class Key():
         self.type = tp
         self.set_shape()
 
-        if self.type == 'slice':
-            self.make_slice_size(None)
-
     def __eq__(self, other):
         return self.value == other.value
 
@@ -90,27 +87,6 @@ class Key():
         except TypeError:
             val = [self.value]
         return iter(val)
-
-    def make_slice_size(self, size=None):
-        if size is None:
-            size = get_slice_size(self.value)
-        if size is not None:
-            start, stop, step = self.value.start, self.value.stop, self.value.step
-            if step is None or step > 0:
-                if start is None:
-                    start = 0
-                if stop is None:
-                    stop = size
-                else:
-                    stop = min(size, stop)
-            else:
-                if start is None:
-                    start = size - 1
-                else:
-                    start = max(size-1, start)
-
-            self.value = slice(start, stop, step)
-            self.shape = len(list(range(*self.value.indices(size))))
 
     def copy(self) -> "Key":
         """Return copy of self."""
@@ -136,10 +112,12 @@ class Key():
             self.shape = 0
         elif self.type == 'list':
             self.shape = len(self.value)
-        elif self.type == 'slice':
-            self.shape = get_slice_size(self.value)
         elif self.type == 'none':
             self.shape = 0
+        elif self.type == 'slice':
+            self.shape = guess_slice_shape(self.value)
+            if self.shape == 0:
+                raise IndexError("Invalid slice (%s) of shape 0." % self.value)
 
     def set_shape_coord(self, coord):
         """Set shape using a coordinate.
@@ -151,7 +129,7 @@ class Key():
         """
         self.parent_size = coord.size
         if self.type == 'slice':
-            self.make_slice_size(coord.size)
+            self.shape = len(coord[self.value])
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -164,24 +142,18 @@ class Key():
             return [self.value]
         return self.value
 
-    def reverse(self, size):
+    def reverse(self):
         """Reverse key.
 
-        Parameters
-        ----------
-        size: int, optional
-            Size of the coordinate.
-            Default is the parent coordinate shape.
+        Equivalent to a [::-1].
         """
-        if self.type == 'int':
-            self.value = size - self.value
-        elif self.type == 'list':
-            self.value = [size - z - 1 for z in self.value]
+        if self.type == 'list':
+            self.value = self.value[::-1]
         elif self.type == 'slice':
-            self.value = reverse_slice(self.value, size)
+            self.value = reverse_slice_order(self.value)
 
     def simplify(self):
-        """Simplify list into a list.
+        """Simplify list into a slice.
 
         Transform a list into a slice if the list is
         a serie of integers of fixed step.
@@ -209,6 +181,9 @@ class Key():
         elif self.type == 'slice':
             if self.parent_size is not None:
                 a = list(range(*self.value.indices(self.parent_size)))
+            else:
+                a = guess_tolist(self.value)
+
         elif self.type == 'none':
             a = []
         return a
@@ -561,33 +536,105 @@ def list2slice_complex(L):
     return slices
 
 
-def get_slice_size(slc):
-    size = None
-    if slc.step is None or slc.step > 0:
-        size = slc.stop
-    else:
-        size = slc.start
-    return size
+def guess_slice_shape(slc: slice):
+    """Guess the shape of a slice.
 
-
-def reverse_slice(sl, size):
-    """Reverse a slice.
-
-    Parameters
-    ----------
-    sl: Slice
-        Slice to reverse.
-    size: int, optional
-        Size of the list to get indices from.
+    Returns
+    -------
+    int, None
+        None if it is not possible to guess.
+        (for instance for slice(None, None))
     """
-    ind = sl.indices(size)
-    shift = [-1, 1][ind[2] < 0]
 
-    start = ind[1] + shift
-    stop = ind[0] + shift
-    step = -ind[2]
+    start, stop, step = slc.start, slc.stop, slc.step
+    pos = step is None or step > 0
+    if start is not None and stop is not None:
+        if start * stop >= 0:
+            if start > stop if pos else start < stop:
+                return 0
+            return abs(stop - start)
 
-    if stop == -1:
-        stop = None
+    if pos:
+        if start is None and stop is not None and stop >= 0:
+            return stop
+        if stop is None and start is not None and start < 0:
+            return -start
+    else:
+        if stop is None and start is not None and start >= 0:
+            return start
+        if start is None and stop is not None and stop < 0:
+            return -stop - 1
 
+    return None
+
+def guess_tolist(slc: slice):
+    """Guess a list of indices without the size.
+
+    Transforming a slice into a list of indices requires
+    the size of the sequence the slice is destined for.
+    >>> indices = slice(0, 5).indices(size)
+
+    In some cases, it is possible to make a guess:
+    slice(a, b); a and b of same sign
+    slice(None, a, s>0); a > 0
+    slice(a, None, s>0); a < 0
+    slice(None, a, s<0); a < 0
+    slice(a, None, s<0); a > 0
+
+    Returns
+    -------
+    List[int]
+
+    Raises
+    ------
+    ValueError: If cannot guess.
+    """
+    start, stop, step = slc.start, slc.stop, slc.step
+    if step is None:
+        step = 1
+
+    if start is not None and stop is not None:
+        if start * stop >= 0:
+            return list(range(start, stop, step))
+
+    if step > 0:
+        if start is None and stop is not None and stop >= 0:
+            return list(range(0, stop, step))
+        if stop is None and start is not None and start < 0:
+            return list(range(start, 0, step))
+    else:
+        if stop is None and start is not None and start >= 0:
+            return list(range(start, 0, step))
+        if start is None and stop is not None and stop < 0:
+            return list(range(-1, stop, step))
+
+    raise ValueError("Slice (%s) cannot be turned into list by guessing." % slc)
+
+
+def reverse_slice_order(slc: slice) -> slice:
+    """Reverse a slice order.
+
+    ie the order in which indices are taken.
+    The indices themselves do not change.
+    We assume the slice is valid (shape > 0).
+   """
+    start, stop, step = slc.start, slc.stop, slc.step
+    if step is None:
+        step = 1
+
+    shift = [1, -1][step > 0]
+    over = [-1, 0][step > 0]
+    if start is not None:
+        if start == over:
+            start = None
+        else:
+            start += shift
+    if stop is not None:
+        if stop == over:
+            stop = None
+        else:
+            stop += shift
+
+    step *= -1
+    start, stop = stop, start
     return slice(start, stop, step)
