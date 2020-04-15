@@ -13,7 +13,7 @@ import itertools
 
 import numpy as np
 
-from data_loader.key import Keyring
+from data_loader.keys.keyring import Keyring
 from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.variables import Variables
 from data_loader.accessor import Accessor

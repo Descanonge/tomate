@@ -12,7 +12,7 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_loader.data_base import DataBase
-from data_loader.key import Keyring
+from data_loader.keys.keyring import Keyring
 
 
 log = logging.getLogger(__name__)

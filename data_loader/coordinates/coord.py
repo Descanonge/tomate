@@ -11,7 +11,7 @@ import bisect
 
 import numpy as np
 
-from data_loader.key import reverse_slice
+from data_loader.keys.key import reverse_slice
 
 
 log = logging.getLogger(__name__)

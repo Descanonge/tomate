@@ -13,7 +13,7 @@ import numpy as np
 
 from data_loader.filegroup.filegroup_scan import FilegroupScan
 from data_loader.filegroup import command
-from data_loader.key import Keyring
+from data_loader.keys.keyring import Keyring
 from data_loader.accessor import Accessor
 
 

@@ -28,7 +28,7 @@ from .coordinates.time import Time
 from .coordinates.latlon import Lat, Lon
 from .coordinates.variables import Variables
 
-from .key import Keyring
+from .keys.keyring import Keyring
 
 from .iter_dict import IterDict
 from .variables_info import VariablesInfo

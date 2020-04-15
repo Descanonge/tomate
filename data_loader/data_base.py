@@ -11,7 +11,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from data_loader.key import Keyring
+from data_loader.keys.keyring import Keyring
 from data_loader.accessor import Accessor
 from data_loader.scope import Scope
 
