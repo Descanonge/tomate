@@ -151,18 +151,19 @@ class CoordScan(Coord):
         -------
         key_data: List[int], Slice
         """
-        if self.size is None:
-            key_data = key
-            if self.force_idx_descending:
-                key_data.reverse(self.coord.size)
-        else:
-            try:
+        try:
+            if self.size is None:
+                key_data = key
+                if self.force_idx_descending:
+                    indices = mirror_key(key_data, self.coord.size)
+            else:
                 indices = self.in_idx[key.value]
-            except:
-                log.error("Error in retrieving in-file indices of '%s' for values %s.",
-                          self.name, key.value)
-                raise
+
             key_data = key.__class__(indices)
+        except:
+            log.error("Error in retrieving in-file indices of '%s' for values %s.",
+                      self.name, key)
+            raise
 
         return key_data
 
@@ -469,6 +470,15 @@ def get_coordscan(filegroup, coord, shared, name):
                              (CoordScanIn, CoordScanRB), {})
 
     return CoordScanType(filegroup, coord, name=name)
+
+
+def mirror_key(key, size):
+    if key.type == 'int':
+        value = size - key.value - 1
+    elif key.type in ['list', 'slice']:
+        key.parent_size = size
+        value = [size - z - 1 for z in key.tolist()]
+    return value
 
 
 def scan_filename_default(cs, **kwargs):
