@@ -391,9 +391,6 @@ class KeyVar(Key):
             raise TypeError("Variable slice cannot be transformed into list.")
         return super().tolist()
 
-    def tovarlist(self, variables):
-        self.set(variables.get_var_names(self.value))
-
     def __mul__(self, other):
         if not other.var:
             return super().__mul__(other)

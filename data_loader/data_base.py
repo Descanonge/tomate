@@ -907,7 +907,7 @@ class DataBase():
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring['var'].tovarlist(self.loaded.var)
+        keyring['var'] = self.loaded.var.get_var_names(keyring['var'])
 
         for fg in self.filegroups:
             variables = [v for v in keyring['var']
