@@ -55,6 +55,8 @@ class Key():
             reject = any(not isinstance(z, self.INT_TYPES) for z in key)
             tp = 'list'
             key = [int(k) for k in key]
+            if len(key) == 0:
+                raise IndexError("Key cannot be an empty list.")
         elif isinstance(key, self.INT_TYPES):
             tp = 'int'
             key = int(key)
@@ -130,6 +132,8 @@ class Key():
         self.parent_size = coord.size
         if self.type == 'slice':
             self.shape = len(coord[self.value])
+            if self.shape == 0:
+                raise IndexError("Invalid slice (%s) of shape 0." % self.value)
 
     def no_int(self):
         """Return value, replaces int with list.
@@ -347,6 +351,8 @@ class KeyVar(Key):
                 key = [int(k) for k in key]
             else:
                 reject = True
+            if len(key) == 0:
+                raise IndexError("Key cannot be an empty list.")
         elif isinstance(key, slice):
             tp = 'slice'
             slc = [key.start, key.stop, key.step]
