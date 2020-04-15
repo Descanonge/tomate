@@ -473,6 +473,7 @@ def get_coordscan(filegroup, coord, shared, name):
 
 
 def mirror_key(key, size):
+    """Mirror indices in a key."""
     if key.type == 'int':
         value = size - key.value - 1
     elif key.type in ['list', 'slice']:

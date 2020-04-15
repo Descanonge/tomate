@@ -400,6 +400,12 @@ class KeyVar(Key):
         self.var = var
         self.set_shape()
 
+    def set_shape(self):
+        if self.type == 'slice' and self.var:
+            self.shape = None
+        else:
+            super().set_shape()
+
     def reverse(self):
         if not (self.var and self.type == 'slice'):
             super().reverse()
