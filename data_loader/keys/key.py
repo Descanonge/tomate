@@ -268,10 +268,13 @@ class Key():
         return self.__class__(key)
 
     def sort(self):
-        """Sort indices if in a list."""
+        """Sort indices."""
         if self.type == 'list':
             self.value = list(set(self.value))
             self.value.sort()
+        if self.type == 'slice':
+            if self.value.step is not None and self.value.step < 0:
+                self.reverse()
 
     def make_list_int(self):
         """Make list of length one integer."""
