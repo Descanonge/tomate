@@ -384,9 +384,9 @@ class KeyVar(Key):
         self.var = var
         self.set_shape()
 
-    def reverse(self, size=None):
-        if not self.var:
-            super().reverse(size)
+    def reverse(self):
+        if not (self.var and self.type == 'slice'):
+            super().reverse()
 
     def simplify(self):
         if not self.var:
