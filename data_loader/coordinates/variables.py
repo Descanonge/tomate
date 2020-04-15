@@ -68,8 +68,10 @@ class Variables(Coord):
             s = "No variables"
         return s
 
-    def get_extent_str(self):
-        return ' - '.join(self.get_extent())
+    def get_extent_str(self, slc=None):
+        if slc is None:
+            slc = slice(None)
+        return ', '.join(self[slc])
 
     def get_var_index(self, y) -> int:
         """Return index of variable.
