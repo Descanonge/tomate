@@ -35,6 +35,7 @@ class Key():
         self.value = None
         self.type = ''
         self.shape = None
+        self.parent_size = None
         self.set(key)
 
     def set(self, key):
@@ -119,6 +120,7 @@ class Key():
             value = self.value
         key = self.__class__(value)
         key.shape = self.shape
+        key.parent_size = self.parent_size
         return key
 
     def set_shape(self):
@@ -147,6 +149,7 @@ class Key():
         coord: Coord
             The coordinate that would be used.
         """
+        self.parent_size = coord.size
         if self.type == 'slice':
             self.make_slice_size(coord.size)
 
@@ -204,10 +207,8 @@ class Key():
         elif self.type == 'list':
             a = a.copy()
         elif self.type == 'slice':
-            size = get_slice_size(self.value)
-            if size is None:
-                raise TypeError("Slice can not be transformed to list ('%s')." % self.value)
-            a = list(range(*self.value.indices(size)))
+            if self.parent_size is not None:
+                a = list(range(*self.value.indices(self.parent_size)))
         elif self.type == 'none':
             a = []
         return a
