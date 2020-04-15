@@ -42,6 +42,11 @@ class Constructor():
         Root directory of all files.
     coords: Dict[str, Coord]
         Coordinates, in the order the data should be kept.
+        These are the 'master' coordinate that will be
+        transmitted to the database object.
+    var: Variables
+        It will be transmitted along other coordinates
+        to the database object.
     filegroups: List[Filegroup]
         Filegroups added so far.
     vi: VariablesInfo
@@ -71,7 +76,6 @@ class Constructor():
         self.allow_advanced = False
 
         self.float_comparison = 1e-5
-
 
     @property
     def dims(self):
@@ -134,18 +138,21 @@ class Constructor():
 
         Parameters
         ----------
-        fg_type: FilegroupLoad subclass
+        fg_type: Type
             Class of filegroup to add. Dependant on the file-format.
         contains: List[str], str
             List of variables contained in this grouping
             of files.
-            Superseded by 'var' in `coords` if present.
-        coords: List[Coord, shared: str or bool]
+            If omitted, the CoordScan variables will be empty.
+        coords: List[Coord, shared: str or bool, name: str]
             Coordinates used in this grouping of files.
-            Each element of the list is a length 2 tuple of
-            the coordinate name, and a shared flag.
-            The flag can be 'shared' or 'in'.
-            Variables dimension can be omitted.
+            Each element of the list is a length 3 list of
+            the coordinate, a shared flag, and the name of the
+            coordinate in the file.
+            The flag can be 'shared' or 'in', or a boolean (True = shared).
+            The name is optional, in which case the name of the coordinate
+            object is used.
+            Variables dimension is to be omitted.
         root: str, optional
             Subfolder from root.
         variables_shared: bool, optional
@@ -157,7 +164,7 @@ class Constructor():
         Examples
         --------
         >>> add_filegroup(FilegroupNetCDF, ['Chla', 'Chla_error'],
-        ...               [['lat', 'in'], ['lon', 'in'], ['time', 'shared']])
+        ...               [[lat, 'in', 'latitude'], [lon, 'in'], [time, 'shared']])
         """
         for c_fg in coords:
             if len(c_fg) < 3:
@@ -258,9 +265,6 @@ class Constructor():
         It can be a integer or a string
         under which the variable is found in file.
 
-        Variables not specified will be attributed the default
-        value (in-file index identical to the variable name).
-
         This is similar to using Constructor.set_scan_manual()
         for the 'Variables' coordinate.
 
@@ -299,15 +303,19 @@ class Constructor():
         ----------
         func: Callable[[CoordScan, file, values: List[float]],
                        [values: List[float], in_idx: List[int]]]
-            Function that captures values and in-file index
+            Function that captures values and in-file indices.
         coords: str
             Coordinates to apply this function for.
+        only_values: bool, optional
+            Scan only coordinate values.
+        only_index: bool, optional
+            Scan only in-file indices.
         kwargs: Any, optional
             Keyword arguments that will be passed to the function.
 
-        Notes
-        -----
-        See coord_scan.scan_in_file_default() for a better description of
+        See also
+        --------
+        coord_scan.scan_in_file_default() for a better description of
         the function interface.
         """
         elts = ['values', 'in_idx']
@@ -332,12 +340,16 @@ class Constructor():
             Function that recover values from filename.
         coords: str
             Coordinates to apply this function for.
+        only_values: bool, optional
+            Scan only coordinate values.
+        only_index: bool, optional
+            Scan only in-file indices.
         kwargs: Any, optional
             Keyword arguments that will be passed to the function.
 
-        Notes
-        -----
-        See coord_scan.scan_filename_default() for a better description of
+        See also
+        --------
+        coord_scan.scan_filename_default() for a better description of
         the function interface.
         """
         elts = ['values', 'in_idx']
@@ -383,9 +395,9 @@ class Constructor():
         coords: str
             Coordinates to apply this function for.
 
-        Notes
-        -----
-        See coord_scan.scan_attributes_default() for a better description
+        See also
+        --------
+        coord_scan.scan_attributes_default() for a better description
         of the function interface.
         """
         fg = self.current_fg
@@ -400,21 +412,40 @@ class Constructor():
         ----------
         func: Callable[[file],
                        [Dict[info name: str, Any]]]
+        kwargs: Any
+            Passed to the function.
 
-        Notes
-        -----
-        See filegroup_scan.scan_attributes_default() for a better
+        See also
+        --------
+        filegroup_scan.scan_attributes_default() for a better
         description of the function interface.
         """
         fg = self.current_fg
         fg.set_scan_gen_attrs_func(func, **kwargs)
 
     def set_scan_variables_attributes(self, func, **kwargs):
+        """Set function for scanning variables specific attributes.
+
+        Parameters
+        ----------
+        func: Callable[[Filegroup, file, List[str], **kwargs], [Dict]]
+            Function that recovers variables attributes in file.
+        kwargs: Any
+            Passed to the function.
+
+        See also
+        --------
+        filegroup_scan.scan_variables_attributes_default() for a better
+        description of the function interface.
+        """
         fg = self.current_fg
         fg.set_scan_var_attrs_func(func, **kwargs)
 
     def set_coord_descending(self, *coords):
         """Set coordinates as descending in the filegroup.
+
+        Only useful when there is no information on the in-file
+        index of each value in the files.
 
         Parameters
         ----------
@@ -723,6 +754,7 @@ class Constructor():
 
         dt_class = create_data_class(dt_types, accessor)
 
+        #FIXME: Variables transmitted to dt.
         # variables = list(self.vi.var)
         # for fg in self.filegroups:
         #     variables += fg.variables

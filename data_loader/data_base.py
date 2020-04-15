@@ -54,13 +54,12 @@ class DataBase():
         Information on the variables and data.
     coords: Coord
         Coordinates, in the order the data should be kept.
+        This includes variables.
 
     Attributes
     ----------
-    data: Numpy array
-        Data array if loaded, None otherwise.
-    filegroups: List[Filegroup]
-
+    root: str
+        Root data directory containing all files.
     vi: VariablesInfo
         Information on the variables and data.
 
@@ -68,10 +67,15 @@ class DataBase():
         Coordinates names, in the order the data
         is kept in the array.
 
+    data: Numpy array
+        Data array if loaded, None otherwise.
+
+    filegroups: List[Filegroup]
+
     avail: Scope
-        Scope of available data (on disk)
+        Scope of available data (on disk).
     loaded: Scope
-        Scope of loaded data
+        Scope of loaded data.
     selected: Scope
         Scope of selected data.
 
@@ -830,10 +834,9 @@ class DataBase():
         IndexError
             If the data has not the right dimension.
         ValueError
-            If the data is not of the shape of current selection.
+            If the data is not of the shape of loaded scope.
         """
         if self.acs.ndim(data) != self.ncoord:
-            # TODO: Expand dimensions of size one
             raise IndexError("data of wrong dimension (%s, expected %s)" %
                              (data.ndim, self.ncoord))
 

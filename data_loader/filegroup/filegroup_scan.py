@@ -1,8 +1,4 @@
-"""Manages scanning of data files.
-
-Files containing the same variables and having the same filenames are
-regrouped into a same Filegroup.
-"""
+"""Manages scanning of data files."""
 
 # This file is part of the 'data-loader' project
 # (http://github.com/Descanonges/data-loader)
@@ -24,37 +20,37 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupScan():
-    """An ensemble of files.
+    """Manages set of files on disk.
 
-    Files which share the same variables, and filename structure.
+    Files which share the same structure and filenames.
     This class manages the scanning part of filegroups.
 
     Parameters
     ----------
     root: str
         Root data directory containing all files.
-    contains: List[str]
-        Variables contained in this filegroup.
     db: DataBase or subclass
         Parent database.
-    coords: List[ List[Coord, shared: bool] ]
-        Parent coordinates objects, and a bool indicating if the coordinate
-        is shared accross files.
+    coords: List[ List[Coord, shared: bool, name: str] ]
+        Parent coordinates objects, a bool indicating if the coordinate
+        is shared accross files, and their name inside files.
     vi: VariablesInfo
         Global VariablesInfo instance.
+    variables: List[str], optional
+        Variables contained in this filegroup.
+        Set the appropriate CS values with this.
 
     Attributes
     ----------
     root: str
         Root data directory containing all files.
-    contains: List[str]
-        Variables contained in this filegroup.
     db: DataBase or subclass
         Parent database.
+    vi: VariablesInfo
+        Global VariablesInfo instance.
     cs: Dict[str, CoordScan or subclass]
         Dictionnary of scanning coordinates,
-        each dynamically inheriting from its
-        parent Coord.
+        each dynamically inheriting from its parent Coord.
     pregex: str
         Pre-regex.
     regex: str
@@ -62,14 +58,14 @@ class FilegroupScan():
     segments: List[str]
         Fragments of filename used for reconstruction,
         pair indices are replaced with matches.
-    vi: VariablesInfo
-        Global VariablesInfo instance.
-    scan_attr: bool
-        If the variables attributes have to be scanned.
-    scan_attributes: Callable
-        Function used to scan variables attributes.
-    scan_infos: Callable
-        Function used to scan general attributes.
+    scan_attr: Dict[type: str, function: Callable]
+        Functions to call to scan variables specific
+        attributes or general attributes.
+    contains: Dict[dim:str, Array]
+        For each dimension, for each value in the available
+        scope, the index of that value in the filegroups CS.
+        If that value is not contained in this filegroup, the
+        index is None.
     """
 
     def __init__(self, root, db, coords, vi, variables=None):
@@ -275,7 +271,7 @@ class FilegroupScan():
         return to_open
 
     def scan_general_attributes(self, file):
-        """Scan for attributes.
+        """Scan for general attributes.
 
         Parameters
         ----------
@@ -292,15 +288,15 @@ class FilegroupScan():
             self.scan_attr['gen'][1] = True
 
     def scan_file(self, filename: str):
-        """Scan a single filename.
+        """Scan a single file.
 
         Match filename against regex.
         If first match, retrieve segments.
 
         If needed, open file.
-        If not done already, scan attributes and infos.
-
-        Scan per coordinate.
+        Scan general attributes.
+        For all CoordScan, scan coordinate attributes,
+        scan values, and in-file indices.
 
         Close file.
         """
@@ -364,12 +360,17 @@ class FilegroupScan():
     def scan_files(self):
         """Scan files.
 
+        Reset scanning coordinate if they are to scan.
+        Find files.
+        Scan each file.
+        Set CoordScan values.
+
         Raises
         ------
         NameError
-            If no file were found.
+            If no files matching the regex were found.
         ValueError
-            If no values were detected.
+            If no values were detected for a coordinate.
         """
         # Reset CoordScan
         for cs in self.cs.values():
@@ -389,7 +390,7 @@ class FilegroupScan():
 
         for cs in self.cs.values():
             cs.set_values()
-            if cs.is_to_check():
+            if cs.is_to_check() or cs.name == 'var':
                 if len(cs.values) == 0:
                     raise ValueError("No values detected ({0}, {1})".format(
                         cs.name, self.variables))
@@ -400,18 +401,31 @@ class FilegroupScan():
 
         Parameters
         ----------
-        func: Callable[[file, variables: List[str]], [Dict]]
+        func: Callable[[Filegroup, file, **kwargs], [Dict]]
             Function that recovers variables attributes in file.
-            See filegroup_scan.scan_attributes_default() for a better
+            See scan_general_attributes_default() for a better
             description of the function interface.
+        kwargs: Any
+            Passed to the function.
         """
         self.scan_attr['gen'] = [func, False, kwargs]
 
     def set_scan_var_attrs_func(self, func, **kwargs):
-        """Set the function for scanning variables specific attributes."""
+        """Set the function for scanning variables specific attributes.
+
+        Parameters
+        ----------
+        func: Callable[[Filegroup, file, List[str], **kwargs], [Dict]]
+            Function that recovers variables attributes in file.
+            See scan_variables_attributes_default() for a better
+            description of the function interface.
+        kwargs: Any
+            Passed to the function.
+        """
         self.scan_attr['var'] = [func, False, kwargs]
 
-def scan_attributes_default(fg, file):
+
+def scan_general_attributes_default(fg, file, **kwargs):
     """Scan general attributes in file.
 
     Parameters
@@ -419,14 +433,34 @@ def scan_attributes_default(fg, file):
     fg: FilegroupScan
     file:
         Object to access file.
-        The file is already opened by FilegroupSan.open_file()
+        The file is already opened by FilegroupSan.open_file().
+    kwargs: Any
 
     Returns
     -------
-    infos: Dict[str, Any]
+    attrs: Dict[str, Any]
         Dictionnary of attributes.
         {attribute name: attribute value}.
         Attribute is then set to a Coord object
         using Coord.set_attr(name, attr).
     """
-    raise NotImplementedError("scan_infos was not set for (%s)" % fg.variables)
+    raise NotImplementedError()
+
+
+def scan_variables_attributes_default(fg, file, **kwargs):
+    """Scan variable specific attributes.
+
+    Parameters
+    ----------
+    fg: FilegroupLoad
+    file:
+        Object to access file.
+        The file is already opened by FilegroupScan.open_file().
+    kwargs: Any
+
+    Returns
+    -------
+    attrs: Dict[variable: str, Dict[attribute name: str, Any]]
+        Attributes per variable.
+    """
+    raise NotImplementedError()

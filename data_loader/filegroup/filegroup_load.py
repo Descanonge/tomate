@@ -24,9 +24,14 @@ class FilegroupLoad(FilegroupScan):
     """Filegroup class with data loading functionnalies.
 
     This class is abstract and is meant to be subclassed to be usable.
-    A subclass would replace existing functions specific to a file format.
+    A subclass would replace functions specific to a file format.
 
     See :doc:`../expanding` for more information about subclassing this.
+
+    Attributes
+    ----------
+    acs: Type
+        Accessor type used in the files.
     """
 
     acs = Accessor
@@ -77,18 +82,19 @@ class FilegroupLoad(FilegroupScan):
     def get_commands(self, keyring, memory):
         """Get load commands.
 
-        Recreate filenames from matches and find shared coords keys.
+        Recreate filenames from matches and find in file indices..
         Merge commands that have the same filename.
         If possible, merge contiguous shared keys.
         Add the keys for in coords.
+        Favor integers and slices keys.
         Order keys according to the database coordinate order.
 
         Parameters
         ----------
-        var_list: List[str]
-            List of variables names.
         keyring: Keyring
-            Part of available data to load.
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
 
         Returns
         -------
@@ -141,7 +147,9 @@ class FilegroupLoad(FilegroupScan):
         Parameters
         ----------
         keyring: Keyring
-            Part of the available data to load.
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
 
         Returns
         -------
@@ -188,7 +196,9 @@ class FilegroupLoad(FilegroupScan):
         Parameters
         ----------
         keyring: Keyring
-            Part of available data to load.
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
 
         Returns
         -------
@@ -226,6 +236,9 @@ class FilegroupLoad(FilegroupScan):
         Parameters
         ----------
         keyring: Keyring
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
         """
         krg_inf = Keyring()
         for name, cs in self.iter_shared(False).items():
@@ -242,9 +255,10 @@ class FilegroupLoad(FilegroupScan):
 
         Parameters
         ----------
-        var_list: List[str]
-            Variables to load
         keyring: Keyring
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
         """
         commands = self.get_commands(keyring, memory)
         for cmd in commands:
@@ -380,7 +394,13 @@ class FilegroupLoad(FilegroupScan):
         return chunk
 
     def scan_variables_attributes(self):
-        """Scan for variables specific attributes."""
+        """Scan for variables specific attributes.
+
+        Find files for all variables.
+        For each command, use user defined function to
+        scan attributes.
+        Store them in VI.
+        """
         keyring = Keyring(**{dim: 0 for dim in self.cs})
         keyring['var'] = list(range(self.cs['var'].size))
         cmds = self.get_commands(keyring, keyring.copy())
@@ -389,15 +409,22 @@ class FilegroupLoad(FilegroupScan):
             for infile, memory in cmd:
                 memory.make_idx_var(self.cs['var'])
                 log.debug('Scanning %s for variables specific attributes.', cmd.filename)
-                file = self.open_file(cmd.filename, 'r', 'debug')
-                func, _, kwargs = self.scan_attr['var']
 
-                attrs = func(file, infile['var'].tolist(), **kwargs)
+                try:
+                    file = self.open_file(cmd.filename, 'r', 'debug')
+                    func, _, kwargs = self.scan_attr['var']
 
-                for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
-                    log.debug("Found attributes (%s) for '%s' (%s infile)",
-                              values.keys(), name, name_inf)
-                    self.vi.add_attrs_per_variable(name, values)
+                    attrs = func(self, file, infile['var'].tolist(), **kwargs)
+
+                    for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
+                        log.debug("Found attributes (%s) for '%s' (%s infile)",
+                                values.keys(), name, name_inf)
+                        self.vi.add_attrs_per_variable(name, values)
+                except:
+                    self.close_file(file)
+                    raise
+                else:
+                    self.close_file(file)
 
     def write_add_variable(self, var, sibling, inf_name, scope):
         """Add variable to files."""

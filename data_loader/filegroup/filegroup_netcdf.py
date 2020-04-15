@@ -24,14 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupNetCDF(FilegroupLoad):
-    """Filegroup class for NetCDF files.
-
-    Parameters
-    ----------
-    args, kwargs
-        Passed to FilegroupLoad.
-        See FilegroupScan for init.
-    """
+    """Filegroup class for NetCDF files."""
 
     def __init__(self, *args, **kwargs):
         if not _has_netcdf:
@@ -53,16 +46,6 @@ class FilegroupNetCDF(FilegroupLoad):
         return commands
 
     def load_cmd(self, file, cmd):
-        """Load data from one file using a command.
-
-        Parameters
-        ----------
-        file: netCDF4.Dataset
-        cmd: Command
-            Load command containing the filename,
-            variables to load, in file keys, and
-            where to place the data.
-        """
         for krg_inf, krg_mem in cmd:
             for ncname in krg_inf['var']:
                 log.info("Looking at variable %s", ncname)
@@ -92,7 +75,7 @@ class FilegroupNetCDF(FilegroupLoad):
         log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take(int_krg, file[ncname])
 
-        chunk = self.reorder_chunk(chunk, keyring, order, variables=False)
+        chunk = self.reorder_chunk(chunk, keyring, int_krg)
         return chunk
 
     @staticmethod
@@ -104,12 +87,7 @@ class FilegroupNetCDF(FilegroupLoad):
         file: nc.Dataset
              File object.
         ncname: str
-             Name of the variable in ile.
-
-        Returns
-        -------
-        order: List[str]
-            Coordinate names in order.
+             Name of the variable in file.
         """
         order = list(file[ncname].dimensions)
         return order

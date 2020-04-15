@@ -41,33 +41,32 @@ class CoordScan(Coord):
     ----------
     filegroup: FilegroupScan or subclass
         Corresponding filegroup.
-    name: str
-        Name of the coordinate as in file.
     coord: Coord or subclass
         Parent coordinate object.
     shared: bool
         If the coordinate is shared accross files.
+
     values: List[float]
         Temporary list of values found for this coordinate.
     in_idx: List[int]
         List of the index for each value inside the files.
-    scan: set
-        What part of the file is to be scanned.
-        subset of :{ in | filename | manual | attributes }.
+
+    scan: Dict[str, List[List[str], Callable, Dict]]
+        What and how to scan.
+        Keys can be 'manual': values and in-indices are manually set,
+        'in': stuff is to find inside the file, 'filename': stuff is to find
+        in the filename.
+        The values are lists of length 3. The first element contains
+        the things to scan (values or in-indices), the second the function
+        to use, the third the keyword arguments to pass.
     scanned: bool
         If the coordinate has been scanned.
-    scan_attributes: Callable
-        Function used to scan coordinate attributes.
-    scan_filename: Callable
-        Function used to scan filename.
-    scan_in_file: Callable
-        Function used to scan in file.
-    scan_filename_kwargs: Dict[str, Any]
-        Keyword arguments to pass to the scan_filename function.
-    scan_in_file_kwargs: Dict[str, Any]
-        Keyword arguments to pass to the scan_in_file function.
-    """
 
+    scan_attr: bool
+        If attributes are to be scanned.
+    scan_attributes_func: Callable
+        Function to scan for attributes.
+    """
     def __init__(self, filegroup, coord, shared, name):
         self.filegroup = filegroup
         self.coord = coord
@@ -142,6 +141,9 @@ class CoordScan(Coord):
         Give the index inside the file corresponding to the
         demanded values.
 
+        If the CS is empty and set as index descending, the key
+        is mirrored.
+
         Parameters
         ----------
         key: Key
@@ -180,12 +182,18 @@ class CoordScan(Coord):
         return out
 
     def set_scan_filename_func(self, func, elts, **kwargs):
-        """Set function for scanning values.
+        """Set function for scanning values in filename.
+
+        Parameters
+        ----------
+        func: Callable[[CoordScan, List[float]], [List[float], List[int]]]
+        elts: List[str]
+            Elements to scan ('values', 'in_idx')
+        kwargs: Any
 
         See also
         --------
-        scan_filename: for the function signature.
-        Constructor.set_scan_filename_func: for more details.
+        scan_filename_default: for the function signature.
         """
         self.scan.pop('filename', None)
         self.scan['filename'] = [func, elts, kwargs]
@@ -193,10 +201,16 @@ class CoordScan(Coord):
     def set_scan_in_file_func(self, func, elts, **kwargs):
         """Set function for scanning values in file.
 
+        Parameters
+        ----------
+        func: Callable[[CoordScan, file, List[float]], [List[float], List[int]]]
+        elts: List[str]
+            Elements to scan ('values', 'in_idx')
+        kwargs: Any
+       
         See also
         --------
-        scan_in_file: for the function signature.
-        Constructor.set_scan_in_file_func: for more details.
+        scan_in_file_default: for the function signature.
         """
         self.scan.pop('manual', None)
         self.scan.pop('in', None)
@@ -221,8 +235,7 @@ class CoordScan(Coord):
 
         See also
         --------
-        scan_attributes: for the function signature
-        and Constructor.set_scan_coords_attributes: for more details.
+        scan_attributes_default: for the function signature
         """
         self.scan_attr = True
         self.scan_attributes_func = func
@@ -250,6 +263,8 @@ class CoordScan(Coord):
 
         Returns
         -------
+        values: List[float]
+            List of values found.
 
         Raises
         ------
@@ -315,7 +330,7 @@ class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
 
     Only scan the first file found.
-    All files are considered to have the same structure.
+    All files are thus considered to have the same structure.
 
     Parameters
     ----------
@@ -482,7 +497,7 @@ def mirror_key(key, size):
     return value
 
 
-def scan_filename_default(cs, **kwargs):
+def scan_filename_default(cs, values, **kwargs):
     """Scan filename to find values.
 
     Matches found by the regex are accessible from
@@ -494,26 +509,25 @@ def scan_filename_default(cs, **kwargs):
     Parameters
     ----------
     cs: CoordScan
+    values: List[float]
+        Values found previously in the same file by
+        in-file scanning.
     kwargs
         Static keywords arguments set by
-        Constructor.set_scan_filename_func()
+        Constructor.set_scan_filename()
 
     Returns
     -------
-    values: List[float]
+    values: float, List[float]
         Values found.
-
-    Raises
-    ------
-    NotImplementedError
-        If scan_filename was not set.
+    in_idx: int, None, List[int]
+        In file indices found.
 
     Notes
     -----
     See scan_library for various examples.
-    get_date_from_matches() for instance.
     """
-    raise NotImplementedError("scan_filename was not set for '%s'" % cs.name)
+    raise NotImplementedError()
 
 
 def scan_in_file_default(cs, file, values, **kwargs):
@@ -531,7 +545,7 @@ def scan_in_file_default(cs, file, values, **kwargs):
         Values found previously in filename.
     kwargs
         Static keywords arguments set by
-        Constructor.set_scan_in_file_func()
+        Constructor.set_scan_in_file()
 
     Returns
     -------
@@ -540,23 +554,19 @@ def scan_in_file_default(cs, file, values, **kwargs):
     in_idx: List[int]
         Indices of values in file
 
-    Raises
-    ------
-    NotImplementedError
-        If scan_in_file was not set.
-
     Notes
     -----
     See scan_library for various examples.
     scan_in_file_nc() for instance.
     """
-    raise NotImplementedError("scan_in_file was not set for '%s" % cs.name)
+    raise NotImplementedError()
 
 
 def scan_attributes_default(cs, file):
     """Scan coordinate attributes.
 
-    Only `units` attribute supported for now.
+    Attributes are set to the CoordScan by
+    cs.set_attr().
 
     Parameters
     ----------
@@ -570,10 +580,5 @@ def scan_attributes_default(cs, file):
     attributes: Dict
         Attributes.
         {'name': value}
-
-    Raises
-    ------
-    NotImplementedError
-        If scan_attribute was not set.
     """
-    raise NotImplementedError("scan_attributes was not set for '%s" % cs.name)
+    raise NotImplementedError()

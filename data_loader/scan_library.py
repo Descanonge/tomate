@@ -164,7 +164,7 @@ def scan_in_file_nc_idx_only(cs, file, values):
     return values, in_idx
 
 
-def scan_variables_attributes_nc(file, variables):
+def scan_variables_attributes_nc(fg, file, variables):
     """Scan variables attributes in netCDF files."""
     attrs = {}
     for var in variables:
