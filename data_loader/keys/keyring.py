@@ -265,9 +265,9 @@ class Keyring():
         """
         if not dims:
             dims = self.dims
-        for c, k in self.items():
-            if c in dims and k.type == 'none':
-                self[c] = slice(None, None)
+        for dim, k in self.items():
+            if dim in dims and k.type == 'none':
+                k.set(slice(None, None))
 
     def make_single(self, *dims, idx=0):
         """Fill missing keys by an index.
