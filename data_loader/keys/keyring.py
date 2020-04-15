@@ -79,7 +79,7 @@ class Keyring():
             Dimension name
         value: Key, key-like
         """
-        if not issubclass(value.__class__, Key):
+        if not isinstance(value, Key):
             if item == 'var':
                 value = KeyVar(value)
             else:
