@@ -280,7 +280,7 @@ class FilegroupLoad(FilegroupScan):
     def _get_order_in_file(self):
         """Get order of dimensions in file.
 
-        Default to the order of `cs` in the filegroup.
+        Default to the order of coordinates in the filegroup.
 
         Returns
         -------
@@ -290,17 +290,22 @@ class FilegroupLoad(FilegroupScan):
         return list(self.cs.keys())
 
     def _get_order(self, order_file):
-        """Get order of dimensions with their database names.
+        """Get order of dimensions in file with their database names.
 
-        Keep the order, change the name of the CoordScan is
+        Keep the order, change the name of the CoordScan if
         different from the Coord.
-        If the in-file dimension is not associated with any Coord,
-        keep it as is.
+        If the in-file dimension is not associated with any database
+        coordinate, keep it as is.
 
         Parameters
         ----------
         order_file: List[str]
             Dimensions order as in file.
+
+        Returns
+        -------
+        order: List[str]
+            Dimensions order, with their database name.
         """
         rosetta = {cs.name: name for name, cs in self.cs.items()}
         order = [rosetta.get(d, d) for d in order_file]
@@ -308,7 +313,7 @@ class FilegroupLoad(FilegroupScan):
 
     @staticmethod
     def _get_internal_keyring(order, keyring) -> Keyring:
-        """Get keyring for in file taking.
+        """Get keyring for in file.
 
         If dimension that are not known by the filegroup,
         and thus not in the keyring, take the first index.
@@ -321,8 +326,8 @@ class FilegroupLoad(FilegroupScan):
         Parameters
         ----------
         order: List[str]
-            Order of dimensions in-file, rather their associated
-            name in the database if it exists.
+            Order of dimensions in-file, as they appear in
+            the database.
         keyring: Keyring
         """
         int_krg = keyring.copy()
@@ -340,7 +345,7 @@ class FilegroupLoad(FilegroupScan):
         int_krg = int_krg.subset(order)
         return int_krg
 
-    def reorder_chunk(self, chunk, coords, order=None, variables=False):
+    def reorder_chunk(self, chunk, keyring, int_keyring):
         """Reorder data.
 
         Dimensions are not necessarily stored with the same
@@ -350,31 +355,23 @@ class FilegroupLoad(FilegroupScan):
         ----------
         chunk: Numpy array
             Data chunk taken from file and to re-order.
-        coords: List[str]
-            Dimensions asked for loading.
-        order: List[str], optional
-            Dimensions names ordered as in file.
-        variables: bool, optional
-            If there is a variable dimension in the data
-            chunk. If there is, it should be the first one
-            (ie on the axis #0).
+        keyring: Keyring
+            Keyring asked. It contains the dimensions as
+            they should be stored in the database.
+        int_keyring: Keyring
+            Keyring used to fetch chunk array from file.
+            It contains the dimensions in the order of
+            array.
 
         Returns
         -------
         Array
             Re-ordered data.
         """
-        if order is None:
-            order = list(self.cs.keys())
-
-        coords = [c for c in coords if c in order]
-
-        # Reorder array
-        if variables:
-            order.insert(0, 'var')
-            coords.insert(0, 'var')
-        source = [coords.index(n) for n in coords if n in order]
-        dest = [coords.index(n) for n in order]
+        in_file = int_keyring.get_non_zeros()
+        in_data = [c for c in keyring.get_non_zeros() if c in in_file]
+        source = [in_data.index(n) for n in in_data if n in in_file]
+        dest = [in_data.index(n) for n in in_file]
 
         if source != dest:
             log.info("reordering %s -> %s", source, dest)
