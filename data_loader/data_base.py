@@ -742,15 +742,9 @@ class DataBase():
 
         self.data = self.allocate(self.loaded.shape)
 
-        any_loaded = False
-        for fg in self.filegroups:
-            cmd = fg.get_fg_keyrings(keyring)
-
-            if cmd is not None:
-                any_loaded = True
-                fg.load_data(*cmd)
-
-        if not any_loaded:
+        loaded = any(fg.load_from_available(keyring)
+                     for fg in self.filegroups)
+        if not loaded:
             log.warning("Nothing loaded.")
 
         try:

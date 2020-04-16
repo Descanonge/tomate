@@ -36,6 +36,51 @@ class FilegroupLoad(FilegroupScan):
 
     acs = Accessor
 
+    def load_from_available(self, keyring):
+        """Load data.
+
+        Parameters
+        ----------
+        keyring: Keyring
+            Data to load. Acting on available scope.
+
+        Returns
+        -------
+        bool
+            False if nothing was loaded, True otherwise.
+        """
+        cmd = self.get_fg_keyrings(keyring)
+        if cmd is None:
+            return False
+        self.load(*cmd)
+
+        return True
+
+    def load(self, keyring, memory):
+        """Load data for that filegroup.
+
+        Retrieve load commands.
+        Open file, load data, close file.
+
+        Parameters
+        ----------
+        keyring: Keyring
+            Data to load. Acting on this filegroup CS.
+        memory: Keyring
+            Corresponding memory keyring.
+        """
+        commands = self.get_commands(keyring, memory)
+        for cmd in commands:
+            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
+            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
+            try:
+                self.load_cmd(file, cmd)
+            except:
+                self.close_file(file)
+                raise
+            else:
+                self.close_file(file)
+
     def get_fg_keyrings(self, keyring):
         """Get filegroup specific keyring.
 
@@ -247,31 +292,6 @@ class FilegroupLoad(FilegroupScan):
         krg_inf.simplify()
         return krg_inf
 
-    def load_data(self, keyring, memory):
-        """Load data for that filegroup.
-
-        Retrieve load commands.
-        Open file, load data, close file.
-
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
-        """
-        commands = self.get_commands(keyring, memory)
-        for cmd in commands:
-            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
-            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
-            try:
-                self.load_cmd(file, cmd)
-            except:
-                self.close_file(file)
-                raise
-            else:
-                self.close_file(file)
-
     def load_cmd(self, file, cmd):
         """Load data from one file using a load command.
 
@@ -418,7 +438,7 @@ class FilegroupLoad(FilegroupScan):
 
                     for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
                         log.debug("Found attributes (%s) for '%s' (%s infile)",
-                                values.keys(), name, name_inf)
+                                  values.keys(), name, name_inf)
                         self.vi.add_attrs_per_variable(name, values)
                 except:
                     self.close_file(file)
