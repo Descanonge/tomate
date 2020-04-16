@@ -7,9 +7,8 @@ Constructing a database
 
 A data object needs a few objects to be functionnal, namely: coordinates,
 a vi, and filegroups. Creating these can be a bit daunting.
-The constructor module provides ways to create a data object, and do a couple
-of additional checks that ease the creation of a database,
-especially when loading from disk.
+The constructor module provides ways to easily create a data object,
+and conduct the scanning if the data is on disk.
 
 This page will break down a typical database creation script, and present
 the main features of the package.
@@ -27,8 +26,8 @@ We could use any kind of subclass of the Coord class, eventually a user made one
 ::
 
     from data_loader import Coord, Time
-    lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
-    lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
+    lat = Coord('lat', None, fullname='Latitude')
+    lon = Coord('lon', None, fullname='Longitude')
     time = Time('time', None, fullname='Time',
                 units='hours since 1970-01-01 00:00:00')
 
@@ -37,45 +36,11 @@ We could use any kind of subclass of the Coord class, eventually a user made one
 Since we do not yet have the coordinates values, we specify `None`.
 We must include a CF-metadata compliant units for the time coordinate.
 
-'lat', 'lon', and 'time' will be the names of our coordinates, however
-they could be found under other names in our different data files, we thus
-specify a `name_alt` parameter. We could add any number of alternative names
-by using a list of strings.
-
 The order of `coords` is of great importance, as this will dictate in what
 order the data will be stored. Here the ranks of the data numpy array will be
 (variables, lat, lon, time).
-
-
-Adding Variables
-----------------
-
-We must now specify the variables we are interested in. This will construct a
-:doc:`VariablesInfo<variables_info>` object (abbreviated VI).
-For that, we will use a :class:`Constructor<constructor.Constructor>` object.
-We must supply a root directory, where all files are contained, as well as
-the coordinates created before.
-For each variable we will specify its name and eventually a serie of attributes.
-
-::
-
-    from data_loader import Constructor
-
-    cstr = Constructor('/Data/', coords)
-
-    name = "SSH"
-    attrs = {'fullname': 'Sea Surface Height'}
-    cstr.add_variable(name, **attrs)
-
-    name = "SST"
-    attrs = {'fullname': 'Sea Surface Temperature',
-             'units': 'deg C',
-             'vmin': -2, 'vmax': 30}
-    cstr.add_variable(name, **attrs)
-
-
-If more information can be found in the files, we can set the filegroups to
-scan for them a little latter. This will overide the attributes we set.
+The variables dimension does not need to be created by the user. The constructor
+will take care of it.
 
 
 Adding filegroups
@@ -126,17 +91,20 @@ so we will use FilegroupNetCDF.
 We add the first filegroup for the SSH::
 
     contains = ['SSH']
-    coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
+    coords_fg = [[lon, 'in', 'longitude'],
+                 [lat, 'in', 'latitude'],
+                 [time, 'shared']]
     cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
 
-We first tell what variables are placed in this filegroup. There
-can be as many variables as wanted, but a variable cannot be distributed
-accross multiple filegroups.
+We first tell what variables are placed in this filegroup. This is purely
+cosmetic.
 The `coords_fg` variable specify how are arranged the coordinates.
 The 'in' flag means the whole coordinate/dimension is found in each file,
 and that it is arranged in the same way for all files.
 The 'shared' flag means the dimension is splitted accross multiple files.
-Eventually, we can add a subfolder in which the files are found,
+The spatial dimensions in our files are named differently from ours, so we
+specify it. Time is found under the same name so we put nothing.
+We give a subfolder in which the files are found,
 if not precised, the root directory from the constructor will be used.
 
 We must now tell where are the files, and more precisely how are constructed
@@ -183,16 +151,19 @@ The last step is to tell the filegroup how to scan files for
 additional information. This is done by appointing scanning functions
 to the filegroup. The appointement is coordinate specific.
 First, we must specify how to retrieve the coordinates values,
-and in-file indices, either by looking at the filename, and/or inside the file.
-This is done by standardized functions. There are a number of
+and in-file indices by looking at the filename, and/or inside the file.
+This is done by standardized user functions. There are a number of
 pre-existing functions that can be found in
-:mod:`scan_library<data_loader.scan_library>`,
-but user-defined functions can also be used.
+:mod:`scan_library<data_loader.scan_library>`.
 Here, all coordinates values are found in the netCDF files, we use an existing
 function::
 
     import data_loader.scan_library as scanlib
     cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+
+We must also tell how the variable are found in the files::
+
+    cstr.set_variables_infile(SSH='SSH')
 
 We now do the same process for the SST files. As their structure is a bit more
 complicated, we can explore some more advanced features of the pre-regex.
@@ -212,7 +183,7 @@ any coordinate value::
     cstr.set_fg_regex(pregex, replacements)
 
 Here we used the `Y` ant `doy` elements, for 'year' and 'day of year'.
-Let's pretend the 'day of year' elemetn was not anticipated within the package.
+Let's pretend the 'day of year' element was not anticipated within the package.
 We need to specify the regex that should be used to replace the matcher in
 the pre-regex. We can modify the Matcher class, but that would be cumbersome.
 Instead, we specify that we are using a custom regex::
@@ -226,22 +197,34 @@ custom regex **must be ended by a colon**. It can still be followed by the
 We must again tell how the coordinate will be scanned. This time the
 date information will be retrieved from the filename::
 
+    cstr.set_variables_infile(SST='sst')
     cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon')
-    cstr.set_scan_filename(scanlib.get_date_from_matches, 'time')
+    cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
 
 The values and index of the coordinates is not the only thing we can scan for.
-The filegroup can look for coordinate specific attributes.
-For example we can scan for variables attributes (variables are considered
-as a type of coordinate) and place them into the VI.
-For instance, for netCDF files::
+The filegroup can look for coordinate specific attributes. This will only affect
+the scanning coordinate object.
+For instance::
 
-    cstr.set_scan_coords_attributes(scanlib.scan_attributes_nc, 'var')
+    cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'time')
 
 We can also scan for general attributes that will be placed in the VI
 as 'infos'::
 
     cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
 
+and variables specific attributes that will be placed in the VI is attributes::
+
+    cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
+
+Conversely, we can also manually add information to the VI::
+
+    cstr.vi.add_variable
+    cstr.vi.add_attr
+    cstr.vi.add_attr_per_variable
+
+*(the VI is not super user friendly at this stage, so information could
+lost or be added twice if not careful).*
 
 
 The data object
@@ -313,7 +296,7 @@ For instance::
 
     print(dt.data)
 
-After loading data, the coordinates of the corresponding scope ('loaded' here)
+After loading data, the coordinates of the corresponding scope ('loaded')
 will be adjusted, so that the coordinates are in sync with the data.
 
 Once loaded, the data can be sliced further using::

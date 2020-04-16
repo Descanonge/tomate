@@ -38,19 +38,14 @@ __all__ = ['get_data']
 root = '/Data/'
 
 time = Time('time', None, 'hours since 1970-01-01 00:00:00')
-lat = Coord('lat', None, 'deg', 'latitude', 'Latitude')
-lon = Coord('lon', None, 'deg', 'longitude', 'Longitude')
+lat = Coord('lat', None, 'deg', 'Latitude')
+lon = Coord('lon', None, 'deg', 'Longitude')
 
 coords = [time, lat, lon]
 
 
 def add_ssh(cstr, source):
     """Add the SSH to the VI and filegroups."""
-    name = "SSH"
-    attrs = {'fullname': 'Sea Surface Height',
-             'ncname': 'ssh'}
-    cstr.add_variable(name, **attrs)
-
     contains = ['SSH']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
     cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root=source+'SSH')
@@ -61,20 +56,11 @@ def add_ssh(cstr, source):
     replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
-
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
-    cstr.set_scan_attribute_func(scanlib.scan_attributes_nc)
-
+    cstr.set_variables_infile()
 
 def add_sst(cstr):
     """Add the SST to the VI and filegroups."""
-
-    name = "SST"
-    attrs = {'fullname': 'Sea Surface Temperature',
-             'ncname': 'sst',
-             'unit': 'deg C',
-             'vmin': -2, 'vmax': 30}
-    cstr.add_variable(name, **attrs)
 
     contains = ['SST']
     coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
@@ -87,10 +73,9 @@ def add_sst(cstr):
     replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, replacements)
-
+    cstr.set_variables_infile()
     cstr.set_scan_in_file_func(scanlib.scan_in_file_nc, 'lon', 'lat')
     cstr.set_scan_filename_func(scanlib.get_date_from_matches, 'time')
-    cstr.set_scan_attribute_func(scanlib.scan_attributes_nc)
 
 def _get_data(cstr, groups, **kwargs):
     if groups is None:

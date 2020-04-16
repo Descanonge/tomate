@@ -22,4 +22,7 @@ it could even englob KeyVar (that seems complicated)
 * TODO: coord attribute scanning is flawed
 ** From which filegroup do you transfer attributes to master coords ?
 * TODO: check error when shared cs has no scanning
-* TODO: remove default scanning functions
+* TODO: VI is broken
+** adding stuff is not consistent, for instance
+add_attr with a new variable will add the attributes
+but not append the variable to the list of variables

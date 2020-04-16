@@ -88,6 +88,11 @@ class FilegroupNetCDF(FilegroupLoad):
              File object.
         ncname: str
              Name of the variable in file.
+
+        Returns
+        -------
+        order: List[str]
+            Coordinate names in order.
         """
         order = list(file[ncname].dimensions)
         return order

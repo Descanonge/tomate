@@ -77,6 +77,28 @@ been loaded yet.
 * More information on :ref:`Variables`
 
 
+Selection
+---------
+
+A useful feature is the selection scope. It allows to create
+a new scope and manipulate it before sending it to some methods.
+
+The scope is created from the available scope (by default) with the
+:func:`select<data_base.DataBase.select>` method.
+One can also use :func:`add_to_selection<data_base.DataBase.add_to_selection>`
+to expand the selection, or
+:func:`Scope.slice<scope.Scope.slice>` to reduce the selection.
+
+The selected scope (or any other scope in fact) stores how it was created in two
+key attributes.
+The `parent_scope` stores from which scope it originates from.
+The `parent_keyring` stores what part of that scope was taken.
+This is how one can just send the selection scope to a function to
+do various operation.
+For instance one can use :func:`load_selected<data_base.DataBase.load_selected>`
+and :func:`view_selected<data_base.DataBase.view_selected>`.
+
+
 Additional methods
 ------------------
 
@@ -102,10 +124,10 @@ For instance, `create_data_class([DataMasked, DataPlot])` will
 return a type of data supporting masked values, and plotting functions.
 
 
-Selection
----------
-
-
-
 Post loading function
 ---------------------
+
+It can be useful to apply some operation each time data is loaded.
+This is achievable by setting a post-loading function with
+:func:`DataBase.set_post_load_func<data_base.DataBase.set_post_load_func>`,
+which will be executed after loading data.

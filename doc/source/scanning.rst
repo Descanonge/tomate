@@ -9,22 +9,23 @@ files on disk in a process called scanning.
 It looks inside the files and at their filenames to find
 how the data is arranged.
 It can find the values of the coordinates, and their placement
-in the files, for instance if the latitudinal dimension is reversed.
+in the files.
 
-All of the scanning is coordinate specific and thus mainly handled
+Most of the scanning is coordinate specific and thus mainly handled
 by :class:`CoordScan<filegroup.coord_scan.CoordScan>`.
-The filegroup orchestrate the scanning, and the constructor makes some
-additional checks.
-The filegroup also eventually scans for general attributes.
+The filegroup orchestrate the scanning, and the constructor compiles
+information from all filegroups.
+The filegroup also eventually scans for variable specific, and
+general information on the data.
 
 
 Some generalities
 -----------------
 
-Some dimensions are found entirely in the files: they are 'in',
+Some dimensions are found entirely in each file: they are 'in',
 others can be scattered accross different files: they are 'shared'.
 In-coordinates are also assumed to be arranged in the same way for all files
-(same range, same indexing). If this is not the case, the coordinate should
+(same values, same indexing). If this is not the case, the coordinate should
 be marked as shared.
 For example, in a dataset of the sea surface temperature with an image per date
 per file, the latitude and longitude will be 'in' and the temperature 'shared'.
@@ -32,48 +33,87 @@ There could also be more than one date per file, for instance a file for each
 month with daily images.
 
 The scanning is done independantly in each filegroup through the
-:class:`CoordScan<filegroup.coord_scan.CoordScan>` object, dynamically derived
+:class:`CoordScan<filegroup.coord_scan.CoordScan>` object
+(often abbrievated CS), dynamically derived
 from a :class:`Coord<coordinates.coord.Coord>`, or any of its subclass.
-
-The CoordScan object stores the values of its parent coordinate,
-the in-file indices (noted `in_idx`), and for shared coordinates the
-part of the filename that were found against matchers from the regex.
+The CS must find 2 to 3 things: the coordinates values, the index in the
+file for that value, and if the CS is shared, the file that contains this value.
 All those variables are indexed on the coordinate values, so when we ask for the
-i_th value of a coordinate, we take the i_th series of matches to get the
-corresponding filename, and the i_th in-file index to know where to look in that
-file.
-
+i_th value of a coordinate, we take the i_th file, and the i_th
+in-file index to know where to look in that file.
 The fact that everything is indexed on coordinates values, means that
 coordinates scanned from files will always have values in growing order.
-If needed, the data will be reversed to accomodate (see
-:ref:`Reversing dimensions`).
 
-Some coordinates might not be represented inside the file (for instance
-the file contains one step of a shared coordinate).
+No full filenames are stored. Rather, the matches from the pre-regex
+corresponding to that coordinate are kept for each coordinate value.
+This avoid storing an excessive number of long filenames, especially if there
+are multiple shared coordinates.
+With the matches from all the shared coordinates, we can reconstruct the
+filename, by replacing the matchers in the pre-regex.
+
+Some dimensions might not be represented inside the file, for instance
+in the previous example files might not contain a time dimension.
 In that case, the in-file index should be `None`.
 This is then handled appropriately by the filegroup loading methods.
 
 In-coordinates scan only one file, the first one found.
 Shared coordinates scan all the files available.
-The actual scanning is done by user-defined functions
-(some functions are provided in the
-:mod:`scan_library<data_loader.scan_library>` module).
-These are set at runtime using the constructor.
-The different flavors of scanning (attributes, in-file, filename)
-are done in the order they were specified by the user.
-The coordinates will be scanned in the order they were specified
-when adding a filegroup.
-This is useful if the scanning of some values require to fetch
-some attributes in the file for instance.
+The scanning is done by user-defined functions. Those functions can
+either look inside a file, or at its filename.
+Only one function can be called for each type of scanning (in-file and
+filename).
+The functions are launched in the same order they were specified by the user
+to the filegroup.
+Each can extract coordinates values and/or in-file indices.
+The values they extract can be passed from one to another.
+So, for instance with monthly files, one could first find the year and month
+in the filename, and the day of the month in the file.
+It would combine both to create the whole date. In-file indices should
+of course be recovered from inside the file.
+More details in following sections.
 
-There are two types of functions: `scan_filename` and `scan_in_file`.
-See the two sections below for more information.
-The values and in file indices can also be set manually, in which case
-the files won't be scanned, but the coordinates values will still
-be checked for consistency with other filegroups.
-The filenames will still be scanned, but only to associate found matches
-with the values and in-indices manually set
-(see `examples/variables_scanning.py` for more details).
+This whole process can be overlooked by setting manually the values and
+in-file indices.
+For shared coordinates, the scanning of values should still be happening,
+as each filename must be associated with one or more values.
+In that case, the value found by scanning is expected to be present in
+the values set manually. The in-file index set by the user is left untouched.
+
+Multiple filegroups
+-------------------
+
+One can deals with multiple filegroups.
+When all filegroups have finished scanning, the constructor will compile
+found values. This will dictate the range of the 'available' scope.
+By default, only coordinates points common to all filegroups are taken.
+The variables dimension is an exception to this.
+If in some filegroup a coordinate must be reduced a warning will be emitted.
+Duplicate coordinates points (variables and
+coordinates values are identical in two different filegroups), are not
+supported.
+To avoid those, one can select parts of the CS to take in each filegroup,
+either by index or value (:func:`constructor.Constructor.set_coord_selection`).
+
+By setting the flag :attr:`constructor.Constructor.allow_advanced` to `True`,
+one unlocks some possibilities.
+This allows to retain all found values, not only values common accross
+filegroups.
+Duplicates are still not supported.
+This makes possible some nice features, like having a variable split
+accross two filegroups. For instance multiple filegroups containing
+different spatial or temporal ranges of a same variable.
+
+However one must be careful. This allows to have multiple coordinates
+grid at the same time, which could be unwanted.
+It also allows non-convex data grids. A variable could be available
+at a location where other are not for instance. By loading all variables
+at this location, parts of the data array would be allocated but left
+untouched, without warnings being emitted.
+To use with some caution.
+
+
+Attributes scanning
+-------------------
 
 Coordinate attributes, variables attributes, and general information on
 the data can all be retrieved from files.
@@ -85,65 +125,56 @@ The coordinates attributes found by the functions, are send to the
 parent coordinate :func:`Coord.set_attr<coordinates.coord.Coord.set_attr>`
 method.
 
+One can also scan coordinate attributes in the first file found,
+such as units, or dimension fullname. This is always done first.
 
 Variables Coordinates
 ---------------------
 
 Variables are treated as coordinates when scanning, with some specificities.
 
-Variables are considered 'in' by default. They can be set to shared
-when creating the filegroup.
-
-Variables are normally added to the constructor using
-:func:`add_variable<constructor.Constructor.add_variable>`, along
-with attributes for the :doc:`VI<variables_info>`, but they can
-also be scanned.
-The CoordScan for variables is special in that it receives default in-file
-indices.
-Values should always be the variables names. The default values for in-file
-indices are also the variables names.
-Thoses default values are reset if the user specifies manually those with
-:func:`Constructor.set_variables_infile<constructor.Constructor.set_variables_infile>`,
-or using a scan function as with any other coordinate.
+When adding a filegroup to the constructor, one should not specify
+the variables along with other coordinates.
+A variables CS will automatically be added.
+The user can specify what variables are in this filegroup using the `contains`
+argument, but this only has a cosmetic purpose, making it easier to
+differentiate filegroups.
+The variables values still need to be set, either by scanning them like
+any other coordinate, or setting it manully using
+:func:`constructor.Constructor.set_variables_infile`.
+Variables are considered 'in' by default, a flag can set it shared when
+adding a filegroup.
 
 Contrary to other CoordScan, the values are not sorted after being scanned.
+Also, note the in-file index or values do not need be integers, it can be
+string refering to the variable name.
 
-Variables attributes can be scanned in files as with other coordinates.
-The attributes found are added to the VI.
-Note that it is currently not possible to let the scanning find all the
-variables, *and* retrieve variable attributes.
+One can scan variables specific attributes and put them into the
+VariablesInfo object.
 
 
-Reversing dimensions
---------------------
+Reversing dimensions and empty dimensions
+-----------------------------------------
 
-When dealing with images, it is not always easy to know how the image
-is indexed, *ie* where the `[0, 0]` pixel is located.
-As the CoordScan stores the in file index for each value it is easy
-to know if a dimension can be considered 'index descending', meaning
-the values of the coordinate are descending when the in-file index increases.
-In that case, the CoordScan instance will return True when asked
-`is_idx_descending()`, and when loading data the in file key for
-this dimension will be reversed.
+Sometimes, no information on how the data is aranged can be found in the files.
+One can still manually set values and in-file indices, but can also resort to
+not give any information.
+Then, the CS will remain empty.
+The values are supposed identical to the available scope ones.
+When loading data, the filegroup will simply transmit the asked key as is.
 
-If no information on the in-file index can be found inside the file,
-the `in_idx` attribute CoordScan will be set to a list of `None`.
-The index descending property can still be set manually by calling
-:func:`Constructor.set_coord_descending(coord_name)<constructor.Constructor.set_coord_descending>`
-on the filegroup constructor.
+The user can still 'mirror' the key if he knows the dimension is upside-down
+in the file. So each asked index will go through `i = CS.size - i`.
 
-This only works for 'in' coordinates.
-For even more control on how the data is loaded, one should use
-the :ref:`Post loading function` of the data object.
+Still, the best is for the user to manually set information based on his
+knowledge of the data.
 
 
 Scanning in file
 ----------------
 
 The scanning function is set by
-:func:`Constructor.set_scan_in_file<constructor.Constructor.set_scan_in_file>`
-(a wrapper around
-:func:`filegroup.coord_scan.CoordScan.set_scan_in_file_func`).
+:func:`Constructor.set_scan_in_file<constructor.Constructor.set_scan_in_file>`.
 The function should receive a CoordScan object, a file object, and
 values eventually scanned from the filename if the filename scanning was
 done before-hand.
@@ -155,6 +186,10 @@ It is returned by the Filegroup
 method.
 All exception handling (and closing the file appropriately) is done
 by the package.
+
+One should look into :func:`filegroup.coord_scan.scan_in_file_default` for
+a better description of the function signature.
+:mod:`data_loader.scan_library` contains some examples.
 
 
 Scanning filename: the pre-regex
@@ -239,10 +274,11 @@ Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
 of the corresponding coordinates.
 Again, the CoordScan calls a user-defined function set with
-:func:`Constructor.set_scan_filename<constructor.Constructor.set_scan_filename>`
-(a wrapper around
-:func:`filegroup.coord_scan.CoordScan.set_scan_filename_func` ),
-and functions are provided in :mod:`scan_library<data_loader.scan_library>`.
+:func:`Constructor.set_scan_filename<constructor.Constructor.set_scan_filename>`.
 The function receives a Coordscan instance, and values eventually scanned from
 inside the same file if the in-file scanning was done before-hand.
-It must returns one or more values, and eventually in-file indices.
+It must returns one or more values and in-file indices.
+
+One should look into :func:`filegroup.coord_scan.scan_filename_default` for
+a better description of the function signature.
+:mod:`data_loader.scan_library` contains some examples.

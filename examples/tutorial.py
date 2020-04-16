@@ -10,8 +10,8 @@ import data_loader.scan_library as scanlib
 
 
 # Coordinates
-lat = Coord('lat', None, fullname='Latitude', name_alt='latitude')
-lon = Coord('lon', None, fullname='Longitude', name_alt='longitude')
+lat = Coord('lat', None, fullname='Latitude')
+lon = Coord('lon', None, fullname='Longitude')
 time = Time('time', None, fullname='Time',
             units='hours since 1970-01-01 00:00:00')
 
@@ -19,16 +19,6 @@ coords = [lat, lon, time]
 
 
 cstr = Constructor('/Data/', coords)
-
-# Variables
-name = "SSH"
-attrs = {'fullname': 'Sea Surface Height'}
-cstr.add_variable(name, **attrs)
-
-name = "SST"
-attrs = {'fullname': 'Sea Surface Temperature',
-         'vmin': -2, 'vmax': 30}
-cstr.add_variable(name, **attrs)
 
 
 # Filegroups
@@ -45,7 +35,9 @@ cstr.add_variable(name, **attrs)
 
 # SSH
 contains = ['SSH']
-coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
+coords_fg = [[lon, 'in', 'longitude'],
+             [lat, 'in', 'latitude'],
+             [time, 'shared']]
 cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
 
 pregex = ('%(prefix)_'
@@ -56,8 +48,8 @@ replacements = {'prefix': 'SSH',
 cstr.set_fg_regex(pregex, replacements)
 cstr.set_variables_infile('ssh')
 cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
 cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'lat', 'lon', 'time')
-cstr.set_scan_coords_attributes(scanlib.scan_attributes_nc, 'var')
 
 
 # SST
@@ -74,9 +66,9 @@ replacements = {'prefix': 'SSH',
 cstr.set_fg_regex(pregex, replacements)
 cstr.set_variables_infile('sst')
 cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lon', 'lat')
-cstr.set_scan_filename(scanlib.get_date_from_matches, 'time')
-cstr.set_scan_coords_attributes(scanlib.scan_attributes_nc, 'var')
+cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
 cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
+cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
 
 
 # Create database
