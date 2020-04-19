@@ -30,7 +30,6 @@ from .coordinates.variables import Variables
 
 from .keys.keyring import Keyring
 
-from .iter_dict import IterDict
 from .variables_info import VariablesInfo
 from .data_base import DataBase
 from .constructor import Constructor
@@ -46,7 +45,7 @@ __all__ = [
     'Variables',
 
     'Keyring',
-    'IterDict',
+
     'VariablesInfo',
     'DataBase',
     'Constructor'

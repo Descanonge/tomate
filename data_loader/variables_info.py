@@ -19,11 +19,12 @@ class Attribute(dict):
 
     Allows to correctly set attributes.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     name: str
-        Name of the attribute
+        Name of the attribute.
     vi: VariablesInfo
+        Parent VI.
 
     Attributes
     ----------
@@ -44,6 +45,18 @@ class VariableAttributes(dict):
     """View into the VI for one variable.
 
     Allows to correctly set attributes.
+
+    Parameters
+    ----------
+    name: str
+        Name of the variable.
+    vi: VariablesInfo
+        Parent VI.
+
+    Attributes
+    ----------
+    _name: str
+    _vi: VariablesInfo
     """
     def __init__(self, name: str, vi: "VariablesInfo", kwargs):
         super().__setattr__('_name', name)

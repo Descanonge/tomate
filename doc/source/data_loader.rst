@@ -13,10 +13,11 @@ API Reference
     coordinates.time.Time
     coordinates.latlon.Lat
     coordinates.latlon.Lon
+    coordinates.variables.Variables
 
-    key.Keyring
+    keys.keyring.Keyring
 
+    variables_info.VariablesInfo
     data_base.DataBase
-
     constructor.Constructor
 

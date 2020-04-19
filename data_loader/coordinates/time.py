@@ -50,8 +50,8 @@ class Time(Coord):
     def update_values(self, values, dtype=None):
         """Update values.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         values: Sequence[Float]
             New values. Have matching time units of self.
         dtype: Numpy dtype

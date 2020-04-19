@@ -424,11 +424,11 @@ class Constructor():
         fg.set_scan_gen_attrs_func(func, **kwargs)
 
     def set_scan_variables_attributes(self, func, **kwargs):
-        """Set function for scanning variables specific attributes.
+        r"""Set function for scanning variables specific attributes.
 
         Parameters
         ----------
-        func: Callable[[Filegroup, file, List[str], **kwargs], [Dict]]
+        func: Callable[[Filegroup, file, List[str], \*\*kwargs], [Dict]]
             Function that recovers variables attributes in file.
         kwargs: Any
             Passed to the function.
