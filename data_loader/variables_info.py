@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 class Attribute(dict):
-    """View into the VI.
+    """View into the VI for one attribute.
 
     Allows to correctly set attributes.
 
@@ -40,8 +40,8 @@ class Attribute(dict):
         super().__setitem__(k, v)
 
 
-class VariablesAttributes(dict):
-    """View into the VI.
+class VariableAttributes(dict):
+    """View into the VI for one variable.
 
     Allows to correctly set attributes.
     """
@@ -154,7 +154,7 @@ class VariablesInfo():
             TypeError("Argument must be string.")
         if item in self.var:
             d = {attr: values[item] for attr, values in self._attrs.items()}
-            return VariablesAttributes(item, self, d)
+            return VariableAttributes(item, self, d)
         raise IndexError("'%s' not in variables." % item)
 
     def get_attr(self, attr, var):
