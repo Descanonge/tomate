@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader
+.. currentmodule :: data_loader.variables_info
 
 :ref:
 
@@ -7,29 +7,46 @@ Variables Info
 ==============
 
 All data objects contains a
-:class:`VariablesInfo<variables_info.VariablesInfo>`, abreviated
-as `vi`.
+:class:`VariablesInfo`, abreviated as `vi`.
 A vi holds general information about the data, but also attributes specific to a
-variable. Each attribute is an
-:class:`IterDict<iter_dict.IterDict>`, an ordered dictionnary that
-can be accessed from variable name or index.
-For example, we can set and recover a 'velocities' attribute::
+variable.
+For example, we can set and recover a 'version' information::
 
-  vi.add_infos('velocities', ['U', 'V'])
-  print(vi.velocites)
-  print(vi.get_info('velocities'))
+  vi.set_infos('version', '2.0')
+  print(vi.version)
+  print(vi.get_info('version'))
 
-or a variable specific information, for instance `fullname` attribute for
-different variables::
+or a variable specific information, for instance a `fullname` attribute::
 
-  vi.fullname[['U', 'V']]
-  vi.get_attr('fullname', 'U')
+  vi.set_attrs('U', fullname='East. vel.')
+  vi.fullname['U'] = 'East. vel.'
+  vi['U'].fullname = 'East. vel.'
+
+As you can see, one can access the information in multiple ways.
+The more straightforward is using dedicated functions such as
+:func:`VariablesInfo.set_attrs`, :func:`VariablesInfo.set_infos`,
+:func:`VariablesInfo.get_attr`, :func:`VariablesInfo.get_attr_safe`,
+and :func:`VariablesInfo.get_info`.
+
+The second is by attribute or info, by using class attributes, for instance::
+
+  print(vi.fullname)
+  print(vi.version)
+
+This returns either the info value or for attribute an :class:`Attribute` class,
+which is a dictionnary with the only addition that setting a value will also
+affect the VI, by changing or adding a variable attribute::
+
+  attr = vi.fullname
+  attr['U'] = 'new'
+
+The last way is by accessing variables as items. This will return a
+:class:`VariableAttributes`, which is a dictionnary with the only addition that
+attributes can be accessed as class attribute, and setting a value will also
+affect the VI::
+
+  vattr = vi['U']
+  vattr.fullname = 'new'
 
 
-Only some variables of the vi can be selected::
-
-  new_vi = vi[['U', 'S']]
-  new_vi = vi[0:2]
-
-
-More operations are available, see :class:`variables_info.VariablesInfo`.
+More operations are available, see :class:`VariablesInfo`.
