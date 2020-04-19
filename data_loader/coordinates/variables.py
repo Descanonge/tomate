@@ -182,9 +182,6 @@ class Variables(Coord):
     def copy(self):
         return Variables(self[:], units=self.units, fullname=self.fullname)
 
-    def set_attr(self, name, attr):
-        self.vi.add_attrs_per_variable(name, attr)
-
     def append(self, var: str):
         """Add variable."""
         variables = list(self[:]) + [var]

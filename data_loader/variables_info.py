@@ -9,10 +9,55 @@
 import logging
 import copy
 
-from data_loader.iter_dict import IterDict
-
 
 log = logging.getLogger(__name__)
+
+
+
+class Attribute(dict):
+    """View into the VI.
+
+    Allows to correctly set attributes.
+
+    Parameters:
+    -----------
+    name: str
+        Name of the attribute
+    vi: VariablesInfo
+
+    Attributes
+    ----------
+    _name: str
+    _vi: VariablesInfo
+    """
+    def __init__(self, name, vi, kwargs):
+        self._name = name
+        self._vi = vi
+        super().__init__(**kwargs)
+
+    def __setitem__(self, k, v):
+        self._vi.set_attrs(k, **{self._name: v})
+        super().__setitem__(k, v)
+
+
+class VariablesAttributes(dict):
+    """View into the VI.
+
+    Allows to correctly set attributes.
+    """
+    def __init__(self, name: str, vi: "VariablesInfo", kwargs):
+        super().__setattr__('_name', name)
+        super().__setattr__('_vi', vi)
+        super().__init__(**kwargs)
+
+    def __getattribute__(self, name: str):
+        if name in self:
+            return self[name]
+        return super().__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        self._vi.set_attrs(self._name, **{name: value})
+        self[name] = value
 
 
 class VariablesInfo():
@@ -25,8 +70,6 @@ class VariablesInfo():
 
     Parameters
     ----------
-    variables: List[str]
-        Variables names.
     attributes: Dict[str, Dict[str: Any]]
         Variable specific information.
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
@@ -35,29 +78,38 @@ class VariablesInfo():
 
     Attributes
     ----------
-    var: List[str]
+    var: Set[var]
         Variables names
-    n: int
-        Number of variables
-    'attrs': Dict[attribute: str, IterDict[variable: str, Any]]
-    'infos': Dict[info: str, Any]
+    _attrs: Dict[attribute: str, Dict[variable: str, Any]]
+    _infos: Dict[info: str, Any]
     """
 
-    def __init__(self, variables=None, attributes=None, **infos):
-        if variables is None:
-            variables = []
+    def __init__(self, attributes=None, **infos):
         if attributes is None:
             attributes = {}
 
-        self.var = tuple(variables)
-        self.n = len(variables)
-
+        self.var = set()
         self._attrs = {}
         self._infos = {}
 
         for var, attrs in attributes.items():
-            self.add_attrs_per_variable(var, attrs)
-        self.add_infos(**infos)
+            self.set_attrs(var, **attrs)
+        self.set_infos(**infos)
+
+    @property
+    def n(self):
+        """Number of variables in the VI."""
+        return len(self.var)
+
+    @property
+    def attrs(self):
+        """List of attributes names."""
+        return list(self._attrs.keys())
+
+    @property
+    def infos(self):
+        """List of infos names."""
+        return list(self._infos.keys())
 
     def __str__(self):
         s = []
@@ -72,7 +124,8 @@ class VariablesInfo():
     def __getattribute__(self, item):
         """Render attributes and infos accessible as attributes."""
         if item in super().__getattribute__('_attrs'):
-            return super().__getattribute__('_attrs')[item]
+            d = super().__getattribute__('_attrs')[item]
+            return Attribute(item, self, d)
         if item in super().__getattribute__('_infos'):
             return super().__getattribute__('_infos')[item]
         return super().__getattribute__(item)
@@ -82,146 +135,88 @@ class VariablesInfo():
         return iter(self.var)
 
     def __getitem__(self, item):
-        """Return VariableInfo slice.
+        """Return attributes for a variable.
 
         Parameters
         ----------
         item: str
-            Variable or attribute
+            Variable
 
-        Returns
-        -------
-        vi: Dict[Any]
+        Raises
+        ------
+        TypeError
+            Argument is not a string.
+        IndexError
+            Argument is not in variables.
+
         """
+        if not isinstance(item, str):
+            TypeError("Argument must be string.")
         if item in self.var:
-            return {name: attrs[item] for name, attrs in self._attrs}
-        if item in self.attrs:
-            return self._attrs[item]
-        raise IndexError("'%s' not in variables or attributes." % item)
-
-    def print_variable(self, variable, print_none=False):
-        """Print all information about a variable."""
-        s = []
-        s.append("Variable: %s" % variable)
-        for attr in self.attrs:
-            value = self.get_attr(attr, variable)
-            if value is not None or print_none:
-                s.append("%s: %s" % (attr, str(value)))
-        return '\n'.join(s)
+            d = {attr: values[item] for attr, values in self._attrs.items()}
+            return VariablesAttributes(item, self, d)
+        raise IndexError("'%s' not in variables." % item)
 
     def get_attr(self, attr, var):
         """Get attribute."""
         return self._attrs[attr][var]
 
     def get_attr_safe(self, attr, var, default=None):
-        """Get attribute."""
-        value = None
+        """Get attribute.
+
+        If attribute is not defined for this variable,
+        return default.
+        """
+        value = default
         if attr in self._attrs:
             value = self._attrs[attr][var]
-        if value is None:
-            value = default
         return value
 
     def get_info(self, info):
         """Get info."""
         return self._infos[info]
 
-    @property
-    def attrs(self):
-        """Get list of attributes."""
-        return list(self._attrs.keys())
-
-    @property
-    def infos(self):
-        """Get list of infos."""
-        return list(self._infos.keys())
-
-    def copy(self):
-        """Copy this instance."""
-        var_list = copy.copy(self.var)
-
-        attrs = {var: {} for var in var_list}
-        for attr, values in self._attrs.items():
-            for var, value in values.items():
-                try:
-                    value_copy = copy.deepcopy(value)
-                except AttributeError:
-                    log.warning("Could not copy '%s' attribute (value: %s)",
-                                attr, value)
-                    value_copy = value
-                attrs[var][attr] = value_copy
-
-        infos = {}
-        for info, value in self._infos.items():
-            try:
-                value_copy = copy.deepcopy(value)
-            except AttributeError:
-                value_copy = value
-            infos[info] = value
-
-        vi = VariablesInfo(var_list, attrs, **infos)
-
-        return vi
-
-    def add_attr(self, attr, values=None):
-        """Add attribute.
-
-        Parameters
-        ----------
-        attr: str
-            Attribute name.
-        values: Dict[variable: str, Any]
-            Values for some or all variables.
-            Variables not specified will be filled with None.
-        """
-        if attr in self.__class__.__dict__.keys():
-            log.warning("'%s' attribute is reserved.", attr)
-        else:
-            if attr not in self.attrs:
-                self._attrs[attr] = IterDict(dict(zip(self.var, [None]*self.n)))
-
-            if values is None:
-                values = {}
-            self._attrs[attr].update(values)
-
-    def add_attrs_per_variable(self, var, attrs):
-        """Add attributes for a single variable.
+    def set_attrs(self, var, **attrs):
+        """Set attributes for a variable.
 
         Parameters
         ----------
         var: str
             Variable name.
-        attrs: Dict
-            Attributes name and values.
-            {'attribute name': value}
+        attrs: Any
+            Attributes values.
         """
-        for k, z in attrs.items():
-            self.add_attr(k, {var: z})
+        self.var.add(var)
+        for attr, value in attrs.items():
+            if attr in self.__class__.__dict__.keys():
+                log.warning("'%s' attribute is reserved.", attr)
+            else:
+                if attr not in self._attrs:
+                    self._attrs[attr] = {}
+                self._attrs[attr][var] = value
 
-    def add_variable(self, variable, **attrs):
-        """Add a variable with corresponding attributes.
+    def set_attr_variables(self, attr, **values):
+        """Set attribute for multiple variables.
 
         Parameters
         ----------
-        variable: str
-            Variable name.
-        attrs:
-            Attributes name and values.
-            If an attribute present in the VI is not provided,
-            it is filled with None for the new variable.
+        attr: str
+            Attribute name.
+        values: Any
+            Attributes values for multiple variables.
         """
-        if not attrs:
-            attrs = {}
-        var_list = list(self.var) + [variable]
-        self.var = tuple(var_list)
+        for var, value in values.items():
+            self.set_attrs(var, **{attr: value})
 
-        for attr in self.attrs:
-            self._attrs[attr][variable] = None
+    def set_infos(self, **infos):
+        """Add infos."""
+        for name, value in infos.items():
+            if name in self.__class__.__dict__.keys():
+                log.warning("'%s' attribute is reserved.", name)
+            else:
+                self._infos[name] = value
 
-        self.n += 1
-        self.add_attrs_per_variable(variable, attrs)
-
-    def pop_variables(self, variables):
+    def remove_variables(self, variables):
         """Remove variables from vi.
 
         Parameters
@@ -235,21 +230,45 @@ class VariablesInfo():
         for attr in self.attrs:
             for var in variables:
                 self._attrs[attr].pop(var)
+        for var in variables:
+            self.var.remove(var)
 
-        var_list = list(self.var)
-        for v in variables:
-            var_list.remove(v)
-            self.n -= 1
-        self.var = tuple(var_list)
+    def remove_attributes(self, attributes):
+        """Remove attribute.
 
-    def remove_attr(self, attr):
-        """Remove attribute."""
-        self._attrs.pop(attr)
+        Parameters
+        ----------
+        attributes: str or List[str]
+            Attributes to remove.
+        """
 
-    def add_infos(self, **infos):
-        """Add infos."""
-        for name, value in infos.items():
-            if name in self.__class__.__dict__.keys():
-                log.warning("'%s' attribute is reserved.", name)
-            else:
-                self._infos[name] = value
+        if not isinstance(attributes, list):
+            attributes = [attributes]
+
+        for attr in attributes:
+            self._attrs.pop(attr)
+
+    def copy(self):
+        """Return copy of self."""
+        vi = VariablesInfo()
+
+        for attr, values in self._attrs.items():
+            for var, value in values.items():
+                try:
+                    value_copy = copy.deepcopy(value)
+                except AttributeError:
+                    log.warning("Could not copy '%s' attribute (type: %s)",
+                                attr, type(value))
+                    value_copy = value
+                vi.set_attrs(var, **{attr: value_copy})
+
+        for info, value in self._infos.items():
+            try:
+                value_copy = copy.deepcopy(value)
+            except AttributeError:
+                log.warning("Could not copy '%s' infos (type: %s)",
+                            info, type(value))
+                value_copy = value
+            vi.set_infos(**{info: value_copy})
+
+        return vi

@@ -219,12 +219,8 @@ and variables specific attributes that will be placed in the VI is attributes::
 
 Conversely, we can also manually add information to the VI::
 
-    cstr.vi.add_variable
-    cstr.vi.add_attr
-    cstr.vi.add_attr_per_variable
-
-*(the VI is not super user friendly at this stage, so information could
-lost or be added twice if not careful).*
+    cstr.vi.set_attrs
+    cstr.vi.set_infos
 
 
 The data object

@@ -439,7 +439,7 @@ class FilegroupLoad(FilegroupScan):
                     for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
                         log.debug("Found attributes (%s) for '%s' (%s infile)",
                                   values.keys(), name, name_inf)
-                        self.vi.add_attrs_per_variable(name, values)
+                        self.vi.set_attrs(name, **values)
                 except:
                     self.close_file(file)
                     raise
