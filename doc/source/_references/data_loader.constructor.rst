@@ -16,10 +16,6 @@ data\_loader.constructor
 .. rubric:: Functions
 .. autosummary::
    
-       check_range
-   
-       check_values
-   
        create_data_class
    
 
@@ -33,6 +29,4 @@ data\_loader.constructor
       :members:
       :undoc-members:
       :private-members:
-   .. autofunction:: check_range
-   .. autofunction:: check_values
    .. autofunction:: create_data_class

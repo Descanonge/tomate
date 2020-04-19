@@ -18,13 +18,13 @@ data\_loader.filegroup.coord\_scan
    
        CoordScanVar
    
-       Matcher
-   
 
 .. rubric:: Functions
 .. autosummary::
    
        get_coordscan
+   
+       mirror_key
    
        scan_attributes_default
    
@@ -58,12 +58,8 @@ data\_loader.filegroup.coord\_scan
       :members:
       :undoc-members:
       :private-members:
-   .. autoclass:: Matcher
-      :show-inheritance:
-      :members:
-      :undoc-members:
-      :private-members:
    .. autofunction:: get_coordscan
+   .. autofunction:: mirror_key
    .. autofunction:: scan_attributes_default
    .. autofunction:: scan_filename_default
    .. autofunction:: scan_in_file_default

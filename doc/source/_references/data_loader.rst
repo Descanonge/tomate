@@ -30,6 +30,8 @@ API Reference
    
       filegroup
    
+      keys
+   
       masked
    
 .. rubric:: Submodules
@@ -49,8 +51,6 @@ API Reference
       data_plot
    
       iter_dict
-   
-      key
    
       log
    

@@ -18,8 +18,6 @@ data\_loader.data\_base
    
        do_post_load_default
    
-       subset_slices
-   
 
 
 
@@ -32,4 +30,3 @@ data\_loader.data\_base
       :undoc-members:
       :private-members:
    .. autofunction:: do_post_load_default
-   .. autofunction:: subset_slices
