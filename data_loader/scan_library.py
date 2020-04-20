@@ -141,7 +141,7 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     in_values = list(nc_var[:])
     in_idx = list(range(len(in_values)))
 
-    if issubclass(Time, type(cs)):
+    if issubclass(type(cs), Time):
         try:
             units = nc_var.getncattr('units')
         except AttributeError:
