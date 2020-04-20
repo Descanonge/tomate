@@ -9,9 +9,6 @@ in a subclass of database ?
 * TODO: doc
 ** examples
 ** scan variables examples
-** post loading function
-** selection
-** empty CS
 * TODO: Write: add to file
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
@@ -22,3 +19,6 @@ it could even englob KeyVar (that seems complicated)
 * TODO: coord attribute scanning is flawed
 ** From which filegroup do you transfer attributes to master coords ?
 * TODO: check error when shared cs has no scanning
+* TODO: loading could fail if available is modified
+idea for more robustness ?
+I guess FG should communicate with available instead of relying on contains

@@ -742,8 +742,8 @@ class DataBase():
 
         self.data = self.allocate(self.loaded.shape)
 
-        loaded = any(fg.load_from_available(keyring)
-                     for fg in self.filegroups)
+        loaded = any([fg.load_from_available(keyring)
+                      for fg in self.filegroups])
         if not loaded:
             log.warning("Nothing loaded.")
 
