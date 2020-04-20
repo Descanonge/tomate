@@ -755,14 +755,6 @@ class Constructor():
 
         dt_class = create_data_class(dt_types, accessor)
 
-        #FIXME: Variables transmitted to dt.
-        # variables = list(self.vi.var)
-        # for fg in self.filegroups:
-        #     variables += fg.variables
-        # for var in variables:
-        #     if var not in self.vi:
-        #         self.vi.add_variable(var)
-
         dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
         return dt
 
