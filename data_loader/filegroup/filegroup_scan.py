@@ -283,7 +283,7 @@ class FilegroupScan():
             log.debug('Scanning file for general attributes.')
             infos = func(self, file, **kwargs)
             log.debug("Found infos %s", list(infos.keys()))
-            self.vi.add_infos(**infos)
+            self.vi.set_infos(**infos)
 
             self.scan_attr['gen'][1] = True
 
