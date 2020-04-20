@@ -283,16 +283,17 @@ class Constructor():
 
         >>> cstr.set_variables_infile(sst='SST')
         """
+        kw_inf = {}
         fg = self.current_fg
         for i, inf in enumerate(variables):
             var = fg.variables[i]
-            if var not in kw_variables:
-                kw_variables[var] = inf
+            kw_inf[var] = inf
+
+        for var, inf in kw_variables.items():
+            kw_inf[var] = inf
 
         cs = fg.cs['var']
-        values = fg.variables[:]
-        in_idx = [kw_variables.get(var, None) for var in values]
-        cs.set_scan_manual(values, in_idx)
+        cs.set_scan_manual(list(kw_inf.keys()), list(kw_inf.values()))
 
     def set_scan_in_file(self, func, *coords,
                          only_values=False, only_index=False,
