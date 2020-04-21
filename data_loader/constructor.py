@@ -17,6 +17,7 @@ from data_loader.keys.keyring import Keyring
 from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.variables import Variables
 from data_loader.accessor import Accessor
+from data_loader.data_base import DataBase
 
 
 log = logging.getLogger(__name__)
@@ -72,6 +73,10 @@ class Constructor():
 
         self.selection = []
         self.selection_by_value = []
+
+        self.post_loading_func = None
+        self.dt_types = [DataBase]
+        self.acs = None
 
         self.allow_advanced = False
 
@@ -460,6 +465,17 @@ class Constructor():
                             " will have no impact.", fg.variables, name)
             cs.force_idx_descending = True
 
+    def set_post_loading_func(self, func):
+        self.post_loading_func = func
+
+    def set_data_types(self, dt_types=None, accessor=None):
+        if dt_types is None:
+            dt_types = [DataBase]
+        elif not isinstance(dt_types, (list, tuple)):
+            dt_types = [dt_types]
+        self.dt_types = dt_types
+        self.acs = accessor
+
     def scan_files(self):
         """Scan files.
 
@@ -715,7 +731,7 @@ class Constructor():
                             fg.variables, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, dt_types, accessor=None, scan=True):
+    def make_data(self, scan=True):
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -753,10 +769,16 @@ class Constructor():
                 raise RuntimeError("No filegroups in constructor.")
             self.scan_files()
 
-        dt_class = create_data_class(dt_types, accessor)
-
+        dt_class = self.create_data_class()
         dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
+        if self.post_loading_func is not None:
+            dt.set_post_loading_func(self.post_loading_func)
         return dt
+
+    def create_data_class(self):
+        dt_class = create_data_class(self.dt_types, self.acs)
+        self.acs = dt_class.acs
+        return dt_class
 
 
 

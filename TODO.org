@@ -27,3 +27,7 @@ returns object with info about whats plotted
     -> scope, object (image / contours)
     -> method to update ?
 then no need for dt.plotted
+* TODO: convert function in Coord
+the CS can use its attributes and those of parent Coord to
+modify scanned values
+* TODO: launch do_post_loading when specific variables are loaded
