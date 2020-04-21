@@ -227,7 +227,8 @@ class DataBase():
         if isinstance(scope, str):
             scope = {'avail': self.avail,
                      'loaded': self.loaded,
-                     'selected': self.selected}[scope]
+                     'selected': self.selected,
+                     'current': self.scope}[scope]
         return scope
 
     def idx(self, variable: str) -> int:
@@ -272,7 +273,7 @@ class DataBase():
         log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
 
-    def view_selected(self, scope=None, keyring=None, **keys):
+    def view_selected(self, scope='selected', keyring=None, **keys):
         """Returns a subset of loaded data.
 
         Subset is specified by a scope.
@@ -292,8 +293,6 @@ class DataBase():
         -------
         Array
         """
-        if scope is None:
-            scope = 'selected'
         scope = self.get_scope(scope)
         if scope.is_empty():
             raise Exception("Selection scope is empty ('%s')." % scope.name)
@@ -418,7 +417,7 @@ class DataBase():
         """
         return self.scope.shape
 
-    def get_limits(self, *coords, scope=None, keyring=None, **keys):
+    def get_limits(self, *coords, scope='current', keyring=None, **keys):
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
@@ -452,11 +451,9 @@ class DataBase():
         [-20.0 0.]
         """
         scope = self.get_scope(scope)
-        if scope is None:
-            scope = self.scope
         return scope.get_limits(*coords, keyring=keyring, **keys)
 
-    def get_extent(self, *coords, scope=None, keyring=None, **keys):
+    def get_extent(self, *coords, scope='current', keyring=None, **keys):
         """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
@@ -489,8 +486,6 @@ class DataBase():
         [-20.0 0.]
         """
         scope = self.get_scope(scope)
-        if scope is None:
-            scope = self.scope
         return scope.get_extent(*coords, keyring=keyring, **keys)
 
     def get_kw_keys(self, *keys, **kw_keys):
@@ -542,7 +537,7 @@ class DataBase():
         subscope.slice(keyring, int2list=int2list, **keys)
         return subscope
 
-    def select(self, scope='avail', keyring=None, **keys):
+    def select(self, scope='current', keyring=None, **keys):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
@@ -569,7 +564,7 @@ class DataBase():
                                           int2list=False, **keys)
         self.selected.name = 'selected'
 
-    def select_by_value(self, scope='avail', **keys):
+    def select_by_value(self, scope='current', **keys):
         """Select by value.
 
         Parameters

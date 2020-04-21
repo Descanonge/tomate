@@ -22,3 +22,8 @@ it could even englob KeyVar (that seems complicated)
 * TODO: loading could fail if available is modified
 idea for more robustness ?
 I guess FG should communicate with available instead of relying on contains
+* TODO: Plot return new object
+returns object with info about whats plotted
+    -> scope, object (image / contours)
+    -> method to update ?
+then no need for dt.plotted
