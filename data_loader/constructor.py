@@ -13,11 +13,11 @@ import itertools
 
 import numpy as np
 
-from data_loader.keys.keyring import Keyring
 from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.variables import Variables
 from data_loader.accessor import Accessor
 from data_loader.data_base import DataBase
+import data_loader.data_write as dw
 
 
 log = logging.getLogger(__name__)
@@ -781,6 +781,10 @@ class Constructor():
         self.acs = dt_class.acs
         return dt_class
 
+    def write(self, filename):
+        self.create_data_class()
+        self.scan_files()
+        dw.write(filename, self)
 
 
 def create_data_class(dt_types, accessor=None):
