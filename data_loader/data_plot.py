@@ -79,13 +79,15 @@ class DataPlot(DataBase):
             limits = scope[name].get_limits(keyring[name].value)
             axis.limit_range_for_scale(*limits)
 
-    def imshow(self, ax, variable, coords=None, limits=True, kwargs=None, **kw_keys):
+    def imshow(self, ax, variable, data=None, coords=None, limits=True, kwargs=None, **kw_keys):
         """Plot an image on a heatmap.
 
         Parameters
         ----------
         ax: Matplotlib axis
         variable: str
+        data: Array, optional
+            Data to use.
         coords: List[str], optional
             Coordinate to plot along.
             If None, selected coordinates with size higher
@@ -118,7 +120,10 @@ class DataPlot(DataBase):
             coords = keyring.get_high_dim()[::-1]
         self.plot_coords = coords
 
-        image = self.view_ordered(coords[::-1], keyring)
+        if data is not None:
+            image = data
+        else:
+            image = self.view_ordered(coords[::-1], keyring)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % list(image.shape))
@@ -138,7 +143,7 @@ class DataPlot(DataBase):
 
         return im
 
-    def update_imshow(self, im, variable=None, **keys):
+    def update_imshow(self, im, variable=None, data=None, **keys):
         """Update a heatmap plot.
 
         If a parameter is None, the value used for setting
@@ -164,7 +169,11 @@ class DataPlot(DataBase):
         self.plotted = self.get_subscope('loaded', var=variable, **keys)
 
         coords = self.plot_coords
-        image = self.view_ordered(coords[::-1], var=variable, **keys)
+
+        if data is not None:
+            image = data
+        else:
+            image = self.view_ordered(coords[::-1], var=variable, **keys)
         if image.ndim != 2:
             raise IndexError("Selected data does not have the dimension"
                              " of an image %s" % str(image.shape))
