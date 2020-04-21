@@ -77,7 +77,6 @@ class CoordScan(Coord):
         self.scan_attr = False
         self.scan_attributes_func = scan_attributes_default
 
-
         self.values = []
         self.in_idx = []
 
@@ -103,10 +102,6 @@ class CoordScan(Coord):
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
         self.sort_values()
-
-    def assign_values(self):
-        """Update parent coord with found values."""
-        self.coord.update_values(self._array)
 
     def reset(self):
         """Remove values."""
