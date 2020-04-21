@@ -15,217 +15,24 @@ import json
 
 import numpy as np
 
-from data_loader import VariablesInfo
-from data_loader.constructor import create_data_class
+from data_loader import VariablesInfo, Constructor
 
 
 log = logging.getLogger(__name__)
 __all__ = ['write', 'read']
 
 
-def write(data, filename):
-    """."""
-    with open(filename, 'w') as f:
-        json.dump(serialize_data(data), f, indent=4, default=default)
-
-
-def read(filename):
-    """."""
-    with open(filename, 'r') as f:
-        d = json.load(f)
-    dt = read_data(d['data'])
-    return dt
-
-
-def serialize_data(data):
-    """."""
-    bases = [serialize_type(cls) for cls in data.__class__.__bases__]
-    acs = serialize_type(data.acs.__class__)
-    vi = serialize_vi(data.vi)
-    filegroups = [serialize_filegroup(fg) for fg in data.filegroups]
-    coords = [serialize_coord(data.avail.coords[name]) for name in data.coords_name]
-
-    top = {"bases": bases,
-           "root": data.root,
-           "acs": acs,
-           "vi": vi,
-           "coords": coords,
-           "filegroups": filegroups}
-    return {"data": top}
-
-
-def read_data(j_data):
-    """."""
-    types = read_data_types(j_data['bases'])
-    acs = read_type(j_data['acs'])()
-    cls = create_data_class(types, acs)
-
-    root = j_data['root']
-    coords = [read_coord(d) for d in j_data['coords']]
-
-    vi = read_vi(j_data['vi'])
-    filegroups = [read_filegroup(fg, coords, vi) for fg in j_data['filegroups']]
-
-    dt = cls(root, filegroups, vi, *coords)
-
-    return dt
-
-def read_data_types(j_types):
-    """."""
-    types = []
-    for j_type in j_types:
-        mod = import_module(j_type['__module__'])
-        types.append(getattr(mod, j_type['__name__']))
-    return types
-   
-
-def serialize_filegroup(fg):
-    """."""
-    cs = [serialize_coord_scan(c) for c in fg.cs.values()]
-    top = {"contains": fg.contains,
-           "class": serialize_type(fg.__class__),
-           "root": fg.root,
-           "pregex": fg.pregex,
-           "regex": fg.regex,
-           "segments": fg.segments,
-           "scan_attr": fg.scan_attr,
-           "cs" : cs}
-    return top
-
-
-def read_filegroup(j_fg, coords, vi):
-    """."""
-    root = j_fg['root']
-    contains = j_fg['contains']
-    cls = read_type(j_fg['class'])
-
-    coords_d = {c.name: c for c in coords}
-    coords_fg = [read_coord_scan(j, coords_d[j['name']]) for j in j_fg['cs']]
-
-    fg = cls(root, contains, None, coords_fg, vi)
-
-    fg.add_scan_regex(j_fg['pregex'])
-    assert fg.regex == j_fg['regex'], "Regex was not found identical."
-    fg.segments = j_fg['segments']
-
-    for j_cs in j_fg['cs']:
-        name = j_cs['name']
-        cs = fg.cs[name]
-        in_idx = np.array(j_cs['in_idx'])
-        values = np.array(j_cs['values'])
-
-        scan_filename_kwargs = j_cs['scan_filename_kwargs']
-        scan_in_file_kwargs = j_cs['scan_in_file_kwargs']
-        scan_filename = j_cs['scan_filename']
-        scan_in_file = j_cs['scan_in_file']
-        scan_attributes = j_cs['scan_attributes']
-
-        cs.set_scan_filename_func(scan_filename, **scan_filename_kwargs)
-        cs.set_scan_in_file_func(scan_in_file, **scan_in_file_kwargs)
-        cs.set_scan_attributes_func(scan_attributes)
-        cs.scan = set(j_cs['scan'])
-
-        cs.in_idx = in_idx
-        cs.values = values
-        cs.assign_values()
-
-        if cs.shared:
-            cs.matches = np.array(j_cs['matches'])
-
-    return fg
-
-
-def serialize_coord_scan(cs):
-    """."""
-    tp = cs.__class__
-    base = tp.__bases__[1].__bases__[1]
-
-    top = {"name": cs.name,
-           "shared": cs.shared,
-           "base": serialize_type(tp),
-           "values": cs[:].tolist(),
-           "in_idx": cs.in_idx.tolist(),
-
-           "scan": list(cs.scan),
-           "scanned": cs.scanned,
-
-           "scan_filename_kwargs": cs.scan_filename_kwargs,
-           "scan_in_file_kwargs": cs.scan_in_file_kwargs,
-
-           "scan_filename": serialize_type(cs.scan_filename),
-           "scan_in_file": serialize_type(cs.scan_in_file),
-           "scan_attributes": serialize_type(cs.scan_attributes),
-
-           "is_descending": cs.is_idx_descending()}
-
-    if cs.shared:
-        top["matches"] = cs.matches.tolist()
-
-    return top
-
-
-def read_coord_scan(j_cs, coord):
-    """."""
-    assert j_cs['name'] == coord.name, "CS not matching Coord."
-    shared = j_cs['shared']
-    return [coord, shared]
-
-
-def serialize_coord(coord):
-    """."""
-    top = {"name": coord.name,
-           "class": serialize_type(coord.__class__),
-           "units": coord.units,
-           "name_alt": coord.name_alt,
-           "fullname": coord.fullname,
-           "values": coord[:].tolist()}
-    return top
-
-
-def read_coord(j_c):
-    """."""
-    cls = read_type(j_c['class'])
-    coord = cls(j_c['name'], j_c['values'], j_c['units'],
-                j_c['name_alt'], j_c['fullname'])
-    return coord
-
-
-def serialize_vi(vi):
-    """."""
-    top = {"variables": vi.var,
-           "attrs" : vi._attrs,
-           "infos": vi._infos}
-    return top
-
-
-def read_vi(j_vi):
-    """."""
-    variables = j_vi['variables']
-    infos = j_vi['infos']
-    attrs = j_vi['attrs']
-    vi = VariablesInfo(variables, None, **infos)
-    for attr, values in attrs.items():
-        vi.add_attr(attr, values)
-
-    return vi
-
-
 def serialize_type(tp):
-    """."""
     top = {"__module__": tp.__module__,
            "__name__": tp.__name__}
     return top
 
-
 def read_type(j_tp):
-    """."""
     module = import_module(j_tp['__module__'])
     tp = getattr(module, j_tp['__name__'])
     return tp
 
-
 def default(obj):
-    """."""
     try:
         s = str(obj)
     except TypeError:
@@ -239,7 +46,161 @@ def default(obj):
     elif isinstance(obj, (np.float)):
         obj = float(obj)
     else:
+        log.warning("'%s' (%s) obj not serializable, replaced by None.", s, type(obj))
         obj = None
-        log.warning("'%s' obj not serializable, replaced by None.", s)
 
     return obj
+
+
+def write(filename, cstr):
+    j_cstr = serialize_cstr(cstr)
+    with open(filename, 'w') as f:
+        json.dump({'cstr': j_cstr},
+                  f, indent=4, default=default)
+
+def read(filename):
+    with open(filename, 'r') as f:
+        d = json.load(f)
+    cstr = read_cstr(d['cstr'])
+    return cstr
+
+def serialize_cstr(cstr):
+    j_bases = [serialize_type(cls) for cls in cstr.dt_types]
+    j_acs = serialize_type(cstr.acs)
+    j_coords = {name: serialize_coord(c) for name, c in cstr.coords.items()}
+    j_vi = serialize_vi(cstr.vi)
+    j_filegroups = [serialize_filegroup(fg) for fg in cstr.filegroups]
+
+    top = {"bases": j_bases,
+           "acs": j_acs,
+           "root": cstr.root,
+           "coords": j_coords,
+           "vi": j_vi,
+           "filegroups": j_filegroups}
+    return top
+
+# FIXME: coord selection
+def read_cstr(j_cstr):
+    root = j_cstr["root"]
+    coords = [read_coord(j_c) for j_c in j_cstr["coords"].values()]
+    cstr = Constructor(root, coords)
+
+    bases = [read_type(j_tp) for j_tp in j_cstr["bases"]]
+    acs = read_type(j_cstr["acs"])
+    cstr.set_data_types(bases, acs)
+
+    cstr.vi = read_vi(j_cstr["vi"])
+
+    for j_fg in j_cstr["filegroups"]:
+        add_filegroup(cstr, j_fg)
+
+    return cstr
+
+def add_filegroup(cstr, j_fg):
+    tp = read_type(j_fg["class"])
+    root = j_fg["root"]
+    contains = j_fg["contains"]
+    coords = [[cstr.coords[name], c["shared"], c["name"]]
+              for name, c in j_fg["cs"].items()
+              if name != 'var']
+    variables_shared = j_fg["cs"]["var"]["shared"]
+    # TODO: kwargs in FG creation missing
+
+    cstr.add_filegroup(tp, contains, coords, root, variables_shared)
+    cstr.set_fg_regex(j_fg["pregex"])
+    fg = cstr.current_fg
+    fg.segments = j_fg["segments"]
+
+    for tp, [j_func, scanned, kwargs] in j_fg["scan_attr"].items():
+        fg.scan_attr[tp] = [read_type(j_func), scanned, kwargs]
+
+    for name, j_cs in j_fg["cs"].items():
+        cs = fg.cs[name]
+
+        for tp, j_scan in j_cs["scan"].items():
+            func = None if j_scan['func'] is None else read_type(j_scan['func'])
+            cs.scan[tp] = [j_scan['elts'], func, j_scan['kwargs']]
+        cs.scan_attributes_func = read_type(j_cs["scan_attributes_func"])
+
+        cs.values = j_cs["values"][0]
+        cs.in_idx = j_cs["in_idx"][0]
+        if cs.shared:
+            cs.matches = j_cs["matches"]
+        cs.set_values()
+        cs.update_values(cs.values)
+
+        cs.force_idx_descending = j_cs["force_idx_descending"]
+
+
+def serialize_filegroup(fg):
+    top = {"root": fg.root,
+           "contains": fg.variables,
+           "class": serialize_type(fg.__class__),
+           "segments": fg.segments,
+           "pregex": fg.pregex}
+    scan = {}
+    for tp, [func, scanned, kwargs] in fg.scan_attr.items():
+        scan[tp] = [serialize_type(func), scanned, kwargs]
+        # TODO: kwargs might not be adapted
+    top["scan_attr"] = scan
+
+    top["cs"] = {name: serialize_coord_scan(cs)
+                 for name, cs in fg.cs.items()}
+    return top
+
+
+def serialize_coord_scan(cs):
+    top = {"name": cs.name,
+           "base": serialize_type(type(cs)),
+
+           "shared": cs.shared,
+           "force_idx_descending": cs.force_idx_descending}
+
+    scan = {}
+    for tp, [func, elts, kwargs] in cs.scan.items():
+        j_func = None if func is None else serialize_type(func)
+        scan[tp] = {'elts': elts,
+                    'func': j_func,
+                    'kwargs': kwargs}
+        # TODO: kwargs might not be adapted
+    top['scan'] = scan
+    top['scan_attributes_func'] = serialize_type(cs.scan_attributes_func)
+
+    top["values"] = cs[:].tolist(),
+    top["in_idx"] = cs.in_idx.tolist(),
+    if cs.shared:
+        top["matches"] = cs.matches.tolist()
+
+
+    return top
+
+
+def serialize_vi(vi):
+    top = {"attrs" : vi._attrs,
+           "infos": vi._infos}
+    return top
+
+def read_vi(j_vi):
+    infos = j_vi['infos']
+    attrs = j_vi['attrs']
+    vi = VariablesInfo(None, **infos)
+    for attr, values in attrs.items():
+        vi.set_attr_variables(attr, **values)
+    return vi
+
+
+def serialize_coord(coord, values=False):
+    top = {"name": coord.name,
+           "class": serialize_type(coord.__class__),
+           "units": coord.units,
+           "fullname": coord.fullname}
+    if values:
+        top["values"] = coord[:].tolist()
+    else:
+        top["values"] = None
+    return top
+
+def read_coord(j_c):
+    cls = read_type(j_c['class'])
+    coord = cls(j_c['name'], j_c['values'], j_c['units'], j_c['fullname'])
+    return coord
