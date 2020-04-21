@@ -868,7 +868,7 @@ class DataBase():
             Passed to VariablesInfo.add_variable
         """
         if variable not in self.vi:
-            self.vi.add_variable(variable, **attrs)
+            self.vi.set_attrs(variable, **attrs)
             self.avail.var.append(variable)
         if data is not None:
             self.set_data(variable, data)
