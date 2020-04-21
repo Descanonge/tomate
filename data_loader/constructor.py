@@ -494,6 +494,7 @@ class Constructor():
         for fg in self.filegroups:
             fg.scan_files()
 
+    def compile_scanned(self):
         self._apply_coord_selections()
 
         values = self._get_coord_values()
@@ -505,8 +506,6 @@ class Constructor():
         else:
             self._apply_coord_values(values)
         self.check_duplicates()
-
-        self._scan_variables_attributes()
 
     def _apply_coord_selections(self):
         """Apply selection on CoordScan.
@@ -684,7 +683,7 @@ class Constructor():
                 cs.slice(indices.astype(int))
             fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
 
-    def _scan_variables_attributes(self):
+    def scan_variables_attributes(self):
         """Scan variables specific attributes.
 
         Filegroups should be functionnal for this.
@@ -768,6 +767,8 @@ class Constructor():
             if not self.filegroups:
                 raise RuntimeError("No filegroups in constructor.")
             self.scan_files()
+            self.compile_scanned()
+            self.scan_variables_attributes()
 
         dt_class = self.create_data_class()
         dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
