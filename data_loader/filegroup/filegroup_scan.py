@@ -58,7 +58,7 @@ class FilegroupScan():
     segments: List[str]
         Fragments of filename used for reconstruction,
         pair indices are replaced with matches.
-    scan_attr: Dict[type: str, function: Callable]
+    scan_attr: Dict[type: {'gen' | 'var'}, [Callable, scanned:bool, kwargs: Dict]]
         Functions to call to scan variables specific
         attributes or general attributes.
     contains: Dict[dim:str, Array]
