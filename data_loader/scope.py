@@ -60,8 +60,8 @@ class Scope():
         self.var = coord_var
 
         self.parent_scope = None
-        self.parent_keyring = Keyring(**{name: slice(None)
-                                         for name in self.dims})
+        self.parent_keyring = Keyring()
+        self.reset_parent_keyring()
         self.name = name
 
     def reset_parent_keyring(self):
