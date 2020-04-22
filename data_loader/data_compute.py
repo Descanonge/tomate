@@ -7,10 +7,14 @@
 
 
 # TODO: update to keyrings
+import logging
 
 import numpy as np
 
 from data_loader.data_base import DataBase
+from data_loader.keys.keyring import Keyring
+
+log = logging.getLogger(__name__)
 
 
 class DataCompute(DataBase):
@@ -73,11 +77,8 @@ class DataCompute(DataBase):
         der = self.gradient_nd(variable, [coord])
         return der
 
-    def apply_on_subpart(self, func, variables=None, args=None, kwargs=None, **kw_coords):
+    def apply_on_subpart(self, func, args=None, kwargs=None, keyring=None, **keys):
         """Apply function on data subset.
-
-        Parameters
-        ----------
         """
         self._check_loaded()
 
@@ -86,45 +87,61 @@ class DataCompute(DataBase):
         if kwargs is None:
             kwargs = {}
 
-        data = self.view(variables, **kw_coords)
+        data = self.view(keyring=keyring, **keys)
         res = func(data, *args, **kwargs)
         return res
 
-    def mean(self, variables=None, coords=None, kwargs=None, **kw_coords):
+    def mean(self, dims=None, kwargs=None, **keys):
         """Compute average on a given window.
 
         Parameters
         ----------
         variables: str or List[str]
-        coords: List[str]
+        dims: List[str]
             Coordinates to compute the mean along.
         kwargs: Dict
             Argument passed to numpy.nanmean
-        kw_coords: Dict, optional
+        keys: Key-like, optional
             Part of the data to consider for averaging (by index).
         """
-        if coords is None:
-            coords = self.coords_name
-        axes = tuple([self.coords_name.index(c)+1 for c in coords])
+        if dims is None:
+            dims = self.dims
+
+        keyring = Keyring.get_default(**keys)
+        keyring.make_full(self.dims)
+        order = keyring.get_non_zeros()
+        axes = tuple([order.index(d) for d in dims if d in order])
+        if len(axes) == 0:
+            log.warning("You are averaging only on squeezed dimensions."
+                        " Returning a view.")
+            return self.view(keyring=keyring)
 
         if kwargs is None:
             kwargs = {}
 
-        mean = self.apply_on_subpart(np.nanmean, variables,
-                                     args=[axes], kwargs=kwargs, **kw_coords)
+        mean = self.apply_on_subpart(np.nanmean, args=[axes], kwargs=kwargs, keyring=keyring)
         return mean
 
-    def std_dev(self, variables=None, coords=None, kwargs=None, **kw_coords):
+    def std_dev(self, dims=None, kwargs=None, **keys):
         """Compute standard deviation on a given window."""
-        if coords is None:
-            coords = self.coords_name
-        axes = tuple([self.coords_name.index(c)+1 for c in coords])
+        if dims is None:
+            dims = self.dims_name
+
+        keyring = Keyring.get_default(**keys)
+        keyring.make_full(self.dims)
+        order = keyring.get_non_zeros()
+        axes = tuple([order.index(d) for d in dims if d in order])
+        if len(axes) == 0:
+            log.warning("You are computing only on squeezed dimensions."
+                        " Returning zeros.")
+            data = self.view(keyring=keyring)
+            data[:] = 0
+            return data
 
         if kwargs is None:
             kwargs = {}
 
-        mean = self.apply_on_subpart(np.nanstd, variables,
-                                     args=[axes], kwargs=kwargs, **kw_coords)
+        mean = self.apply_on_subpart(np.nanstd, args=[axes], kwargs=kwargs, **keys)
         return mean
 
     def linear_combination(self):

@@ -27,3 +27,4 @@ returns object with info about whats plotted
     -> scope, object (image / contours)
     -> method to update ?
 then no need for dt.plotted
+* TODO: move into data_types
