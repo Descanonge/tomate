@@ -733,7 +733,7 @@ class DataBase():
         self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
-        self.data = self.allocate(self.loaded.shape)
+        self.self_allocate(self.loaded.shape)
 
         loaded = any([fg.load_from_available(keyring)
                       for fg in self.filegroups])
@@ -791,6 +791,16 @@ class DataBase():
         """
         log.info("Allocating numpy array of shape %s", shape)
         return self.acs.allocate(shape)
+
+    def self_allocate(self, shape):
+        """Allocate data array for itself.
+
+        Parameters
+        ----------
+        shape: List[int]
+            Shape of the array to allocate.
+        """
+        self.data = self.allocate(shape)
 
     def set_post_load_func(self, func):
         """Set function for post loading treatements.
