@@ -104,6 +104,14 @@ class Scope():
             raise KeyError("'%s' not in scope coordinates" % item)
         return self.coords[item]
 
+    def __iter__(self):
+        """List of available variables."""
+        if self.is_empty():
+            varlist = []
+        else:
+            varlist = list(self.var)
+        return iter(varlist)
+
     @property
     def dims(self):
         """Dictionnary of all dimensions.

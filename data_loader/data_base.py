@@ -173,7 +173,6 @@ class DataBase():
     def __getitem__(self, y: str):
         """Return a coordinate, or data for a variable.
 
-        If y is a coordinate name, return the coordinate of current scope.
         If y is a variable name, return the corresponding data slice.
 
         Parameters
@@ -187,12 +186,11 @@ class DataBase():
             If key is not a coordinate or variable.
         """
         if isinstance(y, str):
-            if y in self.loaded.var:
+            if y in self.loaded:
                 y = self.idx(y)
                 return self.data[y]
-            if y in self.coords_name:
-                return self.scope[y]
-        raise KeyError("Key '%s' not in coordinates or variables" % y)
+            raise KeyError("Variable '%s' is not loaded." % y)
+        raise TypeError("Key must be a str.")
 
     def __getattribute__(self, item):
         """Get attribute.
