@@ -155,9 +155,10 @@ class CoordScan(Coord):
         """
         try:
             if self.size is None:
-                key_data = key
                 if self.force_idx_descending:
-                    indices = mirror_key(key_data, self.coord.size)
+                    indices = mirror_key(key, self.coord.size)
+                else:
+                    indices = key.value
             else:
                 indices = self.in_idx[key.value]
 
