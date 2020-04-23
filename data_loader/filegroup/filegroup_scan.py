@@ -267,7 +267,8 @@ class FilegroupScan():
 
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
-        to_open = any([cs.is_to_open() for cs in self.cs.values()])
+        to_open = (any([cs.is_to_open() for cs in self.cs.values()])
+                   or not self.scan_attr.get('gen', True))
         return to_open
 
     def scan_general_attributes(self, file):
@@ -317,7 +318,7 @@ class FilegroupScan():
             file = self.open_file(filename, mode='r', log_lvl='debug')
 
         try:
-            if 'gen' in self.scan_attr:
+            if not self.scan_attr.get('gen', True):
                 self.scan_general_attributes(file)
 
             for cs in self.cs.values():
