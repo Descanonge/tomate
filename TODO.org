@@ -28,3 +28,6 @@ returns object with info about whats plotted
     -> method to update ?
 then no need for dt.plotted
 * TODO: move into data_types
+* TODO: scanning should not overwrite cstr.vi
+* TODO: Add option to use subset_day in load_by_value
+* TODO: Type hinting
