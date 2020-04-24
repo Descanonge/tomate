@@ -1,0 +1,3 @@
+[submodule "doc/source/_ext/sphinx-autodoc-typehints"]
+	path = doc/source/_ext/sphinx-autodoc-typehints
+	url = https://github.com/Descanonges/sphinx-autodoc-typehints.git
