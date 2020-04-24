@@ -45,6 +45,8 @@ extensions = [
 
 napoleon_use_param = True
 autosummary_generate = True
+always_document_param_types = True
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
