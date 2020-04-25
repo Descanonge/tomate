@@ -145,7 +145,7 @@ def sort_sections(app, what, name, obj, options, lines):
     if return_type:
         lines += [''] + return_type
     if returns:
-        lines += [''] + return
+        lines += [''] + returns
     if raises:
         lines += [''] + raises
     for sec in sections[1:]:
