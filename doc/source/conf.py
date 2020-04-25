@@ -71,3 +71,82 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
 
+
+def sort_sections(app, what, name, obj, options, lines):
+    """Sort.
+
+    In the order:
+        First section
+        Parameters
+        Returns
+        Other sections.
+
+    Functions arguments are sorted.
+    """
+    import re
+    import inspect
+
+    def add(linelist, i):
+        linelist.append(lines[i])
+        i += 1
+        while i < len(lines) and lines[i].startswith('    '):
+            linelist.append(lines[i])
+            i += 1
+        return i
+
+    return_keys = [':returns', ':return']
+    section_keys = ['.. rubric::', '.. seealso::']
+
+    rgx = '^:param ([^:]*)'
+
+    parameters = {}
+    types = []
+    returns = []
+    return_type = []
+    sections = []
+    current_sec = []
+    i = 0
+    while i < len(lines):
+        m = re.search(rgx, lines[i])
+        if m:
+            argname = m.group(1)
+            parameters[argname] = []
+            i = add(parameters[argname], i)
+        elif any([lines[i].startswith(k) for k in return_keys]):
+            i = add(returns, i)
+        elif lines[i].startswith(':rtype'):
+            i = add(return_type, i)
+        elif lines[i].startswith(':type '):
+            i = add(types, i)
+        elif any([lines[i].startswith(k) for k in section_keys]):
+            sections.append(current_sec)
+            current_sec = [lines[i]]
+            i += 1
+        else:
+            current_sec.append(lines[i])
+            i += 1
+    sections.append(current_sec)
+
+    lines.clear()
+    lines += sections[0]
+
+
+    try:
+        order = inspect.signature(obj).parameters.keys()
+    except (ValueError, TypeError):
+        order = parameters.keys()
+    for argname in order:
+        if argname in parameters:
+            lines += parameters[argname]
+    lines += types
+
+    if return_type:
+        lines += [''] + return_type
+    if returns:
+        lines += [''] + returns
+    for sec in sections[1:]:
+        lines += [''] + sec
+
+
+def setup(app):
+    app.connect('autodoc-process-docstring', sort_sections)
