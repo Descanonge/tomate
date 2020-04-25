@@ -103,6 +103,7 @@ def sort_sections(app, what, name, obj, options, lines):
     types = []
     returns = []
     return_type = []
+    raises = []
     sections = []
     current_sec = []
     i = 0
@@ -118,6 +119,8 @@ def sort_sections(app, what, name, obj, options, lines):
             i = add(return_type, i)
         elif lines[i].startswith(':type '):
             i = add(types, i)
+        elif lines[i].startswith(':raises '):
+            i = add(raises, i)
         elif any([lines[i].startswith(k) for k in section_keys]):
             sections.append(current_sec)
             current_sec = [lines[i]]
@@ -129,7 +132,6 @@ def sort_sections(app, what, name, obj, options, lines):
 
     lines.clear()
     lines += sections[0]
-
 
     try:
         order = inspect.signature(obj).parameters.keys()
@@ -143,7 +145,9 @@ def sort_sections(app, what, name, obj, options, lines):
     if return_type:
         lines += [''] + return_type
     if returns:
-        lines += [''] + returns
+        lines += [''] + return
+    if raises:
+        lines += [''] + raises
     for sec in sections[1:]:
         lines += [''] + sec
 
