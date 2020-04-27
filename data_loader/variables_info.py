@@ -180,9 +180,10 @@ class VariablesInfo():
         If attribute is not defined for this variable,
         return default.
         """
-        value = default
-        if attr in self._attrs:
-            value = self._attrs[attr][var]
+        try:
+            value = self.get_attr(attr, var)
+        except KeyError:
+            value = default
         return value
 
     def get_info(self, info):
