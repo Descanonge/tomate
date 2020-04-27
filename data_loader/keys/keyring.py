@@ -104,12 +104,7 @@ class Keyring():
 
     @property
     def keys_values(self):
-        """List of keys values present in the keyring.
-
-        Returns
-        -------
-        List[Key-like]
-        """
+        """List of keys values present in the keyring."""
         return [k.value for k in self.keys]
 
     @property

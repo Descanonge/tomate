@@ -11,6 +11,7 @@ Use user settings to set locales.
 
 import locale
 import logging
+from typing import List, Sequence, Union
 
 from datetime import datetime, timedelta
 
@@ -22,6 +23,7 @@ else:
     _has_netcdf = True
 
 from data_loader.coordinates.coord import Coord
+from data_loader.custom_types import KeyLike
 
 
 log = logging.getLogger(__name__)
@@ -42,48 +44,37 @@ class Time(Coord):
         Time units.
     """
 
-    def get_extent_str(self, slc=None) -> str:
-        """Return extent as str."""
+
+    def get_extent_str(self, slc: KeyLike = None) -> str:
         return "%s - %s" % tuple(self.format(v)
                                  for v in self.index2date(slc)[[0, -1]])
 
-    def update_values(self, values, dtype=None):
+    def update_values(self, values: Sequence[float], dtype=None):
         """Update values.
 
-        Parameters
-        ----------
-        values: Sequence[Float]
-            New values. Have matching time units of self.
-        dtype: Numpy dtype
-            Dtype of the array.
+        :param values: New values. Have matching time units of self.
+        :param dtype: [opt] Dtype of the array.
             Default to np.float64.
+        :type dtype: data-type
+
+        :raises ValueError: If the coordinate has no units.
 
         See also
         --------
-        Coord.update_values
-
-        Raises
-        ------
-        ValueError
-            If the coordinate has no units.
+        data_loader.coordinates.coord.Coord.update_values
         """
         if self.units == "":
             raise ValueError("%s has no units" % self.name)
 
         super().update_values(values, dtype)
 
-    def index2date(self, indices=None):
+    def index2date(self, indices: KeyLike = None) -> Union[datetime,
+                                                           List[datetime]]:
         """Return datetimes objects corresponding to indices.
 
-        Parameters
-        ----------
-        indices: Slice, List[int], int, optional
-            If None, all available are used.
-
-        Returns
-        -------
-        datetime.datetime, List[datetime]
-            Return a list if the input was a list.
+        :param indices: [opt] If None, all available are used.
+        :returns: Return a list if the input was a list.
+        :raises ImportError: If netCDF4 package is missing.
         """
         if not _has_netcdf:
             raise ImportError("netCDF4 package necessary for index2date.")
@@ -104,24 +95,19 @@ class Time(Coord):
 
         return dates
 
-    def date2index(self, dates):
+    def date2index(self, dates) -> Union[int, List[int]]:
         """Return indices corresponding to dates.
 
         Nearest index before date is chosen
 
-        Parameters
-        ----------
-        dates: datetime.datetime, List[datetime], List[int]
-            Date or dates to find the index for.
+        :param dates: Date or dates to find the index for.
             Dates are defined with datetime objects, or
             using a list of ints corresponding to
             ['year', 'month', 'day', 'hour', 'minute', 'second',
             'microsecond'].
+        :type dates: datetime.datetime, List[datetime], List[int]
 
-        Returns
-        -------
-        int, List[int]:
-            Return a list if the input was a list.
+        :returns: Return a list if the input was a list.
 
         .. deprecated: 0.4.0
             Is replaced by Time.get_indices().
@@ -152,10 +138,7 @@ class Time(Coord):
     def change_units(self, units: str):
         """Change time units.
 
-        Parameters
-        ----------
-        units: str
-            CF compliant time units.
+        :param units: CF compliant time units.
 
         Examples
         --------
@@ -164,13 +147,12 @@ class Time(Coord):
         self._array = change_units(self._array, self.units, units)
         self.units = units
 
-    def get_index(self, value, loc='closest') -> int:
+    def get_index(self, value: Union[datetime, List[Union[int, float]],
+                                     float, int],
+                  loc: str = 'closest') -> int:
         """Return index of value.
 
-        Parameters
-        ----------
-        value: Float, int, List, datetime
-            Time value, can be timestamps corresponding to self units,
+        :param value: Time value, can be timestamps corresponding to self units,
             datetime object, or a list of value that can be transformed
             to date ([year, month, day [, hours, minutes, ...]])
         loc: {'closest', 'below', 'above'}
@@ -183,15 +165,15 @@ class Time(Coord):
             value = nc.date2num(value, self.units)
         return super().get_index(value, loc)
 
-    def subset_day(self, dmin=None, dmax=None) -> slice:
+    def subset_day(self, dmin: Union[datetime, List[int],
+                                     float, int] = None,
+                   dmax: Union[datetime, List[int],
+                               float, int] = None) -> slice:
         """Return slice between days dmin and dmax.
 
         Full day is selected (from 0am to 0pm).
 
-        Parameters
-        ----------
-        dmin, dmax: float, datetime, List[int], optional
-            Bounds days to select.
+        :param dmin: Bounds days to select.
             If None, min and max of coordinate are taken.
         """
         if dmin is None:
@@ -233,14 +215,10 @@ class Time(Coord):
         return slice(start, stop, step)
 
     @staticmethod
-    def format(value, fmt=None) -> str:
+    def format(value: float, fmt: str = None) -> str:
         """Format value.
 
-        Parameters
-        ----------
-        value: Float, datetime
-        fmt: str
-            Passed to string.format or datetime.strftime
+        :param fmt: Passed to string.format or datetime.strftime
         """
         if isinstance(value, datetime):
             if fmt is None:
@@ -250,22 +228,15 @@ class Time(Coord):
             fmt = '{:.2f}'
         return fmt.format(value)
 
-def change_units(values, units_old, units_new):
+def change_units(values: Sequence[float],
+                 units_old: str, units_new: str) -> Sequence[float]:
     """Change time units.
 
-    Parameters
-    ----------
-    values: Sequence[float]
-        Current values.
-    units_old: str
-        Current units, in CF compliant format.
-    units_new: str
-        New units, in CF compliant format
+    :param values: Current values.
+    :param units_old: Current units, in CF compliant format.
+    :param units_new: New units, in CF compliant format
 
-    Returns
-    -------
-    Sequence[float]
-        Values in new units.
+    :returns: Values in new units.
     """
     if not _has_netcdf:
         raise ImportError("netCDF4 package necessary for change_units.")

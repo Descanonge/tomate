@@ -10,13 +10,18 @@ import logging
 import os
 import inspect
 import itertools
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
 import numpy as np
 
-from data_loader.keys.keyring import Keyring
-from data_loader.variables_info import VariablesInfo
-from data_loader.coordinates.variables import Variables
 from data_loader.accessor import Accessor
+from data_loader.coordinates.coord import Coord
+from data_loader.coordinates.variables import Variables
+from data_loader.data_base import DataBase
+from data_loader.filegroup.coord_scan import CoordScan
+from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.custom_types import File, KeyLike, KeyLikeValue
+from data_loader.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)
@@ -25,15 +30,8 @@ log = logging.getLogger(__name__)
 class Constructor():
     """Helps creating a database object.
 
-    Start the scanning process, and check if
-    results are coherent across filegroups.
-
-    Parameters
-    ----------
-    root: str
-        Root directory of all files.
-    coords: List[Coord]
-        Coordinates, in the order the data should be kept.
+    :param root: Root directory of all files.
+    :param coords: Coordinates, in the order the data should be kept.
         Variables are excluded.
 
     Attributes
@@ -51,9 +49,9 @@ class Constructor():
         Filegroups added so far.
     vi: VariablesInfo
 
-    selection: List[Dict[str, Key-like]]
+    selection: List[Dict[str, KeyLike]]
         Keys for selecting parts of the CoordScan.
-    selection_by_value: List[Dict[str, value Key-like]]
+    selection_by_value: List[Dict[str, KeyLikeValue]]
         Keys for selecting parts of the CoordScan by value.
 
     allow_advanced: bool
@@ -62,7 +60,7 @@ class Constructor():
         Threshold for float comparison.
     """
 
-    def __init__(self, root, coords):
+    def __init__(self, root: str, coords: List[Coord]):
         self.root = root
         self.coords = {c.name: c for c in coords}
         self.var = Variables([])
@@ -78,7 +76,7 @@ class Constructor():
         self.float_comparison = 1e-5
 
     @property
-    def dims(self):
+    def dims(self) -> Dict[str, Coord]:
         """Dimensions (variables + coordinates)."""
         out = {'var': self.var}
         for name, c in self.coords.items():
@@ -86,26 +84,18 @@ class Constructor():
         return out
 
     @property
-    def current_fg(self):
+    def current_fg(self) -> FilegroupLoad:
         """Current filegroup.
 
-        Last filegroup added.
-
-        Returns
-        -------
-        fg: Filegroup
+        (ie last filegroup added)
         """
         return self.filegroups[-1]
 
-    def add_variable(self, variable, **attributes):
+    def add_variable(self, variable: str, **attributes: Any):
         """Add variable along with attributes.
 
-        Parameters
-        ----------
-        variable: str
-            Name of the variable.
-        attributes: optional
-            Variable specific information.
+        :param variable: Name of the variable.
+        :param attributes: Variable specific information.
 
         Examples
         --------
@@ -117,14 +107,10 @@ class Constructor():
         self.var.append(variable)
         self.vi.add_variable(variable, **attributes)
 
-    def add_infos(self, **infos):
+    def add_infos(self, **infos: Any):
         """Add information to the vi.
 
-        Add not variable-specific attributes to the vi.
-
-        Parameters
-        ----------
-        infos: Any
+        Add general attributes to the vi.
 
         Examples
         --------
@@ -132,34 +118,29 @@ class Constructor():
         """
         self.vi.add_infos(**infos)
 
-    def add_filegroup(self, fg_type, contains, coords, root=None,
-                      variables_shared=False, **kwargs):
+    def add_filegroup(self, fg_type: Type,
+                      contains: Union[str, List[str]],
+                      coords: List[Tuple[Coord, Union[str, bool], str]],
+                      root: str = None,
+                      variables_shared: bool = False,
+                      **kwargs: Any):
         """Add filegroup.
-
-        Parameters
-        ----------
-        fg_type: Type
-            Class of filegroup to add. Dependant on the file-format.
-        contains: List[str], str
-            List of variables contained in this grouping
-            of files.
+l
+        :param fg_type: Class of filegroup to add. Dependant on the file-format.
+        :param contains: List of variables contained in this grouping of files.
             If omitted, the CoordScan variables will be empty.
-        coords: List[Coord, shared: str or bool, name: str]
-            Coordinates used in this grouping of files.
-            Each element of the list is a length 3 list of
+        :param coords: Coordinates used in this grouping of files.
+            Each element of the list is a length 3 tuple of
             the coordinate, a shared flag, and the name of the
             coordinate in the file.
             The flag can be 'shared' or 'in', or a boolean (True = shared).
             The name is optional, in which case the name of the coordinate
             object is used.
             Variables dimension is to be omitted.
-        root: str, optional
-            Subfolder from root.
-        variables_shared: bool, optional
-            If the Variables dimension is shared.
+        :param root: [opt] Subfolder from root.
+        :param variables_shared: [opt] If the Variables dimension is shared.
             Default is False.
-        kwargs: Any, optional
-            Passed to the fg_type initializator.
+        :param kwargs: [opt] Passed to the fg_type initializator.
 
         Examples
         --------
@@ -191,21 +172,17 @@ class Constructor():
 
         coords.insert(0, [self.var, variables_shared, 'var'])
         fg = fg_type(root, None, coords, self.vi, variables=contains,
-                    **kwargs)
+                     **kwargs)
         self.filegroups.append(fg)
 
         self.selection.append({})
         self.selection_by_value.append({})
 
-    def set_fg_regex(self, pregex, replacements=None):
+    def set_fg_regex(self, pregex: str, **replacements: str):
         """Set the pre-regex of the current filegroup.
 
-        Parameters
-        ----------
-        pregex: str
-            Pre-regex.
-        replacements: Dict[str, str], optional
-            Constants to replace in pre-regex.
+        :param pregex: Pre-regex.
+        :param replacements: [opt] Constants to replace in pre-regex.
 
         Examples
         --------
@@ -216,15 +193,11 @@ class Constructor():
             replacements = {}
         self.current_fg.set_scan_regex(pregex, **replacements)
 
-    def set_coord_selection(self, **keys):
+    def set_coord_selection(self, **keys: KeyLike):
         """Set selection for CoordScan of current filegroup.
 
         This allows to select only a subpart of a CoordScan.
         The selection is applied by index, after scanning.
-
-        Parameters
-        ----------
-        keys: Key-like
 
         Examples
         --------
@@ -234,16 +207,13 @@ class Constructor():
             self.selection_by_value[-1].pop(dim, None)
             self.selection[-1][dim] = key
 
-    def set_coord_selection_by_value(self, **keys):
+    def set_coord_selection_by_value(self, **keys: KeyLikeValue):
         """Set selection for CoordScan of current filegroup.
 
         This allows to select only a subpart of a CoordScan.
         The selection is applied by value, after scanning.
 
-        Parameters
-        ----------
-        keys: int, float, slice
-            Values to select in a CoordScan.
+        :param keys: Values to select in a CoordScan.
             If is slice, use start and stop as boundaries.
             Step has no effect.
             If is float, int, or a list of, closest index
@@ -257,7 +227,7 @@ class Constructor():
             self.selection[-1].pop(dim, None)
             self.selection_by_value[-1][dim] = key
 
-    def set_variables_infile(self, *variables, **kw_variables):
+    def set_variables_infile(self, *variables: KeyLike, **kw_variables: KeyLike):
         """Set variables index in the file.
 
         This information will be transmitted to the filegroup
@@ -268,13 +238,9 @@ class Constructor():
         This is similar to using Constructor.set_scan_manual()
         for the 'Variables' coordinate.
 
-        Parameters
-        ----------
-        variables: int, str, None, optional
-            Argument in the order of variables indicated
+        :param variables: Argument in the order of variables indicated
             when adding the last filegroup.
-        kw_variables: int, str, None, optional
-            Argument name is the variable name.
+        :param kw_variables: Argument name is the variable name.
             Takes precedence over `variables` argument.
 
         Examples
@@ -295,29 +261,23 @@ class Constructor():
         cs = fg.cs['var']
         cs.set_scan_manual(list(kw_inf.keys()), list(kw_inf.values()))
 
-    def set_scan_in_file(self, func, *coords,
-                         only_values=False, only_index=False,
-                         **kwargs):
+    def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
+                                              Tuple[List[float], List[int]]],
+                         *coords: str,
+                         only_values: bool = False, only_index: bool = False,
+                         **kwargs: Any):
         """Set function for scanning coordinates values in file.
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, file, values: List[float]],
-                       [values: List[float], in_idx: List[int]]]
-            Function that captures values and in-file indices.
-        coords: str
-            Coordinates to apply this function for.
-        only_values: bool, optional
-            Scan only coordinate values.
-        only_index: bool, optional
-            Scan only in-file indices.
-        kwargs: Any, optional
-            Keyword arguments that will be passed to the function.
+        :param func: Function that captures values and in-file indices.
+        :param coords: Coordinates to apply this function for.
+        :param only_values: [opt] Scan only coordinate values.
+        :param only_index: [opt] Scan only in-file indices.
+        :param kwargs: [opt] Keyword arguments that will be passed to the function.
 
         See also
         --------
-        coord_scan.scan_in_file_default() for a better description of
-        the function interface.
+        data_loader.filegroup.coord_scan.scan_in_file_default:
+            for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
         if only_values:
@@ -329,29 +289,23 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_in_file_func(func, elts, **kwargs)
 
-    def set_scan_filename(self, func, *coords,
-                          only_values=False, only_index=False,
-                          **kwargs):
+    def set_scan_filename(self, func: Callable[[CoordScan, List[float]],
+                                               Tuple[List[float], List[int]]],
+                          *coords: str,
+                          only_values: bool = False, only_index: bool = False,
+                          **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
-        Parameters
-        ----------
-        func: Callable[[CoordScan, values: List[Float]],
-                       [values: List[float], in_idx: List[int]]
-            Function that recover values from filename.
-        coords: str
-            Coordinates to apply this function for.
-        only_values: bool, optional
-            Scan only coordinate values.
-        only_index: bool, optional
-            Scan only in-file indices.
-        kwargs: Any, optional
-            Keyword arguments that will be passed to the function.
+        :param func: Function that recover values from filename.
+        :param coords: Coordinates to apply this function for.
+        :param only_values: [opt] Scan only coordinate values.
+        :param only_index: [opt] Scan only in-file indices.
+        :param kwargs: [opt] Keyword arguments that will be passed to the function.
 
         See also
         --------
-        coord_scan.scan_filename_default() for a better description of
-        the function interface.
+        data_loader.filegroup.coord_scan.scan_filename_default:
+            for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
         if only_values:
@@ -363,20 +317,17 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_filename_func(func, elts, **kwargs)
 
-    def set_scan_manual(self, coord, values, in_idx=None):
+    def set_scan_manual(self, coord: str,
+                        values: List[float],
+                        in_idx: List[Union[int, None]] = None):
         """Set coordinate values manually.
 
         Values will still be checked for consistency with
         others filegroups.
 
-        Parameters
-        ----------
-        coord: str
-            Coordinate to set the values for.
-        values: List[float]
-            Values for the coordinate.
-        in_idx: List[int/None], optional
-            Values of the in-file index.
+        :param coord: Coordinate to set the values for.
+        :param values: Values for the coordinate.
+        :param in_idx: [opt] Values of the in-file index.
             If not specifile, defaults to None for all values.
         """
         if in_idx is None:
@@ -386,71 +337,69 @@ class Constructor():
         cs = fg.cs[coord]
         cs.set_scan_manual(values, in_idx)
 
-    def set_scan_coords_attributes(self, func, *coords):
+    def set_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
+                                   *coords: str):
         """Set a function for scanning coordinate attributes.
 
-        Parameters
-        ----------
-        func: Callable[[file], [Dict[str, Any]]]
-            Function that recovers coordinate attribute in file.
-        coords: str
-            Coordinates to apply this function for.
+        The attribute is set using CoordScan.set_attr.
+
+        :param func: Function that recovers coordinate attribute in file.
+            Returns a dictionnary {'attribute name' : value}.
+        :param coords: Coordinates to apply this function for.
 
         See also
         --------
-        coord_scan.scan_attributes_default() for a better description
-        of the function interface.
+        data_loader.filegroup.coord_scan.scan_attributes_default:
+            for a better description of the function interface.
         """
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
             cs.set_scan_attributes_func(func)
 
-    def set_scan_general_attributes(self, func, **kwargs):
+    def set_scan_general_attributes(self, func: Callable[[File], Dict[str, Any]],
+                                    **kwargs: Any):
         """Set a function for scanning general data attributes.
 
-        Parameters
-        ----------
-        func: Callable[[file],
-                       [Dict[info name: str, Any]]]
-        kwargs: Any
-            Passed to the function.
+        The attributes are added to the VI.
+
+        :param func: Function that recovers general attributes in file.
+            Returns a dictionnary {'attribute name': value}
+        :param kwargs: [opt] Passed to the function.
 
         See also
         --------
-        filegroup_scan.scan_attributes_default() for a better
-        description of the function interface.
+        data_loader.filegroup.filegroup_scan.scan_attributes_default:
+            for a better description of the function interface.
         """
         fg = self.current_fg
         fg.set_scan_gen_attrs_func(func, **kwargs)
 
-    def set_scan_variables_attributes(self, func, **kwargs):
-        r"""Set function for scanning variables specific attributes.
+    def set_scan_variables_attributes(self,
+                                      func: Callable[[FilegroupLoad, File, List[str]],
+                                                     Dict[str, Dict[str, Any]]],
+                                      **kwargs: Any):
+        """Set function for scanning variables specific attributes.
 
-        Parameters
-        ----------
-        func: Callable[[Filegroup, file, List[str], \*\*kwargs], [Dict]]
-            Function that recovers variables attributes in file.
-        kwargs: Any
-            Passed to the function.
+        The attributes are added to the VI.
+
+        :param func: Function that recovers variables attributes in file.
+            Return a dictionnary {'variable name': {'attribute name': value}}.
+        :param kwargs: [opt] Passed to the function.
 
         See also
         --------
-        filegroup_scan.scan_variables_attributes_default() for a better
-        description of the function interface.
+        data_loader.filegroup.filegroup_scan.scan_variables_attributes_default:
+            for a better description of the function interface.
         """
         fg = self.current_fg
         fg.set_scan_var_attrs_func(func, **kwargs)
 
-    def set_coord_descending(self, *coords):
+    def set_coord_descending(self, *coords: str):
         """Set coordinates as descending in the filegroup.
 
         Only useful when there is no information on the in-file
         index of each value in the files.
-
-        Parameters
-        ----------
-        coords: str
         """
         fg = self.current_fg
         for name in coords:
@@ -510,13 +459,10 @@ class Constructor():
                     idx = cs.get_indices(key)
                 cs.slice(idx)
 
-    def _get_coord_values(self):
+    def _get_coord_values(self) -> Dict[str, np.ndarray]:
         """Aggregate all available coordinate values.
 
-        Returns
-        -------
-        Dict[str, Array]
-            Values for each dimension.
+        :returns: Values for each dimension.
         """
         values_c = {}
         for c in self.dims:
@@ -535,34 +481,23 @@ class Constructor():
         return values_c
 
 
-    def _apply_coord_values(self, values):
-        """Set found values to master coordinates.
-
-        Parameters
-        ----------
-        values: Dict[str, Array]
-        """
+    def _apply_coord_values(self, values: Dict[str, np.ndarray]):
+        """Set found values to master coordinates."""
         for dim, val in values.items():
             self.dims[dim].update_values(val)
 
-    def _get_contained(self, dim, inner, outer):
+    def _get_contained(self, dim: str,
+                       inner: np.ndarray,
+                       outer: np.ndarray) -> List[Union[int, None]]:
         """Find values of inner contained in outer.
 
-        Parameters
-        ----------
-        dim: str
-        inner: Array[Any]
-            Smaller list of values.
+        :param inner: Smaller list of values.
             Can be floats, in which case self.float_comparison
             is used as a threshold comparison.
             Can be strings, if `dim` is 'var'.
-        outer: Array[Any]
-            Longer list of values.
+        :param outer: Longer list of values.
 
-        Returns
-        -------
-        contains: List
-            List of the index of the outer values in the
+        :returns:  List of the index of the outer values in the
             inner list. If the value is not contained in
             inner, the index is `None`.
         """
@@ -581,16 +516,13 @@ class Constructor():
             contains.append(idx)
         return contains
 
-    def _find_contained(self, values):
+    def _find_contained(self, values: Dict[str, np.ndarray]):
         """Find what values are contained in each fg.
 
         Set the `contains` values for all filegroups,
         according to all available values.
 
-        Parameters
-        ----------
-        values: Dict[str, Array]
-            All available values for each coordinate.
+        :param values: All available values for each coordinate.
         """
         for fg in self.filegroups:
             for dim, cs in fg.cs.items():
@@ -603,17 +535,14 @@ class Constructor():
                     contains = np.array(contains)
                 fg.contains[dim] = contains
 
-    def _get_intersection(self, values):
+    def _get_intersection(self, values: Dict[str, np.ndarray]):
         """Get intersection of coordinate values.
 
         Only keep coordinates values common to all filegroups.
         The variables dimensions is excluded from this.
         Slice CoordScan and `contains` accordingly.
 
-        Parameters
-        ----------
-        values: Dict[str, Array]
-            All values available for each dimension.
+        :param values: All values available for each dimension.
             Modified in place to only values common
             accross filegroups.
         """
@@ -632,24 +561,16 @@ class Constructor():
                 log.warning("Common values taken for '%s', %d values ranging %s",
                             dim, c.size, c.get_extent_str())
 
-    def _slice_cs(self, dim, values, remove, select):
+    def _slice_cs(self, dim: str, values: np.ndarray,
+                  remove: np.ndarray, select: np.ndarray):
         """Slice all CoordScan according to smaller values.
 
-        Parameters
-        ----------
-        dim: str
-            Dimension to slice.
-        values: Array
-            New values.
-        remove: Array[int]
-            Indices to remove from available.
-        select: Array[int]
-            Indices to keep in available.
+        :param dim: Dimension to slice.
+        :param values: New values.
+        :param remove: Indices to remove from available.
+        :param select: Indices to keep in available.
 
-        Raises
-        ------
-        IndexError
-            If no common values are found.
+        :raises IndexError: If no common values are found.
         """
         values[dim] = np.delete(values[dim], remove)
         for fg_ in self.filegroups:
@@ -684,10 +605,7 @@ class Constructor():
         ie if a same data point (according to coordinate values)
         can be found in two filegroups.
 
-        Raises
-        ------
-        ValueError:
-            If there is a duplicate.
+        :raises ValueError: If there is a duplicate.
         """
         for fg1, fg2 in itertools.combinations(self.filegroups, 2):
             intersect = []
@@ -702,10 +620,7 @@ class Constructor():
     def check_regex(self):
         """Check if a pregex has been added where needed.
 
-        Raises
-        ------
-        RuntimeError:
-            If regex is empty and there is at least a out coordinate.
+        :raises RuntimeError: If regex is empty and there is at least a out coordinate.
         """
         for fg in self.filegroups:
             coords = list(fg.iter_shared(True))
@@ -715,7 +630,9 @@ class Constructor():
                             fg.variables, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, dt_types, accessor=None, scan=True):
+    def make_data(self, dt_types: List[Type[DataBase]],
+                  accessor: Type[Accessor] = None,
+                  scan: bool = True) -> DataBase:
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -723,29 +640,22 @@ class Constructor():
         Check coordinates for consistency across filegroups.
         Create database object from multiple subclasses of data.
 
-        Parameters
-        ----------
-        dt_type: Type, List[Type]
-            DataBase subclasses to use, in order of
+        :param dt_type: DataBase subclasses to use, in order of
             priority for method resolution (Methods and
             attributes of the first one in
             the list take precedence).
-        accessor: Type, optional
-            Subclass of Accessor.
+        :param accessor: [opt] Subclass of Accessor.
             If None, the accessor from the provided data
             types is used.
-        scan: bool, optional
-            If the files should be scanned.
+        :param scan: [opt] If the files should be scanned.
             Default is True.
 
-        Returns
-        -------
-        Data instance ready to use.
+
+        :returns: Data instance ready to use.
 
         See also
         --------
-        create_data_class:
-            Dynamically add inheritance to
+        create_data_class: Dynamically add inheritance to
             create a new data class.
         """
         if scan:
@@ -760,26 +670,19 @@ class Constructor():
 
 
 
-def create_data_class(dt_types, accessor=None):
+def create_data_class(dt_types: List[Type[DataBase]],
+                      accessor: Type[Accessor] = None) -> Type[DataBase]:
     """Create a dynamic data class.
 
     Find a suitable name.
     Check that there is no clash between methods.
 
-    Parameters
-    ----------
-    dt_type: Type, List[type]
-        DataBase subclasses to use, in order of
+    :param dt_types: DataBase subclasses to use, in order of
         priority for method resolution (First one in
         the list is the first class checked).
-    accessor: Type, optional
-        Accessor subclass to use for data.
+    :param accessor: Accessor subclass to use for data.
         If None, the accessor found in provided data types
         will be used (according to mro priority).
-
-    Return
-    ------
-    Data class
     """
     if isinstance(dt_types, type):
         dt_types = [dt_types]

@@ -36,7 +36,7 @@ class DataBase():
 
     Coordinates objects, the list of variables, the shape
     of data, and other attributes of the different scopes objects,
-    are directly accessible from the data object.
+    are directly acciessible from the data object.
     If data has been loaded, the 'loaded' scope is used,
     otherwise the 'available' scope is used.
 
@@ -175,9 +175,7 @@ class DataBase():
 
         If y is a variable name, return the corresponding data slice.
 
-        Parameters
-        ----------
-        y: str
+        y
             Coordinate or variable name.
 
         Raises

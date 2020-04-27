@@ -8,10 +8,12 @@
 
 import logging
 import bisect
+from typing import Any, List, Sequence, Tuple
 
 import numpy as np
 
 from data_loader.keys.key import reverse_slice_order
+from data_loader.types import KeyLike
 
 
 log = logging.getLogger(__name__)
@@ -22,16 +24,10 @@ class Coord():
 
     Contains strictly monoteous values.
 
-    Parameters
-    ----------
-    name: str
-        Identification of the coordinate.
-    array: Sequence, optional
-        Values of the coordinate.
-    units: str, optional
-        Coordinate units
-    fullname: str, optional
-        Print name.
+    :param name: str: Identification of the coordinate.
+    :param array: [opt] Values of the coordinate.
+    :param units: [opt] Coordinate units
+    :param fullname: [opt] Print name.
 
     Attributes
     ----------
@@ -45,7 +41,9 @@ class Coord():
         Length of values.
     """
 
-    def __init__(self, name, array=None, units=None, fullname=None):
+    def __init__(self, name: str,
+                 array: Sequence = None,
+                 units: str = None, fullname: str = None):
         self.name = name
 
         if fullname is None:
@@ -62,25 +60,18 @@ class Coord():
         if array is not None:
             self.update_values(array)
 
-    def update_values(self, values, dtype=None):
+    def update_values(self, values: Sequence, dtype=None):
         """Change values.
 
         Check if new values are monoteous
 
-        Parameters
-        ----------
-        values: Sequence, Float
-            New values.
-        dtype: Numpy dtype
-            Dtype of the array.
+        :param values: New values.
+        :param dtype: [opt] Dtype of the array.
             Default to np.float64
+        :type dtype: data-type
 
-        Raises
-        ------
-        TypeError
-            If the data is not 1D.
-        ValueError
-            If the data is not sorted.
+        :raises TypeError: If the data is not 1D.
+        :raises ValueError: If the data is not sorted.
         """
         if dtype is None:
             dtype = np.float64
@@ -100,7 +91,7 @@ class Coord():
         if not np.all(diff > 0) and not self._descending:
             raise ValueError("Data not sorted")
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
     @property
@@ -108,18 +99,8 @@ class Coord():
         """Length of coordinate."""
         return self._size
 
-    def __getitem__(self, y):
-        """Use numpy getitem for the array.
-
-        Parameters
-        ----------
-        y: Key-like
-            Key asked, passed to a numpy array.
-
-        Returns
-        -------
-        Array
-        """
+    def __getitem__(self, y: KeyLike) -> np.ndarray:
+        """Use numpy getitem for the array."""
         if not self.has_data():
             raise AttributeError("Coordinate '%s' data was not set." % self.name)
         return self._array.__getitem__(y)
@@ -139,16 +120,12 @@ class Coord():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def set_attr(self, name, attr):
+    def set_attr(self, name: str, attr: Any):
         """Set attribute.
 
-        Parameters
-        ----------
-        name: str
-            Name of the attribute.
+        :param name: Name of the attribute.
             Only 'units' and 'fullname' supported.
-        attr: Any
-            Value of the attribute.
+        :param attr: Value of the attribute.
         """
         if name not in ('units', 'fullname'):
             raise AttributeError("'%s' attribute cannot be set" % name)
@@ -157,21 +134,19 @@ class Coord():
         elif name == 'fullname':
             self.fullname = attr
 
-    def get_extent_str(self, slc=None) -> str:
-        """Return the extent as string."""
+    def get_extent_str(self, slc: KeyLike = None) -> str:
+        """Return the extent as string.
+
+        :param slc: [opt]
+        """
         return "%s - %s" % tuple(self.format(v) for v in self.get_extent(slc))
 
     def copy(self) -> "Coord":
         """Return a copy of itself."""
         return self.__class__(self.name, self._array, self.units, self.fullname)
 
-    def slice(self, key):
-        """Slice the coordinate.
-
-        Parameters
-        ----------
-        key: Key-like
-        """
+    def slice(self, key: KeyLike):
+        """Slice the coordinate."""
         if key is None:
             key = slice(None, None)
         data = self._array[key]
@@ -183,19 +158,16 @@ class Coord():
         self._descending = None
         self._size = None
 
-    def subset(self, vmin=None, vmax=None, exclude=False) -> slice:
+    def subset(self, vmin: float = None, vmax: float = None,
+               exclude: bool = False) -> slice:
         """Return slice between vmin and vmax.
 
         If descending, the slice is reverted (values are always
         in increasing order).
 
-        Parameters
-        ----------
-        vmin, vmax: float, optional
-            Bounds to select.
+        :param vmin, vmax: [opt] Bounds to select.
             If None, min and max of coordinate are taken.
-        exclude: bool, optional
-            If True, exclude vmin and vmax from selection.
+        :param exclude: [opt] If True, exclude vmin and vmax from selection.
             Default is False.
 
         Examples
@@ -227,15 +199,21 @@ class Coord():
 
         return slc
 
-    def select(self, vmin=None, vmax=None, exclude=False):
-        """Select values slice."""
+    def select(self, vmin: float = None, vmax: float = None,
+               exclude: bool = False) -> np.ndarray:
+        """Select values slice.
+
+        :param vmin: [opt]
+        :param vmax: [opt]
+        :param exclude: [opt]
+        """
         return self._array[self.subset(vmin, vmax, exclude)]
 
     def is_descending(self) -> bool:
         """Return if coordinate is descending"""
         return self._descending
 
-    def is_regular(self, threshold=1e-5) -> bool:
+    def is_regular(self, threshold: float = 1e-5) -> bool:
         """Return if coordinate values are regularly spaced.
 
         Float comparison is made to a threshold.
@@ -248,7 +226,7 @@ class Coord():
         """If coordinate has data."""
         return self._array is not None
 
-    def get_step(self, threshold=1e-5) -> float:
+    def get_step(self, threshold:float = 1e-5) -> float:
         """Return mean step between values.
 
         Check if the coordinate is regular up to threshold.
@@ -258,53 +236,36 @@ class Coord():
                         self.name, threshold)
         return np.mean(np.diff(self[:]))
 
-    def get_extent(self, slc=None):
+    def get_extent(self, slc: slice = None) -> List[float]:
         """Return extent.
 
         ie first and last values
 
-        Parameters
-        ----------
-        slc: slice, optional
-            Constrain extent to a slice.
-
-        Returns
-        -------
-        List[float]
-            First and last values.
+        :param slc: [opt] Constrain extent to a slice.
+        :returns: First and last values.
         """
         if slc is None:
             slc = slice(None, None)
         values = self._array[slc]
         return list(values[[0, -1]])
 
-    def get_limits(self, slc=None):
+    def get_limits(self, slc: slice = None) -> List[float]:
         """Return min/max
 
-        Parameters
-        ----------
-        slc: slice, optional
-            Constrain extent to a slice.
-
-        Returns
-        -------
-        List[float]
-            Min and max
+        :param slc: [opt] Constrain extent with a slice.
+        :returns: Min and max
         """
         lim = self.get_extent(slc)
         if self._descending:
             lim = lim[::-1]
         return lim
 
-    def get_index(self, value, loc='closest') -> int:
+    def get_index(self, value: float, loc: str = 'closest') -> int:
         """Return index of the element closest to `value`.
 
         Can return the index of the closest element above, below
         or from both sides to the specified value.
 
-        Parameters
-        ----------
-        value: float
         loc: {'closest', 'below', 'above'}
             What index to choose.
         """
@@ -321,40 +282,25 @@ class Coord():
 
         return idx
 
-    def get_indices(self, values, loc='closest') -> int:
+    def get_indices(self, values: Sequence[float], loc: str = 'closest') -> int:
         """Return indices of the elements closest to values.
 
-        Parameters
-        ----------
-        values: Sequence[Float]
-            Sequence of values.
         loc: {'closest', 'below', 'above'}
         """
         indices = [self.get_index(v, loc) for v in values]
         return indices
 
     @staticmethod
-    def format(value, fmt='{:.2f}') -> str:
-        """Format a scalar value.
-
-        Parameters
-        ----------
-        value: float
-        fmt: str
-        """
+    def format(value: float, fmt: str = '{:.2f}') -> str:
+        """Format a scalar value."""
         return fmt.format(value)
 
-    def get_collocated(self, other):
+    def get_collocated(self, other: "Coord") -> Tuple[List[int], List[int]]:
         """Return indices of identical values.
 
-        Parameters
-        ----------
-        other: Coord
-            Other coordinate.
+        :param other: Other coordinate.
 
-        Returns
-        -------
-        idx_self, idx_other: List[int]
+        :returns: idx_self, idx_other:
             List of indices for both coordinates, where
             their values are identical.
         """
@@ -365,17 +311,13 @@ class Coord():
 
         return idx_self, idx_other
 
-    def get_collocated_float(self, other, threshold=1e-5):
+    def get_collocated_float(self, other: "Coord",
+                             threshold: float = 1e-5) -> Tuple[List[int], List[int]]:
         """Return indices of values closer than a threshold.
 
-        Parameters
-        ----------
-        other: Coord
-            Other coordinate.
+        :param other: Other coordinate.
 
-        Returns
-        -------
-        idx_self, idx_other: List[int]
+        :returns: idx_self, idx_other:
             List of indices for both coordinates, where
             their values less than `threshold` apart.
         """
@@ -391,19 +333,18 @@ class Coord():
         return idx_self, idx_other
 
 
-def get_closest(L, elt, loc='closest'):
+def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
     """Return index closest to elt in L.
 
     If two numbers are equally close, return the smallest number.
 
-    Parameters
-    ----------
-    L: List[float]
-        Ascending sorted list
-    loc: str
+    :param L: Ascending sorted list
+    :param loc:
         'closest' -> take closest elt,
         'left' -> take closest to the left,
         'right' -> take closest to the right,
+
+    :raises ValueError: If loc is invalid.
     """
 
     loc_opt = ['left', 'right', 'closest']

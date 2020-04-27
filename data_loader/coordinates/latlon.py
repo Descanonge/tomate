@@ -12,16 +12,10 @@ from data_loader.coordinates.coord import Coord
 class Lat(Coord):
     """Latitude coordinate.
 
-    Parameters
-    ----------
-    name: str, optional
-        Identification of the coordinate.
-    array: Sequence, optional
-        Values of the coordinate.
-    units: str, optional
-        Coordinate units
-    fullname: str, optional
-        Print name.
+    :param name: [opt] Identification of the coordinate.
+    :param array: [opt] Values of the coordinate.
+    :param units: [opt] Coordinate units
+    :param fullname: [opt] Print name.
     """
 
     def __init__(self, name='lat', array=None,
@@ -29,14 +23,7 @@ class Lat(Coord):
         super().__init__(name, array, units, fullname)
 
     @staticmethod
-    def format(value, fmt='.2f') -> str:
-        """Format value.
-
-        Parameters
-        ----------
-        value: float
-        fmt: str
-        """
+    def format(value: float, fmt: str = '.2f') -> str:
         end = ['S', 'N'][value > 0]
         fmt = '{:%s}%s' % (fmt, end)
         return fmt.format(abs(value))
@@ -45,16 +32,10 @@ class Lat(Coord):
 class Lon(Coord):
     """Longitude coordinate.
 
-    Parameters
-    ----------
-    name: str, optional
-        Identification of the coordinate.
-    array: Sequence, optional
-        Values of the coordinate.
-    units: str, optional
-        Coordinate units
-    fullname: str, optional
-        Print name.
+    :param name: [opt] Identification of the coordinate.
+    :param array: [opt] Values of the coordinate.
+    :param units: [opt] Coordinate units
+    :param fullname: [opt] Print name.
     """
     # TODO: convert to km
 
@@ -64,14 +45,7 @@ class Lon(Coord):
 
 
     @staticmethod
-    def format(value, fmt='.2f') -> str:
-        """Format value.
-
-        Parameters
-        ----------
-        value: float
-        fmt: str
-        """
+    def format(value: float, fmt: str = '.2f') -> str:
         end = ['W', 'E'][value > 0]
         fmt = '{:%s}%s' % (fmt, end)
         return fmt.format(abs(value))

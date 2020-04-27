@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader
+.. currentmodule :: data_loader.keys
 
 Accessing data
 ==============
@@ -24,7 +24,7 @@ Keys and keyrings
 +++++++++++++++++
 
 Multiple keys are regrouped into a single object: a
-:class:`Keyring<key.Keyring>`.
+:class:`Keyring<keyring.Keyring>`.
 This object is similar to a dictionnary. The keys are stored in a
 :class:`Key<key.Key>` class.
 In the rest of the documentation a key designates either a Key object, or the
@@ -40,9 +40,21 @@ arguments, the easiest way to convert a keyring to keywords arguments is::
   some_function(**keyring.kw)
 
 Some functions can take both a keyring and keys in argument. The class function
-:func:`key.Keyring.get_default` combines the two argument. It also make a copy
+:func:`keyring.Keyring.get_default` combines the two argument. It also make a copy
 of the keyring, to avoid in-place modifications.
 Developpers are invited to look at the API doc-strings for further information.
+
+The shape of a key designates the length a coordinate would have after the key
+is applied. A shape 0 means it would return a scalar.
+None keys have a shape 0 as when taking data from file, a None in-file index
+means that dimension is already squeezed.
+Shape of slices keys will be infered if possible, but sometimes the shape of the
+coordinate on which the slice will be applied is necessary. It is stored in the
+:attr:`key.Key.parent_size` attribute once set.
+
+The :attr:`keyring.Keyring.shape` property will return the shape of the array
+it would give. Dimensions of size 0 are thus omitted. None indicates the shape
+of that dimension is unknown.
 
 
 Variables Keys
@@ -66,8 +78,10 @@ named 'var'.
 The afore-mentioned methods are also available in the keyring.
 
 Nearly all functions work as well for normal keys as for variable keys,
-though slices of strings miss some functionalites, and are to be avoided.
+though slices of strings can miss some functionalites, and are to be avoided.
 
+
+.. currentmodule :: data_loader
 
 Accessors
 ---------
