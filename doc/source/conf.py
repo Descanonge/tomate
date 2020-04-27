@@ -152,5 +152,35 @@ def sort_sections(app, what, name, obj, options, lines):
         lines += [''] + sec
 
 
+def move_opt(app, what, name, obj, options, lines):
+    """Add optional to type if specified.
+
+    An optional argument is specified with :param ...: [opt] ...
+    """
+    import re
+    rgx = r':param ([^:]*):\s?(\[opt\]?)'
+    change = False
+
+    for i, line in enumerate(lines):
+        m = re.search(rgx, line)
+        if m and m.group(2) is not None:
+            change = True
+            lines[i] = line[:m.start(2)] + line[m.end(2)+1:]
+            argname = m.group(1)
+            for j, line_ in enumerate(lines):
+                if line_.startswith(":type {}:".format(argname)):
+                    lines[j] = line_ + ", optional"
+                    break
+
+def debug(app, what, name, obj, options, lines):
+    if 'add_variable' in name:
+        print(name)
+        print('\n'.join(lines))
+        print()
+        print()
+
+
 def setup(app):
+    app.connect('autodoc-process-docstring', move_opt)
     app.connect('autodoc-process-docstring', sort_sections)
+    # app.connect('autodoc-process-docstring', debug)
