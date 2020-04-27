@@ -16,12 +16,15 @@ import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
+from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.variables import Variables
 from data_loader.data_base import DataBase
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.custom_types import File, KeyLike, KeyLikeValue
 from data_loader.variables_info import VariablesInfo
+
+import data_loader.data_write as dw
 
 
 log = logging.getLogger(__name__)
@@ -70,6 +73,10 @@ class Constructor():
 
         self.selection = []
         self.selection_by_value = []
+
+        self.post_loading_func = None
+        self.dt_types = [DataBase]
+        self.acs = None
 
         self.allow_advanced = False
 
@@ -409,6 +416,17 @@ l
                             " will have no impact.", fg.variables, name)
             cs.force_idx_descending = True
 
+    def set_post_loading_func(self, func):
+        self.post_loading_func = func
+
+    def set_data_types(self, dt_types=None, accessor=None):
+        if dt_types is None:
+            dt_types = [DataBase]
+        elif not isinstance(dt_types, (list, tuple)):
+            dt_types = [dt_types]
+        self.dt_types = dt_types
+        self.acs = accessor
+
     def scan_files(self):
         """Scan files.
 
@@ -427,6 +445,7 @@ l
         for fg in self.filegroups:
             fg.scan_files()
 
+    def compile_scanned(self):
         self._apply_coord_selections()
 
         values = self._get_coord_values()
@@ -438,8 +457,6 @@ l
         else:
             self._apply_coord_values(values)
         self.check_duplicates()
-
-        self._scan_variables_attributes()
 
     def _apply_coord_selections(self):
         """Apply selection on CoordScan.
@@ -589,7 +606,7 @@ l
                 cs.slice(indices.astype(int))
             fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
 
-    def _scan_variables_attributes(self):
+    def scan_variables_attributes(self):
         """Scan variables specific attributes.
 
         Filegroups should be functionnal for this.
@@ -630,9 +647,7 @@ l
                             fg.variables, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, dt_types: List[Type[DataBase]],
-                  accessor: Type[Accessor] = None,
-                  scan: bool = True) -> DataBase:
+    def make_data(self, scan=True):
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -662,12 +677,24 @@ l
             if not self.filegroups:
                 raise RuntimeError("No filegroups in constructor.")
             self.scan_files()
+            self.compile_scanned()
+            self.scan_variables_attributes()
 
-        dt_class = create_data_class(dt_types, accessor)
-
+        dt_class = self.create_data_class()
         dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
+        if self.post_loading_func is not None:
+            dt.set_post_loading_func(self.post_loading_func)
         return dt
 
+    def create_data_class(self):
+        dt_class = create_data_class(self.dt_types, self.acs)
+        self.acs = dt_class.acs
+        return dt_class
+
+    def write(self, filename):
+        self.create_data_class()
+        self.scan_files()
+        dw.write(filename, self)
 
 
 def create_data_class(dt_types: List[Type[DataBase]],

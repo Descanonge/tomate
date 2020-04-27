@@ -82,7 +82,7 @@ class DataBase():
     acs: Type
         Accessor class (or subclass) to use to access the data.
 
-    do_post_load: Callable
+    do_post_loading: Callable
         Function applied after loading data.
     """
 
@@ -110,7 +110,7 @@ class DataBase():
 
         self.link_filegroups()
 
-        self.do_post_load = do_post_load_default
+        self.do_post_loading = do_post_loading_default
 
     def __str__(self):
         s = ["Data object"]
@@ -739,7 +739,7 @@ class DataBase():
             log.warning("Nothing loaded.")
 
         try:
-            self.do_post_load(self)
+            self.do_post_loading(self)
         except NotImplementedError:
             pass
 
@@ -800,18 +800,18 @@ class DataBase():
         """
         self.data = self.allocate(shape)
 
-    def set_post_load_func(self, func):
+    def set_post_loading_func(self, func):
         """Set function for post loading treatements.
 
         Parameters
         ----------
         func: Callable[[DataBase or subclass]]
             Function to execute after data is loaded.
-            See do_post_load() for a better description
+            See do_post_loading() for a better description
             of the function interface.
 
         """
-        self.do_post_load = func
+        self.do_post_loading = func
 
     def set_data(self, var, data):
         """Set the data for a single variable.
@@ -942,12 +942,12 @@ class DataBase():
                 break
 
 
-def do_post_load_default(dt): #pylint: disable=method-hidden
+def do_post_loading_default(dt): #pylint: disable=method-hidden
     """Do post loading treatments.
 
     Raises
     ------
     NotImplementedError
-        If do_post_load was not set.
+        If do_post_loading was not set.
     """
-    raise NotImplementedError("do_post_load was not set.")
+    raise NotImplementedError("do_post_loading was not set.")

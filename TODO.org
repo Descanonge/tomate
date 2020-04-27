@@ -31,3 +31,7 @@ then no need for dt.plotted
 * TODO: scanning should not overwrite cstr.vi
 * TODO: Add option to use subset_day in load_by_value
 * TODO: Type hinting
+* TODO: convert function in Coord
+the CS can use its attributes and those of parent Coord to
+modify scanned values
+* TODO: launch do_post_loading when specific variables are loaded
