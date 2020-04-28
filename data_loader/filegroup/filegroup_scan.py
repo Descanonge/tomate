@@ -111,7 +111,7 @@ class FilegroupScan():
         for name, cs in self.cs.items():
             s1 = ['%s (%s)' % (name, cs.name)]
             s1.append(', %s' % ['in', 'shared'][cs.shared])
-            if cs.has_data:
+            if cs.has_data():
                 s1.append(': %s, %s' % (cs.get_extent_str(), cs.size))
             s.append(''.join(s1))
         return '\n'.join(s)
