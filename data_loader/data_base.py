@@ -774,11 +774,13 @@ class DataBase():
         :param attrs: [opt] Variable attributes.
             Passed to VariablesInfo.add_variable
         """
-        if variable not in self.vi:
-            self.vi.set_attrs(variable, **attrs)
+        if variable in self.avail:
+            log.warning('%s already in avail scope, it will be overwritten.', variable)
+        else:
             self.avail.var.append(variable)
         if data is not None:
             self.set_data(variable, data)
+        self.vi.set_attrs(variable, **attrs)
 
     def remove_loaded_variable(self, variable: str):
         """Remove variable from data."""
