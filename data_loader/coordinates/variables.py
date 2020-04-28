@@ -40,8 +40,6 @@ class Variables(Coord):
         if array is not None:
             self.update_values(array, dtype=None)
 
-        self.vi = vi
-
     def update_values(self, values: Sequence[str], dtype=None):
         """Change variables names.
 
