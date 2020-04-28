@@ -489,6 +489,10 @@ l
                     values += list(fg.cs[c][:])
 
             values = np.array(values)
+
+            if values.size == 0:
+                raise ValueError("No values found for %s in any filegroup." % c)
+
             if c != 'var':
                 values.sort()
                 duplicates = np.abs(np.diff(values)) < self.float_comparison
