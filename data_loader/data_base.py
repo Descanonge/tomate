@@ -749,16 +749,16 @@ class DataBase():
         # No data is loaded
         if self.loaded.is_empty():
             self.loaded = self.avail.copy()
-            self.loaded.var.update_values([var])
+            self.loaded.slice(var=variable)
             self.data = data
 
         # Variable is already loaded
-        elif var in self.loaded.var:
-            self[var][:] = data[0]
+        elif variable in self.loaded.var:
+            self[variable][:] = data[0]
 
         # Variable is not loaded, others are
         else:
-            self.loaded.var.append(var)
+            self.loaded.var.append(variable)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
     def add_variable(self, variable: str, data: np.ndarray = None, **attrs: Any):
