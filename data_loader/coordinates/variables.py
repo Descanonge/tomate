@@ -5,10 +5,12 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
+from typing import Iterator, List, Sequence, Union
 
 import numpy as np
 
 from data_loader.coordinates.coord import Coord
+from data_loader.custom_types import KeyLike, KeyLikeVar
 
 
 class Variables(Coord):
@@ -16,18 +18,13 @@ class Variables(Coord):
 
     With easy access to their index in a potential
     array.
-    Akin to a Coord coordinate object.
+    Akin to a Coord object.
 
     Its name is always 'var'.
 
-    Parameters
-    ----------
-    array: Sequence[str], optional
-        Variables names.
-    vi: VariablesInfo, optional
-        VI containing information about those variables.
-    kwargs:
-        See Coord signature.
+    :param array: [opt] Variables names.
+    :param vi: [opt] VI containing information about those variables.
+    :param kwargs: [opt] See Coord signature.
 
     Attributes
     ----------
@@ -35,7 +32,7 @@ class Variables(Coord):
         VI containing information about variables.
     """
 
-    def __init__(self, array=None, vi=None, **kwargs):
+    def __init__(self, array: np.ndarray = None, **kwargs: str):
         kwargs.pop('name', None)
         kwargs.pop('array', None)
         super().__init__('var', None, **kwargs)
@@ -45,83 +42,68 @@ class Variables(Coord):
 
         self.vi = vi
 
-    def update_values(self, values, dtype=None):
+    def update_values(self, values: Sequence[str], dtype=None):
         """Change variables names.
 
-        Parameters
-        ----------
-        values: Sequence[str], str
-            New variables names.
-        dtype: Numpy dtype
-            Dtype of the array.
+        :param values: New variables names.
+        :param dtype: [opt] Dtype of the array.
             Default to a variation of np.U#.
+        :type dtype: data-type
         """
         if isinstance(values, str):
             values = [values]
         self._array = np.array(values, dtype=dtype)
         self._size = self._array.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.has_data():
             s = "Variables: " + ', '.join(self[:])
         else:
             s = "No variables"
         return s
 
-    def get_extent_str(self, slc=None):
+    def get_extent_str(self, slc: KeyLike = None) -> str:
         if slc is None:
             slc = slice(None)
         return ', '.join(self[slc])
 
-    def get_var_index(self, y) -> int:
+    def get_var_index(self, y: Union[str, int]) -> int:
         """Return index of variable.
 
-        Parameters
-        ----------
-        y: str, int
-            Name or index of variable.
+        :param y: Name or index of variable.
         """
         if isinstance(y, str):
             y = self.get_index(y)
         return y
 
-    def get_index(self, value: str, loc=None) -> int:
+    def get_index(self, value: str, loc: str = None) -> int:
         if value not in self._array:
             raise KeyError("'%s' not in variables." % value)
         i = np.where(self._array == value)[0][0]
         i = int(i)
         return i
 
-    def idx(self, y):
+    def idx(self, y: Union[str, int]) -> int:
         """Return index of variable."""
         return self.get_var_index(y)
 
-    def get_var_name(self, y) -> str:
+    def get_var_name(self, y: Union[int, str]) -> str:
         """Return name of variable.
 
-        Parameters
-        ----------
-        y: int, str
-            Index or name of variable.
+        :param y: Index or name of variable.
         """
         if isinstance(y, str):
             return y
         return self._array[y]
 
-    def get_var_indices(self, y):
+    def get_var_indices(self, y: KeyLikeVar) -> Union[int, List[int]]:
         """Returns indices of variables.
 
-        Parameters
-        ----------
-        y: List[int/str], slice, int/str
-            List of variables names or indices,
+        :param y: List of variables names or indices,
             or slice (of integers or strings),
             or single variable name or index.
 
-        Returns
-        -------
-        List[int], int
-            List of variable indices, or a single
+        :returns: List of variable indices, or a single
             variable index.
         """
         if isinstance(y, (int, str)):
@@ -136,13 +118,10 @@ class Variables(Coord):
         indices = [self.get_var_index(i) for i in y]
         return indices
 
-    def get_var_names(self, y):
+    def get_var_names(self, y: KeyLikeVar) -> Union[str, List[str]]:
         """Return variables names.
 
-        Parameters
-        ----------
-        y: List[str/int], str/int
-            List of variables names or indices,
+        :param y: List of variables names or indices,
             or a single variable name or index.
         """
         idx = self.get_var_indices(y)
@@ -151,35 +130,29 @@ class Variables(Coord):
         names = [self._array[i] for i in idx]
         return names
 
-    def __getitem__(self, y) -> str:
+    def __getitem__(self, y: KeyLikeVar) -> str:
         """Return name of variable.
 
-        Parameters
-        ----------
-        y: int, str, List[int], List[str], slice
-            Index or name of variable(s).
+        :param y: Index or name of variable(s).
         """
         indices = self.get_var_indices(y)
         return self._array[indices]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Iter variables names."""
         return iter(self._array)
 
-    def slice(self, key=None):
+    def slice(self, key: KeyLikeVar = None):
         """Slice variables.
 
-        Parameters
-        ----------
-        key: key-like
-            Variables names or index (a key-like argument).
+        :param key: Variables names or index (a key-like argument).
             Takes precedence over keyring.
         """
         if key is None:
             key = slice(None)
         self.update_values(self[key])
 
-    def copy(self):
+    def copy(self) -> "Variables":
         return Variables(self[:], units=self.units, fullname=self.fullname)
 
     def append(self, var: str):

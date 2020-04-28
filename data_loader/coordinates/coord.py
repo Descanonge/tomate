@@ -13,7 +13,7 @@ from typing import Any, List, Sequence, Tuple
 import numpy as np
 
 from data_loader.keys.key import reverse_slice_order
-from data_loader.types import KeyLike
+from data_loader.custom_types import KeyLike
 
 
 log = logging.getLogger(__name__)

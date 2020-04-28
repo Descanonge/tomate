@@ -25,12 +25,14 @@ File: Type
 
 from typing import Any, List, Union, TypeVar
 
-KeyLike = TypeVar('KeyLike', int, List[int], slice, None)
+KeyLikeInt = TypeVar('KeyLikeInt', int, List[int], slice, None)
 
 KeyLikeStr = TypeVar('KeyLikeStr', str, List[str], slice, None)
-KeyLikeVar = TypeVar('KeyLikeVar', KeyLike, KeyLikeStr)
+KeyLikeVar = TypeVar('KeyLikeVar', KeyLikeInt, KeyLikeStr)
 
 KeyLikeFloat = TypeVar('KeyLikeFloat', int, float, List[Union[int, float]], slice, None)
 KeyLikeValue = TypeVar('KeyLikeValue', KeyLikeFloat, KeyLikeStr)
+
+KeyLike = TypeVar('KeyLike', KeyLikeInt, KeyLikeVar)
 
 File = Any

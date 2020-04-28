@@ -22,12 +22,8 @@ class CmdKeyrings():
     Describe what must be taken from file and
     where it should be placed in memory.
 
-    Parameters
-    ----------
-    infile: Keyring
-        Keys that will be taken in file.
-    memory: Keyring
-        Keys to indicate where to put the data
+    :param infile: Keys that will be taken in file.
+    :param memory: Keys to indicate where to put the data
         in the memory.
 
     Attributes
@@ -39,7 +35,7 @@ class CmdKeyrings():
         in the memory.
     """
 
-    def __init__(self, infile=None, memory=None):
+    def __init__(self, infile: Keyring = None, memory: Keyring = None):
         if infile is None:
             infile = Keyring()
         if memory is None:
@@ -49,52 +45,31 @@ class CmdKeyrings():
     def __str__(self):
         return 'in-file: ' + str(self.infile) + ' | memory: ' + str(self.memory)
 
-    def __iter__(self):
-        """Returns both keyrings.
-
-        Yields
-        ------
-        Iterator[Keyring]
-            Infile and memory keyrings.
-        """
+    def __iter__(self) -> Iterator[Keyring]:
+        """Returns both infile and memory keyrings."""
         return iter([self.infile, self.memory])
 
-    def __getitem__(self, item):
-        """Get keys from both keyrings.
+    def __getitem__(self, item: str) -> Tuple[Keyring, Keyring]:
+        """Get keys from both keyrings for a dimension."""
+        return (self.infile[item], self.memory[item])
 
-        Returns
-        -------
-        List[Key]
-            Key for `item` dimension in
-            infile and memory keyrings.
-        """
-        return [self.infile[item], self.memory[item]]
-
-    def set(self, infile, memory):
-        """Set keys.
-
-        Parameters
-        ----------
-        infile: Keyring
-        memory: Keyring
-        """
+    def set(self, infile: Keyring, memory: Keyring):
+        """Set keys."""
         self.infile = infile
         self.memory = memory
 
-    def modify(self, infile=None, memory=None):
+    def modify(self, infile: Keyring = None, memory: Keyring = None):
         """Modify keys in place.
 
-        Parameters
-        ----------
-        infile: Keyring, optional
-        memory: Keyring, optional
+        :param infile: [opt]
+        :param memory: [opt]
         """
         if infile is not None:
             self.infile.update(infile)
         if memory is not None:
             self.memory.update(memory)
 
-    def copy(self):
+    def copy(self) -> "CmdKeyrings":
         """Return copy of self."""
         infile = self.infile.copy()
         memory = self.memory.copy()
@@ -138,7 +113,7 @@ class Command():
         """Number of keyrings duos."""
         return len(self.keyrings)
 
-    def __getitem__(self, i) -> CmdKeyrings:
+    def __getitem__(self, i: int) -> CmdKeyrings:
         """Get i-th keyrings duo."""
         return self.keyrings[i]
 
@@ -151,46 +126,23 @@ class Command():
             self.append(*k)
         return self
 
-    def append(self, krg_infile, krg_memory):
-        """Add a command keyring duo.
-
-        Parameters
-        ----------
-        krg_infile, krg_memory: Keyring
-        """
+    def append(self, krg_infile: Keyring, krg_memory: Keyring):
+        """Add a command keyring duo."""
         self.keyrings.append(CmdKeyrings(krg_infile, krg_memory))
 
-    def add_keyrings(self, krgs_infile, krgs_memory):
-        """Add multiple keyrings duos.
-
-        Parameters
-        ----------
-        krgs_infile, krgs_memory: List[Keyring]
-        """
+    def add_keyrings(self, krgs_infile: List[Keyring], krgs_memory: List[Keyring]):
+        """Add multiple keyrings duos."""
         n = len(krgs_infile)
         for i in range(n):
             self.append(krgs_infile[i], krgs_memory[i])
 
-    def set_keyring(self, krg_infile, krg_memory, i=0):
-        """Set a keyrings duo by index.
-
-        Parameters
-        ----------
-        krg_infile, krg_memory: Keyring
-        i: int, optional
-            Index.
-        """
+    def set_keyring(self, krg_infile: Keyring, krg_memory: Keyring, i=0):
+        """Set a keyrings duo by index."""
         self[i].set(krg_infile, krg_memory)
 
-    def modify_keyring(self, krg_infile=None, krg_memory=None, i=0):
-        """Modify a keyrings duo in place.
-
-        Parameters
-        ----------
-        krg_infile, krg_memory: Keyring, optional
-        i: int, optional
-             Index.
-        """
+    def modify_keyring(self, krg_infile: Keyring = None, krg_memory: Keyring = None,
+                       i: int = 0):
+        """Modify a keyrings duo in place."""
         self[i].modify(krg_infile, krg_memory)
 
     def remove_keyring(self, idx: int):
@@ -201,7 +153,7 @@ class Command():
         """Remove all keys."""
         self.keyrings = []
 
-    def copy(self):
+    def copy(self) -> "Command":
         """Return copy of self."""
         new = Command()
         new.filename = self.filename
@@ -211,13 +163,8 @@ class Command():
             new.append(*krg_)
         return new
 
-    def order_keys(self, order):
-        """Modify all keys order.
-
-        Parameters
-        ----------
-        order: List[str]
-        """
+    def order_keys(self, order: List[str]):
+        """Modify all keys order."""
         for krg in self:
             krg_inf, krg_mem = krg
             krg_inf.sort_by(order)
@@ -286,13 +233,8 @@ class Command():
         self.filename = filename
 
 
-def merge_cmd_per_file(commands):
-    """Merge commands that correspond to the same file.
-
-    Parameters
-    ----------
-    Commands: List[Command]
-    """
+def merge_cmd_per_file(commands: List[Command]) -> List[Command]:
+    """Merge commands that correspond to the same file."""
     filenames = []
     for cmd in commands:
         if cmd.filename not in filenames:
@@ -313,17 +255,17 @@ def merge_cmd_per_file(commands):
     return commands_merged
 
 
-def simplify_keys(keys):
+def simplify_keys(keys -> List[Key]) -> Key:
     """Simplify a list of keys.
 
     If possible return a slice.
-    If all identical, return a single value.
-    Else return a list.
+    If all identical, return an integer key.
+    Else return a list key.
 
-    Parameters
-    ----------
-    keys: List[Key]
+    :raises ValueError: If keys are not all identical, or
+        of not of type int.
     """
+    # TODO: For other types (list and slices)
     start = keys[0]
     if all(k == start for k in keys):
         return start
@@ -337,18 +279,10 @@ def simplify_keys(keys):
     raise ValueError("Keys not mergeable.")
 
 
-def separate_variables(commands):
+def separate_variables(commands: List[Command]) -> List[Command]:
     """Separate commands with different variables.
 
     Make copies of commands.
-
-    Parameters
-    ----------
-    commands: List[Command]
-
-    Returns
-    -------
-    List[Command]
     """
     commands_ = []
     for cmd in commands:

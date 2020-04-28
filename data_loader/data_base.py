@@ -7,13 +7,17 @@
 
 
 import logging
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Type, Union
 
 import numpy as np
 
-from data_loader.keys.keyring import Keyring
 from data_loader.accessor import Accessor
+from data_loader.coordinates.coord import Coord
+from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
+from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
+from data_loader.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)
@@ -36,24 +40,18 @@ class DataBase():
 
     Coordinates objects, the list of variables, the shape
     of data, and other attributes of the different scopes objects,
-    are directly acciessible from the data object.
+    are directly accessible from the data object.
     If data has been loaded, the 'loaded' scope is used,
     otherwise the 'available' scope is used.
 
     Data and coordinates can be accessed as items:
-    `Data[{name of variable | name of coordinate}]`.
+    `Data[name of variable]`.
 
     See :doc:`../data` for more information.
 
-    Parameters
-    ----------
-    root: str
-        Root data directory containing all files.
-    filegroups: List[Filegroups]
-    vi: VariablesInfo
-        Information on the variables and data.
-    coords: Coord
-        Coordinates, in the order the data should be kept.
+    :param root: Root data directory containing all files.
+    :param vi: Information on the variables and data.
+    :param coords: Coordinates, in the order the data should be kept.
         This includes variables.
 
     Attributes
@@ -67,10 +65,10 @@ class DataBase():
         Coordinates names, in the order the data
         is kept in the array.
 
-    data: Numpy array
+    data: np.ndarray or subclass
         Data array if loaded, None otherwise.
 
-    filegroups: List[Filegroup]
+    filegroups: List[FilegroupLoad]
 
     avail: Scope
         Scope of available data (on disk).
@@ -79,7 +77,7 @@ class DataBase():
     selected: Scope
         Scope of selected data.
 
-    acs: Type
+    acs: Type[Accessor]
         Accessor class (or subclass) to use to access the data.
 
     do_post_loading: Callable
@@ -88,7 +86,10 @@ class DataBase():
 
     acs = Accessor
 
-    def __init__(self, root, filegroups, vi, *coords):
+    def __init__(self, root: str,
+                 filegroups: List[FilegroupLoad],
+                 vi: VariablesInfo,
+                 *coords: Coord):
         self.root = root
 
         self.coords_name = [c.name for c in coords if c.name != 'var']
@@ -150,9 +151,7 @@ class DataBase():
         Returns dictionary of bases name and their fullname
         (with module).
 
-        Returns
-        -------
-        {class name: full name with module}
+        :returns: {class name: full name with module}
         """
         bases = self.__class__.__bases__
         out = {c.__name__: '%s.%s' % (c.__module__, c.__name__)
@@ -162,10 +161,7 @@ class DataBase():
     def _check_loaded(self):
         """Check if data is loaded.
 
-        Raises
-        ------
-        RuntimeError
-            If the data is not loaded.
+        :raises RuntimeError: If the data is not loaded.
         """
         if self.data is None:
             raise RuntimeError("Data not loaded.")
@@ -175,13 +171,9 @@ class DataBase():
 
         If y is a variable name, return the corresponding data slice.
 
-        y
-            Coordinate or variable name.
+        :param y: Coordinate or variable name.
 
-        Raises
-        ------
-        KeyError
-            If key is not a coordinate or variable.
+        :raises KeyError: If key is not a coordinate or variable.
         """
         if isinstance(y, str):
             if y in self.loaded:
@@ -218,7 +210,7 @@ class DataBase():
         """List of dimensions names."""
         return ['var'] + self.coords_name
 
-    def get_scope(self, scope) -> Scope:
+    def get_scope(self, scope: Union[str, Scope]) -> Scope:
         """Get scope by name."""
         if isinstance(scope, str):
             scope = {'avail': self.avail,
@@ -238,25 +230,19 @@ class DataBase():
         """
         return self.loaded.idx(variable)
 
-    def view(self, *keys, keyring=None, **kw_keys):
+    def view(self, *keys: KeyLike,
+             keyring: Keyring = None, **kw_keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
         If a key is an integer, the corresponding dimension in the
         array will be squeezed.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-            Keyring specifying parts of dimensions to take.
-        keys: Key-like, optional
-            Keys specifying parts of dimensions to take.
+        :param keyring: [opt] Keyring specifying parts of dimensions to take.
+        :param keys: [opt] Keys specifying parts of dimensions to take.
             Take precedence over keyring.
 
-        Returns
-        -------
-        Array
-            Subset of data, in storage order.
+        :returns: Subset of data, in storage order.
         """
         self._check_loaded()
 
@@ -269,54 +255,47 @@ class DataBase():
         log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
 
-    def view_selected(self, scope='selected', keyring=None, **keys):
+    def view_selected(self, scope: Union[str, Scope] = 'selected',
+                      keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
         Subset is specified by a scope.
-        The selection scope is expected to be created from
-        the loaded one.
         One can further slice the selection using keys.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-            Keyring specifying further slicing of selection.
-        keys: Key-like, optional
-            Keys specifying further slicing of selection.
+        :param scope: Scope indicating the selection to take.
+            It must have been created from the loaded scope.
+            Defaults to current selection.
+        :param keyring: [opt] Keyring specifying further slicing of selection.
+        :param keys: [opt] Keys specifying further slicing of selection.
             Take precedence over keyring.
 
-        Returns
-        -------
-        Array
+        :raises KeyError: Selection scope is empty.
+        :raises ValueError: Selection scope was not created from loaded.
         """
         scope = self.get_scope(scope)
         if scope.is_empty():
-            raise Exception("Selection scope is empty ('%s')." % scope.name)
+            raise KeyError("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.loaded:
-            raise Exception("The parent scope is not the loaded data scope."
-                            " (is '%s')" % scope.parent_scope.name)
+            raise ValueError("The parent scope is not the loaded data scope."
+                             " (is '%s')" % scope.parent_scope.name)
 
         scope_ = scope.copy()
         scope_.slice(keyring, int2list=False, **keys)
         return self.view(keyring=scope_.parent_keyring)
 
-    def view_ordered(self, order, keyring=None, **keys):
+    def view_ordered(self, order: List[str],
+                     keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a reordered subset of data.
 
         The ranks of the array are rearranged to follow
         the specified coordinates order.
         Keys act on loaded scope.
 
-        Parameters
-        ----------
-        order: List[str]
-            List of dimensions names in required order.
+        :param order: List of dimensions names in required order.
             Either two dimensions (for swapping them)
             or all of them should be specified.
-        keyring: Keyring, optional
-            Keyring specifying parts of dimensions to take.
-        keys: Key-like, optional
-            Keys specifying parts of dimensions to take.
+        :param keyring: [opt] Keyring specifying parts of dimensions to take.
+        :param keys: [opt] Keys specifying parts of dimensions to take.
             Take precedence over keyring.
 
         Examples
@@ -346,42 +325,27 @@ class DataBase():
         # TODO: log reorder
         return self.acs.reorder(keyring, array, order)
 
-    def iter_slices(self, coord, size=12, key=None):
+    def iter_slices(self, coord: str, size: int = 12,
+                    key: KeyLike = None) -> List[KeyLike]:
         """Iter through slices of a coordinate.
 
         Scope will be loaded if not empty, available otherwise.
         The prescribed slice size is a maximum, the last
         slice can be smaller.
 
-        Parameters
-        ----------
-        coord: str
-            Coordinate to iterate along to.
-        size: int, optional
-            Size of the slices to take.
-        key: Key-like, optional
-            Subpart of coordinate to iter through.
-
-        Returns
-        -------
-        List[Key-like]
+        :param coord: Coordinate to iterate along to.
+        :param size: [opt] Size of the slices to take.
+        :param key: [opt] Subpart of coordinate to iter through.
         """
         return self.scope.iter_slices(coord, size, key)
 
-    def iter_slices_month(self, coord='time', key=None):
+    def iter_slices_month(self, coord: str = 'time',
+                          key: KeyLike = None) -> List[List[int]]:
         """Iter through monthes of a time coordinate.
 
-        Parameters
-        ----------
-        coord: str, optional
-            Coordinate to iterate along to.
+        :param coord: [opt] Coordinate to iterate along to.
             Must be subclass of Time.
-        key: Key-like, optional
-            Subpart of coordinate to iter through.
-
-        Returns
-        -------
-        List[List[int]]
+        :param key: [opt] Subpart of coordinate to iter through.
 
         See also
         --------
@@ -413,30 +377,23 @@ class DataBase():
         """
         return self.scope.shape
 
-    def get_limits(self, *coords, scope='current', keyring=None, **keys):
+    def get_limits(self, *coords: str,
+                   scope: Union[str, Scope] = 'current',
+                   keyring: Keyring = None, **keys: KeyLike) -> List[float]:
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
         Scope is loaded if not empty, available otherwise.
 
-        Parameters
-        ----------
-        coords: str
-            Coordinates name.
+        :param coords: [opt] Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        scope: str, scope, optional
-            Scope to use. Default is current.
-        keyring: Keyring, optional
-            Subset coordinates.
-        keys: Key-like, optional
-            Subset coordinates.
+        :param scope: [opt] Scope to use. Default is current.
+        :param keyring: [opt] Subset coordinates.
+        :param keys: [opt] Subset coordinates.
             Take precedence over keyring.
 
-        Returns
-        -------
-        limits: List[float]
-            Min and max of each coordinate. Flattened.
+        :returns: Min and max of each coordinate. Flattened.
 
         Examples
         --------
@@ -449,29 +406,22 @@ class DataBase():
         scope = self.get_scope(scope)
         return scope.get_limits(*coords, keyring=keyring, **keys)
 
-    def get_extent(self, *coords, scope='current', keyring=None, **keys):
+    def get_extent(self, *coords: str,
+                   scope: Union[str, Scope] = 'current',
+                   keyring: Keyring = None, **keys: KeyLike) -> List[float]:
         """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
 
-        Parameters
-        ----------
-        coords: str
-            Coordinates name.
+        :param coords: [opt] Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        scope: str, scope, optional
-            Scope to use. Default is current.
-        keyring: Keyring, optional
-            Subset coordinates.
-        keys: Key-like, optional
-            Subset coordinates.
+        :param scope: [opt] Scope to use. Default is current.
+        :param keyring: [opt] Subset coordinates.
+        :param keys: [opt] Subset coordinates.
             Take precedence over keyring.
 
-        Returns
-        -------
-        extent: List[float]
-            First and last values of each coordinate.
+        :returns: First and last values of each coordinate.
 
         Examples
         --------
@@ -484,7 +434,7 @@ class DataBase():
         scope = self.get_scope(scope)
         return scope.get_extent(*coords, keyring=keyring, **keys)
 
-    def get_kw_keys(self, *keys, **kw_keys):
+    def get_kw_keys(self, *keys: KeyLike, **kw_keys: KeyLike) -> Dict[str, KeyLike]:
         """Make keyword keys when asking for coordinates parts.
 
         From a mix of positional and keyword argument,
@@ -493,10 +443,8 @@ class DataBase():
         Positional argument shall be ordered as the coordinates
         are ordered in data.
 
-        Parameters
-        ----------
-        keys: Key-like, optional
-        kw_keys: Key-like, optional
+        :param keys: [opt]
+        :param kw_keys: [opt]
 
         Exemples
         --------
@@ -509,22 +457,18 @@ class DataBase():
                 kw_keys[name] = key
         return kw_keys
 
-    def get_subscope(self, scope='avail', keyring=None, int2list=True, **keys):
+    def get_subscope(self, scope: Union[str, Scope] = 'avail',
+                     keyring: Keyring = None, int2list: bool = True,
+                     **keys: KeyLike) -> Scope:
         """Return subset of scope.
 
-        Parameters
-        ----------
-        scope: str, Scope, optional
-            Scope to subset.
+        :param scope: [opt] Scope to subset.
             If str, can be {'avail', 'loaded', 'selected'},
             corresponding scope of data will then be taken.
-        keyring: Keyring, optional
-        keys: Key-like, optional
+        :param keyring: [opt]
+        :param keys: [opt]
 
-        Returns
-        -------
-        Scope
-            Copy of input scope, sliced with specified keys.
+        :returns: Copy of input scope, sliced with specified keys.
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
@@ -533,19 +477,17 @@ class DataBase():
         subscope.slice(keyring, int2list=int2list, **keys)
         return subscope
 
-    def select(self, scope='current', keyring=None, **keys):
+    def select(self, scope: Union[str, Scope] = 'current',
+               keyring: Keyring = None, **keys: KeyLike):
         """Set selected scope from another scope.
 
         Wrapper around :func:`get_subscope`.
 
-        Parameters
-        ----------
-        scope: str, Scope, optional
-            Scope to subset.
+        :param scope: [opt] Scope to subset.
             If str, can be {'avail', 'loaded', 'selected'},
             corresponding scope of data will then be taken.
-        keyring: Keyring, optional
-        keys: Key-like, optional
+        :param keyring: [opt]
+        :param keys: [opt]
 
         Examples
         --------
@@ -560,14 +502,12 @@ class DataBase():
                                           int2list=False, **keys)
         self.selected.name = 'selected'
 
-    def select_by_value(self, scope='current', **keys):
+    def select_by_value(self, scope: Union[str, Scope] = 'current',
+                        **keys: KeyLikeValue):
         """Select by value.
 
-        Parameters
-        ----------
-        scope: str, Scope, optional
-            Scope to select from.
-        keys: Key-like, optional
+        :param scope: [opt] Scope to select from.
+        :param keys: [opt]
 
         See also
         --------
@@ -587,20 +527,16 @@ class DataBase():
             keys_[name] = key
         self.select(scope, **keys_)
 
-    def add_to_selection(self, scope='avail', keyring=None, **keys):
+    def add_to_selection(self, scope: Union[str, Scope] = 'avail',
+                         keyring: Keyring = None, **keys: KeyLike):
         """Add to selection.
 
         Keys act upon the parent scope of selection.
         TODO: Keys are always sorted in increasing order
 
-
-        Parameters
-        ----------
-        Scope: str, Scope, optional
-            If nothing was selected before, select keys from this scope.
-        keyring: Keyring, optional
-        keys: Key-like, optional
-
+        :param Scope: [opt] If nothing was selected before, select keys from this scope.
+        :param keyring: [opt]
+        :param keys: [opt]
         """
         scope = self.selected
         if scope.is_empty():
@@ -613,15 +549,13 @@ class DataBase():
             keyring.simplify()
             self.select(scope=scope.parent_scope, keyring=keyring)
 
-    def slice_data(self, keyring=None, **keys):
+    def slice_data(self, keyring: Keyring = None, **keys: KeyLike):
         """Slice loaded data.
 
         Keys act on loaded scope.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-        keys: Key-like, optional
+        :param keyring: [opt]
+        :param keys: [opt]
         """
         self._check_loaded()
         keyring = Keyring.get_default(keyring, **keys)
@@ -634,18 +568,15 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def load_by_value(self, *keys, **kw_keys):
+    def load_by_value(self, *keys: KeyLikeValue, **kw_keys: KeyLikeValue):
         """Load part of data from disk into memory.
 
         Part of the data to load is specified by values.
 
-        Parameters
-        ----------
-        keys: list[float], float, int, slice, optional
-            Values to select for a coordinate.
+        :param keys: [opt] Values to select for a coordinate.
             If is slice, use start and stop as boundaries. Step has no effect.
             If is float, int, or a list of, closest index for each value is taken.
-        kw_keys: Same, optional
+        :param kw_keys: [opt] Same.
 
         Examples
         --------
@@ -676,7 +607,7 @@ class DataBase():
             keys_[name] = key
         self.load(**keys_)
 
-    def load(self, *keys, **kw_keys):
+    def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.
 
         What variables, and what part of the data
@@ -685,13 +616,9 @@ class DataBase():
         If a parameter is None, all available is taken for that
         parameter.
 
-        Parameters
-        ----------
-        keys: int, slice, List[int], optional
-            What subset of coordinate to load. The order is that
-            of self.coords.
-        kw_keys: int, slice, or List[int], optional
-            What subset of coordinate to load. Takes precedence
+        :param keys: [opt] What subset of coordinate to load.
+            The order is that of self.coords.
+        :param kw_keys: [opt] What subset of coordinate to load. Takes precedence
             over positional `coords`.
             Variables key argument should be named 'var'.
 
@@ -743,98 +670,76 @@ class DataBase():
         except NotImplementedError:
             pass
 
-    def load_selected(self, keyring=None, scope=None, **keys):
+    def load_selected(self, keyring: Keyring = None,
+                      scope: Union[str, Scope] = 'selected',
+                      **keys: KeyLike):
         """Load data from a child scope of available.
 
         Subset is specified by a scope.
         The selection scope is expected to be created from
         the available one.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-        scope: Scope, optional
-            Selected scope created from available scope.
+        :param keyring: [opt]
+        :param scope: [opt] Selected scope created from available scope.
             Defaults to `self.selected`.
-        keys: Key-like, optional
+        :param keys: [opt]
 
-        Raises
-        ------
-        Exception
-            If selected scope is empty or not a child of available.
+        :raises KeyError: Selection scope is empty.
+        :raises ValueError: Selection scope was not created from available.
         """
         if scope is None:
             scope = self.selected
         if scope.is_empty():
-            raise Exception("Selection scope is empty ('%s')." % scope.name)
+            raise KeyError("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.avail:
-            raise Exception("The parent scope is not the available data scope."
-                            " (is '%s')" % scope.parent_scope.name)
+            raise ValueError("The parent scope is not the available data scope."
+                             " (is '%s')" % scope.parent_scope.name)
 
         scope_ = scope.copy()
         scope_.slice(int2list=False, keyring=keyring, **keys)
         self.load(**scope_.parent_keyring.kw)
 
-    def allocate(self, shape):
+    def allocate(self, shape: List[int]) -> np.ndarray:
         """Allocate data array.
 
-        Parameters
-        ----------
-        shape: List[int]
-            Shape of the array to allocate.
-
-        Returns
-        -------
-        Array
+        :param shape: Shape of the array to allocate.
         """
         log.info("Allocating numpy array of shape %s", shape)
         return self.acs.allocate(shape)
 
-    def self_allocate(self, shape):
+    def self_allocate(self, shape: List[int]):
         """Allocate data array for itself.
 
-        Parameters
-        ----------
-        shape: List[int]
-            Shape of the array to allocate.
+        :param shape: Shape of the array to allocate.
         """
         self.data = self.allocate(shape)
 
-    def set_post_loading_func(self, func):
+    def set_post_loading_func(self, func: Callable[[Type["DataBase"]], None]):
         """Set function for post loading treatements.
 
-        Parameters
-        ----------
-        func: Callable[[DataBase or subclass]]
-            Function to execute after data is loaded.
+        :param func: Function to execute after data is loaded.
             See do_post_loading() for a better description
             of the function interface.
 
         """
         self.do_post_loading = func
 
-    def set_data(self, var, data):
+    def set_data(self, variable: str, data: np.ndarray):
         """Set the data for a single variable.
 
-        Parameters
-        ----------
-        var: str
-            Variable to set the data to.
-        data: Array
-            Array of the correct shape for currently
+        :param var: Variable to set the data to.
+        :param data: Array of the correct shape for currently
             selected coordinates. Has no axis for variables.
 
-        Raises
-        ------
-        IndexError
-            If the data has not the right dimension.
-        ValueError
-            If the data is not of the shape of loaded scope.
+        :raises KeyError: If the variable is not in available scope.
+        :raises IndexError: If the data has not the right dimension.
+        :raises ValueError: If the data is not of the shape of loaded scope.
         """
+        if variable not in self.avail:
+            raise KeyError("%s is not in avail scope. Use add_variable." % variable)
         if self.acs.ndim(data) != self.ncoord:
             raise IndexError("data of wrong dimension (%s, expected %s)" %
                              (data.ndim, self.ncoord))
-
         if self.acs.shape(data) != self.shape[1:]:
             raise ValueError("data of wrong shape (%s, expected %s)" %
                              (self.acs.shape(data), self.shape[1:]))
@@ -856,21 +761,17 @@ class DataBase():
             self.loaded.var.append(var)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable, data=None, **attrs):
+    def add_variable(self, variable: str, data: np.ndarray = None, **attrs: Any):
         """Add new variable.
 
-        Add variable, and its attributes to the VI.
+        Add variable to available scope,
+        and its attributes to the VI.
         If present, add data to loaded data.
 
-        Parameters
-        ----------
-        variable: str
-            Variable to add.
-        data: Array, optional
-            Corresponding data to add.
+        :param variable: Variable to add.
+        :param data: [opt] Corresponding data to add.
             Its shape must match that of the loaded scope.
-        attrs: Any, optional
-            Variable attributes.
+        :param attrs: [opt] Variable attributes.
             Passed to VariablesInfo.add_variable
         """
         if variable not in self.vi:
@@ -886,21 +787,16 @@ class DataBase():
             self.data = np.delete(self.data, [keys], axis=0)
             self.loaded.var.remove(variable)
 
-    def write(self, filename, wd=None, **keys):
+    def write(self, filename: str, wd: str = None, **keys: KeyLike):
         """Write variables to disk.
 
         Write to a netcdf file.
         Coordinates are written too.
 
-        Parameters
-        ----------
-        filename: str
-            File to write in. Relative to each filegroup root
+        :param filename: File to write in. Relative to each filegroup root
             directory, or from `wd` if specified.
-        wd: str, optional
-            Force to write `filename` in this directory.
-        variables: str, List[str], optional
-            Variables to write. If None, all are written.
+        :param wd: [opt] Force to write `filename` in this directory.
+        :param variables: [opt] Variables to write. If None, all are written.
         """
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
@@ -915,21 +811,16 @@ class DataBase():
                 keyring_fg['var'] = variables
                 fg.write(filename, wd, keyring=keyring_fg)
 
-    def write_add_variable(self, var, sibling, inf_name=None, **keys):
+    def write_add_variable(self, var: str, sibling: str,
+                           inf_name: KeyLikeVar = None, **keys: KeyLike):
         """Add variables to files.
 
-        Parameters
-        ----------
-        var: str
-            Variable to add. Must be in loaded scope.
-        sibling: str
-            Variable along which to add the data.
+        :param var: Variable to add. Must be in loaded scope.
+        :param sibling: Variable along which to add the data.
             New variable will be added to the same files
             and in same order.
-        inf_name: str, optional
-            Variable in-file name. Default to the variables name.
-        keys: Any, optional
-            If a subpart of data is to be written.
+        :param inf_name: [opt] Variable in-file name. Default to the variables name.
+        :param keys: [opt] If a subpart of data is to be written.
             The selected data must match in shape that of the
             sibling data on disk.
         """
@@ -942,12 +833,9 @@ class DataBase():
                 break
 
 
-def do_post_loading_default(dt): #pylint: disable=method-hidden
+def do_post_loading_default(dt: DataBase): #pylint: disable=method-hidden
     """Do post loading treatments.
 
-    Raises
-    ------
-    NotImplementedError
-        If do_post_loading was not set.
+    :raises NotImplementedError: If do_post_loading was not set.
     """
     raise NotImplementedError("do_post_loading was not set.")

@@ -35,3 +35,7 @@ then no need for dt.plotted
 the CS can use its attributes and those of parent Coord to
 modify scanned values
 * TODO: launch do_post_loading when specific variables are loaded
+* TODO: contains arg in add_fg should be a fg name. We just need it to be identifiable.
+* TODO: Log into debug the coord slicing after scanning
+* TODO: Move creation of fg contains in database
+so we don't need the Constructor

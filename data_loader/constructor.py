@@ -647,7 +647,7 @@ l
                             fg.variables, coords)
                 raise RuntimeError(mess)
 
-    def make_data(self, scan=True):
+    def make_data(self, scan=True) -> Type[DataBase]:
         """Create data instance.
 
         Check a regex is present in every filegroup.
@@ -686,7 +686,8 @@ l
             dt.set_post_loading_func(self.post_loading_func)
         return dt
 
-    def create_data_class(self):
+    def create_data_class(self) -> Type[DataBase]:
+        """Create dynamic data class."""
         dt_class = create_data_class(self.dt_types, self.acs)
         self.acs = dt_class.acs
         return dt_class
