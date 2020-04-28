@@ -172,7 +172,11 @@ class VariablesInfo():
 
     def get_attr(self, attr, var):
         """Get attribute."""
-        return self._attrs[attr][var]
+        try:
+            out = self._attrs[attr][var]
+        except KeyError:
+            raise KeyError("%s variable has no attribute %s." % (var, attr))
+        return out
 
     def get_attr_safe(self, attr, var, default=None):
         """Get attribute.
