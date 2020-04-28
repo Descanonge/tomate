@@ -71,7 +71,8 @@ class Scope():
         """
         self.parent_keyring = Keyring(**{name: slice(None)
                                          for name in self.dims})
-        self.parent_keyring.set_shape(self.dims)
+        self.parent_keyring.set_shape({name: c for name, c in self.dims.items()
+                                       if c.size is not None and c.size > 0})
 
     def __str__(self):
         s = []
