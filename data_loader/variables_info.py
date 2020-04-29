@@ -8,6 +8,7 @@
 
 import logging
 import copy
+from typing import Any, Dict, Iterator, List, Union
 
 
 log = logging.getLogger(__name__)
@@ -19,24 +20,20 @@ class Attribute(dict):
 
     Allows to correctly set attributes.
 
-    Parameters
-    ----------
-    name: str
-        Name of the attribute.
-    vi: VariablesInfo
-        Parent VI.
+    :param name: Name of the attribute.
+    :param vi: Parent VI.
 
     Attributes
     ----------
     _name: str
     _vi: VariablesInfo
     """
-    def __init__(self, name, vi, kwargs):
+    def __init__(self, name: str, vi: 'VariablesInfo', kwargs: Any):
         self._name = name
         self._vi = vi
         super().__init__(**kwargs)
 
-    def __setitem__(self, k, v):
+    def __setitem__(self, k: str, v: Any):
         self._vi.set_attrs(k, **{self._name: v})
         super().__setitem__(k, v)
 
@@ -46,19 +43,15 @@ class VariableAttributes(dict):
 
     Allows to correctly set attributes.
 
-    Parameters
-    ----------
-    name: str
-        Name of the variable.
-    vi: VariablesInfo
-        Parent VI.
+    :param name: Name of the variable.
+    :param vi: Parent VI.
 
     Attributes
     ----------
     _name: str
     _vi: VariablesInfo
     """
-    def __init__(self, name: str, vi: "VariablesInfo", kwargs):
+    def __init__(self, name: str, vi: 'VariablesInfo', kwargs: Any):
         super().__setattr__('_name', name)
         super().__setattr__('_vi', vi)
         super().__init__(**kwargs)
@@ -68,7 +61,7 @@ class VariableAttributes(dict):
             return self[name]
         return super().__getattribute__(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any):
         self._vi.set_attrs(self._name, **{name: value})
         self[name] = value
 
@@ -79,15 +72,10 @@ class VariablesInfo():
     General informations (infos) and variables
     specific information (attributes, abbreviated attrs)
     are accessible as attributes.
-    Variable specific informations are stored as IterDict.
 
-    Parameters
-    ----------
-    attributes: Dict[str, Dict[str: Any]]
-        Variable specific information.
+    :param attributes: Variable specific information.
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
-    infos
-        Any additional information to be stored as attributes.
+    :param infos: Any additional information to be stored as attributes.
 
     Attributes
     ----------
@@ -97,7 +85,8 @@ class VariablesInfo():
     _infos: Dict[info: str, Any]
     """
 
-    def __init__(self, attributes=None, **infos):
+    def __init__(self, attributes: Dict[str, Dict[str, Any]] = None,
+                 **infos: Any):
         if attributes is None:
             attributes = {}
 
@@ -110,17 +99,17 @@ class VariablesInfo():
         self.set_infos(**infos)
 
     @property
-    def n(self):
+    def n(self) -> int:
         """Number of variables in the VI."""
         return len(self.var)
 
     @property
-    def attrs(self):
+    def attrs(self) -> List[str]:
         """List of attributes names."""
         return list(self._attrs.keys())
 
     @property
-    def infos(self):
+    def infos(self) -> List[str]:
         """List of infos names."""
         return list(self._infos.keys())
 
@@ -134,7 +123,7 @@ class VariablesInfo():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def __getattribute__(self, item):
+    def __getattribute__(self, item: str):
         """Render attributes and infos accessible as attributes."""
         if item in super().__getattribute__('_attrs'):
             d = super().__getattribute__('_attrs')[item]
@@ -143,24 +132,17 @@ class VariablesInfo():
             return super().__getattribute__('_infos')[item]
         return super().__getattribute__(item)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Enumerate over var."""
         return iter(self.var)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> VariableAttributes:
         """Return attributes for a variable.
 
-        Parameters
-        ----------
-        item: str
-            Variable
+        :param item: Variable
 
-        Raises
-        ------
-        TypeError
-            Argument is not a string.
-        IndexError
-            Argument is not in variables.
+        :raises TypeError: Argument is not a string.
+        :raises IndexError: Argument is not in variables.
 
         """
         if not isinstance(item, str):
@@ -170,15 +152,19 @@ class VariablesInfo():
             return VariableAttributes(item, self, d)
         raise IndexError("'%s' not in variables." % item)
 
-    def get_attr(self, attr, var):
-        """Get attribute."""
+    def get_attr(self, attr: str, var: str) -> Any:
+        """Get attribute.
+
+        :raises KeyError: Variable / attribute combinaison does not exists.
+        """
         try:
             out = self._attrs[attr][var]
         except KeyError:
-            raise KeyError("%s variable has no attribute %s." % (var, attr))
+            raise KeyError("%s attribute for variable %s"
+                           " combinaison does not exists." % (attr, var))
         return out
 
-    def get_attr_safe(self, attr, var, default=None):
+    def get_attr_safe(self, attr: str, var: str, default: Any = None) -> Any:
         """Get attribute.
 
         If attribute is not defined for this variable,
@@ -190,19 +176,15 @@ class VariablesInfo():
             value = default
         return value
 
-    def get_info(self, info):
+    def get_info(self, info: str) -> Any:
         """Get info."""
         return self._infos[info]
 
-    def set_attrs(self, var, **attrs):
+    def set_attrs(self, var: str, **attrs: Any):
         """Set attributes for a variable.
 
-        Parameters
-        ----------
-        var: str
-            Variable name.
-        attrs: Any
-            Attributes values.
+        :param var: Variable name.
+        :param attrs: Attributes values.
         """
         self.var.add(var)
         for attr, value in attrs.items():
@@ -213,20 +195,16 @@ class VariablesInfo():
                     self._attrs[attr] = {}
                 self._attrs[attr][var] = value
 
-    def set_attr_variables(self, attr, **values):
+    def set_attr_variables(self, attr: str, **values: Dict[str, Any]):
         """Set attribute for multiple variables.
 
-        Parameters
-        ----------
-        attr: str
-            Attribute name.
-        values: Any
-            Attributes values for multiple variables.
+        :param attr: Attribute name.
+        :param values: Attributes values for multiple variables.
         """
         for var, value in values.items():
             self.set_attrs(var, **{attr: value})
 
-    def set_infos(self, **infos):
+    def set_infos(self, **infos: Any):
         """Add infos."""
         for name, value in infos.items():
             if name in self.__class__.__dict__.keys():
@@ -234,13 +212,10 @@ class VariablesInfo():
             else:
                 self._infos[name] = value
 
-    def remove_variables(self, variables):
+    def remove_variables(self, variables: Union[str, List[str]]):
         """Remove variables from vi.
 
-        Parameters
-        ----------
-        variables: str or List[str]
-            Variables to remove.
+        :param variables: Variables to remove.
         """
         if not isinstance(variables, list):
             variables = [variables]
@@ -251,13 +226,10 @@ class VariablesInfo():
         for var in variables:
             self.var.remove(var)
 
-    def remove_attributes(self, attributes):
+    def remove_attributes(self, attributes: Union[str, List[str]]):
         """Remove attribute.
 
-        Parameters
-        ----------
-        attributes: str or List[str]
-            Attributes to remove.
+        :param attributes: Attributes to remove.
         """
 
         if not isinstance(attributes, list):
@@ -266,7 +238,7 @@ class VariablesInfo():
         for attr in attributes:
             self._attrs.pop(attr)
 
-    def copy(self):
+    def copy(self) -> "VariablesInfo":
         """Return copy of self."""
         vi = VariablesInfo()
 

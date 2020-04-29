@@ -8,19 +8,17 @@ Handles matches in the pre-regex.
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
+import re
+
 
 class Matcher():
     """Object associated with a matcher in the pre-regex.
 
     Holds (temporarily) the match for the current file.
 
-    Parameters
-    ----------
-    m: re.match
-        Match object of a matcher in the pre-regex.
+    :param m: Match object of a matcher in the pre-regex.
         See FilegroupScan.scan_pregex().
-    idx: int
-        Index of the matcher in the full pre-regex
+    :param idx: Index of the matcher in the full pre-regex
 
     Attributes
     ----------
@@ -48,7 +46,7 @@ class Matcher():
                "text": r"[a-zA-Z]*",
                "char": r"\S*"}
 
-    def __init__(self, m, idx):
+    def __init__(self, m: re.match, idx: int):
         coord = m.group(1)
         elt = m.group(2)
         custom = m.group('cus')

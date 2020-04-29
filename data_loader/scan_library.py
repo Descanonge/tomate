@@ -6,25 +6,26 @@
 # in the root of this project. © 2020 Clément HAËCK
 
 
+from typing import Any, Dict, List, Optional, Tuple, Union
 from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
 from data_loader.coordinates.time import change_units, Time
+from data_loader.filegroup.coord_scan import CoordScan
+from data_loader.filegroup.filegroup_netcdf import FilegroupNetCDF
 
 
-def get_date_from_matches(cs, values=None, default_date=None):
+def get_date_from_matches(cs: CoordScan,
+                          values: Optional[List[float]],
+                          default_date: Dict = None) -> Tuple[Optional[float], None]:
     """Retrieve date from matched elements.
 
     If any element is not found in the filename, it will be
     replaced by that element in the default date.
     If no match is found, None is returned.
 
-    Parameters
-    ----------
-    cs: CoordScan
-    default_date: Dict, optional
-        Default date element.
+    :param default_date: Default date element.
         Defaults to 1970-01-01 12:00:00
     """
     date = {"year": 1970, "month": 1, "day": 1,
@@ -87,7 +88,8 @@ def get_date_from_matches(cs, values=None, default_date=None):
     return None, None
 
 
-def get_value_from_matches(cs, values=None):
+def get_value_from_matches(cs: CoordScan,
+                           values: Optional[List[float]]) -> Tuple[Optional[int], None]:
     """Retrieve value from matches."""
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
@@ -101,7 +103,8 @@ def get_value_from_matches(cs, values=None):
 
     return None, None
 
-def get_string_from_match(cs, values=None):
+def get_string_from_match(cs: CoordScan,
+                          values: Optional[List[float]]) -> Tuple[Optional[str]]:
     """Retrieve string from match.
 
     Take first not dummy match of element 'text' or 'char'.
@@ -111,7 +114,7 @@ def get_string_from_match(cs, values=None):
             return m.match, m.match
     return None, None
 
-def _find_month_number(name):
+def _find_month_number(name: str) -> Optional[int]:
     """Find a month number from its name.
 
     name can be the full name (January)
@@ -131,7 +134,8 @@ def _find_month_number(name):
 
     return None
 
-def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
+def scan_in_file_nc(cs: CoordScan, file: nc.Dataset,
+                    values: Optional[List[float]]) -> Tuple[List[float], List[int]]:
     """Scan netCDF file for coordinates values and in-file index.
 
     Convert time values to CS units. Variable name must
@@ -151,20 +155,16 @@ def scan_in_file_nc(cs, file, values): #pylint: disable=unused-argument
     return in_values, in_idx
 
 
-def scan_variables_nc(cs, file, values): #pylint: disable=unused-argument
+def scan_variables_nc(cs: CoordScan, file: nc.Dataset,
+                      values: List[float]) -> Tuple[List[str]]:
     """Scan netCDF file for variables names."""
     variables = [var for var in file.variables.keys()
                  if var not in cs.filegroup.cs.keys()]
     return variables, variables
 
 
-def scan_in_file_nc_idx_only(cs, file, values):
-    """Scan netCDF for in-file index only."""
-    _, in_idx = scan_in_file_nc(cs, file, values)
-    return values, in_idx
-
-
-def scan_variables_attributes_nc(fg, file, variables):
+def scan_variables_attributes_nc(fg: FilegroupNetCDF, file: nc.Dataset,
+                                 variables: List[str]) -> Dict[str, Dict[str, Any]]:
     """Scan variables attributes in netCDF files."""
     attrs = {}
     for var in variables:
@@ -178,7 +178,7 @@ def scan_variables_attributes_nc(fg, file, variables):
     return attrs
 
 
-def scan_infos_nc(fg, file):
+def scan_infos_nc(fg: FilegroupNetCDF, file: nc.Dataset) -> Dict[str, Any]:
     """Scan for general attributes in a netCDF file."""
     infos = {}
     for name in file.ncattrs():
@@ -187,7 +187,7 @@ def scan_infos_nc(fg, file):
     return infos
 
 
-def scan_units_nc(cs, file):
+def scan_units_nc(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     """Scan for the units of the time variable."""
     nc_var = file[cs.name]
     units = nc_var.getncattr('units')

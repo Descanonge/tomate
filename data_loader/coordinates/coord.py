@@ -236,7 +236,7 @@ class Coord():
                         self.name, threshold)
         return np.mean(np.diff(self[:]))
 
-    def get_extent(self, slc: slice = None) -> List[float]:
+    def get_extent(self, slc: Union[List[int], slice] = None) -> List[float]:
         """Return extent.
 
         ie first and last values
@@ -249,7 +249,7 @@ class Coord():
         values = self._array[slc]
         return list(values[[0, -1]])
 
-    def get_limits(self, slc: slice = None) -> List[float]:
+    def get_limits(self, slc: Union[List[int], slice] = None) -> List[float]:
         """Return min/max
 
         :param slc: [opt] Constrain extent with a slice.

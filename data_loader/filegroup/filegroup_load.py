@@ -8,13 +8,17 @@
 
 import itertools
 import logging
+from typing import List, Tuple, Union
 
 import numpy as np
 
-from data_loader.filegroup.filegroup_scan import FilegroupScan
-from data_loader.filegroup import command
-from data_loader.keys.keyring import Keyring
 from data_loader.accessor import Accessor
+from data_loader.custom_types import File
+from data_loader.filegroup import command
+from data_loader.filegroup.command import CmdKeyrings, Command
+from data_loader.filegroup.filegroup_scan import FilegroupScan
+from data_loader.keys.keyring import Keyring
+from data_loader.scope import Scope
 
 
 log = logging.getLogger(__name__)
@@ -30,24 +34,18 @@ class FilegroupLoad(FilegroupScan):
 
     Attributes
     ----------
-    acs: Type
+    acs: Type[Accessor]
         Accessor type used in the files.
     """
 
     acs = Accessor
 
-    def load_from_available(self, keyring):
+    def load_from_available(self, keyring: Keyring) -> bool:
         """Load data.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on available scope.
+        :param keyring: Data to load. Acting on available scope.
 
-        Returns
-        -------
-        bool
-            False if nothing was loaded, True otherwise.
+        :returns: False if nothing was loaded, True otherwise.
         """
         cmd = self.get_fg_keyrings(keyring)
         if cmd is None:
@@ -56,18 +54,14 @@ class FilegroupLoad(FilegroupScan):
 
         return True
 
-    def load(self, keyring, memory):
+    def load(self, keyring: Keyring, memory: Keyring):
         """Load data for that filegroup.
 
         Retrieve load commands.
         Open file, load data, close file.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
+        :param keyring: Data to load. Acting on this filegroup CS.
+        :param memory: Corresponding memory keyring.
         """
         commands = self.get_commands(keyring, memory)
         for cmd in commands:
@@ -81,22 +75,16 @@ class FilegroupLoad(FilegroupScan):
             else:
                 self.close_file(file)
 
-    def get_fg_keyrings(self, keyring):
+    def get_fg_keyrings(self, keyring: Keyring) -> CmdKeyrings:
         """Get filegroup specific keyring.
 
         Use `contains` attribute to translate
         keyring acting on available scope to acting
         on the filegroup alone.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Keyring acting on database avail.
+        :param keyring: Keyring acting on database avail.
 
-        Returns
-        -------
-        CmdKeyrings, None
-            Infile and memory keyrings for this filegroup.
+        :returns: Infile and memory keyrings for this filegroup.
             None if there is nothing to load in this filegroup.
         """
         krg_infile = Keyring()
@@ -122,9 +110,9 @@ class FilegroupLoad(FilegroupScan):
         msg = "Infile and memory Fg keyrings not shape equivalent."
         assert krg_infile.is_shape_equivalent(krg_memory), msg
 
-        return command.CmdKeyrings(krg_infile, krg_memory)
+        return CmdKeyrings(krg_infile, krg_memory)
 
-    def get_commands(self, keyring, memory):
+    def get_commands(self, keyring: Keyring, memory: Keyring) -> List[Command]:
         """Get load commands.
 
         Recreate filenames from matches and find in file indices..
@@ -134,16 +122,8 @@ class FilegroupLoad(FilegroupScan):
         Favor integers and slices keys.
         Order keys according to the database coordinate order.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
-
-        Returns
-        -------
-        commands: List[Command]
+        :param keyring: Data to load. Acting on this filegroup CS.
+        :param memory: Corresponding memory keyring.
         """
         commands = self._get_commands_shared(keyring, memory)
         commands = command.merge_cmd_per_file(commands)
@@ -174,32 +154,19 @@ class FilegroupLoad(FilegroupScan):
 
         return commands
 
-    def _get_commands_no_shared(self):
-        """Get commands when there are no shared coords.
-
-        Returns
-        -------
-        List[Command]
-            Single command.
-        """
+    def _get_commands_no_shared(self) -> List[Command]:
+        """Get commands when there are no shared coords."""
         cmd = command.Command()
         cmd.filename = ''.join(self.segments)
         return [cmd]
 
-    def _get_commands_shared(self, keyring, memory):
+    def _get_commands_shared(self, keyring: Keyring, memory: Keyring) -> List[Command]:
         """Return the combo filename / keys_in for shared coordinates.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
+        :param keyring: Data to load. Acting on this filegroup CS.
+        :param memory: Corresponding memory keyring.
 
-        Returns
-        -------
-        List[Command]
-            List of command, one per combination of shared
+        :returns: List of command, one per combination of shared
             coordinate key.
         """
         matches, rgx_idxs, in_idxs = self._get_commands_shared__get_info(keyring)
@@ -231,29 +198,27 @@ class FilegroupLoad(FilegroupScan):
 
         return commands
 
-    def _get_commands_shared__get_info(self, keyring):
+    def _get_commands_shared__get_info(self,
+                                       keyring: Keyring) -> Tuple[List[np.ndarray],
+                                                                  List[List[int]],
+                                                                  Union[List[int], None]]:
         # TODO: simplify
         """For all asked values, retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.
         Find the in-file indices as the same time.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
+        :param keyring: Data to load. Acting on this filegroup CS.
 
-        Returns
-        -------
-        matches: List[Array[str]]
-            Matches for all coordinates for each needed file.
-            Length is the # of shared coord, each array is (# of values, # of matches per value).
-        rgx_idxs: List[List[int]]
-            Corresponding indices of matches in the regex.
-        in_idxs: List[int], None
-            In file indices of asked values.
+        :returns:
+            matches
+                Matches for all coordinates for each needed file.
+                Length is the # of shared coord, each array is
+                (# of values, # of matches per value).
+            rgx_idxs
+                Corresponding indices of matches in the regex.
+            in_idxs
+                In file indices of asked values.
         """
         matches = []
         rgx_idxs = []
@@ -275,15 +240,10 @@ class FilegroupLoad(FilegroupScan):
 
         return matches, rgx_idxs, in_idxs
 
-    def _get_key_infile(self, keyring):
+    def _get_key_infile(self, keyring: Keyring) -> Keyring:
         """Get the keys for data in file.
 
-        Parameters
-        ----------
-        keyring: Keyring
-            Data to load. Acting on this filegroup CS.
-        memory: Keyring
-            Corresponding memory keyring.
+        :param keyring: Data to load. Acting on this filegroup CS.
         """
         krg_inf = Keyring()
         for name, cs in self.iter_shared(False).items():
@@ -292,7 +252,7 @@ class FilegroupLoad(FilegroupScan):
         krg_inf.simplify()
         return krg_inf
 
-    def load_cmd(self, file, cmd):
+    def load_cmd(self, file: File, cmd: Command):
         """Load data from one file using a load command.
 
         Load content following a 'load command'.
@@ -301,29 +261,22 @@ class FilegroupLoad(FilegroupScan):
         for more information on how this function works, and
         how to implement it.
 
-        Parameters
-        ----------
-        file:
-            Object to access file.
+        :param file: Object to access file.
             The file is already opened by FilegroupScan.open_file().
-        cmd: Command
-            Load command.
+        :param cmd: Load command.
         """
         raise NotImplementedError
 
-    def _get_order_in_file(self):
+    def _get_order_in_file(self) -> List[str]:
         """Get order of dimensions in file.
 
         Default to the order of coordinates in the filegroup.
 
-        Returns
-        -------
-        order: List[str]
-            Dimensions names as in the file, in the order of the file.
+        :returns: Dimensions names as in the file, in the order of the file.
         """
         return list(self.cs.keys())
 
-    def _get_order(self, order_file):
+    def _get_order(self, order_file: List[str]) -> List[str]:
         """Get order of dimensions in file with their database names.
 
         Keep the order, change the name of the CoordScan if
@@ -331,22 +284,16 @@ class FilegroupLoad(FilegroupScan):
         If the in-file dimension is not associated with any database
         coordinate, keep it as is.
 
-        Parameters
-        ----------
-        order_file: List[str]
-            Dimensions order as in file.
+        :param order_file: Dimensions order as in file.
 
-        Returns
-        -------
-        order: List[str]
-            Dimensions order, with their database name.
+        :returns: Dimensions order, with their database name.
         """
         rosetta = {cs.name: name for name, cs in self.cs.items()}
         order = [rosetta.get(d, d) for d in order_file]
         return order
 
     @staticmethod
-    def _get_internal_keyring(order, keyring) -> Keyring:
+    def _get_internal_keyring(order: List[str], keyring: Keyring) -> Keyring:
         """Get keyring for in file.
 
         If dimension that are not known by the filegroup,
@@ -357,12 +304,9 @@ class FilegroupLoad(FilegroupScan):
 
         Put the keyring in order.
 
-        Parameters
-        ----------
-        order: List[str]
-            Order of dimensions in-file, as they appear in
+        :param order: Order of dimensions in-file, as they appear in
             the database.
-        keyring: Keyring
+        :returns: Keyring to take the data.
         """
         int_krg = keyring.copy()
         for dim in order:
@@ -379,28 +323,21 @@ class FilegroupLoad(FilegroupScan):
         int_krg = int_krg.subset(order)
         return int_krg
 
-    def reorder_chunk(self, chunk, keyring, int_keyring):
+    def reorder_chunk(self, chunk: np.ndarray,
+                      keyring: Keyring, int_keyring: Keyring) -> np.ndarray:
         """Reorder data.
 
         Dimensions are not necessarily stored with the same
         order in file and in memory.
 
-        Parameters
-        ----------
-        chunk: Numpy array
-            Data chunk taken from file and to re-order.
-        keyring: Keyring
-            Keyring asked. It contains the dimensions as
+        :param chunk: Data chunk taken from file and to re-order.
+        :param keyring: Keyring asked. It contains the dimensions as
             they should be stored in the database.
-        int_keyring: Keyring
-            Keyring used to fetch chunk array from file.
+        :param int_keyring: Keyring used to fetch chunk array from file.
             It contains the dimensions in the order of
             array.
 
-        Returns
-        -------
-        Array
-            Re-ordered data.
+        :returns: Re-ordered data.
         """
         in_file = int_keyring.get_non_zeros()
         in_data = [c for c in keyring.get_non_zeros() if c in in_file]
@@ -446,7 +383,8 @@ class FilegroupLoad(FilegroupScan):
                 else:
                     self.close_file(file)
 
-    def write_add_variable(self, var, sibling, inf_name, scope):
+    def write_add_variable(self, var: str, sibling: str,
+                           inf_name: str, scope: Scope):
         """Add variable to files."""
         keyring = scope.parent_keyring.copy()
         keyring['var'] = sibling

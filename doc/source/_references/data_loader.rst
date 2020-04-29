@@ -45,11 +45,15 @@ API Reference
    
       constructor
    
+      custom_types
+   
       data_base
    
       data_compute
    
       data_plot
+   
+      data_write
    
       iter_dict
    
@@ -58,8 +62,6 @@ API Reference
       scan_library
    
       scope
-   
-      types
    
       variables_info
    

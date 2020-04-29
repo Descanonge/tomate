@@ -8,6 +8,7 @@
 
 import logging
 import os
+from typing import List
 
 try:
     import netCDF4 as nc
@@ -16,8 +17,12 @@ except ImportError:
 else:
     _has_netcdf = True
 
+import numpy as np
+
+from data_loader.custom_types import File
+from data_loader.keys.keyring import Keyring
 from data_loader.filegroup.filegroup_load import FilegroupLoad
-from data_loader.filegroup.command import separate_variables
+from data_loader.filegroup.command import separate_variables, Command
 
 
 log = logging.getLogger(__name__)
@@ -31,21 +36,22 @@ class FilegroupNetCDF(FilegroupLoad):
             raise ImportError("netCDF4 package necessary to use FilegroupNetCDF.")
         super().__init__(*args, **kwargs)
 
-    def open_file(self, filename, mode='r', log_lvl='info') -> nc.Dataset:
+    def open_file(self, filename: str,
+                  mode: str = 'r', log_lvl: str = 'info') -> nc.Dataset:
         file = nc.Dataset(filename, mode)
         log_lvl = getattr(logging, log_lvl.upper())
         log.log(log_lvl, "Opening %s", filename)
         return file
 
-    def close_file(self, file):
+    def close_file(self, file: File):
         file.close()
 
-    def get_commands(self, keyring, memory):
+    def get_commands(self, keyring: Keyring, memory: Keyring) -> List[Command]:
         commands = super().get_commands(keyring, memory)
         commands = separate_variables(commands)
         return commands
 
-    def load_cmd(self, file, cmd):
+    def load_cmd(self, file: File, cmd: Command):
         for krg_inf, krg_mem in cmd:
             for ncname in krg_inf['var']:
                 log.info("Looking at variable %s", ncname)
@@ -56,17 +62,13 @@ class FilegroupNetCDF(FilegroupLoad):
                          krg_mem.print())
                 self.acs.place(krg_mem, self.db.data, chunk)
 
-    def _load_slice_single_var(self, file, keyring, ncname):
+    def _load_slice_single_var(self, file: nc.Dataset,
+                               keyring: Keyring, ncname: str) -> np.ndarray:
         """Load data for a single variable.
 
-        Parameters
-        ----------
-        file: nc.Dataset
-            File object.
-        keyring: Keyring
-            Keys to load from file.
-        ncname: str
-            Name of the variable in file.
+        :param file: File object.
+        :param keyring: Keys to load from file.
+        :param ncname: Name of the variable in file.
         """
         order_file = self._get_order_in_file(file, ncname)
         order = self._get_order(order_file)
@@ -79,25 +81,18 @@ class FilegroupNetCDF(FilegroupLoad):
         return chunk
 
     @staticmethod
-    def _get_order_in_file(file, ncname):
+    def _get_order_in_file(file: nc.Dataset, ncname: str) -> List[str]:
         """Get order from netcdf file, reorder keys.
 
-        Parameters
-        ----------
-        file: nc.Dataset
-             File object.
-        ncname: str
-             Name of the variable in file.
+        :param file: File object.
+        :param ncname: Name of the variable in file.
 
-        Returns
-        -------
-        order: List[str]
-            Coordinate names in order.
+        :returns: Coordinate names in order.
         """
         order = list(file[ncname].dimensions)
         return order
 
-    def write(self, filename, wd, keyring):
+    def write(self, filename: str, wd: str, keyring: Keyring):
         """Write data to disk."""
         if wd is None:
             wd = self.root
@@ -135,7 +130,8 @@ class FilegroupNetCDF(FilegroupLoad):
                     if not attr.startswith('_'):
                         dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
 
-    def write_variable(self, file, cmd, var, inf_name):
+    def write_variable(self, file: nc.Dataset, cmd: Command,
+                       var: str, inf_name: str):
         """Add variable to file."""
 
         for krg_inf, krg_mem in cmd:

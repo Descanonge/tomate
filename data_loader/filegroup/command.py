@@ -8,9 +8,11 @@
 
 import os
 import logging
-from typing import Iterator
+from typing import Iterator, List, Tuple
 
+from data_loader.keys.key import Key
 from data_loader.keys.keyring import Keyring
+
 
 
 log = logging.getLogger(__name__)
@@ -255,7 +257,7 @@ def merge_cmd_per_file(commands: List[Command]) -> List[Command]:
     return commands_merged
 
 
-def simplify_keys(keys -> List[Key]) -> Key:
+def simplify_keys(keys: List[Key]) -> Key:
     """Simplify a list of keys.
 
     If possible return a slice.

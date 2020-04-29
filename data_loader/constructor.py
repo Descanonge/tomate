@@ -132,7 +132,7 @@ class Constructor():
                       variables_shared: bool = False,
                       **kwargs: Any):
         """Add filegroup.
-l
+
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
         :param contains: List of variables contained in this grouping of files.
             If omitted, the CoordScan variables will be empty.

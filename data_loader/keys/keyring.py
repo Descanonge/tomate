@@ -7,10 +7,16 @@
 
 
 import logging
-from typing import List
+from typing import (Any, Dict, Iterator, Iterable, List,
+                    Optional, Tuple, Union, TYPE_CHECKING)
 
 from data_loader.keys.key import Key, KeyVar
 
+from data_loader.custom_types import KeyLike, KeyLikeVar
+
+if TYPE_CHECKING:
+    from data_loader.coordinates.coord import Coord
+    from data_loader.coordinates.variables import Variables
 
 log = logging.getLogger(__name__)
 
@@ -23,23 +29,18 @@ class Keyring():
 
     See :doc:`../accessor` for more information.
 
-    Parameters
-    ----------
-    keys: Key-like
-        What part of the data must be selected
+    :param keys: What part of the data must be selected
         for a given dimension.
     """
 
     @classmethod
-    def get_default(cls, keyring=None, variables=None, **keys) -> "Keyring":
+    def get_default(cls, keyring: 'Keyring' = None,
+                    variables: 'Variables' = None,
+                    **keys: KeyLike) -> 'Keyring':
         """Return a new keyring, eventually updated.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-            Keyring to take values from.
-        keys: Key, Key-like
-            Keys to add to the keyring.
+        :param keyring: Keyring to take values from.
+        :param keys: Keys to add to the keyring.
         """
         if keyring is None:
             keyring = cls()
@@ -52,30 +53,23 @@ class Keyring():
 
         return keyring
 
-    def __init__(self, **keys):
+    def __init__(self, **keys: Union[Key, KeyLike]):
         self._keys = {}
 
         for name, key in keys.items():
             self[name] = key
 
-    def __getitem__(self, item) -> Key:
+    def __getitem__(self, item: str) -> Key:
         """Return key for a dimension.
 
-        Parameters
-        ----------
-        item: str
-            Dimension name.
+        :param item: Dimension name.
         """
         return self._keys[item]
 
-    def __setitem__(self, item, value):
+    def __setitem__(self, item: str, value: Union[Key, KeyLike]):
         """Set key value to dimension.
 
-        Parameters
-        ----------
-        item: str
-            Dimension name
-        value: Key, key-like
+        :param item: str: Dimension name
         """
         if not isinstance(value, Key):
             if item == 'var':
@@ -84,7 +78,7 @@ class Keyring():
                 value = Key(value)
         self._keys[item] = value
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Returns dict iterator over dimensions names."""
         return iter(self._keys)
 
@@ -103,18 +97,13 @@ class Keyring():
         return list(self._keys.values())
 
     @property
-    def keys_values(self):
+    def keys_values(self) -> List[KeyLike]:
         """List of keys values present in the keyring."""
         return [k.value for k in self.keys]
 
     @property
-    def kw(self):
-        """Return dictionary of keys values.
-
-        Returns
-        -------
-        Dict[str, Key-like]
-        """
+    def kw(self) -> Dict[str, KeyLike]:
+        """Return dictionary of keys values."""
         return dict(zip(self.dims, self.keys_values))
 
     @property
@@ -126,46 +115,24 @@ class Keyring():
         """If the keyring has keys."""
         return len(self.dims) > 0
 
-    def subset(self, dims):
+    def subset(self, dims: List[str]) -> 'Keyring':
         """Return a subcopy of this keyring.
 
-        Parameters
-        ----------
-        dims: List[str]
-
-        Returns
-        -------
-        Keyring
-             Keyring with only specified keys.
+        :returns: Keyring with only specified keys.
         """
         return Keyring(**{c: self[c] for c in dims})
 
-    def items(self):
-        """Iterate through dimensions and keys.
-
-        Returns
-        -------
-        Dict_item(List[str], List[Key])
-        """
+    def items(self) -> Iterator[Tuple[str, Key]]:
+        """Iterate through dimensions and keys."""
         return self._keys.items()
 
-    def items_values(self):
-        """List of keys values present in the keyring.
-
-        Returns
-        -------
-        Dict_item(List[str], List[key-like]])
-        """
+    def items_values(self) -> Iterator[Tuple[str, KeyLike]]:
+        """List of keys values present in the keyring."""
         d = {name: key.value for name, key in self.items()}
         return d.items()
 
-    def update(self, keys):
-        """Update keyring.
-
-        Parameters
-        ----------
-        keys: Dict[Key or key-like]
-        """
+    def update(self, keys: Dict[str, Union[Key, KeyLike]]):
+        """Update keyring."""
         for name, key in keys.items():
             self[name] = key
 
@@ -182,19 +149,14 @@ class Keyring():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def copy(self) -> "Keyring":
+    def copy(self) -> 'Keyring':
         """Return copy of self."""
         args = {c: k.copy() for c, k in self.items()}
         keyring = Keyring(**args)
         return keyring
 
-    def set_shape(self, coords):
-        """Set shape of keys using coordinates.
-
-        Parameters
-        ----------
-        coords: Dict[Coord]
-        """
+    def set_shape(self, coords: Dict[str, 'Coord']):
+        """Set shape of keys using coordinates."""
         for name, k in self.items():
             if name in coords:
                 k.set_shape_coord(coords[name])
@@ -207,13 +169,12 @@ class Keyring():
         return [name for name, k in self.items()
                 if k.shape is None or k.shape > 0]
 
-    def sort_by(self, order):
+    def sort_by(self, order: List[str]):
         """Sort keys by order.
 
-        Parameters
-        ----------
-        order: List[str]
-             Dimensions present in the keyring.
+        :param order: Dimensions present in the keyring.
+        :raises IndexError: Order shorter then keyring, does
+            not allow to sort unambiguously.
         """
         if len(order) < len(self.keys):
             raise IndexError("Order given is too short.")
@@ -223,22 +184,21 @@ class Keyring():
             keys_ord[name] = self[name]
         self._keys = keys_ord
 
-    def check_unwanted(self, dims):
-        """Check if keyring contains unwanted dimensions."""
+    def check_unwanted(self, dims: List[str]):
+        """Check if keyring contains unwanted dimensions.
+
+        :raises KeyError: Dimension is present in keyring but not `dims`.
+        """
         for c in self:
             if c not in dims:
                 raise KeyError("'%s' dimension is unwanted in keyring." % c)
 
-    def make_full(self, dims, fill=None):
+    def make_full(self, dims: List[str], fill: Any = None):
         """Add dimensions.
 
-        Parameters
-        ----------
-        dimensions: List[str]
-            List of dimensions to add if not
+        :param dimensions: List of dimensions to add if not
             already present.
-        fill: Any, optional
-            Value to set new keys to.
+        :param fill: [opt] Value to set new keys to.
         """
         for c in self:
             if c not in dims:
@@ -248,13 +208,10 @@ class Keyring():
             if c not in self:
                 self[c] = fill
 
-    def make_total(self, *dims):
+    def make_total(self, *dims: str):
         """Fill missing keys by total slices.
 
-        Parameters
-        ----------
-        dims: str, optional
-            Dimensions names to fill if missing.
+        :param dims: [opt] Dimensions names to fill if missing.
             If not specified, all are selected.
         """
         if not dims:
@@ -263,16 +220,12 @@ class Keyring():
             if dim in dims and k.type == 'none':
                 k.set(slice(None, None))
 
-    def make_single(self, *dims, idx=0):
+    def make_single(self, *dims: str, idx: Union[Key, KeyLike] = 0):
         """Fill missing keys by an index.
 
-        Parameters
-        ----------
-        dims: str, optional
-            Dimensions names to fill if missing.
+        :param dims: Dimensions names to fill if missing.
             If not specified, all are selected.
-        idx: int, optional
-            Index to set as value.
+        :param idx: Index to set as value.
         """
         if not dims:
             dims = self.dims
@@ -280,13 +233,10 @@ class Keyring():
             if c in dims and k.type == 'none':
                 self[c] = idx
 
-    def make_int_list(self, *dims):
+    def make_int_list(self, *dims: str):
         """Turn integer values into lists.
 
-        Parameters
-        ----------
-        dims: str
-             Dimensions names to change if
+        :param dims: [opt] Dimensions names to change if
              necessary. If not specified, all are
              selected.
         """
@@ -296,13 +246,10 @@ class Keyring():
             if c in dims and k.type == 'int':
                 self[c].make_int_list()
 
-    def make_list_int(self, *dims):
+    def make_list_int(self, *dims: str):
         """Turn lists of length one in integers.
 
-        Parameters
-        ----------
-        dims: str
-             Dimensions names to change if
+        :param dims: Dimensions names to change if
              necessary. If not specified, all are
              selected.
         """
@@ -312,23 +259,13 @@ class Keyring():
             if c in dims:
                 k.make_list_int()
 
-    def make_idx_var(self, variables):
-        """Transform indices into variables names.
-
-        Parameters
-        ----------
-        variables: Variables
-        """
+    def make_idx_var(self, variables: 'Variables'):
+        """Transform indices into variables names."""
         if 'var' in self:
             self['var'].make_idx_var(variables)
 
-    def make_var_idx(self, variables):
-        """Transform variables names into indices.
-
-        Parameters
-        ----------
-        variables: Variables
-        """
+    def make_var_idx(self, variables: 'Variables'):
+        """Transform variables names into indices."""
         if 'var' in self:
             self['var'].make_var_idx(variables)
 
@@ -346,7 +283,7 @@ class Keyring():
         for key in self.keys:
             key.simplify()
 
-    def sort_keys(self, *dims):
+    def sort_keys(self, *dims: str):
         """Sort keys.
 
         Remove redondant indices.
@@ -357,21 +294,14 @@ class Keyring():
         for d in self.keys:
             d.sort()
 
-    def __mul__(self, other):
+    def __mul__(self, other: 'Keyring') -> 'Keyring':
         """Subset keyring by another.
 
         If `B = A[self]`
         and `C = B[other]`
         then `C = A[self*other]`
 
-        Parameters
-        ----------
-        other: Keyring
-
-        Returns
-        -------
-        Keyring
-            self*other
+        :returns: self*other
         """
         res = Keyring()
         other_ = other.copy()
@@ -381,7 +311,7 @@ class Keyring():
             res[name] = key * other_[name]
         return res
 
-    def __add__(self, other):
+    def __add__(self, other: 'Keyring') -> 'Keyring':
         """Expand keyring with another."""
         res = self.copy()
         for d in other:
@@ -391,13 +321,9 @@ class Keyring():
                 res[d] = other[d]
         return res
 
-    def is_shape_equivalent(self, other):
-        """Compare keyrings shapes.
-
-        Parameters
-        ----------
-        other: Keyring, Sequence[int, None]
-        """
+    def is_shape_equivalent(self, other: Union[Iterable[Optional[int]],
+                                               'Keyring']) -> bool:
+        """Compare keyrings shapes."""
         if isinstance(other, type(self)):
             other = other.shape
         else:

@@ -446,7 +446,7 @@ class DataBase():
         :param keys: [opt]
         :param kw_keys: [opt]
 
-        Exemples
+        Examples
         --------
         >>> print( dt.get_kw_keys([0, 1], lat=slice(0, 10)) )
         {'time': [0, 1], 'lat': slice(0, 10)}

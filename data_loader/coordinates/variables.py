@@ -32,7 +32,7 @@ class Variables(Coord):
         VI containing information about variables.
     """
 
-    def __init__(self, array: np.ndarray = None, **kwargs: str):
+    def __init__(self, array: Union[str, Sequence[str]] = None, **kwargs: str):
         kwargs.pop('name', None)
         kwargs.pop('array', None)
         super().__init__('var', None, **kwargs)
@@ -40,7 +40,7 @@ class Variables(Coord):
         if array is not None:
             self.update_values(array, dtype=None)
 
-    def update_values(self, values: Sequence[str], dtype=None):
+    def update_values(self, values: Union[str, Sequence[str]], dtype=None):
         """Change variables names.
 
         :param values: New variables names.

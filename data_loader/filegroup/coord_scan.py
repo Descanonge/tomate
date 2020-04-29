@@ -13,16 +13,19 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 import re
 
 import numpy as np
 
 from data_loader.coordinates.coord import Coord
+
 from data_loader.custom_types import File, KeyLike, KeyLikeInt
-from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.filegroup.matcher import Matcher
 from data_loader.keys.key import Key
+
+if TYPE_CHECKING:
+    from data_loader.filegroup.filegroup_load import FilegroupLoad
 
 
 log = logging.getLogger(__name__)
@@ -65,7 +68,7 @@ class CoordScan(Coord):
     scan_attributes_func: Callable
         Function to scan for attributes.
     """
-    def __init__(self, filegroup: FilegroupLoad,
+    def __init__(self, filegroup: 'FilegroupLoad',
                  coord: Coord, shared: bool, name: str):
         self.filegroup = filegroup
         self.coord = coord
@@ -399,7 +402,7 @@ class CoordScanShared(CoordScan):
         return to_open
 
 
-def get_coordscan(filegroup: FilegroupLoad, coord: Coord,
+def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,
                   shared: bool, name: str):
     """Get the right CoordScan object derived from a Coord.
 

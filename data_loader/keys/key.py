@@ -5,7 +5,15 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
+from typing import Iterator, List, Optional, Sequence, Union, TYPE_CHECKING
+
 import numpy as np
+
+from data_loader.custom_types import KeyLikeInt, KeyLikeVar
+
+if TYPE_CHECKING:
+    from data_loader.coordinates.coord import Coord
+    from data_loader.coordinates.variables import Variables
 
 
 class Key():
@@ -15,10 +23,7 @@ class Key():
 
     See :doc:`../accessor` for more information.
 
-    Parameters
-    ----------
-    key: None, int, List[int], slice
-        Key-like object.
+    :param key: Key-like object.
 
     Attributes
     ----------
@@ -40,24 +45,18 @@ class Key():
 
     INT_TYPES = (int, np.integer)
 
-    def __init__(self, key):
+    def __init__(self, key: Union[int, List[int], slice, None]):
         self.value = None
         self.type = ''
         self.shape = None
         self.parent_size = None
         self.set(key)
 
-    def set(self, key):
+    def set(self, key: KeyLikeInt):
         """Set key value.
 
-        Parameters
-        ----------
-        key: Key-like
-
-        Raises
-        ------
-        TypeError
-            If key is not a valid type.
+        :param key: Key-like:
+        :param TypeError: If key is not a valid type.
         """
         reject = False
         if isinstance(key, (list, tuple, np.ndarray)):
@@ -82,7 +81,7 @@ class Key():
         self.type = tp
         self.set_shape()
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Key') -> bool:
         return self.value == other.value
 
     def __str__(self):
@@ -91,7 +90,7 @@ class Key():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[KeyLikeInt]:
         """Iter through values."""
         try:
             val = self.tolist()
@@ -99,7 +98,7 @@ class Key():
             val = [self.value]
         return iter(val)
 
-    def copy(self) -> "Key":
+    def copy(self) -> 'Key':
         """Return copy of self."""
         if self.type == 'list':
             value = self.value.copy()
@@ -118,6 +117,8 @@ class Key():
 
         Is None if cannot be determined from
         the key alone.
+
+        :raises IndexError: If slice of shape 0.
         """
         if self.type == 'int':
             self.shape = 0
@@ -130,13 +131,11 @@ class Key():
             if self.shape == 0:
                 raise IndexError("Invalid slice (%s) of shape 0." % self.value)
 
-    def set_shape_coord(self, coord):
+    def set_shape_coord(self, coord: 'Coord'):
         """Set shape using a coordinate.
 
-        Parameters
-        ----------
-        coord: Coord
-            The coordinate that would be used.
+        :param coord: The coordinate that would be used.
+        :raises IndexError: If slice of shape 0.
         """
         self.parent_size = coord.size
         if self.type == 'slice':
@@ -144,13 +143,8 @@ class Key():
             if self.shape == 0:
                 raise IndexError("Invalid slice (%s) of shape 0." % self.value)
 
-    def no_int(self):
-        """Return value, replaces int with list.
-
-        Returns
-        -------
-        value: key-like
-        """
+    def no_int(self) -> Union[List[int], slice, None]:
+        """Return value, replaces int with list."""
         if self.type == 'int':
             return [self.value]
         return self.value
@@ -177,7 +171,7 @@ class Key():
                 self.type = 'slice'
             self.value = key
 
-    def tolist(self):
+    def tolist(self) -> List[int]:
         """Return list of key."""
         a = self.value
         if self.type == 'int':
@@ -194,12 +188,10 @@ class Key():
             a = []
         return a
 
-    def apply(self, seq):
+    def apply(self, seq: Sequence) -> Sequence:
         """Apply key to a sequence.
 
-        Parameters
-        ----------
-        seq: Sequence
+        :raises TypeError: Key type not applicable.
         """
         if self.type == 'int':
             return seq[self.value]
@@ -207,9 +199,9 @@ class Key():
             return [seq[i] for i in self.value]
         if self.type == 'slice':
             return seq[self.value]
-        raise TypeError("Not appliable (key type '%s')." % self.type)
+        raise TypeError("Not applicable (key type '%s')." % self.type)
 
-    def __mul__(self, other):
+    def __mul__(self, other: 'Key') -> 'Key':
         """Subset key by another.
 
         If `B = A[self]`
@@ -219,14 +211,7 @@ class Key():
         The type of the resulting key is of the strongest
         type of the two keys (int > list > slice).
 
-        Parameters
-        ----------
-        other: Key
-
-        Returns
-        -------
-        Key
-            self*other
+        :returns: self*other
         """
         a = self.tolist()
         key = other.value
@@ -247,7 +232,7 @@ class Key():
             key.shape = len(res)
         return key
 
-    def __add__(self, other):
+    def __add__(self, other: 'Key') -> 'Key':
         """Expand a key by another.
 
         If `B = A[self]` and `C=A[other]`
@@ -257,14 +242,7 @@ class Key():
         or a slice if one of the argument is a slice
         and the result can be written as one.
 
-        Parameters
-        ----------
-        other: Key
-
-        Returns
-        -------
-        Key
-            self + other
+        :returns: self + other
         """
         a = self.tolist()
         b = other.tolist()
@@ -307,10 +285,7 @@ class KeyVar(Key):
     Allows to go from variable name to index (and
     vice-versa).
 
-    Parameters
-    ----------
-    key: None, int, str, List[int], List[str], slice
-        Key-like object.
+    :param key: Key-like object.
         Can also be variable name, list of variables names, or
         a slice made from strings.
 
@@ -327,27 +302,20 @@ class KeyVar(Key):
     >>> 0, [0, 1], 'sst', ['sst'], slice('sst', 'chl', 1)
     """
 
-    def __init__(self, key):
+    def __init__(self, key: Union[str, int, List[str], List[int], slice]):
         self.var = False
         super().__init__(key)
 
-    def set(self, key):
+    def set(self, key: KeyLikeVar):
         """Set value.
 
-        Parameters
-        ----------
-        key: Key-like
-            Can be integer or string.
+        :param key: Can be integer or string.
             Can be list of integers or strings (not a mix of both).
             Can be a slice. Step must be None or integer. Start and
             Stop can be integers or strings (not a mix of both).
 
-        Raises
-        ------
-        TypeError
-            Key is not of valid type.
-        ValueError:
-            Slice is not valid (step is not integer,
+        :raises TypeError: Key is not of valid type.
+        :raises ValueError: Slice is not valid (step is not integer,
             or start and stop are not of the same type).
         """
         reject = False
@@ -414,12 +382,23 @@ class KeyVar(Key):
         if not self.var:
             super().simplify()
 
-    def tolist(self):
+    def tolist(self) -> List[int]:
+        """Return list of key.
+
+        :raises TypeError: If string slice cannot be transformed into list.
+        """
         if self.type == 'slice' and self.var:
             raise TypeError("Variable slice cannot be transformed into list.")
         return super().tolist()
 
-    def __mul__(self, other):
+    def __mul__(self, other: 'KeyVar') -> 'KeyVar':
+        """Subset key bd another.
+
+        See Key.__mul__ for details.
+
+        :raises TypeError: If `other` value is a KeyLikeStr, then
+            `self` must be too.
+        """
         if not other.var:
             return super().__mul__(other)
         if not self.var:
@@ -442,32 +421,22 @@ class KeyVar(Key):
             key = self.__class__(list(res))
         return key
 
-    def make_idx_var(self, variables):
-        """Transform indices into variables names.
-
-        Parameters
-        ----------
-        variables: Variables
-        """
+    def make_idx_var(self, variables: 'Variables'):
+        """Transform indices into variables names."""
         if not self.var:
             names = variables.get_var_names(self.value)
             self.set(names)
         self.set_shape_coord(variables)
 
-    def make_var_idx(self, variables):
-        """Transform variables names into indices.
-
-        Parameters
-        ----------
-        variables: Variables
-        """
+    def make_var_idx(self, variables: 'Variables'):
+        """Transform variables names into indices."""
         if self.var:
             idx = variables.get_var_indices(self.value)
             self.set(idx)
         self.set_shape_coord(variables)
 
 
-def simplify_key(key):
+def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
     """Simplify a key.
 
     Transform a list into a slice if the list is
@@ -477,7 +446,7 @@ def simplify_key(key):
         key = list2slice_simple(list(key))
     return key
 
-def list2slice_simple(L):
+def list2slice_simple(L: List[int]) -> Union[slice, List[int]]:
     """Transform a list into a slice when possible.
 
     Step can be any integer.
@@ -504,7 +473,7 @@ def list2slice_simple(L):
     return L
 
 
-def list2slice_complex(L):
+def list2slice_complex(L: List[int]) -> Union[slice, List[int]]:
     """Transform a list of integer into a list of slices.
 
     Find all series of continuous integer with a fixed
@@ -561,13 +530,10 @@ def list2slice_complex(L):
     return slices
 
 
-def guess_slice_shape(slc: slice):
+def guess_slice_shape(slc: slice) -> Optional[int]:
     """Guess the shape of a slice.
 
-    Returns
-    -------
-    int, None
-        None if it is not possible to guess.
+    :returns: None if it is not possible to guess.
         (for instance for slice(None, None))
     """
 
@@ -592,7 +558,7 @@ def guess_slice_shape(slc: slice):
 
     return None
 
-def guess_tolist(slc: slice):
+def guess_tolist(slc: slice) -> List[int]:
     """Guess a list of indices without the size.
 
     Transforming a slice into a list of indices requires
@@ -606,13 +572,7 @@ def guess_tolist(slc: slice):
     slice(None, a, s<0); a < 0
     slice(a, None, s<0); a > 0
 
-    Returns
-    -------
-    List[int]
-
-    Raises
-    ------
-    ValueError: If cannot guess.
+    :raises ValueError: If cannot guess.
     """
     start, stop, step = slc.start, slc.stop, slc.step
     if step is None:

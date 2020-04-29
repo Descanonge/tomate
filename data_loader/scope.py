@@ -6,10 +6,11 @@
 # in the root of this project. © 2020 Clément HAËCK
 
 
-from typing import List, Dict
+from typing import Dict, Iterator, List, Sequence, Union
 
 import numpy as np
 
+from data_loader.custom_types import KeyLike, KeyLikeInt
 from data_loader.keys.keyring import Keyring, Key
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
@@ -27,12 +28,6 @@ class Scope():
     Coordinates and variable list can be accessed as items:
     `Scope[{name of coordinate | 'var'}]`.
 
-    Parameters
-    ----------
-    coords: List[Coord]
-    variables: List[str]
-    name: str
-
     Attributes
     ----------
     name: str
@@ -47,7 +42,9 @@ class Scope():
         The keyring used to get this scope.
     """
 
-    def __init__(self, variables=None, coords=None, name=None):
+    def __init__(self, variables: Union[str, Sequence[str]] = None,
+                 coords: List[Coord] = None,
+                 name: str = None):
         if coords is None:
             coords = []
         self.coords = {c.name: c.copy() for c in coords}
@@ -93,11 +90,13 @@ class Scope():
             return super().__getattribute__('coords')[attr]
         return super().__getattribute__(attr)
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item: str) -> Coord:
         """Return list of var or coords.
 
         If item is 'var', return list of present variables.
         If item is a coordinate name, return coordinate.
+
+        :raises KeyError: Dimension not in scope.
         """
         if item == 'var':
             return self.var
@@ -105,7 +104,7 @@ class Scope():
             raise KeyError("'%s' not in scope coordinates" % item)
         return self.coords[item]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """List of available variables."""
         if self.is_empty():
             varlist = []
@@ -114,39 +113,29 @@ class Scope():
         return iter(varlist)
 
     @property
-    def dims(self):
+    def dims(self) -> Dict[str, Coord]:
         """Dictionnary of all dimensions.
 
         ie coordinates + variables.
 
-        Returns
-        -------
-        Dict
-            {dimension name: dimension}
+        :returns: {dimension name: dimension}
         """
         out = {'var': self.var}
         for name, c in self.coords.items():
             out[name] = c
         return out
 
-    def subset(self, coords) -> Dict[str, Coord]:
+    def subset(self, coords: List[str]) -> Dict[str, Coord]:
         """Return coordinates objects.
 
-        Parameters
-        ----------
-        coords: List[str]
-             Coordinates names.
+        :param coords: Coordinates names.
         """
         return {c: self.coords[c] for c in coords}
 
-    def idx(self, variables):
+    def idx(self, variables: Union[str, int]) -> int:
         """Get index of variables in the array.
 
         Wrapper around Variables.idx()
-
-        Parameters
-        ----------
-        variables: str, List[str], int, List[int], slice
         """
         return self.var.idx(variables)
 
@@ -159,7 +148,7 @@ class Scope():
     def is_empty(self) -> bool:
         """Is empty."""
         empty = any((not d.has_data() or d.size == 0)
-                     for d in self.dims.values())
+                    for d in self.dims.values())
         return empty
 
     def empty(self):
@@ -171,20 +160,18 @@ class Scope():
         for c in self.dims.values():
             c.empty()
 
-    def slice(self, keyring=None, int2list=True, **keys):
+    def slice(self, keyring: Keyring = None,
+              int2list: bool = True, **keys: KeyLike):
         """Slices coordinates and variables.
 
         If a parameter is None, no change is made for
         that parameter.
 
-        Parameters
-        ----------
-        keyring: Keyring, optional
-        int2list: Bool, optional
-            Transform int keys into lists, too make
+        :param keyring: [opt]
+        :param int2list: Transform int keys into lists, too make
             sure the dimension is not squezed.
             Default is True.
-        keys: Key-like, optional
+        :param keys: [opt]
         """
         keyring = Keyring.get_default(keyring, **keys, variables=self.var)
         keyring.make_total()
@@ -195,31 +182,23 @@ class Scope():
 
         self.parent_keyring *= keyring
 
-    def copy(self) -> "Scope":
+    def copy(self) -> 'Scope':
         """Return a copy of self."""
         scope = Scope(self.var, self.coords.values(), self.name)
         scope.parent_scope = self.parent_scope
         scope.parent_keyring = self.parent_keyring.copy()
         return scope
 
-    def iter_slices(self, coord, size=12, key=None):
+    def iter_slices(self, coord: str, size: int = 12,
+                    key: KeyLikeInt = None) -> List[KeyLikeInt]:
         """Iter through slices of a coordinate.
 
         The prescribed slice size is a maximum, the last
         slice can be smaller.
 
-        Parameters
-        ----------
-        coord: str
-            Coordinate to iterate along to.
-        size: int, optional
-            Size of the slices to take.
-        key: Key-like, optional
-            Subpart of coordinate to iter through.
-
-        Returns
-        -------
-        List[Key-like]
+        :param coord: Coordinate to iterate along to.
+        :param size: Size of the slices to take.
+        :param key: Subpart of coordinate to iter through.
         """
         if key is None:
             key = slice(None)
@@ -238,23 +217,15 @@ class Scope():
 
         return slices
 
-    def iter_slices_parent(self, coord, size=12):
+    def iter_slices_parent(self, coord: str, size: int = 12) -> List[KeyLikeInt]:
         """Iter through slices of parent scope.
 
         The coordinate of the parent scope is
         itered through. Pre-selection is made
         by parent keyring.
 
-        Parameters
-        ----------
-        coord: str
-            Coordinate to iterate along to.
-        size: int, optional
-            Size of the slices to take.
-
-        Returns
-        -------
-        List[Key-like]
+        :param coord: Coordinate to iterate along to.
+        :param size: Size of the slices to take.
 
         See also
         --------
@@ -276,18 +247,12 @@ class Scope():
         slices = self.parent_scope.iter_slices(coord, size, key)
         return slices
 
-    def iter_slices_month(self, coord='time', key=None):
+    def iter_slices_month(self, coord: str = 'time',
+                          key: KeyLikeInt = None) -> List[KeyLikeInt]:
         """Iter through monthes of a time coordinate.
 
-        Parameters
-        ----------
-        coord: str, optional
-            Coordinate to iterate along to.
+        :param coord: Coordinate to iterate along to.
             Must be subclass of Time.
-
-        Returns
-        -------
-        List[List[int]]
 
         See also
         --------
@@ -324,28 +289,22 @@ class Scope():
 
         return slices
 
-    def get_limits(self, *coords, keyring=None, **keys):
+    def get_limits(self, *coords: str,
+                   keyring: Keyring = None,
+                   **keys: KeyLikeInt) -> List[float]:
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
         Scope is loaded if not empty, available otherwise.
 
-        Parameters
-        ----------
-        coords: str
-            Coordinates name.
+        :param coords: Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        keyring: Keyring, optional
-            Subset coordinates.
-        keys: Key-like, optional
-            Subset coordinates.
+        :param keyring: [opt] Subset coordinates.
+        :param keys: [opt] Subset coordinates.
             Take precedence over keyring.
 
-        Returns
-        -------
-        limits: List[float]
-            Min and max of each coordinate. Flattened.
+        :returns: Min and max of each coordinate. Flattened.
         """
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(coords)
@@ -355,30 +314,24 @@ class Scope():
 
         limits = []
         for name, key in keyring.items_values():
-            limits += self[name].get_limits(key)
+            limits += self[name].get_limits(key.no_int())
         return limits
 
-    def get_extent(self, *coords, keyring=None, **keys):
+    def get_extent(self, *coords: str,
+                   keyring: Keyring = None,
+                   **keys: KeyLikeInt) -> List[float]:
         """Return extent of loaded coordinates.
 
         Return first and last value of specified coordinates.
 
-        Parameters
-        ----------
-        coords: str
-            Coordinates name.
+        :param coords: Coordinates name.
             If None, defaults to all coordinates, in the order
             of data.
-        keyring: Keyring, optional
-            Subset coordinates.
-        keys: Key-like, optional
-            Subset coordinates.
+        :param keyring: [opt] Subset coordinates.
+        :param keys: [opt] Subset coordinates.
             Take precedence over keyring.
 
-        Returns
-        -------
-        extent: List[float]
-            First and last values of each coordinate.
+        :returns: First and last values of each coordinate.
         """
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(coords)

@@ -7,14 +7,20 @@
 
 
 import logging
-from typing import List
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 import os
 import re
 
 import data_loader.filegroup.coord_scan as dlcs
-from data_loader.coordinates.variables import Variables
 
+from data_loader.coordinates.coord import Coord
+from data_loader.custom_types import File
+from data_loader.filegroup.coord_scan import CoordScan
+from data_loader.variables_info import VariablesInfo
+if TYPE_CHECKING:
+    from data_loader.filegroup.filegroup_load import FilegroupLoad
+    from data_loader.data_base import DataBase
 
 log = logging.getLogger(__name__)
 
@@ -25,19 +31,12 @@ class FilegroupScan():
     Files which share the same structure and filenames.
     This class manages the scanning part of filegroups.
 
-    Parameters
-    ----------
-    root: str
-        Root data directory containing all files.
-    db: DataBase or subclass
-        Parent database.
-    coords: List[ List[Coord, shared: bool, name: str] ]
-        Parent coordinates objects, a bool indicating if the coordinate
+    :param root: Root data directory containing all files.
+    :param db: Parent database.
+    :param coords: Parent coordinates objects, a bool indicating if the coordinate
         is shared accross files, and their name inside files.
-    vi: VariablesInfo
-        Global VariablesInfo instance.
-    variables: List[str], optional
-        Variables contained in this filegroup.
+    :param vi: Global VariablesInfo instance.
+    :param variables: [opt] Variables contained in this filegroup.
         Set the appropriate CS values with this.
 
     Attributes
@@ -68,7 +67,11 @@ class FilegroupScan():
         index is None.
     """
 
-    def __init__(self, root, db, coords, vi, variables=None):
+    def __init__(self, root: str,
+                 db: 'DataBase',
+                 coords: List[Tuple[Coord, bool, str]],
+                 vi: VariablesInfo,
+                 variables: List[str] = None):
         self.root = root
         self.db = db
         self.vi = vi
@@ -91,7 +94,7 @@ class FilegroupScan():
         self.contains = {dim: [] for dim in self.cs}
 
     @property
-    def variables(self):
+    def variables(self) -> List[str]:
         """List of variables contained in this filegroup."""
         csv = self.cs['var']
         if csv.has_data():
@@ -119,34 +122,26 @@ class FilegroupScan():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def make_coord_scan(self, coords):
+    def make_coord_scan(self, coords: List[Tuple[Coord, bool, str]]):
         """Add CoordScan objects.
 
         Each CoordScan is dynamically rebased
         from its parent Coord.
 
-        Parameters
-        ----------
-        coords: List[[Coord, shared: bool]]
+        :param coords: List of tuple containing the coordinate object,
+            the shared flag, and the name of the coordinate infile.
         """
         self.cs = {}
         for coord, shared, name in coords:
             cs = dlcs.get_coordscan(self, coord, shared, name)
             self.cs.update({coord.name: cs})
 
-    def iter_shared(self, shared=None):
+    def iter_shared(self, shared: bool = None) -> Dict[str, CoordScan]:
         """Iter through CoordScan objects.
 
-        Parameters
-        ----------
-        shared: bool, optional
-            To iterate only shared coordinates (shared=True),
+        :param shared: [opt] To iterate only shared coordinates (shared=True),
             or only in coordinates (shared=False).
             If left to None, iter all coordinates.
-
-        Returns
-        -------
-        Dict[str, CoordScan]
         """
         cs = {}
         for name, c in self.cs.items():
@@ -161,19 +156,15 @@ class FilegroupScan():
 
         return cs
 
-    def set_scan_regex(self, pregex, **replacements):
+    def set_scan_regex(self, pregex: str, **replacements: str):
         """Specify the pre-regex.
 
         Create a proper regex from the pre-regex.
         Find the matchers: replace them by the appropriate regex,
         store segments for easy replacement by the matches later.
 
-        Parameters
-        ----------
-        pregex: str
-            Pre-regex.
-        replacements: str
-            Matchers to be replaced by a constant.
+        :param pregex: Pre-regex.
+        :param replacements: Matchers to be replaced by a constant.
             The arguments names must match a matcher in the pre-regex.
 
         Example
@@ -205,31 +196,21 @@ class FilegroupScan():
         self.pregex = pregex
 
     @staticmethod
-    def scan_pregex(pregex):
+    def scan_pregex(pregex: str) -> Optional[Iterator[re.match]]:
         """Scan pregex for matchers.
 
-        Parameters
-        ----------
-        pregex: str
-             Pre-regex.
-
-        Returns
-        -------
-        Iterator[re.match]
+        :param pregex: Pre-regex.
         """
         regex = r"%\(([a-zA-Z]*):([a-zA-Z]*)(?P<cus>:custom=)?((?(cus)[^:]+:))(:?dummy)?\)"
         m = re.finditer(regex, pregex)
         return m
 
-    def find_segments(self, m):
+    def find_segments(self, m: Optional[Iterator[re.match]]):
         """Find segments in filename.
 
         Store result.
 
-        Parameters
-        ----------
-        m: Iterator[re.match]
-            Matches of the pre-regex to find matchers.
+        :param m: Matches of the pre-regex to find matchers.
         """
         sep = [0]
         n = len(m.groups())
@@ -241,28 +222,18 @@ class FilegroupScan():
         self.segments = [s[i:j]
                          for i, j in zip(sep, sep[1:]+[None])]
 
-    def open_file(self, filename, mode='r', log_lvl='info'):
+    def open_file(self, filename: str,
+                  mode: str = 'r', log_lvl: str = 'info') -> File:
         """Open a file.
 
-        Parameters
-        ----------
-        filename: str
-            File to open.
-        mode: str
-            Mode for opening (read only, replace, append, ...)
-        log_lvl: {'debug', 'info', 'warning'}
-            Level to log the opening at.
+        :param filename: File to open.
+        :param mode: Mode for opening (read only, replace, append, ...)
+        :param log_lvl: {'debug', 'info', 'warning'} Level to log the opening at.
         """
         raise NotImplementedError
 
-    def close_file(self, file):
-        """Close file.
-
-        Parameters
-        ----------
-        file:
-            File object.
-        """
+    def close_file(self, file: File):
+        """Close file."""
         raise NotImplementedError
 
     def is_to_open(self) -> bool:
@@ -271,14 +242,8 @@ class FilegroupScan():
                    or not self.scan_attr.get('gen', True))
         return to_open
 
-    def scan_general_attributes(self, file):
-        """Scan for general attributes.
-
-        Parameters
-        ----------
-        file:
-            File object.
-        """
+    def scan_general_attributes(self, file: File):
+        """Scan for general attributes."""
         func, scanned, kwargs = self.scan_attr['gen']
         if not scanned:
             log.debug('Scanning file for general attributes.')
@@ -339,10 +304,7 @@ class FilegroupScan():
         Uses os.walk.
         Sort files alphabetically
 
-        Raises
-        ------
-        RuntimeError:
-            If no files are found.
+        :raises RuntimeError: If no files are found.
         """
         # Using a generator should fast things up even though
         # less readable
@@ -366,12 +328,8 @@ class FilegroupScan():
         Scan each file.
         Set CoordScan values.
 
-        Raises
-        ------
-        NameError
-            If no files matching the regex were found.
-        ValueError
-            If no values were detected for a coordinate.
+        :raises NameError: If no files matching the regex were found.
+        :raises ValueError: If no values were detected for a coordinate.
         """
         # Reset CoordScan
         for cs in self.cs.values():
@@ -397,71 +355,50 @@ class FilegroupScan():
                         cs.name, self.variables))
                 cs.update_values(cs.values)
 
-    def set_scan_gen_attrs_func(self, func, **kwargs):
-        r"""Set function for scanning general attributes.
+    def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
+        """Set function for scanning general attributes.
 
-        Parameters
-        ----------
-        func: Callable[[Filegroup, file, \*\*kwargs], [Dict]]
-            Function that recovers variables attributes in file.
+        :param func: Function that recovers variables attributes in file.
             See scan_general_attributes_default() for a better
             description of the function interface.
-        kwargs: Any
-            Passed to the function.
+        :param kwargs: [opt] Passed to the function.
         """
         self.scan_attr['gen'] = [func, False, kwargs]
 
-    def set_scan_var_attrs_func(self, func, **kwargs):
-        r"""Set the function for scanning variables specific attributes.
+    def set_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
+        """Set the function for scanning variables specific attributes.
 
-        Parameters
-        ----------
-        func: Callable[[Filegroup, file, List[str], \*\*kwargs], [Dict]]
-            Function that recovers variables attributes in file.
+        :param func: Function that recovers variables attributes in file.
             See scan_variables_attributes_default() for a better
             description of the function interface.
-        kwargs: Any
-            Passed to the function.
+        :param kwargs: [opt] Passed to the function.
         """
         self.scan_attr['var'] = [func, False, kwargs]
 
 
-def scan_general_attributes_default(fg, file, **kwargs):
+def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
+                                    **kwargs: Any) -> Dict[str, Any]:
     """Scan general attributes in file.
 
-    Parameters
-    ----------
-    fg: FilegroupScan
-    file:
-        Object to access file.
+    :param file: Object to access file.
         The file is already opened by FilegroupSan.open_file().
-    kwargs: Any
 
-    Returns
-    -------
-    attrs: Dict[str, Any]
-        Dictionnary of attributes.
+    :returns: Dictionnary of attributes.
         {attribute name: attribute value}.
-        Attribute is then set to a Coord object
-        using Coord.set_attr(name, attr).
+        Attributes are added to the VI.
     """
     raise NotImplementedError()
 
 
-def scan_variables_attributes_default(fg, file, **kwargs):
+def scan_variables_attributes_default(fg: 'FilegroupLoad', file: File,
+                                      **kwargs: Any) -> Dict[str, Dict[str, Any]]:
     """Scan variable specific attributes.
 
-    Parameters
-    ----------
-    fg: FilegroupLoad
-    file:
-        Object to access file.
+    :param file: Object to access file.
         The file is already opened by FilegroupScan.open_file().
-    kwargs: Any
 
-    Returns
-    -------
-    attrs: Dict[variable: str, Dict[attribute name: str, Any]]
-        Attributes per variable.
+    :returns: Attributes per variable.
+        {variable name: {attribute name: value}}
+        Attributes are added to the VI.
     """
     raise NotImplementedError()
