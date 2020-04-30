@@ -123,7 +123,14 @@ class FilegroupNetCDF(FilegroupLoad):
                 t = self.vi.get_attr_safe('nctype', var, 'f')
                 dimensions = keyring.get_non_zeros()
                 dimensions.remove('var')
-                dt.createVariable(name, t, dimensions)
+
+                fillvalue = self.db.vi.get_attr_safe('_FillValue', var)
+                if fillvalue is None:
+                    dtype = self.db.data.dtype
+                    tp = '{}{}'.format(dtype.kind, dtype.itemsize)
+                    fillvalue = nc.default_fillvals.get(tp, None)
+
+                dt.createVariable(name, t, dimensions, fill_value=fillvalue)
                 dt[name][:] = self.db.view(keyring=keyring, var=var)
 
                 if var in self.db.vi.variables:
