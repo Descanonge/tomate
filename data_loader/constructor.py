@@ -65,11 +65,9 @@ class Constructor():
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
 
-        self.coords = {c.name: c for c in coords}
-        coord_var = self.coords.pop('var', None)
-        if coord_var is None:
-            coord_var = Variables([])
-        self.var = coord_var
+        if all([c.name != 'var' for c in coords]):
+            coords.insert(0, Variables([]))
+        self.dims = {c.name: c for c in coords}
 
         self.vi = VariablesInfo()
         self.filegroups = []
@@ -86,11 +84,15 @@ class Constructor():
         self.float_comparison = 1e-5
 
     @property
-    def dims(self) -> Dict[str, Coord]:
-        """Dimensions (variables + coordinates)."""
-        out = {'var': self.var}
-        for name, c in self.coords.items():
-            out[name] = c
+    def var(self) -> Variables:
+        """Variables dimensions."""
+        return self.dims['var']
+
+    @property
+    def coords(self) -> Dict[str, Coord]:
+        """Coordinates (Dimensions without variables)."""
+        out = {name: c for name, c in self.dims.items()
+               if name != 'var'}
         return out
 
     @property

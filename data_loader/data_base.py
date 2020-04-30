@@ -95,8 +95,8 @@ class DataBase():
                  *coords: Coord):
         self.root = root
 
-        self.coords = [c.name for c in coords if c.name != 'var']
-        self.dims = ['var'] + self.coords
+        self.dims = [c.name for c in coords]
+        self.coords = [name for name in self.dims if name != 'var']
 
         self.avail = Scope(coords=coords)
         self.loaded = self.avail.copy()
@@ -186,21 +186,21 @@ class DataBase():
             raise KeyError("Variable '%s' is not loaded." % y)
         raise TypeError("Key must be a str.")
 
-    def __getattribute__(self, item):
+    def __getattribute__(self, name):
         """Get attribute.
 
-        If item is a coordinate name, return coordinate from
+        If `name` is a coordinate name, return coordinate from
         current scope.
-        If item is 'var', return list of variable from
+        If `name` is 'var', return list of variable from
         current scope.
         """
-        if item in super().__getattribute__('coords') + ['var']:
+        if name in super().__getattribute__('dims'):
             if not self.loaded.is_empty():
                 scope = super().__getattribute__('loaded')
             else:
                 scope = super().__getattribute__('avail')
-            return scope[item]
-        return super().__getattribute__(item)
+            return scope[name]
+        return super().__getattribute__(name)
 
     @property
     def scope(self) -> Scope:

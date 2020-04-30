@@ -6,15 +6,14 @@
 # in the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Dict, Iterator, List, Sequence, Union
+from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
-from data_loader.custom_types import KeyLike, KeyLikeInt
+from data_loader.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
 from data_loader.keys.keyring import Keyring, Key
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
-from data_loader.coordinates.variables import Variables
 
 
 class Scope():
@@ -31,8 +30,8 @@ class Scope():
     Attributes
     ----------
     name: str
-    coords: Dict[Coord]
-        Coordinates present in the scope.
+    dims: Dict[Coord]
+        Dimensions present in the scope.
     parent_scope: Scope
         The parent scope if this object is a subpart of it.
     parent_keyring: Keyring
@@ -41,10 +40,7 @@ class Scope():
 
     def __init__(self, coords: List[Coord],
                  name: str = None):
-        self.coords = {c.name: c.copy() for c in coords}
-        # NOTE: Presently the Scope needs a Variables coordinate. It may
-        # evolve in the future.
-        self.var = self.coords.pop('var', None)
+        self.dims = {c.name: c.copy() for c in coords}
 
         self.parent_scope = None
         self.parent_keyring = Keyring()
@@ -75,10 +71,10 @@ class Scope():
     def __repr__(self):
         return '\n'.join([super().__repr__(), str(self)])
 
-    def __getattribute__(self, attr):
-        if attr in super().__getattribute__('coords'):
-            return super().__getattribute__('coords')[attr]
-        return super().__getattribute__(attr)
+    def __getattribute__(self, name):
+        if name in super().__getattribute__('dims'):
+            return super().__getattribute__('dims')[name]
+        return super().__getattribute__(name)
 
     def __getitem__(self, item: str) -> Coord:
         """Return list of var or coords.
@@ -103,16 +99,15 @@ class Scope():
         return iter(varlist)
 
     @property
-    def dims(self) -> Dict[str, Coord]:
-        """Dictionnary of all dimensions.
+    def coords(self) -> Dict[str, Coord]:
+        """Coordinates present in the scope.
 
-        ie coordinates + variables.
+        ie dimensions without variables
 
-        :returns: {dimension name: dimension}
+        :returns: {coord name: coord}
         """
-        out = {'var': self.var}
-        for name, c in self.coords.items():
-            out[name] = c
+        out = {name: c for name, c in self.dims.items()
+               if name != 'var'}
         return out
 
     def subset(self, coords: List[str]) -> Dict[str, Coord]:
@@ -152,7 +147,7 @@ class Scope():
 
     def slice(self, keyring: Keyring = None,
               int2list: bool = True, **keys: KeyLike):
-        """Slices coordinates and variables.
+        """Slice dimensions by index or variable name.
 
         If a parameter is None, no change is made for
         that parameter.
