@@ -61,8 +61,11 @@ class DataBase():
     vi: VariablesInfo
         Information on the variables and data.
 
-    coords_name: List[str]
+    coords: List[str]
         Coordinates names, in the order the data
+        is kept in the array.
+    dims: List[str]
+        Dimensions names, in the order the data
         is kept in the array.
 
     data: np.ndarray or subclass
@@ -92,7 +95,8 @@ class DataBase():
                  *coords: Coord):
         self.root = root
 
-        self.coords_name = [c.name for c in coords if c.name != 'var']
+        self.coords = [c.name for c in coords if c.name != 'var']
+        self.dims = ['var'] + self.coords
 
         self.avail = Scope(coords=coords)
         self.loaded = self.avail.copy()
@@ -190,7 +194,7 @@ class DataBase():
         If item is 'var', return list of variable from
         current scope.
         """
-        if item in super().__getattribute__('coords_name') + ['var']:
+        if item in super().__getattribute__('coords') + ['var']:
             if not self.loaded.is_empty():
                 scope = super().__getattribute__('loaded')
             else:
@@ -204,11 +208,6 @@ class DataBase():
         if not self.loaded.is_empty():
             return self.loaded
         return self.avail
-
-    @property
-    def dims(self) -> List[str]:
-        """List of dimensions names."""
-        return ['var'] + self.coords_name
 
     def get_scope(self, scope: Union[str, Scope]) -> Scope:
         """Get scope by name."""
@@ -300,7 +299,7 @@ class DataBase():
 
         Examples
         --------
-        >>> print(dt.coords_name)
+        >>> print(dt.coords)
         ['time', 'lat', 'lon']
         >>> print(dt.shape)
         [12, 300, 500]
@@ -367,7 +366,7 @@ class DataBase():
     @property
     def ncoord(self) -> int:
         """Number of coordinates."""
-        return len(self.coords_name)
+        return len(self.coords)
 
     @property
     def shape(self) -> List[int]:

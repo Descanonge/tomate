@@ -147,7 +147,7 @@ class FilegroupNetCDF(FilegroupLoad):
             if inf_name not in file.variables:
 
                 t = self.vi.get_attr_safe('nctype', var, 'f')
-                file.createVariable(inf_name, t, self.db.coords_name)
+                file.createVariable(inf_name, t, self.db.coords)
 
                 for attr in self.db.vi.attrs:
                     # TODO: no attributes for all variables.

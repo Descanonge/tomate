@@ -143,8 +143,8 @@ class DataMasked(DataBase):
         array([80.1, 52.6, 45.0, ...])
         """
         if not coords:
-            coords = self.coords_name
-        axis = [self.coords_name.index(c) for c in coords]
+            coords = self.coords
+        axis = [self.coords.index(c) for c in coords]
 
         size = 1
         for c in coords:

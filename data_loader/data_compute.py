@@ -39,7 +39,7 @@ class DataCompute(DataBase):
             Coordinates to compute the gradient along.
         """
         self._check_loaded()
-        axis = [self.coords_name.index(c) for c in coords]
+        axis = [self.coords.index(c) for c in coords]
         values = [self.coords[c][:] for c in coords]
 
         if 'DataMasked' in self.bases:
