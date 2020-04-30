@@ -8,7 +8,7 @@
 
 import logging
 import bisect
-from typing import Any, List, Sequence, Tuple
+from typing import Any, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -226,7 +226,7 @@ class Coord():
         """If coordinate has data."""
         return self._array is not None
 
-    def get_step(self, threshold:float = 1e-5) -> float:
+    def get_step(self, threshold: float = 1e-5) -> float:
         """Return mean step between values.
 
         Check if the coordinate is regular up to threshold.
