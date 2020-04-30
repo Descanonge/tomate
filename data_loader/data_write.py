@@ -101,12 +101,13 @@ def add_filegroup(cstr, j_fg):
     root = j_fg["root"]
     contains = j_fg["contains"]
     coords = [[cstr.coords[name], c["shared"], c["name"]]
-              for name, c in j_fg["cs"].items()
-              if name != 'var']
+              for name, c in j_fg["cs"].items()]
     variables_shared = j_fg["cs"]["var"]["shared"]
+    name = j_fg["name"]
     # TODO: kwargs in FG creation missing
 
-    cstr.add_filegroup(tp, contains, coords, root, variables_shared)
+    cstr.add_filegroup(tp, coords, name=name, root=root,
+                       variables_shared=variables_shared)
     cstr.set_fg_regex(j_fg["pregex"])
     fg = cstr.current_fg
     fg.segments = j_fg["segments"]
@@ -133,7 +134,8 @@ def add_filegroup(cstr, j_fg):
 
 
 def serialize_filegroup(fg):
-    top = {"root": fg.root,
+    top = {"name": fg.name,
+           "root": fg.root,
            "contains": fg.variables,
            "class": serialize_type(fg.__class__),
            "segments": fg.segments,

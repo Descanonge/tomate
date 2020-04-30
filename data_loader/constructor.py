@@ -16,12 +16,11 @@ import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
-from data_loader.variables_info import VariablesInfo
 from data_loader.coordinates.variables import Variables
+from data_loader.custom_types import File, KeyLike, KeyLikeValue
 from data_loader.data_base import DataBase
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
-from data_loader.custom_types import File, KeyLike, KeyLikeValue
 from data_loader.variables_info import VariablesInfo
 
 import data_loader.data_write as dw
@@ -35,7 +34,7 @@ class Constructor():
 
     :param root: Root directory of all files.
     :param coords: Coordinates, in the order the data should be kept.
-        Variables are excluded.
+        Variables can be omitted.
 
     Attributes
     ----------
@@ -65,10 +64,14 @@ class Constructor():
 
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
-        self.coords = {c.name: c for c in coords}
-        self.var = Variables([])
-        self.vi = VariablesInfo()
 
+        coord_var = coords.pop('var', None)
+        if coord_var is None:
+            coord_var = Variables([])
+        self.var = coord_var
+        self.coords = {c.name: c for c in coords}
+
+        self.vi = VariablesInfo()
         self.filegroups = []
 
         self.selection = []
@@ -126,16 +129,14 @@ class Constructor():
         self.vi.add_infos(**infos)
 
     def add_filegroup(self, fg_type: Type,
-                      contains: Union[str, List[str]],
                       coords: List[Tuple[Coord, Union[str, bool], str]],
+                      name: str = '',
                       root: str = None,
                       variables_shared: bool = False,
                       **kwargs: Any):
         """Add filegroup.
 
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
-        :param contains: List of variables contained in this grouping of files.
-            If omitted, the CoordScan variables will be empty.
         :param coords: Coordinates used in this grouping of files.
             Each element of the list is a length 3 tuple of
             the coordinate, a shared flag, and the name of the
@@ -143,7 +144,8 @@ class Constructor():
             The flag can be 'shared' or 'in', or a boolean (True = shared).
             The name is optional, in which case the name of the coordinate
             object is used.
-            Variables dimension is to be omitted.
+            Variables dimension can be omitted.
+        :param name: Name of the filegroup.
         :param root: [opt] Subfolder from root.
         :param variables_shared: [opt] If the Variables dimension is shared.
             Default is False.
@@ -151,8 +153,9 @@ class Constructor():
 
         Examples
         --------
-        >>> add_filegroup(FilegroupNetCDF, ['Chla', 'Chla_error'],
-        ...               [[lat, 'in', 'latitude'], [lon, 'in'], [time, 'shared']])
+        >>> add_filegroup(FilegroupNetCDF, [[lat, 'in', 'latitude'],
+        ...                                 [lon, 'in'],
+        ...                                 [time, 'shared']])
         """
         for c_fg in coords:
             if len(c_fg) < 3:
@@ -163,7 +166,7 @@ class Constructor():
                 if shared not in shared_corres:
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
                                      % (list(shared_corres.keys()),
-                                        contains, c.name))
+                                        name, c.name))
                 shared = shared_corres[shared]
             coords[i][1] = shared
 
@@ -171,15 +174,9 @@ class Constructor():
             root = ''
         root = os.path.join(self.root, root)
 
-        if contains is None:
-            contains = []
-        elif isinstance(contains, str):
-            contains = [contains]
-        contains = list(contains)
-
-        coords.insert(0, [self.var, variables_shared, 'var'])
-        fg = fg_type(root, None, coords, self.vi, variables=contains,
-                     **kwargs)
+        if all([c[0].name != 'var' for c in coords]):
+            coords.insert(0, [self.var, variables_shared, 'var'])
+        fg = fg_type(root, None, coords, self.vi, name, **kwargs)
         self.filegroups.append(fg)
 
         self.selection.append({})

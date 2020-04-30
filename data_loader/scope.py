@@ -31,9 +31,6 @@ class Scope():
     Attributes
     ----------
     name: str
-    var: List[str]
-        Variables present in the scope.
-        In the order they are present in a potential array.
     coords: Dict[Coord]
         Coordinates present in the scope.
     parent_scope: Scope
@@ -42,19 +39,17 @@ class Scope():
         The keyring used to get this scope.
     """
 
-    def __init__(self, variables: Union[str, Sequence[str]] = None,
-                 coords: List[Coord] = None,
+    def __init__(self, coords: List[Coord] = None,
                  name: str = None):
-        if coords is None:
-            coords = []
-        self.coords = {c.name: c.copy() for c in coords}
-
-        coord_var = self.coords.pop('var', None)
-        if variables is not None:
-            coord_var = Variables(variables)
-        elif coord_var is None:
+        coord_var = coords.pop('var', None).copy()
+        if coord_var is None:
             coord_var = Variables([])
         self.var = coord_var
+
+        if coords is None:
+            coords = []
+
+        self.coords = {c.name: c.copy() for c in coords}
 
         self.parent_scope = None
         self.parent_keyring = Keyring()
@@ -184,7 +179,7 @@ class Scope():
 
     def copy(self) -> 'Scope':
         """Return a copy of self."""
-        scope = Scope(self.var, self.coords.values(), self.name)
+        scope = Scope(self.coords.values(), self.name)
         scope.parent_scope = self.parent_scope
         scope.parent_keyring = self.parent_keyring.copy()
         return scope

@@ -36,8 +36,7 @@ class FilegroupScan():
     :param coords: Parent coordinates objects, a bool indicating if the coordinate
         is shared accross files, and their name inside files.
     :param vi: Global VariablesInfo instance.
-    :param variables: [opt] Variables contained in this filegroup.
-        Set the appropriate CS values with this.
+    :param name: [opt] Name of the filegroup.
 
     Attributes
     ----------
@@ -47,6 +46,8 @@ class FilegroupScan():
         Parent database.
     vi: VariablesInfo
         Global VariablesInfo instance.
+    name: str
+        Name of the filegroup.
     cs: Dict[str, CoordScan or subclass]
         Dictionnary of scanning coordinates,
         each dynamically inheriting from its parent Coord.
@@ -71,10 +72,11 @@ class FilegroupScan():
                  db: 'DataBase',
                  coords: List[Tuple[Coord, bool, str]],
                  vi: VariablesInfo,
-                 variables: List[str] = None):
+                 name: str = ''):
         self.root = root
         self.db = db
         self.vi = vi
+        self.name = name
 
         self.found_file = False
         self.n_matcher = 0
@@ -87,9 +89,6 @@ class FilegroupScan():
 
         self.cs = {}
         self.make_coord_scan(coords)
-
-        if variables is not None:
-            self.cs['var'].update_values(variables)
 
         self.contains = {dim: [] for dim in self.cs}
 
@@ -105,6 +104,7 @@ class FilegroupScan():
 
     def __str__(self):
         s = [self.__class__.__name__]
+        s.append("Name: %s" % self.name)
         s.append("Root Directory: %s" % self.root)
         s.append("Pre-regex: %s" % self.pregex)
         s.append("Regex: %s" % self.regex)
@@ -292,7 +292,7 @@ class FilegroupScan():
         except:
             if file is not None:
                 self.close_file(file)
-            log.error("Error in scanning filegroup %s", self.variables)
+            log.error("Error in scanning filegroup %s", self.name)
             raise
         else:
             if file is not None:
@@ -352,7 +352,7 @@ class FilegroupScan():
             if cs.is_to_check() or cs.name == 'var':
                 if len(cs.values) == 0:
                     raise ValueError("No values detected ({0}, {1})".format(
-                        cs.name, self.variables))
+                        cs.name, self.name))
                 cs.update_values(cs.values)
 
     def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
