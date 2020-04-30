@@ -687,8 +687,7 @@ class DataBase():
         :raises KeyError: Selection scope is empty.
         :raises ValueError: Selection scope was not created from available.
         """
-        if scope is None:
-            scope = self.selected
+        scope = self.get_scope(scope)
         if scope.is_empty():
             raise KeyError("Selection scope is empty ('%s')." % scope.name)
         if scope.parent_scope != self.avail:
