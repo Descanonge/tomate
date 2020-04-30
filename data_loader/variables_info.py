@@ -79,7 +79,7 @@ class VariablesInfo():
 
     Attributes
     ----------
-    var: Set[var]
+    variables: Set[var]
         Variables names
     _attrs: Dict[attribute: str, Dict[variable: str, Any]]
     _infos: Dict[info: str, Any]
@@ -90,7 +90,7 @@ class VariablesInfo():
         if attributes is None:
             attributes = {}
 
-        self.var = set()
+        self.variables = set()
         self._attrs = {}
         self._infos = {}
 
@@ -101,7 +101,7 @@ class VariablesInfo():
     @property
     def n(self) -> int:
         """Number of variables in the VI."""
-        return len(self.var)
+        return len(self.variables)
 
     @property
     def attrs(self) -> List[str]:
@@ -115,7 +115,7 @@ class VariablesInfo():
 
     def __str__(self):
         s = []
-        s.append("Variables: %s" % ', '.join(self.var))
+        s.append("Variables: %s" % ', '.join(self.variables))
         s.append("Attributes: %s" % ', '.join(self.attrs))
         s.append("Infos: %s" % ', '.join(self.infos))
         return '\n'.join(s)
@@ -134,7 +134,7 @@ class VariablesInfo():
 
     def __iter__(self) -> Iterator[str]:
         """Enumerate over var."""
-        return iter(self.var)
+        return iter(self.variables)
 
     def __getitem__(self, item: str) -> VariableAttributes:
         """Return attributes for a variable.
@@ -147,8 +147,9 @@ class VariablesInfo():
         """
         if not isinstance(item, str):
             TypeError("Argument must be string.")
-        if item in self.var:
-            d = {attr: values[item] for attr, values in self._attrs.items()}
+        if item in self.variables:
+            d = {attr: values[item] for attr, values in self._attrs.items()
+                 if item in values}
             return VariableAttributes(item, self, d)
         raise IndexError("'%s' not in variables." % item)
 
@@ -160,7 +161,7 @@ class VariablesInfo():
         try:
             out = self._attrs[attr][var]
         except KeyError:
-            raise KeyError("%s attribute for variable %s"
+            raise KeyError("'%s' attribute for variable '%s'"
                            " combinaison does not exists." % (attr, var))
         return out
 
@@ -186,7 +187,7 @@ class VariablesInfo():
         :param var: Variable name.
         :param attrs: Attributes values.
         """
-        self.var.add(var)
+        self.variables.add(var)
         for attr, value in attrs.items():
             if attr in self.__class__.__dict__.keys():
                 log.warning("'%s' attribute is reserved.", attr)
