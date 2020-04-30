@@ -65,11 +65,11 @@ class Constructor():
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
 
-        coord_var = coords.pop('var', None)
+        self.coords = {c.name: c for c in coords}
+        coord_var = self.coords.pop('var', None)
         if coord_var is None:
             coord_var = Variables([])
         self.var = coord_var
-        self.coords = {c.name: c for c in coords}
 
         self.vi = VariablesInfo()
         self.filegroups = []

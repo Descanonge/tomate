@@ -39,17 +39,12 @@ class Scope():
         The keyring used to get this scope.
     """
 
-    def __init__(self, coords: List[Coord] = None,
+    def __init__(self, coords: List[Coord],
                  name: str = None):
-        coord_var = coords.pop('var', None).copy()
-        if coord_var is None:
-            coord_var = Variables([])
-        self.var = coord_var
-
-        if coords is None:
-            coords = []
-
         self.coords = {c.name: c.copy() for c in coords}
+        # NOTE: Presently the Scope needs a Variables coordinate. It may
+        # evolve in the future.
+        self.var = self.coords.pop('var', None)
 
         self.parent_scope = None
         self.parent_keyring = Keyring()
@@ -179,7 +174,7 @@ class Scope():
 
     def copy(self) -> 'Scope':
         """Return a copy of self."""
-        scope = Scope(self.coords.values(), self.name)
+        scope = Scope(self.dims.values(), self.name)
         scope.parent_scope = self.parent_scope
         scope.parent_keyring = self.parent_keyring.copy()
         return scope
