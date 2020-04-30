@@ -312,7 +312,7 @@ class Scope():
         keyring.make_total()
 
         limits = []
-        for name, key in keyring.items_values():
+        for name, key in keyring.items():
             limits += self[name].get_limits(key.no_int())
         return limits
 
