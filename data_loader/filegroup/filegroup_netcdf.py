@@ -126,9 +126,11 @@ class FilegroupNetCDF(FilegroupLoad):
                 dt.createVariable(name, t, dimensions)
                 dt[name][:] = self.db.view(keyring=keyring, var=var)
 
-                for attr in self.db.vi.attrs:
-                    if not attr.startswith('_'):
-                        dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
+                if var in self.db.vi.variables:
+                    attrs = self.db.vi[var]
+                    for attr in attrs:
+                        if not attr.startswith('_'):
+                            dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
 
     def write_variable(self, file: nc.Dataset, cmd: Command,
                        var: str, inf_name: str):
