@@ -514,17 +514,17 @@ class DataBase():
            Similar management of keys arguments.
         """
         scope = self.get_scope(scope)
-        keys_ = {}
+        keyring = Keyring()
         for name, key in keys.items():
-            c = scope[name]
+            c = scope.dims[name]
             if isinstance(key, slice):
                 key = c.subset(key.start, key.stop)
             elif isinstance(key, (list, tuple, np.ndarray)):
                 key = [c.get_index(k) for k in key]
             else:
                 key = c.get_index(key)
-            keys_[name] = key
-        self.select(scope, **keys_)
+            keyring[name] = key
+        self.select(scope, keyring)
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
