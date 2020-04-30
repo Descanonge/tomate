@@ -129,7 +129,7 @@ class Constructor():
         self.vi.add_infos(**infos)
 
     def add_filegroup(self, fg_type: Type,
-                      coords: List[Tuple[Coord, Union[str, bool], str]],
+                      coords_fg: List[Tuple[Coord, Union[str, bool], str]],
                       name: str = '',
                       root: str = None,
                       variables_shared: bool = False,
@@ -137,7 +137,7 @@ class Constructor():
         """Add filegroup.
 
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
-        :param coords: Coordinates used in this grouping of files.
+        :param coords_fg: Coordinates used in this grouping of files.
             Each element of the list is a length 3 tuple of
             the coordinate, a shared flag, and the name of the
             coordinate in the file.
@@ -157,26 +157,26 @@ class Constructor():
         ...                                 [lon, 'in'],
         ...                                 [time, 'shared']])
         """
-        for c_fg in coords:
+        for c_fg in coords_fg:
             if len(c_fg) < 3:
                 c_fg.append(c_fg[0].name)
         shared_corres = {'in': False, 'shared': True}
-        for i, [c, shared, _] in enumerate(coords):
+        for i, [c, shared, _] in enumerate(coords_fg):
             if not isinstance(shared, bool):
                 if shared not in shared_corres:
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
                                      % (list(shared_corres.keys()),
                                         name, c.name))
                 shared = shared_corres[shared]
-            coords[i][1] = shared
+            coords_fg[i][1] = shared
 
         if root is None:
             root = ''
         root = os.path.join(self.root, root)
 
-        if all([c[0].name != 'var' for c in coords]):
-            coords.insert(0, [self.var, variables_shared, 'var'])
-        fg = fg_type(root, None, coords, self.vi, name, **kwargs)
+        if all([c[0].name != 'var' for c in coords_fg]):
+            coords_fg.insert(0, [self.var, variables_shared, 'var'])
+        fg = fg_type(root, None, coords_fg, self.vi, name, **kwargs)
         self.filegroups.append(fg)
 
         self.selection.append({})

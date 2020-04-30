@@ -33,7 +33,7 @@ class FilegroupScan():
 
     :param root: Root data directory containing all files.
     :param db: Parent database.
-    :param coords: Parent coordinates objects, a bool indicating if the coordinate
+    :param coords_fg: Parent coordinates objects, a bool indicating if the coordinate
         is shared accross files, and their name inside files.
     :param vi: Global VariablesInfo instance.
     :param name: [opt] Name of the filegroup.
@@ -70,7 +70,7 @@ class FilegroupScan():
 
     def __init__(self, root: str,
                  db: 'DataBase',
-                 coords: List[Tuple[Coord, bool, str]],
+                 coords_fg: List[Tuple[Coord, bool, str]],
                  vi: VariablesInfo,
                  name: str = ''):
         self.root = root
@@ -88,7 +88,7 @@ class FilegroupScan():
         self.scan_attr = {}
 
         self.cs = {}
-        self.make_coord_scan(coords)
+        self.make_coord_scan(coords_fg)
 
         self.contains = {dim: [] for dim in self.cs}
 
