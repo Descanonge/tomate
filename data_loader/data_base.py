@@ -13,6 +13,7 @@ import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
+from data_loader.coordinates.time import Time
 from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.keys.keyring import Keyring
@@ -476,6 +477,28 @@ class DataBase():
         subscope.slice(keyring, int2list=int2list, **keys)
         return subscope
 
+    def get_subscope_by_value(self, scope: Union[str, Scope] = 'avail',
+                              keyring: Keyring = None,
+                              int2list: bool = True,
+                              by_day: bool = False,
+                              **keys: KeyLikeValue) -> Scope:
+        """Return subset of scope."""
+        scope = self.get_scope(scope)
+        keyring = Keyring()
+        for name, key in keys.items():
+            c = scope.dims[name]
+            if isinstance(key, slice):
+                if issubclass(type(c), Time) and by_day:
+                    key = c.subset_day(key.start, key.stop)
+                else:
+                    key = c.subset(key.start, key.stop)
+            elif isinstance(key, (list, tuple, np.ndarray)):
+                key = [c.get_index(k) for k in key]
+            else:
+                key = c.get_index(key)
+            keyring[name] = key
+        return self.get_subscope(scope, keyring, int2list)
+
     def select(self, scope: Union[str, Scope] = 'current',
                keyring: Keyring = None, **keys: KeyLike):
         """Set selected scope from another scope.
@@ -502,6 +525,7 @@ class DataBase():
         self.selected.name = 'selected'
 
     def select_by_value(self, scope: Union[str, Scope] = 'current',
+                        by_day: bool = False,
                         **keys: KeyLikeValue):
         """Select by value.
 
@@ -513,18 +537,9 @@ class DataBase():
         load_by_value:
            Similar management of keys arguments.
         """
-        scope = self.get_scope(scope)
-        keyring = Keyring()
-        for name, key in keys.items():
-            c = scope.dims[name]
-            if isinstance(key, slice):
-                key = c.subset(key.start, key.stop)
-            elif isinstance(key, (list, tuple, np.ndarray)):
-                key = [c.get_index(k) for k in key]
-            else:
-                key = c.get_index(key)
-            keyring[name] = key
-        self.select(scope, keyring)
+        self.selected = self.get_subscope_by_value(scope, int2list=True,
+                                                   by_day=by_day, **keys)
+        self.selected.name = 'selected'
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
@@ -567,7 +582,8 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def load_by_value(self, *keys: KeyLikeValue, **kw_keys: KeyLikeValue):
+    def load_by_value(self, *keys: KeyLikeValue, by_day=False,
+                      **kw_keys: KeyLikeValue):
         """Load part of data from disk into memory.
 
         Part of the data to load is specified by values.
@@ -575,6 +591,8 @@ class DataBase():
         :param keys: [opt] Values to select for a coordinate.
             If is slice, use start and stop as boundaries. Step has no effect.
             If is float, int, or a list of, closest index for each value is taken.
+        :param bool: Use `subset_by_day` for Time dimension rather than `subset`.
+            Default to False.
         :param kw_keys: [opt] Same.
 
         Examples
@@ -591,20 +609,9 @@ class DataBase():
         Load depths closest to 0, 10, 50
         >>> dt.load_by_value(None, depth=[0, 10, 50])
         """
-        keys_ = {}
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        for name, c in self.avail.dims.items():
-            key = kw_keys.get(name)
-            if key is None:
-                key = slice(None, None)
-            elif isinstance(key, slice):
-                key = c.subset(key.start, key.stop)
-            elif isinstance(key, (list, tuple, np.ndarray)):
-                key = [c.get_index(k) for k in key]
-            else:
-                key = c.get_index(key)
-            keys_[name] = key
-        self.load(**keys_)
+        scope = self.get_subscope_by_value('avail', int2list=True, by_day=True, **kw_keys)
+        self.load_selected(scope=scope)
 
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.

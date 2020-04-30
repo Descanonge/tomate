@@ -12,19 +12,10 @@ in a subclass of database ?
 * TODO: Write: add to file
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
-* TODO: iter coordinate (especially time)
 * TODO: no type restrictions on keyring
 or maybe a new type of Key, for values
 it could even englob KeyVar (that seems complicated)
-* TODO: coord attribute scanning is flawed
-** From which filegroup do you transfer attributes to master coords ?
-*** The user does. Let him do it.
 * TODO: check error when shared cs has no scanning
-* TODO: loading could fail if available is modified
-idea for more robustness ?
-I guess FG should communicate with available instead of relying on contains
--> but the only way to do that would be to work by coordinate values instead of
-index. I don't want to do that, too complicated.
 * TODO: Plot return new object
 returns object with info about whats plotted
     -> scope, object (image / contours)
@@ -38,8 +29,8 @@ then no need for dt.plotted
 the CS can use its attributes and those of parent Coord to
 modify scanned values
 * TODO: launch do_post_loading when specific variables are loaded
-* TODO: contains arg in add_fg should be a fg name. We just need it to be identifiable.
 * TODO: Log into debug the coord slicing after scanning
 * TODO: Move creation of fg contains in database
 so we don't need the Constructor
-
+* TODO: Add index keys in load_by_value and select_by_value
+stuff like lat=slice(10., 30.), time_i=0
