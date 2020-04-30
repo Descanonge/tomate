@@ -172,6 +172,20 @@ class Scope():
 
         self.parent_keyring *= keyring
 
+    def slice_by_value(self, int2list: bool = True, **keys: KeyLikeValue):
+        """Slice dimensions by values."""
+        keyring = Keyring()
+        for name, key in keys.items():
+            c = self.dims[name]
+            if isinstance(key, slice):
+                key = c.subset(key.start, key.stop)
+            elif isinstance(key, (list, tuple, np.ndarray)):
+                key = [c.get_index(k) for k in key]
+            else:
+                key = c.get_index(key)
+            keyring[name] = key
+        self.slice(keyring, int2list)
+
     def copy(self) -> 'Scope':
         """Return a copy of self."""
         scope = Scope(self.dims.values(), self.name)
