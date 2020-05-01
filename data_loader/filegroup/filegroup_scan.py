@@ -367,7 +367,12 @@ class FilegroupScan():
                     f = cs.change_units_other
                 log.debug("Changing units for '%s' from '%s' to '%s'",
                          cs.coord.name, cs.units, cs.coord.units)
-                cs.values = f(cs.values, cs.units, cs.coord.units)
+                try:
+                    cs.values = f(cs.values, cs.units, cs.coord.units)
+                except NotImplementedError:
+                    log.warning("Units conversion should happen for '%s' (%s)"
+                                " from '%s' to '%s' but no function is defined.",
+                                cs.name, self.name, cs.units, cs.coord.units)
 
             if cs.is_to_check() or cs.name == 'var':
                 if len(cs.values) == 0:
