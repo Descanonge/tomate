@@ -376,6 +376,9 @@ class FilegroupLoad(FilegroupScan):
                     for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
                         log.debug("Found attributes (%s) for '%s' (%s infile)",
                                   values.keys(), name, name_inf)
+                        already_present = [attr for attr in values if attr in self.vi[name]]
+                        for attr in already_present:
+                            values.pop(attr)
                         self.vi.set_attrs(name, **values)
                 except:
                     self.close_file(file)
