@@ -127,7 +127,8 @@ return a type of data supporting masked values, and plotting functions.
 Post loading function
 ---------------------
 
-It can be useful to apply some operation each time data is loaded.
-This is achievable by setting a post-loading function with
-:func:`DataBase.set_post_load_func<data_base.DataBase.set_post_load_func>`,
-which will be executed after loading data.
+It can be useful to apply some operations each time data is loaded.
+One can add multiple functions that will be called each time specific variables
+are loaded. These function can also tied to a specific filegroup.
+This is done by using
+:func:`Constructor.add_post_loading_func<constructor.Constructor.add_post_loading_func>`.
