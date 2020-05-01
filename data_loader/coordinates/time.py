@@ -43,30 +43,14 @@ class Time(Coord):
     units: str
         Time units.
     """
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.units == '':
+            raise ValueError("Time coordinate must be supplied CF-compliant units.")
 
     def get_extent_str(self, slc: KeyLike = None) -> str:
         return "%s - %s" % tuple(self.format(v)
                                  for v in self.index2date(slc)[[0, -1]])
-
-    def update_values(self, values: Sequence[float], dtype=None):
-        """Update values.
-
-        :param values: New values. Have matching time units of self.
-        :param dtype: [opt] Dtype of the array.
-            Default to np.float64.
-        :type dtype: data-type
-
-        :raises ValueError: If the coordinate has no units.
-
-        See also
-        --------
-        data_loader.coordinates.coord.Coord.update_values
-        """
-        if self.units == "":
-            raise ValueError("%s has no units" % self.name)
-
-        super().update_values(values, dtype)
 
     def index2date(self, indices: KeyLike = None) -> Union[datetime,
                                                            List[datetime]]:

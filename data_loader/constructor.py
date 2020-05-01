@@ -408,8 +408,8 @@ class Constructor():
                                          func: Callable[[Sequence, str, str], Sequence]):
         """Set custom function to convert coordinate values.
 
-        Will override the Coord.change_units_other function for
-        the current filegroup.
+        Changing units use Coord.change_units_other by default.
+        This method allow to override it for the current filegroup.
 
         See also
         --------
