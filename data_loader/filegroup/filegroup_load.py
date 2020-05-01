@@ -8,18 +8,22 @@
 
 import itertools
 import logging
-from typing import List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.custom_types import File
+from data_loader.coordinates.variables import Variables
 from data_loader.filegroup import command
 from data_loader.filegroup.command import CmdKeyrings, Command
 from data_loader.filegroup.filegroup_scan import FilegroupScan
+from data_loader.keys.key import KeyVar
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 
+if TYPE_CHECKING:
+    from data_loader.data_base import DataBase
 
 log = logging.getLogger(__name__)
 
@@ -74,6 +78,8 @@ class FilegroupLoad(FilegroupScan):
                 raise
             else:
                 self.close_file(file)
+
+        self.do_post_loading(keyring)
 
     def get_fg_keyrings(self, keyring: Keyring) -> CmdKeyrings:
         """Get filegroup specific keyring.
@@ -350,6 +356,11 @@ class FilegroupLoad(FilegroupScan):
 
         return chunk
 
+    def do_post_loading(self, keyring: Keyring):
+        """Apply post loading functions."""
+        do_post_loading(keyring['var'], self.db, self.cs['var'],
+                        self.post_loading_funcs)
+
     def scan_variables_attributes(self):
         """Scan for variables specific attributes.
 
@@ -408,3 +419,25 @@ class FilegroupLoad(FilegroupScan):
                 raise
             else:
                 self.close_file(file)
+
+
+def do_post_loading(key_loaded: KeyVar,
+                    database: 'DataBase', variables: Variables,
+                    post_loading_funcs:List[Tuple[Callable, KeyVar, bool, Dict]]):
+    """Apply post loading functions."""
+    key_loaded = key_loaded.copy()
+    key_loaded.make_var_idx(variables)
+    loaded = set(key_loaded.tolist())
+    for func, key_var, any_var, kwargs in post_loading_funcs:
+        key_var = key_var.copy()
+        if not key_var.var:
+            raise TypeError("Variables must be defined by name.")
+        key_var.make_var_idx(variables)
+        var = set(key_var.tolist())
+
+        if any_var:
+            if len(var & loaded) > 0:
+                func(database, **kwargs)
+        else:
+            if var <= loaded:
+                    func(database, **kwargs)

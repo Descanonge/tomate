@@ -7,7 +7,7 @@
 
 
 import logging
-from typing import Any, Callable, Dict, List, Type, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 
@@ -15,7 +15,7 @@ from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
 from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
-from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.filegroup.filegroup_load import FilegroupLoad, do_post_loading
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 from data_loader.variables_info import VariablesInfo
@@ -84,8 +84,8 @@ class DataBase():
     acs: Type[Accessor]
         Accessor class (or subclass) to use to access the data.
 
-    do_post_loading: Callable
-        Function applied after loading data.
+    post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
+        Functions applied after loading data.
     """
 
     acs = Accessor
@@ -116,7 +116,7 @@ class DataBase():
 
         self.link_filegroups()
 
-        self.do_post_loading = do_post_loading_default
+        self.post_loading_funcs = []
 
     def __str__(self):
         s = ["Data object"]
@@ -670,11 +670,13 @@ class DataBase():
                       for fg in self.filegroups])
         if not loaded:
             log.warning("Nothing loaded.")
+        else:
+            self.do_post_loading(keyring)
 
-        try:
-            self.do_post_loading(self)
-        except NotImplementedError:
-            pass
+    def do_post_loading(self, keyring: Keyring):
+        """Apply post loading functions."""
+        do_post_loading(keyring['var'], self, self.avail.var,
+                        self.post_loading_funcs)
 
     def load_selected(self, keyring: Keyring = None,
                       scope: Union[str, Scope] = 'selected',
@@ -718,16 +720,6 @@ class DataBase():
         :param shape: Shape of the array to allocate.
         """
         self.data = self.allocate(shape)
-
-    def set_post_loading_func(self, func: Callable[[Type["DataBase"]], None]):
-        """Set function for post loading treatements.
-
-        :param func: Function to execute after data is loaded.
-            See do_post_loading() for a better description
-            of the function interface.
-
-        """
-        self.do_post_loading = func
 
     def set_data(self, variable: str, data: np.ndarray):
         """Set the data for a single variable.
@@ -838,11 +830,3 @@ class DataBase():
             if sibling in fg.variables:
                 fg.write_add_variable(var, sibling, inf_name, scope)
                 break
-
-
-def do_post_loading_default(dt: DataBase): #pylint: disable=method-hidden
-    """Do post loading treatments.
-
-    :raises NotImplementedError: If do_post_loading was not set.
-    """
-    raise NotImplementedError("do_post_loading was not set.")

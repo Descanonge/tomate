@@ -66,6 +66,9 @@ class FilegroupScan():
         scope, the index of that value in the filegroups CS.
         If that value is not contained in this filegroup, the
         index is None.
+
+    post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]
+        Functions applied after loading data.
     """
 
     def __init__(self, root: str,
@@ -91,6 +94,8 @@ class FilegroupScan():
         self.make_coord_scan(coords_fg)
 
         self.contains = {dim: [] for dim in self.cs}
+
+        self.post_loading_funcs = []
 
     @property
     def variables(self) -> List[str]:

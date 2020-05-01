@@ -17,10 +17,11 @@ import numpy as np
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.variables import Variables
-from data_loader.custom_types import File, KeyLike, KeyLikeValue
+from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr
 from data_loader.data_base import DataBase
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
+from data_loader.keys.key import KeyVar
 from data_loader.variables_info import VariablesInfo
 
 # import data_loader.data_write as dw
@@ -55,6 +56,8 @@ class Constructor():
         Keys for selecting parts of the CoordScan.
     selection_by_value: List[Dict[str, KeyLikeValue]]
         Keys for selecting parts of the CoordScan by value.
+    post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
+        Functions applied after loading data.
 
     allow_advanced: bool
         If advanced Filegroups arrangement is allowed.
@@ -75,7 +78,7 @@ class Constructor():
         self.selection = []
         self.selection_by_value = []
 
-        self.post_loading_func = None
+        self.post_loading_funcs = []
         self.dt_types = [DataBase]
         self.acs = None
 
@@ -415,8 +418,40 @@ class Constructor():
                             " will have no impact.", fg.variables, name)
             cs.force_idx_descending = True
 
-    def set_post_loading_func(self, func):
-        self.post_loading_func = func
+    def add_post_loading_func(self, func: Callable,
+                              variables: KeyLikeStr = None,
+                              any_variables: bool = False,
+                              current_fg: bool = False,
+                              **kwargs: Any):
+        """Add a post-loading function.
+
+        Function will be called if any or all of `variables`
+        are being loaded.
+
+        :param func: Function to call. Take DataBase as first argument, and
+            optional additional keywords.
+        :param variables: Key for variable selection. None will select all
+            available variables.
+        :param any_variables: False if any of variables must be loaded to launch
+            function (default). False if all of the variables must be loaded.
+        :param current_fg: Will apply only for current filegroup, otherwise will apply
+            for any filegroup (default).
+        :param kwargs: [opt] Will be passed to the function.
+
+        Examples
+        --------
+        >>> add_post_loading(func1, ['SST', 'SSH'])
+        func1 will be launched if at least 'SST' and 'SSH' are loaded.
+        """
+        key_var = KeyVar(variables)
+        if not key_var.var:
+            raise TypeError("Variables must be specified by name.")
+        if current_fg:
+            for_append = self.current_fg
+        else:
+            for_append = self
+        for_append.post_loading_funcs.append((func, KeyVar(variables),
+                                              any_variables, kwargs))
 
     def set_data_types(self, dt_types=None, accessor=None):
         if dt_types is None:
@@ -685,8 +720,7 @@ class Constructor():
 
         dt_class = self.create_data_class()
         dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
-        if self.post_loading_func is not None:
-            dt.set_post_loading_func(self.post_loading_func)
+        dt.post_loading_funcs += self.post_loading_funcs
         return dt
 
     def create_data_class(self) -> Type[DataBase]:

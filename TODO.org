@@ -21,12 +21,11 @@ returns object with info about whats plotted
     -> scope, object (image / contours)
     -> method to update ?
 then no need for dt.plotted
-* TODO: move into data_types
+** TODO: move into data_types
 * TODO: Type hinting
 * TODO: convert function in Coord
 the CS can use its attributes and those of parent Coord to
 modify scanned values
-* TODO: launch do_post_loading when specific variables are loaded
 * TODO: Log into debug the coord slicing after scanning
 * TODO: Add index keys in load_by_value and select_by_value
 stuff like lat=slice(10., 30.), time_i=0
