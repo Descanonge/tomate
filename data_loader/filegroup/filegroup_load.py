@@ -426,8 +426,6 @@ def do_post_loading(key_loaded: KeyVar,
                     post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]):
     """Apply post loading functions."""
     key_loaded = key_loaded.copy()
-        if any_var:
-            if len(var & loaded) > 0:
     loaded = set(variables[key_loaded.value])
     for func, key_var, all_var, kwargs in post_loading_funcs:
         if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
@@ -438,5 +436,5 @@ def do_post_loading(key_loaded: KeyVar,
             if var <= loaded:
                 func(database, **kwargs)
         else:
-            if var <= loaded:
-                    func(database, **kwargs)
+            if len(var & loaded) > 0:
+                func(database, **kwargs)

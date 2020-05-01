@@ -420,7 +420,7 @@ class Constructor():
 
     def add_post_loading_func(self, func: Callable,
                               variables: KeyLikeStr = None,
-                              any_variables: bool = False,
+                              all_variables: bool = False,
                               current_fg: bool = False,
                               **kwargs: Any):
         """Add a post-loading function.
@@ -432,8 +432,8 @@ class Constructor():
             optional additional keywords.
         :param variables: Key for variable selection. None will select all
             available variables.
-        :param any_variables: False if any of variables must be loaded to launch
-            function (default). False if all of the variables must be loaded.
+        :param all_variables: True if all of variables must be loaded to launch
+            function. False if any of the variables must be loaded (default).
         :param current_fg: Will apply only for current filegroup, otherwise will apply
             for any filegroup (default).
         :param kwargs: [opt] Will be passed to the function.
@@ -451,7 +451,7 @@ class Constructor():
         else:
             for_append = self
         for_append.post_loading_funcs.append((func, KeyVar(variables),
-                                              any_variables, kwargs))
+                                              all_variables, kwargs))
 
     def set_data_types(self, dt_types=None, accessor=None):
         if dt_types is None:
