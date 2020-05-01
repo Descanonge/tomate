@@ -135,17 +135,21 @@ class Time(Coord):
             indices = indices[0]
         return indices
 
-    def change_units(self, units: str):
+    @staticmethod
+    def change_units_other(values: Sequence[float], old: str, new: str):
         """Change time units.
 
-        :param units: CF compliant time units.
+        CF compliant time units.
 
         Examples
         --------
         >>> time.change_units("hours since 1950-01-01 12:00:00")
         """
-        self._array = change_units(self._array, self.units, units)
-        self.units = units
+        if not _has_netcdf:
+            raise ImportError("netCDF4 package necessary for change_units.")
+        dates = nc.num2date(values, old)
+        values = nc.date2num(dates, new)
+        return values
 
     def get_index(self, value: Union[datetime, List[Union[int, float]],
                                      float, int],
@@ -227,20 +231,3 @@ class Time(Coord):
         if fmt is None:
             fmt = '{:.2f}'
         return fmt.format(value)
-
-def change_units(values: Sequence[float],
-                 units_old: str, units_new: str) -> Sequence[float]:
-    """Change time units.
-
-    :param values: Current values.
-    :param units_old: Current units, in CF compliant format.
-    :param units_new: New units, in CF compliant format
-
-    :returns: Values in new units.
-    """
-    if not _has_netcdf:
-        raise ImportError("netCDF4 package necessary for change_units.")
-
-    dates = nc.num2date(values, units_old)
-    values = nc.date2num(dates, units_new)
-    return values

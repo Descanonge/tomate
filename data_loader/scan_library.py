@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
-from data_loader.coordinates.time import change_units, Time
+from data_loader.coordinates.time import Time
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_netcdf import FilegroupNetCDF
 
@@ -24,6 +24,9 @@ def get_date_from_matches(cs: CoordScan,
     If any element is not found in the filename, it will be
     replaced by that element in the default date.
     If no match is found, None is returned.
+
+    The date is converted to CoordScan units, or if not specified its parent
+    Coord units.
 
     :param default_date: Default date element.
         Defaults to 1970-01-01 12:00:00
@@ -144,14 +147,6 @@ def scan_in_file_nc(cs: CoordScan, file: nc.Dataset,
     nc_var = file[cs.name]
     in_values = list(nc_var[:])
     in_idx = list(range(len(in_values)))
-
-    if issubclass(type(cs), Time):
-        try:
-            units = nc_var.getncattr('units')
-        except AttributeError:
-            pass
-        else:
-            in_values = list(change_units(in_values, units, cs.units))
     return in_values, in_idx
 
 

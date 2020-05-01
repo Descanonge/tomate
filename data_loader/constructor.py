@@ -10,7 +10,7 @@ import logging
 import os
 import inspect
 import itertools
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Tuple, Sequence, Type, Union
 
 import numpy as np
 
@@ -403,6 +403,21 @@ class Constructor():
         """
         fg = self.current_fg
         fg.set_scan_var_attrs_func(func, **kwargs)
+
+    def set_scan_coords_units_conversion(self, coord: str,
+                                         func: Callable[[Sequence, str, str], Sequence]):
+        """Set custom function to convert coordinate values.
+
+        Will override the Coord.change_units_other function for
+        the current filegroup.
+
+        See also
+        --------
+        data_loader.coordinates.coord.change_units_other: `func` should behave similarly
+            and have the same signature.
+        data_loader.coordinates.time.change_units_other: For a working example.
+        """
+        self.current_fg.cs[coord].change_units_custom = func
 
     def set_coord_descending(self, *coords: str):
         """Set coordinates as descending in the filegroup.

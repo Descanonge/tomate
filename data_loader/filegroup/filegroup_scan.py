@@ -357,6 +357,18 @@ class FilegroupScan():
 
         for cs in self.cs.values():
             cs.set_values()
+
+            if (cs.coord.name != 'var'
+                    and cs.units != '' and cs.coord.units != ''
+                    and cs.units != cs.coord.units):
+                if cs.change_units_custom is not None:
+                    f = cs.change_units_custom
+                else:
+                    f = cs.change_units_other
+                log.debug("Changing units for '%s' from '%s' to '%s'",
+                         cs.coord.name, cs.units, cs.coord.units)
+                cs.values = f(cs.values, cs.units, cs.coord.units)
+
             if cs.is_to_check() or cs.name == 'var':
                 if len(cs.values) == 0:
                     raise ValueError("No values detected ({0}, {1})".format(

@@ -80,6 +80,8 @@ class CoordScan(Coord):
         self.scan_attr = False
         self.scan_attributes_func = scan_attributes_default
 
+        self.change_units_custom = None
+
         self.values = []
         self.in_idx = []
 

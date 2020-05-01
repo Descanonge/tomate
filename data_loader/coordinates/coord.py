@@ -226,6 +226,19 @@ class Coord():
         """If coordinate has data."""
         return self._array is not None
 
+    def change_units(self, new: str):
+        """Change units.
+
+        :param new: New units.
+        """
+        self.update_values(self.change_units_other(self._array, self.units, new))
+        self.units = new
+
+    @staticmethod
+    def change_units_other(values: Sequence, old: str, new: str):
+        """Change units of a sequence of values."""
+        raise NotImplementedError("change_units_other not implemented.")
+
     def get_step(self, threshold: float = 1e-5) -> float:
         """Return mean step between values.
 

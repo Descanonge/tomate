@@ -26,7 +26,7 @@ Some dimensions are found entirely in each file: they are 'in',
 others can be scattered accross different files: they are 'shared'.
 In-coordinates are also assumed to be arranged in the same way for all files
 (same values, same indexing). If this is not the case, the coordinate should
-be marked as shared.
+be marked as shared. Keep in mind all coordinates are independent.
 For example, in a dataset of the sea surface temperature with an image per date
 per file, the latitude and longitude will be 'in' and the temperature 'shared'.
 There could also be more than one date per file, for instance a file for each
@@ -50,6 +50,8 @@ This avoid storing an excessive number of long filenames, especially if there
 are multiple shared coordinates.
 With the matches from all the shared coordinates, we can reconstruct the
 filename, by replacing the matchers in the pre-regex.
+This add a limitation with multiple shared coordinates: the matches must also
+be independent accross coordinates.
 
 Some dimensions might not be represented inside the file, for instance
 in the previous example files might not contain a time dimension.
@@ -127,6 +129,26 @@ method.
 
 One can also scan coordinate attributes in the first file found,
 such as units, or dimension fullname. This is always done first.
+
+
+Units conversion
+----------------
+
+The coordinates values found by scanning might not have the desired units.
+One can rely one the :func:`coordinates.coord.change_units_other` default function
+or use a custom function instead by using
+:func:`constructor.Constructor.set_coords_units_conversion`.
+
+This conversion will only happen if the 'units' attribute on the CoordScan
+and its parent Coord are defined and different.
+By default the CoordScan object will inherit the units of its parent Coord,
+but this might not reflect the units inside the files !
+You can set the CoordScan units by scanning attributes, or by accessing it::
+
+  cstr.current_fg.cs['time'].units = '...'
+
+The conversion will happen at the very end of the scanning process.
+
 
 Variables Coordinates
 ---------------------
