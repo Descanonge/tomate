@@ -610,7 +610,7 @@ class DataBase():
         >>> dt.load_by_value(None, depth=[0, 10, 50])
         """
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        scope = self.get_subscope_by_value('avail', int2list=True, by_day=True, **kw_keys)
+        scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)
         self.load_selected(scope=scope)
 
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
