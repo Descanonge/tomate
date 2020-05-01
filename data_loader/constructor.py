@@ -444,8 +444,8 @@ class Constructor():
         func1 will be launched if at least 'SST' and 'SSH' are loaded.
         """
         key_var = KeyVar(variables)
-        if not key_var.var:
-            raise TypeError("Variables must be specified by name.")
+        if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
+            raise TypeError("Variables must be specified by name (or by None).")
         if current_fg:
             for_append = self.current_fg
         else:

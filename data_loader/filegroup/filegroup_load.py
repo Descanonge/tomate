@@ -8,7 +8,7 @@
 
 import itertools
 import logging
-from typing import Any, Callable, Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -423,20 +423,19 @@ class FilegroupLoad(FilegroupScan):
 
 def do_post_loading(key_loaded: KeyVar,
                     database: 'DataBase', variables: Variables,
-                    post_loading_funcs:List[Tuple[Callable, KeyVar, bool, Dict]]):
+                    post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]):
     """Apply post loading functions."""
     key_loaded = key_loaded.copy()
-    key_loaded.make_var_idx(variables)
-    loaded = set(key_loaded.tolist())
-    for func, key_var, any_var, kwargs in post_loading_funcs:
-        key_var = key_var.copy()
-        if not key_var.var:
-            raise TypeError("Variables must be defined by name.")
-        key_var.make_var_idx(variables)
-        var = set(key_var.tolist())
-
         if any_var:
             if len(var & loaded) > 0:
+    loaded = set(variables[key_loaded.value])
+    for func, key_var, all_var, kwargs in post_loading_funcs:
+        if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
+            raise TypeError("Variables must be specified by name (or by None).")
+        var = set(variables[key_var.value])
+
+        if all_var:
+            if var <= loaded:
                 func(database, **kwargs)
         else:
             if var <= loaded:
