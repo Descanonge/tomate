@@ -13,6 +13,11 @@ data\_loader.filegroup.filegroup\_load
        FilegroupLoad
    
 
+.. rubric:: Functions
+.. autosummary::
+   
+       do_post_loading
+   
 
 
 
@@ -24,3 +29,4 @@ data\_loader.filegroup.filegroup\_load
       :members:
       :undoc-members:
       :private-members:
+   .. autofunction:: do_post_loading

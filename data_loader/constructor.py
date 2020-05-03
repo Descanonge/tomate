@@ -41,13 +41,10 @@ class Constructor():
     ----------
     root: str
         Root directory of all files.
-    coords: Dict[str, Coord]
+    dims: Dict[str, Coord]
         Coordinates, in the order the data should be kept.
         These are the 'master' coordinate that will be
         transmitted to the database object.
-    var: Variables
-        It will be transmitted along other coordinates
-        to the database object.
     filegroups: List[Filegroup]
         Filegroups added so far.
     vi: VariablesInfo
@@ -58,6 +55,12 @@ class Constructor():
         Keys for selecting parts of the CoordScan by value.
     post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
         Functions applied after loading data.
+
+    dt_types: List[Type[DataBase]]
+        Subclass of DataBase to use to create a new dynamic
+        database class.
+    acs: Type[Accessor]
+        Subclass of Accessor to use for database object.
 
     allow_advanced: bool
         If advanced Filegroups arrangement is allowed.
@@ -404,8 +407,8 @@ class Constructor():
         fg = self.current_fg
         fg.set_scan_var_attrs_func(func, **kwargs)
 
-    def set_scan_coords_units_conversion(self, coord: str,
-                                         func: Callable[[Sequence, str, str], Sequence]):
+    def set_coords_units_conversion(self, coord: str,
+                                    func: Callable[[Sequence, str, str], Sequence]):
         """Set custom function to convert coordinate values.
 
         Changing units use Coord.change_units_other by default.
@@ -468,7 +471,22 @@ class Constructor():
         for_append.post_loading_funcs.append((func, KeyVar(variables),
                                               all_variables, kwargs))
 
-    def set_data_types(self, dt_types=None, accessor=None):
+    def set_data_types(self, dt_types: Union[Type[DataBase], List[Type[DataBase]]] = None,
+                       accessor: Type[Accessor] = None):
+        """Set database and accessor subclasses.
+
+        :param dt_types: [opt] Subclass (or list of) of DataBase
+            to derive the class of database from.
+            If None, basic DataBase will be used.
+        :param accessor: [opt] Subclass of Accessor to use for
+            database.
+            If None, basic Accessor will be used.
+
+        See also
+        --------
+        :ref:`Additional methods` for details.
+        create_data_class: for implementation
+        """
         if dt_types is None:
             dt_types = [DataBase]
         elif not isinstance(dt_types, (list, tuple)):
@@ -477,24 +495,21 @@ class Constructor():
         self.acs = accessor
 
     def scan_files(self):
-        """Scan files.
-
-        Scan files.
-        Apply selection of CS.
-        Find total availables coordinates values
-        accross filegroups.
-        Find what values are contained within each fg.
-        If allowed is not allowed, select only common
-        values accross filegroups.
-        Check if data points are duplicates accross filegroups.
-
-        Scan for variables specific attributes in all filegroups.
-        """
+        """Scan files in all filegroups."""
         self.check_regex()
         for fg in self.filegroups:
             fg.scan_files()
 
     def compile_scanned(self):
+        """Compile scanned coordinate values.
+
+        -Apply selection of CS for each filegroup.
+        -Find available coordinates values accross filegroups.
+        -Find what values are contained within each filegroup.
+        -If advanced scanning is not allowed, select
+        only common values accross filegroups.
+        -Check if there is duplicates data points.
+        """
         self._apply_coord_selections()
 
         values = self._get_coord_values()
@@ -508,10 +523,10 @@ class Constructor():
         self.check_duplicates()
 
     def _apply_coord_selections(self):
-        """Apply selection on CoordScan.
+        r"""Apply selection on CoordScan.
 
         Only treat a subpart of a coordinate.
-        Selection set by user.
+        Selection set by user with `set_coord_selection\*`.
         Non-selected parts are forgotten.
         """
         for i, fg in enumerate(self.filegroups):
@@ -665,7 +680,6 @@ class Constructor():
         Filegroups should be functionnal for this.
         """
         for fg in self.filegroups:
-            # Find first coordinates points of this filegroup.
             if 'var' in fg.scan_attr:
                 fg.scan_variables_attributes()
 
@@ -703,28 +717,14 @@ class Constructor():
     def make_data(self, scan=True) -> Type[DataBase]:
         """Create data instance.
 
-        Check a regex is present in every filegroup.
-        Scan files.
-        Check coordinates for consistency across filegroups.
-        Create database object from multiple subclasses of data.
+        If scan:
+        -Scan files.
+        -Check coordinates for consistency across filegroups.
 
-        :param dt_type: DataBase subclasses to use, in order of
-            priority for method resolution (Methods and
-            attributes of the first one in
-            the list take precedence).
-        :param accessor: [opt] Subclass of Accessor.
-            If None, the accessor from the provided data
-            types is used.
         :param scan: [opt] If the files should be scanned.
             Default is True.
 
-
         :returns: Data instance ready to use.
-
-        See also
-        --------
-        create_data_class: Dynamically add inheritance to
-            create a new data class.
         """
         if scan:
             if not self.filegroups:
@@ -739,7 +739,12 @@ class Constructor():
         return dt
 
     def create_data_class(self) -> Type[DataBase]:
-        """Create dynamic data class."""
+        """Create dynamic data class.
+
+        See also
+        --------
+        create_data_class: for implementation
+        """
         dt_class = create_data_class(self.dt_types, self.acs)
         self.acs = dt_class.acs
         return dt_class

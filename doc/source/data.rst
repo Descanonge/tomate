@@ -24,6 +24,10 @@ The data is stored in a multidimensional array.
 The first axis of the array corresponds to the different variables,
 and the following axes to the coordinates, in the order they are
 passed to the data object at its creation.
+Note: this is the default behavior, but if a Variables
+object is specified when creating a Constructor, variables does not have
+to be on the first dimension (this is experimental though).
+
 
 Information about the dimensions is contained in
 :class:`scopes<scope.Scope>`.
@@ -72,6 +76,14 @@ instance: `data.lat` is equivalent to `data.scope.lat`,
 itself equivalent to `data.avail.lat` if data has not
 been loaded yet.
 
+Scopes can be derived from other scopes, for instance by using
+:func:`DataBase.get_subscope<data_base.DataBase.get_subscope>` or
+:func:`DataBase.get_subscope_by_value<data_base.DataBase.get_subscope_by_value>`.
+Such scope has :attr:`parent_scope<scope.Scope.parent_scope>` and
+:attr:`parent_keyring<scope.Scope.parent_keyring>` attributes.
+The can be defined as::
+
+  scope = scope.parent_scope.slice(scope.parent_keyring)
 
 * More information on :doc:`coordinates<coord>`
 * More information on :ref:`Variables`
@@ -84,19 +96,20 @@ A useful feature is the selection scope. It allows to create
 a new scope and manipulate it before sending it to some methods.
 
 The scope is created from the available scope (by default) with the
-:func:`select<data_base.DataBase.select>` method.
+:func:`select<data_base.DataBase.select>` and
+:func:`select_by_value<data_base.DataBase.select_by_value>` methods.
 One can also use :func:`add_to_selection<data_base.DataBase.add_to_selection>`
 to expand the selection, or
 :func:`Scope.slice<scope.Scope.slice>` to reduce the selection.
 
-The selected scope (or any other scope in fact) stores how it was created in two
-key attributes.
-The `parent_scope` stores from which scope it originates from.
-The `parent_keyring` stores what part of that scope was taken.
-This is how one can just send the selection scope to a function to
-do various operation.
-For instance one can use :func:`load_selected<data_base.DataBase.load_selected>`
-and :func:`view_selected<data_base.DataBase.view_selected>`.
+We can then use functions such as
+:func:`load_selected<data_base.DataBase.load_selected>`
+or :func:`view_selected<data_base.DataBase.view_selected>`.
+Both these methods can further slice the selection before doing their job
+(without modifying the selected scope)::
+
+  dt.select(time=slice(0, 50), var='SST')
+  dt.load_selected(time=0)
 
 
 Additional methods
@@ -115,13 +128,13 @@ To this end, the package can dynamically create a new data class, combining
 different subclasses of DataBase.
 See
 :func:`constructor.create_data_class` and
-:func:`constructor.Constructor.make_data`.
+:func:`constructor.Constructor.set_data_types`.
 Note that the classes should be specified in order of priority for method
 resolution.
 If a clashing in the methods names should arise, warnings will be ensued.
 
-For instance, `create_data_class([DataMasked, DataPlot])` will
-return a type of data supporting masked values, and plotting functions.
+For instance, `set_data_types([DataMasked, DataPlot])` will set a database
+supporting masked values, and plotting functions.
 
 
 Post loading function

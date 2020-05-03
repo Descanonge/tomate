@@ -13,10 +13,8 @@ The values of the coordinate must be strictly monotonous. They can be
 descending, though this is not currently supported everywhere in the package,
 and should be avoided as of now.
 
-Each coordinate can have a units attribute (only cosmetic).
-It can also contain a `name_alt` attribute, a list of strings that list the
-possible names this coordinate/dimension can be found in the files. For
-instance, the latitude coordinate can be found under either `lat` or `latitude`.
+Each coordinate can have a units attribute (useful when scanning, see
+:ref:`Units conversion`).
 
 The coordinate contains various methods to find the index of a value.
 For instance, :func:`get_index<coord.Coord.get_index>` to find
@@ -33,7 +31,7 @@ Variables
 ---------
 
 The variables available constitute a dimension of the data.
-In most of the package, the 'dimensions' will design the variables
+In most of the package, the 'dimensions' will designate the variables
 and coordinates dimensions, but 'coordinates' will exclude variables.
 
 In the inner workings of the package, variable are just a specific
@@ -41,9 +39,6 @@ type of coordinate that support having string of characters as values
 (among other things). Most of the user API supports refering to variables
 by both their index in the coordinate object, and their name.
 See :class:`variables.Variables`.
-Note to developpers: they are some things to consider when using
-keys and keyring for variables, see
-FIXME:
 
 **The variable coordinate is always named 'var'.**
 This is the name it can be found in scopes, keyrings, and the name
@@ -57,6 +52,30 @@ One can easily retrieve the index of one or more variables using the
 :func:`get_var_index<variables.Variables.get_var_index>`, or
 :func:`get_var_indices<variables.Variables.get_var_indices>`
 methods.
+
+
+.. currentmodule :: data_loader
+
+Note to developpers: they are some things to consider when using
+keys and keyring for variables. Additional methods are provided to go
+from index to variable name, and vice-versa (
+:func:`keys.keyring.Keyring.make_idx_var`).
+All methods for normal keys will work for keys defined from variables names,
+except when using slices.
+So::
+
+  Keyring(var=slice('SST', 'SSH'))
+
+is perfectly valid, but it is impossible without the Variables object
+to find the list of variables this selects, whereas for indices we only need
+the coordinate size (and we do not even need it in most cases, see
+:func:`keys.key.guess_tolist` and
+:func:`keys.key.guess_slice_shape`.
+).
+So these should be used with care, and one should not forget the user can
+supply one of these !
+
+.. currentmodule :: data_loader.coordinates
 
 
 Some examples of coordinates subclasses

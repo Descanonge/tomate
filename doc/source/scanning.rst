@@ -135,7 +135,7 @@ Units conversion
 ----------------
 
 The coordinates values found by scanning might not have the desired units.
-One can rely one the :func:`coordinates.coord.change_units_other` default function
+One can rely one the :func:`coordinates.coord.Coord.change_units_other` default function
 or use a custom function instead by using
 :func:`constructor.Constructor.set_coords_units_conversion`.
 
@@ -234,7 +234,7 @@ would match correctly all files, but the program would then consider that
 
 Instead, we must specify what part of the filename varies, and along
 which dimension / coordinate.
-To this end, we use :class:`matchers<filegroup.coord_scan.Matcher>`.
+To this end, we use :class:`matchers<filegroup.matcher.Matcher>`.
 This is a part of the pre-regex, enclosed in parenthesis and preceded
 by a `%`. It specifies the coordinate name and the element of the coordinate.
 

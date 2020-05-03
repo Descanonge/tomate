@@ -13,11 +13,6 @@ data\_loader.coordinates.time
        Time
    
 
-.. rubric:: Functions
-.. autosummary::
-   
-       change_units
-   
 
 
 
@@ -29,4 +24,3 @@ data\_loader.coordinates.time
       :members:
       :undoc-members:
       :private-members:
-   .. autofunction:: change_units

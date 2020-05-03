@@ -251,7 +251,7 @@ class Accessor():
         """Concatenate arrays.
 
         :param arrays: Arrays to concatenate.
-        :param axis: The axis along which the arrays will be joined.  
+        :param axis: The axis along which the arrays will be joined.
             If None, the arrays are flattened.
         :param out: Array to place the result in.
 

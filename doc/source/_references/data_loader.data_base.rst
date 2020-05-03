@@ -13,11 +13,6 @@ data\_loader.data\_base
        DataBase
    
 
-.. rubric:: Functions
-.. autosummary::
-   
-       do_post_loading_default
-   
 
 
 
@@ -29,4 +24,3 @@ data\_loader.data\_base
       :members:
       :undoc-members:
       :private-members:
-   .. autofunction:: do_post_loading_default
