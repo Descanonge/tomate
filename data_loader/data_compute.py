@@ -103,6 +103,14 @@ class DataCompute(DataBase):
             Argument passed to numpy.nanmean
         keys: Key-like, optional
             Part of the data to consider for averaging (by index).
+
+        Examples
+        --------
+        >>> avg = dt.mean(['lat', 'lon'], var='SST', lat=slice(0, 50))
+
+        Compute the average SST on the 50 first indices of latitude,
+        and all longitude. If the data is indexed on [time, lat, lon]
+        `avg` is a one dimensional array.
         """
         if dims is None:
             dims = self.dims

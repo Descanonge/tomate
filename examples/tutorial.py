@@ -1,7 +1,6 @@
 """Example from tutorial."""
 
-from data_loader import Coord, Time
-from data_loader import Constructor
+from data_loader import Coord, Time, Constructor
 from data_loader.filegroup import FilegroupNetCDF
 from data_loader.data_plot import DataPlot
 from data_loader.masked import DataMasked
@@ -17,9 +16,7 @@ time = Time('time', None, fullname='Time',
 
 coords = [lat, lon, time]
 
-
 cstr = Constructor('/Data/', coords)
-
 
 # Filegroups
 
@@ -34,28 +31,29 @@ cstr = Constructor('/Data/', coords)
 #         └── ...
 
 # SSH
-contains = ['SSH']
 coords_fg = [[lon, 'in', 'longitude'],
              [lat, 'in', 'latitude'],
              [time, 'shared']]
-cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
+cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
 pregex = ('%(prefix)_'
           '%(time:x)%'
           '%(suffix)')
 replacements = {'prefix': 'SSH',
                 'suffix': r'\.nc'}
-cstr.set_fg_regex(pregex, replacements)
-cstr.set_variables_infile('ssh')
+cstr.set_fg_regex(pregex, **replacements)
+
+cstr.set_variables_infile(SSH='sea surface height')
 cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+
+cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'time')
 cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
-cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'lat', 'lon', 'time')
+cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
 
 
 # SST
-contains = ['SST']
 coords_fg = [[lon, 'in'], [lat, 'in'], [time, 'shared']]
-cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SST')
+cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SST', root='SST')
 
 pregex = ('%(prefix)_'
           r'%(time:Y)%(time:doy:custom=\d\d\d:)_'
@@ -63,17 +61,20 @@ pregex = ('%(prefix)_'
           '%(suffix)')
 replacements = {'prefix': 'SSH',
                 'suffix': r'\.nc'}
-cstr.set_fg_regex(pregex, replacements)
-cstr.set_variables_infile('sst')
+cstr.set_fg_regex(pregex, **replacements)
+
+cstr.set_variables_infile(SST='sst')
 cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lon', 'lat')
 cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
+
 cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
 cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
 
 
-# Create database
-dt = cstr.make_data([DataPlot, DataMasked])
+cstr.set_data_types([DataMasked, DataPlot])
 
+# Create database
+dt = cstr.make_data()
 
 # Access attributes
 print(dt.vi.fullname)
@@ -83,7 +84,6 @@ dt.load(var='SST')
 
 # Load first time step of SST and SSH
 dt.load(['SST', 'SSH'], time=0)
-
 
 # Load a subpart of all variables.
 # The variables order in data is reversed

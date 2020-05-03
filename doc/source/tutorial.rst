@@ -6,8 +6,8 @@ Constructing a database
 =======================
 
 A data object needs a few objects to be functionnal, namely: coordinates,
-a vi, and filegroups. Creating these can be a bit daunting.
-The constructor module provides ways to easily create a data object,
+a vi, and filegroups.
+The constructor object provides ways to easily create a data object,
 and conduct the scanning if the data is on disk.
 
 This page will break down a typical database creation script, and present
@@ -46,16 +46,10 @@ will take care of it.
 Adding filegroups
 -----------------
 
-We now create the filegroups.
-They are responsible for scanning the files at the database
-creation to see how the data is arranged and to find the coordinates
-values, and opening those files later on for loading the data.
-We must thus give them all the information necessary to accomplish those
-tasks.
-
-A filegroup regroups similar files that have the same format,
-that contain the same variables, and in which the data is arranged
-in the same fashion.
+We now create the filegroups which each represent a group of similar files on
+disk.
+The filegroup stores information on how the data is arranged on disk, and
+is responsible for finding this information during the scanning process.
 
 Our files are organized as such::
 
@@ -90,20 +84,18 @@ so we will use FilegroupNetCDF.
 
 We add the first filegroup for the SSH::
 
-    contains = ['SSH']
     coords_fg = [[lon, 'in', 'longitude'],
                  [lat, 'in', 'latitude'],
                  [time, 'shared']]
-    cstr.add_filegroup(FilegroupNetCDF, contains, coords_fg, root='SSH')
+    cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
-We first tell what variables are placed in this filegroup. This is purely
-cosmetic.
 The `coords_fg` variable specify how are arranged the coordinates.
 The 'in' flag means the whole coordinate/dimension is found in each file,
 and that it is arranged in the same way for all files.
 The 'shared' flag means the dimension is splitted accross multiple files.
 The spatial dimensions in our files are named differently from ours, so we
-specify it. Time is found under the same name so we put nothing.
+specify it. Time is found under the same name so we say nothing.
+We give a name for our filegroup, this will help in debugging.
 We give a subfolder in which the files are found,
 if not precised, the root directory from the constructor will be used.
 
@@ -122,19 +114,19 @@ The filegroup will consider that all files are in fact equal to the first
 filename that matched ('SST/A\_2007001-2007008.nc' here).
 
 For that reason, we must tell for what coordinates the filenames are varying.
-We use for that :class:`Matchers<filegroup.coord_scan.Matcher>`::
+We use :class:`Matchers<filegroup.matcher.Matcher>`::
 
     pregex = r"SSH_%(time:x)\.nc"
 
 Let's break it down. Each variation is notified by \% followed in parenthesis
 by the coordinate name, and the element of that coordinate.
 Here 'x' means the match will be the date: the matcher will be replaced by
-the correspond regex (8 digits in this case), and the string found in each
+the correspond regex (8 digits in this case, YYYYMMDD), and the string found in each
 filename will be used to find the date.
 The elements available are defined in the
-:class:`Matcher<filegroup.coord_scan.Matcher>` class.
+:class:`Matcher<filegroup.matcher.Matcher>` class.
 (see :ref:`Scanning filename: the pre-regex` for a list of defaults elements)
-To simplify a bit the pre-regex, we can specify some replacements.
+For more complicated and longer filenames, we can specify some replacements.
 We obtain::
 
     pregex = ('%(prefix)_'
@@ -142,12 +134,12 @@ We obtain::
               '%(suffix)')
     replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
-    cstr.set_fg_regex(pregex, replacements)
+    cstr.set_fg_regex(pregex, **replacements)
 
 Don't forget the r to allow for backslashes, and to appropriately
 escape special characters in the regex.
 
-The last step is to tell the filegroup how to scan files for
+The next step is to tell the filegroup how to scan files for
 additional information. This is done by appointing scanning functions
 to the filegroup. The appointement is coordinate specific.
 First, we must specify how to retrieve the coordinates values,
@@ -161,10 +153,12 @@ function::
     import data_loader.scan_library as scanlib
     cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
 
-We must also tell how the variable are found in the files::
+We must also tell how the variable are organized in the files::
 
-    cstr.set_variables_infile(SSH='SSH')
+    cstr.set_variables_infile(SSH='sea surface height')
 
+This will tell the filegroup to look for the variable 'sea surface height' in
+the netCDF file when loading data.
 We now do the same process for the SST files. As their structure is a bit more
 complicated, we can explore some more advanced features of the pre-regex.
 First, we notice there are two varying dates in the filename, the start and end
@@ -180,7 +174,7 @@ any coordinate value::
               '%(suffix)')
     replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
-    cstr.set_fg_regex(pregex, replacements)
+    cstr.set_fg_regex(pregex, **replacements)
 
 Here we used the `Y` ant `doy` elements, for 'year' and 'day of year'.
 Let's pretend the 'day of year' element was not anticipated within the package.
@@ -191,7 +185,7 @@ Instead, we specify that we are using a custom regex::
     r'%(time:Y)%(time:doy:custom=\d\d\d:)'
 
 The regex will now expect a `doy` element with three digits. Note that the
-custom regex **must be ended by a colon**. It can still be followed by the
+custom regex **must end with a colon**. It can still be followed by the
 `dummy` keyword.
 
 We must again tell how the coordinate will be scanned. This time the
@@ -201,6 +195,13 @@ date information will be retrieved from the filename::
     cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon')
     cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
 
+Only the time value will be fetch from the filename, so as we specify nothing for
+the time in-file index it will stay None for all time values.
+A None in-file index tells the filegroup that there is no time dimension for the
+data in file.
+Note that specifying the `only_values` keyword is actually superfluous as
+`get_date_from_matches` return a `(value, None)` tuple.
+
 The values and index of the coordinates is not the only thing we can scan for.
 The filegroup can look for coordinate specific attributes. This will only affect
 the scanning coordinate object.
@@ -208,12 +209,15 @@ For instance::
 
     cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'time')
 
+will get the time units in file.
+For more details on scanning coordinate units, look at :ref:`Units conversion`.
+
 We can also scan for general attributes that will be placed in the VI
 as 'infos'::
 
     cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
 
-and variables specific attributes that will be placed in the VI is attributes::
+and variables specific attributes that will be placed in the VI as attributes::
 
     cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
 
@@ -223,38 +227,39 @@ Conversely, we can also manually add information to the VI::
     cstr.vi.set_infos
 
 
+The scanning will not overwrite information already present in the VI.
+
+The last step is to tell what kind of database object we want. If we say
+nothing, the basic :class:`data_base.DataBase` will be used.
+But we can add more functionalities by specifying additional child classes of
+DataBase.
+Here let's use :class:`masked.data_masked.DataMasked` that add support for
+masked data, and :class:`data_plot.DataPlot` which provides convenience plotting
+functions::
+
+  from data_loader.masked import DataMasked
+  from data_loader.data_plot import DataPlot
+
+  cstr.set_data_types([DataMasked, DataPlot])
+
+
+More details on adding functionalities: :ref:`Additional methods`.
+
+
 The data object
 ---------------
 
-Now that everything is in place, we can create the data object.
-It is useful to add different kind of methods to our data object,
-for different needs. For instance to add support for masked data,
-or to add function to plot easily our data, or to compute specific
-statistics on our data.
-We could also want to combine those functionalities.
+Now that everything is in place, we can create the data object::
 
-We thus instruct the constructor a class of data to use.
-This can be a subclass of
-:class:`DataBase<data_base.DataBase>`, or a list of
-subclasses.
-In case multiple child classes are indicated, a new data type will
-be dynamically created using those classes as bases. The order of that list
-gives the priority in the method resolution (methods and attributes of the
-first subclass will take precedence).
+  dt = cstr.make_data()
 
-Here we will use :class:`DataMasked<masked.data_masked.DataMasked>`, adapted
-for data with masked values, and
-:class:`DataPlot<data_plot.DataPlot>` which helps in plotting data::
-
-    from data_loader.masked import DataMasked
-    from data_loader.data_plot import DataPlot
-    dt = cstr.make_data([DataPlot, DataMasked])
-
-The lines above will start the scanning process. Each filegroup will
-scan their files for coordinates values and index. The values obtained
+The line above will start the scanning process. Each filegroup will
+scan their files for coordinates values and indices. The values obtained
 will be compared.
 If the coordinates from different filegroups have different values, only
 the common part of the data will be available for loading.
+(Note this is a default behavior, for more advanced features, see
+:ref:`Multiple filegroups`)
 
 During the scanning of the file, information is logged at the 'debug' level.
 More information on logging: :doc:`log`.
@@ -281,7 +286,6 @@ For instance::
     dt.load(['SST', 'SSH'], time=0)
 
     # Load a subpart of all variables.
-    # The variables order in data is reversed
     dt.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
     # Load by value instead of index
