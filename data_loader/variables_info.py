@@ -133,8 +133,9 @@ class VariablesInfo():
         return super().__getattribute__(item)
 
     def __iter__(self) -> Iterator[str]:
-        """Enumerate over var."""
-        return iter(self.variables)
+        """Enumerate over attributes attributes / variables pairs."""
+        return iter([(var, attr) for attr, values in self._attrs.items()
+                     for var in values])
 
     def __getitem__(self, item: str) -> VariableAttributes:
         """Return attributes for a variable.
