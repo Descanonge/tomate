@@ -425,12 +425,11 @@ def do_post_loading(key_loaded: KeyVar,
                     database: 'DataBase', variables: Variables,
                     post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]):
     """Apply post loading functions."""
-    key_loaded = key_loaded.copy()
-    loaded = set(variables[key_loaded.value])
+    loaded = set(variables[key_loaded.no_int()])
     for func, key_var, all_var, kwargs in post_loading_funcs:
         if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
             raise TypeError("Variables must be specified by name (or by None).")
-        var = set(variables[key_var.value])
+        var = set(variables[key_var.no_int()])
 
         if all_var:
             if var <= loaded:
