@@ -9,7 +9,6 @@
 import logging
 import os
 import inspect
-import itertools
 from typing import Any, Callable, Dict, List, Tuple, Sequence, Type, Union
 
 import numpy as np
@@ -22,7 +21,7 @@ from data_loader.data_base import DataBase
 from data_loader.data_types.data_disk import DataDisk
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
-from data_loader.keys.key import KeyVar
+from data_loader.keys.key import Key, KeyVar, KeyValue
 from data_loader.variables_info import VariablesInfo
 
 # import data_loader.data_write as dw
@@ -195,9 +194,9 @@ class Constructor():
         --------
         >>> cstr.set_coord_selection(time=[0, 1, 2], lat=slice(0, 50))
         """
+        fg = self.current_fg
         for dim, key in keys.items():
-            self.selection_by_value[-1].pop(dim, None)
-            self.selection[-1][dim] = key
+            fg.selection[dim] = Key(key)
 
     def set_coord_selection_by_value(self, **keys: KeyLikeValue):
         """Set selection for CoordScan of current filegroup.
@@ -215,9 +214,9 @@ class Constructor():
         --------
         >>> cstr.set_coord_selection_by_value(depth=250, lat=slice(10., 30))
         """
+        fg = self.current_fg
         for dim, key in keys.items():
-            self.selection[-1].pop(dim, None)
-            self.selection_by_value[-1][dim] = key
+            fg.selection[dim] = KeyValue(key)
 
     def set_variables_infile(self, **variables: KeyLikeVar):
         """Set variables index in the file.
@@ -458,226 +457,6 @@ class Constructor():
         self.dt_types = dt_types
         self.acs = accessor
 
-    def scan_files(self):
-        """Scan files in all filegroups."""
-        self.check_regex()
-        for fg in self.filegroups:
-            fg.scan_files()
-
-    def compile_scanned(self):
-        """Compile scanned coordinate values.
-
-        -Apply selection of CS for each filegroup.
-        -Find available coordinates values accross filegroups.
-        -Find what values are contained within each filegroup.
-        -If advanced scanning is not allowed, select
-        only common values accross filegroups.
-        -Check if there is duplicates data points.
-        """
-        self._apply_coord_selections()
-
-        values = self._get_coord_values()
-        self._find_contained(values)
-        if not self.allow_advanced:
-            self._get_intersection(values)
-            self._apply_coord_values(values)
-            self._find_contained(values)
-        else:
-            self._apply_coord_values(values)
-        self.check_duplicates()
-
-    def _apply_coord_selections(self):
-        r"""Apply selection on CoordScan.
-
-        Only treat a subpart of a coordinate.
-        Selection set by user with `set_coord_selection\*`.
-        Non-selected parts are forgotten.
-        """
-        for i, fg in enumerate(self.filegroups):
-            for dim, key in self.selection[i].items():
-                fg.cs[dim].slice(key)
-            for dim, key in self.selection_by_value[i].items():
-                cs = fg.cs[dim]
-                if isinstance(key, slice):
-                    idx = cs.subset(slice.start, slice.stop)
-                else:
-                    idx = cs.get_indices(key)
-                cs.slice(idx)
-
-    def _get_coord_values(self) -> Dict[str, np.ndarray]:
-        """Aggregate all available coordinate values.
-
-        :returns: Values for each dimension.
-        """
-        values_c = {}
-        for c in self.dims:
-            values = []
-            for fg in self.filegroups:
-                if fg.cs[c].size is not None:
-                    values += list(fg.cs[c][:])
-
-            values = np.array(values)
-
-            if values.size == 0:
-                raise ValueError("No values found for %s in any filegroup." % c)
-
-            if c != 'var':
-                values.sort()
-                duplicates = np.abs(np.diff(values)) < self.float_comparison
-                values = np.delete(values, np.where(duplicates))
-
-            values_c[c] = values
-        return values_c
-
-
-    def _apply_coord_values(self, values: Dict[str, np.ndarray]):
-        """Set found values to master coordinates."""
-        for dim, val in values.items():
-            self.dims[dim].update_values(val)
-
-    def _get_contained(self, dim: str,
-                       inner: np.ndarray,
-                       outer: np.ndarray) -> List[Union[int, None]]:
-        """Find values of inner contained in outer.
-
-        :param inner: Smaller list of values.
-            Can be floats, in which case self.float_comparison
-            is used as a threshold comparison.
-            Can be strings, if `dim` is 'var'.
-        :param outer: Longer list of values.
-
-        :returns:  List of the index of the outer values in the
-            inner list. If the value is not contained in
-            inner, the index is `None`.
-        """
-        contains = []
-
-        # TODO: comparison taken in charge by coordinate
-        for value in outer:
-            if dim == 'var':
-                idx = np.where(inner == value)[0]
-            else:
-                idx = np.where(np.abs(inner-value) < self.float_comparison)[0]
-            if len(idx) == 0:
-                idx = None
-            else:
-                idx = idx[0]
-            contains.append(idx)
-        return contains
-
-    def _find_contained(self, values: Dict[str, np.ndarray]):
-        """Find what values are contained in each fg.
-
-        Set the `contains` values for all filegroups,
-        according to all available values.
-
-        :param values: All available values for each coordinate.
-        """
-        for fg in self.filegroups:
-            for dim, cs in fg.cs.items():
-                # No information on CS values:
-                # no conversion between avail and FG
-                if cs.size is None:
-                    contains = np.arange(len(values[dim]))
-                else:
-                    contains = self._get_contained(dim, cs[:], values[dim])
-                    contains = np.array(contains)
-                fg.contains[dim] = contains
-
-    def _get_intersection(self, values: Dict[str, np.ndarray]):
-        """Get intersection of coordinate values.
-
-        Only keep coordinates values common to all filegroups.
-        The variables dimensions is excluded from this.
-        Slice CoordScan and `contains` accordingly.
-
-        :param values: All values available for each dimension.
-            Modified in place to only values common
-            accross filegroups.
-        """
-        for dim in self.coords:
-            any_cut = False
-            for fg in self.filegroups:
-                none = np.equal(fg.contains[dim], None)
-                rem = np.where(none)[0]
-                sel = np.where(~none)[0]
-                if rem.size > 0:
-                    any_cut = True
-                    self._slice_cs(dim, values, rem, sel)
-
-            if any_cut:
-                c = self.filegroups[0].cs[dim]
-                log.warning("Common values taken for '%s', %d values ranging %s",
-                            dim, c.size, c.get_extent_str())
-
-    def _slice_cs(self, dim: str, values: np.ndarray,
-                  remove: np.ndarray, select: np.ndarray):
-        """Slice all CoordScan according to smaller values.
-
-        :param dim: Dimension to slice.
-        :param values: New values.
-        :param remove: Indices to remove from available.
-        :param select: Indices to keep in available.
-
-        :raises IndexError: If no common values are found.
-        """
-        values[dim] = np.delete(values[dim], remove)
-        for fg_ in self.filegroups:
-            cs = fg_.cs[dim]
-            if cs.size is not None:
-                indices = fg_.contains[dim][select]
-                indices = np.delete(indices,
-                                    np.where(np.equal(indices, None))[0])
-                if indices.size == 0:
-                    raise IndexError("No common values for '%s'." % dim)
-
-                if indices.size != cs.size:
-                    log.warning("'%s' in %s will be cut: found %d values ranging %s",
-                                dim, fg_.variables, fg_.cs[dim].size,
-                                fg_.cs[dim].get_extent_str())
-                cs.slice(indices.astype(int))
-            fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
-
-    def scan_variables_attributes(self):
-        """Scan variables specific attributes.
-
-        Filegroups should be functionnal for this.
-        """
-        for fg in self.filegroups:
-            if 'var' in fg.scan_attr:
-                fg.scan_variables_attributes()
-
-    def check_duplicates(self):
-        """Check for duplicate data points.
-
-        ie if a same data point (according to coordinate values)
-        can be found in two filegroups.
-
-        :raises ValueError: If there is a duplicate.
-        """
-        for fg1, fg2 in itertools.combinations(self.filegroups, 2):
-            intersect = []
-            for c1, c2 in zip(fg1.contains.values(), fg2.contains.values()):
-                w1 = np.where(~np.equal(c1, None))[0]
-                w2 = np.where(~np.equal(c2, None))[0]
-                intersect.append(np.intersect1d(w1, w2).size)
-            if all(s > 0 for s in intersect):
-                raise ValueError("Duplicate values in filegroups %s and %s"
-                                 % (fg1.variables, fg2.variables))
-
-    def check_regex(self):
-        """Check if a pregex has been added where needed.
-
-        :raises RuntimeError: If regex is empty and there is at least a out coordinate.
-        """
-        for fg in self.filegroups:
-            coords = list(fg.iter_shared(True))
-            if len(coords) > 0 and fg.regex == '':
-                mess = ("Filegroup is missing a regex.\n"
-                        "Contains: {0}\nCoordinates: {1}").format(
-                            fg.variables, coords)
-                raise RuntimeError(mess)
-
     def add_disk_features(self):
         """Add management of data on disk.
 
@@ -699,18 +478,19 @@ class Constructor():
         :returns: Data instance ready to use.
         """
         args = [list(self.dims.values()), self.vi]
+
         if scan:
-            if not self.filegroups:
-                raise RuntimeError("No filegroups in constructor.")
-            self.scan_files()
-            self.compile_scanned()
-            self.scan_variables_attributes()
             self.add_disk_features()
+        if DataDisk in self.dt_types:
             args += [self.root, self.filegroups]
 
         dt_class = self.create_data_class()
         dt = dt_class(*args)
         dt.post_loading_funcs += self.post_loading_funcs
+
+        if scan:
+            dt.scan_files()
+            dt.compile_scanned()
         return dt
 
     def create_data_class(self) -> Type[DataBase]:

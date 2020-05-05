@@ -7,16 +7,19 @@
 
 
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import os
 import re
+
+import numpy as np
 
 import data_loader.filegroup.coord_scan as dlcs
 
 from data_loader.coordinates.coord import Coord
 from data_loader.custom_types import File
 from data_loader.filegroup.coord_scan import CoordScan
+from data_loader.keys.key import Key, KeyValue
 from data_loader.variables_info import VariablesInfo
 if TYPE_CHECKING:
     from data_loader.filegroup.filegroup_load import FilegroupLoad
@@ -48,16 +51,20 @@ class FilegroupScan():
         Global VariablesInfo instance.
     name: str
         Name of the filegroup.
+
     cs: Dict[str, CoordScan or subclass]
         Dictionnary of scanning coordinates,
         each dynamically inheriting from its parent Coord.
+
     pregex: str
         Pre-regex.
     regex: str
         Regex.
+
     segments: List[str]
         Fragments of filename used for reconstruction,
         pair indices are replaced with matches.
+
     scan_attr: Dict[type: {'gen' | 'var'}, [Callable, scanned:bool, kwargs: Dict]]
         Functions to call to scan variables specific
         attributes or general attributes.
@@ -66,6 +73,8 @@ class FilegroupScan():
         scope, the index of that value in the filegroups CS.
         If that value is not contained in this filegroup, the
         index is None.
+
+    selection: Dict[str, Tuple[bool, Union[KeyLike, KeyLikeValue]]]
 
     post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]
         Functions applied after loading data.
@@ -96,6 +105,7 @@ class FilegroupScan():
         self.contains = {dim: [] for dim in self.cs}
 
         self.post_loading_funcs = []
+        self.selection = {}
 
     @property
     def variables(self) -> List[str]:
@@ -400,6 +410,57 @@ class FilegroupScan():
         """
         self.scan_attr['var'] = [func, False, kwargs]
 
+    def find_contained(self, values):
+        for dim, cs in self.cs.items():
+            # No information on CS values:
+            # no conversion between avail and FG
+            if cs.size is None:
+                contains = np.arange(len(values[dim]))
+            else:
+                # FIXME: float comparison value
+                contains = _get_contained(dim, cs[:], values[dim], 1e-5)
+                contains = np.array(contains)
+            self.contains[dim] = contains
+
+    def apply_coord_selection(self):
+        for dim, key in self.selection.items():
+            cs = self.cs[dim]
+            if isinstance(key, KeyValue):
+                key = Key(key.apply(cs))
+            print(key)
+            cs.slice(key.no_int())
+
+
+def _get_contained(dim: str,
+                   inner: np.ndarray,
+                   outer: np.ndarray,
+                   float_comparison: float) -> List[Union[int, None]]:
+    """Find values of inner contained in outer.
+
+    :param inner: Smaller list of values.
+        Can be floats, in which case self.float_comparison
+        is used as a threshold comparison.
+        Can be strings, if `dim` is 'var'.
+    :param outer: Longer list of values.
+
+    :returns:  List of the index of the outer values in the
+        inner list. If the value is not contained in
+        inner, the index is `None`.
+    """
+    contains = []
+
+    # TODO: comparison taken in charge by coordinate
+    for value in outer:
+        if dim == 'var':
+            idx = np.where(inner == value)[0]
+        else:
+            idx = np.where(np.abs(inner-value) < float_comparison)[0]
+        if len(idx) == 0:
+            idx = None
+        else:
+            idx = idx[0]
+        contains.append(idx)
+    return contains
 
 def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
                                     **kwargs: Any) -> Dict[str, Any]:
