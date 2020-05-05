@@ -154,7 +154,7 @@ def scan_variables_nc(cs: CoordScan, file: nc.Dataset,
                       values: List[float]) -> Tuple[List[str]]:
     """Scan netCDF file for variables names."""
     variables = [var for var in file.variables.keys()
-                 if var not in cs.filegroup.cs.keys()]
+                 if var not in file.dimensions]
     return variables, variables
 
 

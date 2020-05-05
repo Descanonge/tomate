@@ -29,3 +29,4 @@ stuff like lat=slice(10., 30.), time_i=0
 * TODO: check that we can set a custom name for CoordScanVariables
 * TODO: DataBase setattr
 * TODO: Exception handling in post_loading_funcs
+* TODO: FilegroupNetCDF: no need for take complex
