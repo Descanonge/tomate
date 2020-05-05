@@ -17,7 +17,7 @@ import numpy as np
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.variables import Variables
-from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr
+from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
 from data_loader.data_base import DataBase
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
@@ -108,33 +108,6 @@ class Constructor():
         (ie last filegroup added)
         """
         return self.filegroups[-1]
-
-    def add_variable(self, variable: str, **attributes: Any):
-        """Add variable along with attributes.
-
-        :param variable: Name of the variable.
-        :param attributes: Variable specific information.
-
-        Examples
-        --------
-        >>> name = "SST"
-        ... attrs = {'fullname': 'Sea Surface Temperature',
-        ...          'max_value': 40.}
-        ... cstr.add_variable(name, **attrs)
-        """
-        self.var.append(variable)
-        self.vi.add_variable(variable, **attributes)
-
-    def add_infos(self, **infos: Any):
-        """Add information to the vi.
-
-        Add general attributes to the vi.
-
-        Examples
-        --------
-        >>> cstr.add_infos(altimetry_data=['SSH', 'U', 'V'])
-        """
-        self.vi.add_infos(**infos)
 
     def add_filegroup(self, fg_type: Type,
                       coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
