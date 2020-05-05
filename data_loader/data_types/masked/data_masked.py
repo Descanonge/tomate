@@ -13,7 +13,7 @@ import numpy as np
 from data_loader.data_base import DataBase
 from data_loader.accessor import Accessor
 from data_loader.keys.keyring import Keyring
-import data_loader.masked.mask
+import data_loader.data_types.masked.mask
 
 
 log = logging.getLogger(__name__)

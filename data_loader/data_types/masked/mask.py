@@ -15,7 +15,7 @@ except ImportError:
 else:
     _has_scipy = True
 
-from data_loader.data_compute import do_stack
+from data_loader.data_types.data_compute import do_stack
 
 
 

@@ -34,10 +34,17 @@ from .variables_info import VariablesInfo
 from .data_base import DataBase
 from .constructor import Constructor
 
+from . import data_types
+import data_loader.data_types as dt
+
+
 
 __version__ = "0.3"
 
 __all__ = [
+    'data_types',
+    'dt',
+
     'Coord',
     'Time',
     'Lat',
