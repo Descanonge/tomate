@@ -32,10 +32,12 @@ class Variables(Coord):
         VI containing information about variables.
     """
 
-    def __init__(self, array: Union[str, Sequence[str]] = None, **kwargs: str):
+    def __init__(self, array: Union[str, Sequence[str]] = None,
+                 name: str = 'var',
+                 **kwargs):
         kwargs.pop('name', None)
         kwargs.pop('array', None)
-        super().__init__('var', None, **kwargs)
+        super().__init__(name, None, **kwargs)
 
         if array is not None:
             self.update_values(array, dtype=None)
