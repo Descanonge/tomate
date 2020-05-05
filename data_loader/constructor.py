@@ -218,39 +218,23 @@ class Constructor():
             self.selection[-1].pop(dim, None)
             self.selection_by_value[-1][dim] = key
 
-    def set_variables_infile(self, *variables: KeyLike, **kw_variables: KeyLike):
+    def set_variables_infile(self, **variables: KeyLikeVar):
         """Set variables index in the file.
 
         This information will be transmitted to the filegroup
         when loading.
-        It can be a integer or a string
-        under which the variable is found in file.
+        The argument name will be added to the variables scanning
+        coordinate values, and the value to its in-file indices.
 
         This is similar to using Constructor.set_scan_manual()
         for the 'Variables' coordinate.
 
-        :param variables: Argument in the order of variables indicated
-            when adding the last filegroup.
-        :param kw_variables: Argument name is the variable name.
-            Takes precedence over `variables` argument.
-
         Examples
         --------
-        >>> cstr.set_variables_infile('SST', 'CHL')
-
-        >>> cstr.set_variables_infile(sst='SST')
+        >>> cstr.set_variables_infile(sst='SST', chl='CHL_mean')
         """
-        kw_inf = {}
-        fg = self.current_fg
-        for i, inf in enumerate(variables):
-            var = fg.variables[i]
-            kw_inf[var] = inf
-
-        for var, inf in kw_variables.items():
-            kw_inf[var] = inf
-
-        cs = fg.cs['var']
-        cs.set_scan_manual(list(kw_inf.keys()), list(kw_inf.values()))
+        cs = self.current_fg.cs['var']
+        cs.set_scan_manual(list(variables.keys()), list(variables.values()))
 
     def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
                                               Tuple[List[float], List[int]]],
