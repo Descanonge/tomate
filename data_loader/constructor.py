@@ -119,11 +119,11 @@ class Constructor():
 
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
         :param coords_fg: Coordinates used in this grouping of files.
-            Each element of the list is a length 3 tuple of
-            the coordinate (or its name), a shared flag, and the name of the
-            coordinate in the file.
+            Each element of the list is a tuple of length 2 or 3 with
+            the coordinate (or its name), a shared flag, and eventually
+            the name of the coordinate in the file.
             The flag can be 'shared' or 'in', or a boolean (True = shared).
-            The name is optional, in which case the name of the coordinate
+            The name is optional, if not specified the name of the coordinate
             object is used.
             Variables dimension can be omitted.
         :param name: Name of the filegroup.

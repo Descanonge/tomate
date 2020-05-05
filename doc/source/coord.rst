@@ -30,23 +30,24 @@ a min and max value. For instance::
 Variables
 ---------
 
-The variables available constitute a dimension of the data.
-In most of the package, the 'dimensions' will designate the variables
-and coordinates dimensions, but 'coordinates' will exclude variables.
-
-In the inner workings of the package, variable are just a specific
+The list of variables available constitute a dimension of the data.
+In the inner workings of the package, variables are just a specific
 type of coordinate that support having string of characters as values
-(among other things). Most of the user API supports refering to variables
-by both their index in the coordinate object, and their name.
-See :class:`variables.Variables`.
+(among other things, see :class:`variables.Variables`).
+It is often useful to treat variables and other coordinates separately,
+so in the rest of the package, 'dimensions' (abbreviated dims) designate all
+Coord objects including variables, but 'coordinates' (abbreviated coords) omit
+the variables dimension.
 
-**The variable coordinate is always named 'var'.**
-This is the name it can be found in scopes, keyrings, and the name
+**The variable coordinate will always be named 'var'.**
+This is the name that can be found in scopes, keyrings, and the name
 that should be used in methods arguments.
+All alternative name can still be set to the scanning coordinate.
 
-In the Variables object, variables are stored in the order corresponding
-to the scope (for example, for the loaded scope, it will correspond to the
-order of the variable in the array).
+In the Variables object, variables are stored in order, reflecting for instance
+the order of variable in the data array (for the loaded scope).
+Most of the user API supports refering to variables
+by both their index in the coordinate object, and their name.
 One can easily retrieve the index of one or more variables using the
 :func:`idx<variables.Variables.idx>`,
 :func:`get_var_index<variables.Variables.get_var_index>`, or
