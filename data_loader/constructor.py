@@ -255,13 +255,13 @@ class Constructor():
     def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
                                               Tuple[List[float], List[int]]],
                          *coords: str,
-                         only_values: bool = False, only_index: bool = False,
+                         only_value: bool = False, only_index: bool = False,
                          **kwargs: Any):
         """Set function for scanning coordinates values in file.
 
         :param func: Function that captures values and in-file indices.
         :param coords: Coordinates to apply this function for.
-        :param only_values: [opt] Scan only coordinate values.
+        :param only_value: [opt] Scan only coordinate values.
         :param only_index: [opt] Scan only in-file indices.
         :param kwargs: [opt] Keyword arguments that will be passed to the function.
 
@@ -271,9 +271,9 @@ class Constructor():
             for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
-        if only_values:
+        if only_value and not only_index:
             elts.remove('in_idx')
-        if only_index:
+        if only_index and not only_value:
             elts.remove('values')
         fg = self.current_fg
         for name in coords:
@@ -283,13 +283,13 @@ class Constructor():
     def set_scan_filename(self, func: Callable[[CoordScan, List[float]],
                                                Tuple[List[float], List[int]]],
                           *coords: str,
-                          only_values: bool = False, only_index: bool = False,
+                          only_value: bool = False, only_index: bool = False,
                           **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
         :param func: Function that recover values from filename.
         :param coords: Coordinates to apply this function for.
-        :param only_values: [opt] Scan only coordinate values.
+        :param only_value: [opt] Scan only coordinate values.
         :param only_index: [opt] Scan only in-file indices.
         :param kwargs: [opt] Keyword arguments that will be passed to the function.
 
@@ -299,9 +299,9 @@ class Constructor():
             for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
-        if only_values:
+        if only_value and not only_index:
             elts.remove('in_idx')
-        if only_index:
+        if only_index and not only_value:
             elts.remove('values')
         fg = self.current_fg
         for name in coords:
