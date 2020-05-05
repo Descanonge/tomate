@@ -42,6 +42,7 @@ class DataDisk(DataBase):
         s = [super().__str__()]
         s.append("%d Filegroups:" % len(self.filegroups))
         s += ['\t%s' % ', '.join(fg.variables) for fg in self.filegroups]
+        return '\n'.join(s)
 
     def link_filegroups(self):
         """Link filegroups and data."""
