@@ -19,6 +19,7 @@ from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.variables import Variables
 from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
 from data_loader.data_base import DataBase
+from data_loader.data_types.data_disk import DataDisk
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.keys.key import KeyVar
@@ -697,15 +698,18 @@ class Constructor():
 
         :returns: Data instance ready to use.
         """
+        args = [list(self.dims.values()), self.vi]
         if scan:
             if not self.filegroups:
                 raise RuntimeError("No filegroups in constructor.")
             self.scan_files()
             self.compile_scanned()
             self.scan_variables_attributes()
+            self.add_disk_features()
+            args += [self.root, self.filegroups]
 
         dt_class = self.create_data_class()
-        dt = dt_class(self.root, self.filegroups, self.vi, *self.dims.values())
+        dt = dt_class(*args)
         dt.post_loading_funcs += self.post_loading_funcs
         return dt
 
