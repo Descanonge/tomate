@@ -170,17 +170,17 @@ class Constructor():
             if isinstance(c_fg[0], str):
                 c_name = c_fg[0]
                 try:
-                    c_fg[0] = self.coords[c_name]
+                    c_fg[0] = self.dims[c_name]
                 except KeyError:
                     raise KeyError("'%s' is not in constructor dimensions." % c_name)
             if len(c_fg) < 3:
-                c_fg.append(c_name)
+                c_fg.append(c_fg[0].name)
             shared = c_fg[1]
             if not isinstance(shared, bool):
                 if shared not in shared_corres:
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
                                      % (list(shared_corres.keys()),
-                                        name, c_name))
+                                        name, c_fg[0].name))
                 shared = shared_corres[shared]
             coords_fg[i][1] = shared
 
