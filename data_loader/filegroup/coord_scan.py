@@ -69,7 +69,11 @@ class CoordScan(Coord):
         Function to scan for attributes.
     """
     def __init__(self, filegroup: 'FilegroupLoad',
-                 coord: Coord, shared: bool, name: str):
+                 coord: Coord, *,
+                 shared: bool = False,
+                 name: str = None):
+        super().__init__(name=name, array=None, units=coord.units)
+
         self.filegroup = filegroup
         self.coord = coord
 
@@ -87,7 +91,6 @@ class CoordScan(Coord):
 
         self.force_idx_descending = False
 
-        super().__init__(name=name, array=None, units=coord.units)
 
     def __str__(self):
         s = [super().__str__()]
@@ -284,6 +287,10 @@ class CoordScan(Coord):
 class CoordScanVar(CoordScan):
     """Coord used for scanning variables."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = kwargs.pop('name', '')
+
     def set_values(self):
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
@@ -300,6 +307,7 @@ class CoordScanIn(CoordScan):
     All files are thus considered to have the same structure.
     """
     def __init__(self, *args, **kwargs):
+        kwargs.pop('shared', None)
         super().__init__(*args, **kwargs, shared=False)
 
     def scan_file(self, m: re.match, file: File):
@@ -334,10 +342,11 @@ class CoordScanShared(CoordScan):
     """
 
     def __init__(self, *args, **kwargs):
+        kwargs.pop('shared', None)
+        super().__init__(*args, **kwargs, shared=True)
+
         self.matchers = []
         self.matches = []
-
-        super().__init__(*args, **kwargs, shared=True)
 
     def __str__(self):
         s = [super().__str__()]
