@@ -28,7 +28,6 @@ class DataBase():
     r"""Encapsulate data array and info about the variables.
 
     The data itself is stored in the data attribute.
-    It can be loaded from disk using multiple `Filegroups`.
     The data can be conveniently accessed using the `view` method.
 
     The data consists in multiple variables varying along
@@ -50,15 +49,12 @@ class DataBase():
 
     See :doc:`../data` for more information.
 
-    :param root: Root data directory containing all files.
     :param vi: Information on the variables and data.
     :param coords: Coordinates, in the order the data should be kept.
         This includes variables.
 
     Attributes
     ----------
-    root: str
-        Root data directory containing all files.
     vi: VariablesInfo
         Information on the variables and data.
 
@@ -72,8 +68,6 @@ class DataBase():
     data: np.ndarray or subclass
         Data array if loaded, None otherwise.
 
-    filegroups: List[FilegroupLoad]
-
     avail: Scope
         Scope of available data (on disk).
     loaded: Scope
@@ -83,18 +77,12 @@ class DataBase():
 
     acs: Type[Accessor]
         Accessor class (or subclass) to use to access the data.
-
-    post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
-        Functions applied after loading data.
     """
 
     acs = Accessor
 
-    def __init__(self, root: str,
-                 filegroups: List[FilegroupLoad],
-                 vi: VariablesInfo,
-                 *coords: Coord):
-        self.root = root
+    def __init__(self, *coords: Coord,
+                 vi: VariablesInfo):
 
         self.dims = [c.name for c in coords]
         self.coords = [name for name in self.dims if name != 'var']
@@ -108,15 +96,9 @@ class DataBase():
         self.loaded.name = 'loaded'
         self.selected.name = 'selected'
 
-        self.filegroups = filegroups
-
         self.vi = vi
 
         self.data = None
-
-        self.link_filegroups()
-
-        self.post_loading_funcs = []
 
     def __str__(self):
         s = ["Data object"]
@@ -140,9 +122,6 @@ class DataBase():
         else:
             s.append('Data selected: \n%s' % str(self.selected))
         s.append('')
-
-        s.append("%d Filegroups:" % len(self.filegroups))
-        s += ['\t%s' % ', '.join(fg.variables) for fg in self.filegroups]
 
         return '\n'.join(s)
 
@@ -352,12 +331,6 @@ class DataBase():
         iter_slices: Iter through any coordinate
         """
         return self.scope.iter_slices_month(coord, key)
-
-    def link_filegroups(self):
-        """Link filegroups and data."""
-        for fg in self.filegroups:
-            fg.db = self
-            fg.acs = self.acs
 
     @property
     def ndim(self) -> int:
@@ -582,129 +555,9 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def load_by_value(self, *keys: KeyLikeValue, by_day=False,
-                      **kw_keys: KeyLikeValue):
-        """Load part of data from disk into memory.
 
-        Part of the data to load is specified by values.
 
-        :param keys: [opt] Values to select for a coordinate.
-            If is slice, use start and stop as boundaries. Step has no effect.
-            If is float, int, or a list of, closest index for each value is taken.
-        :param bool: Use `subset_by_day` for Time dimension rather than `subset`.
-            Default to False.
-        :param kw_keys: [opt] Same.
 
-        Examples
-        --------
-        Load latitudes from 10N to 30N.
-        >>> dt.load_by_value('SST', lat=slice(10, 30))
-
-        Load latitudes from 5N to maximum available.
-        >>> dt.load_by_value('SST', lat=slice(5, None))
-
-        Load depth closest to 500.
-        >>> dt.load_by_value(None, depth=500.)
-
-        Load depths closest to 0, 10, 50
-        >>> dt.load_by_value(None, depth=[0, 10, 50])
-        """
-        kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)
-        self.load_selected(scope=scope)
-
-    def load(self, *keys: KeyLike, **kw_keys: KeyLike):
-        """Load part of data from disk into memory.
-
-        What variables, and what part of the data
-        corresponding to coordinates indices can be specified.
-        Keys specified to subset data act on the available scope.
-        If a parameter is None, all available is taken for that
-        parameter.
-
-        :param keys: [opt] What subset of coordinate to load.
-            The order is that of self.coords.
-        :param kw_keys: [opt] What subset of coordinate to load. Takes precedence
-            over positional `coords`.
-            Variables key argument should be named 'var'.
-
-        Examples
-        --------
-        Load everything available
-
-        >>> dt.load(None)
-
-        Load first index of the first coordinate for the SST variable
-
-        >>> dt.load("SST", 0)
-
-        Load everything for SST and Chla variables.
-
-        >>> dt.load(["SST", "Chla"], slice(None, None), None)
-
-        Load time steps 0, 10, and 12 of all variables.
-
-        >>> dt.load(None, time=[0, 10, 12])
-
-        Load first index of the first coordinate, and a slice of lat
-        for the SST variable.
-
-        >>> dt.load("SST", 0, lat=slice(200, 400))
-        """
-        self.unload_data()
-
-        kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        keyring = Keyring(**kw_keys)
-        keyring.make_full(self.dims)
-        keyring.make_total()
-        keyring.make_int_list()
-        keyring.make_var_idx(self.avail.var)
-        keyring.sort_by(self.dims)
-
-        self.loaded = self.get_subscope('avail', keyring)
-        self.loaded.name = 'loaded'
-
-        self.self_allocate(self.loaded.shape)
-
-        loaded = any([fg.load_from_available(keyring)
-                      for fg in self.filegroups])
-        if not loaded:
-            log.warning("Nothing loaded.")
-        else:
-            self.do_post_loading(keyring)
-
-    def do_post_loading(self, keyring: Keyring):
-        """Apply post loading functions."""
-        do_post_loading(keyring['var'], self, self.avail.var,
-                        self.post_loading_funcs)
-
-    def load_selected(self, keyring: Keyring = None,
-                      scope: Union[str, Scope] = 'selected',
-                      **keys: KeyLike):
-        """Load data from a child scope of available.
-
-        Subset is specified by a scope.
-        The selection scope is expected to be created from
-        the available one.
-
-        :param keyring: [opt]
-        :param scope: [opt] Selected scope created from available scope.
-            Defaults to `self.selected`.
-        :param keys: [opt]
-
-        :raises KeyError: Selection scope is empty.
-        :raises ValueError: Selection scope was not created from available.
-        """
-        scope = self.get_scope(scope)
-        if scope.is_empty():
-            raise KeyError("Selection scope is empty ('%s')." % scope.name)
-        if scope.parent_scope != self.avail:
-            raise ValueError("The parent scope is not the available data scope."
-                             " (is '%s')" % scope.parent_scope.name)
-
-        scope_ = scope.copy()
-        scope_.slice(int2list=False, keyring=keyring, **keys)
-        self.load(**scope_.parent_keyring.kw)
 
     def allocate(self, shape: List[int]) -> np.ndarray:
         """Allocate data array.
@@ -785,48 +638,3 @@ class DataBase():
             keys = self.loaded.idx[variable]
             self.data = np.delete(self.data, [keys], axis=0)
             self.loaded.var.remove(variable)
-
-    def write(self, filename: str, wd: str = None, **keys: KeyLike):
-        """Write variables to disk.
-
-        Write to a netcdf file.
-        Coordinates are written too.
-
-        :param filename: File to write in. Relative to each filegroup root
-            directory, or from `wd` if specified.
-        :param wd: [opt] Force to write `filename` in this directory.
-        :param variables: [opt] Variables to write. If None, all are written.
-        """
-        keyring = Keyring(**keys)
-        keyring.make_full(self.dims)
-        keyring.make_total()
-        keyring['var'] = self.loaded.var.get_var_names(keyring['var'])
-
-        for fg in self.filegroups:
-            variables = [v for v in keyring['var']
-                         if v in fg.variables]
-            if variables:
-                keyring_fg = keyring.copy()
-                keyring_fg['var'] = variables
-                fg.write(filename, wd, keyring=keyring_fg)
-
-    def write_add_variable(self, var: str, sibling: str,
-                           inf_name: KeyLikeVar = None, **keys: KeyLike):
-        """Add variables to files.
-
-        :param var: Variable to add. Must be in loaded scope.
-        :param sibling: Variable along which to add the data.
-            New variable will be added to the same files
-            and in same order.
-        :param inf_name: [opt] Variable in-file name. Default to the variables name.
-        :param keys: [opt] If a subpart of data is to be written.
-            The selected data must match in shape that of the
-            sibling data on disk.
-        """
-        if inf_name is None:
-            inf_name = var
-        scope = self.get_subscope('loaded', var=var, **keys)
-        for fg in self.filegroups:
-            if sibling in fg.variables:
-                fg.write_add_variable(var, sibling, inf_name, scope)
-                break
