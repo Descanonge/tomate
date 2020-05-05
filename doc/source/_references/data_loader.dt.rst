@@ -1,10 +1,10 @@
-data\_loader.filegroup.matcher
-==============================
+data\_loader.dt
+===============
 .. autosummary::
    :toctree:
    :nosignatures:
 
-.. automodule:: data_loader.filegroup.matcher
+.. automodule:: data_loader.dt
       :members:
       :undoc-members:
       :show-inheritance:

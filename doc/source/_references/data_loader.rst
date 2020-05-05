@@ -29,11 +29,11 @@ API Reference
    
       coordinates
    
+      data_types
+   
       filegroup
    
       keys
-   
-      masked
    
 .. rubric:: Submodules
 .. autosummary::
@@ -49,11 +49,9 @@ API Reference
    
       data_base
    
-      data_compute
-   
-      data_plot
-   
       data_write
+   
+      dt
    
       log
    

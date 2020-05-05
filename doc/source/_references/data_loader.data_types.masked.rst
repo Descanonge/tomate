@@ -1,11 +1,11 @@
-.. automodule:: data_loader.keys
+.. automodule:: data_loader.data_types.masked
 .. rubric:: Submodules
 .. autosummary::
    :toctree:
    :nosignatures:
 
    
-      key
+      data_masked
    
-      keyring
+      mask
    
