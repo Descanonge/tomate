@@ -81,7 +81,7 @@ class DataBase():
 
     acs = Accessor
 
-    def __init__(self, *coords: Coord,
+    def __init__(self, coords: List[Coord],
                  vi: VariablesInfo):
 
         self.dims = [c.name for c in coords]
