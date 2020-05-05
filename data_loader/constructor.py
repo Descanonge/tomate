@@ -292,7 +292,7 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_filename_func(func, elts, **kwargs)
 
-    def set_scan_manual(self, coord: str,
+    def set_scan_manual(self, dim: str,
                         values: List[float],
                         in_idx: List[Union[int, None]] = None):
         """Set coordinate values manually.
@@ -300,7 +300,7 @@ class Constructor():
         Values will still be checked for consistency with
         others filegroups.
 
-        :param coord: Coordinate to set the values for.
+        :param dim: Dimension to set the values for.
         :param values: Values for the coordinate.
         :param in_idx: [opt] Values of the in-file index.
             If not specifile, defaults to None for all values.
@@ -309,7 +309,7 @@ class Constructor():
             in_idx = [None for _ in range(len(values))]
 
         fg = self.current_fg
-        cs = fg.cs[coord]
+        cs = fg.cs[dim]
         cs.set_scan_manual(values, in_idx)
 
     def set_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
