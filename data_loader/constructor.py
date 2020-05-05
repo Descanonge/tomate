@@ -137,7 +137,7 @@ class Constructor():
         self.vi.add_infos(**infos)
 
     def add_filegroup(self, fg_type: Type,
-                      coords_fg: List[Tuple[Coord, Union[str, bool], str]],
+                      coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
                       name: str = '',
                       root: str = None,
                       variables_shared: bool = False,
@@ -147,7 +147,7 @@ class Constructor():
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
         :param coords_fg: Coordinates used in this grouping of files.
             Each element of the list is a length 3 tuple of
-            the coordinate, a shared flag, and the name of the
+            the coordinate (or its name), a shared flag, and the name of the
             coordinate in the file.
             The flag can be 'shared' or 'in', or a boolean (True = shared).
             The name is optional, in which case the name of the coordinate
@@ -165,16 +165,22 @@ class Constructor():
         ...                                 [lon, 'in'],
         ...                                 [time, 'shared']])
         """
-        for c_fg in coords_fg:
-            if len(c_fg) < 3:
-                c_fg.append(c_fg[0].name)
         shared_corres = {'in': False, 'shared': True}
-        for i, [c, shared, _] in enumerate(coords_fg):
+        for i, c_fg in enumerate(coords_fg):
+            if isinstance(c_fg[0], str):
+                c_name = c_fg[0]
+                try:
+                    c_fg[0] = self.coords[c_name]
+                except KeyError:
+                    raise KeyError("'%s' is not in constructor dimensions." % c_name)
+            if len(c_fg) < 3:
+                c_fg.append(c_name)
+            shared = c_fg[1]
             if not isinstance(shared, bool):
                 if shared not in shared_corres:
                     raise ValueError("Shared must be bool or %s\n(%s, %s)"
                                      % (list(shared_corres.keys()),
-                                        name, c.name))
+                                        name, c_name))
                 shared = shared_corres[shared]
             coords_fg[i][1] = shared
 
