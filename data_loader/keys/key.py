@@ -436,6 +436,44 @@ class KeyVar(Key):
         self.set_shape_coord(variables)
 
 
+class KeyValue():
+
+    def __init__(self, key):
+        self.value = None
+        self.type = ''
+        self.shape = None
+        self.set(key)
+
+    def set(self, key):
+        if isinstance(key, (list, tuple, np.ndarray)):
+            tp = 'list'
+        elif isinstance(key, slice):
+            tp = 'slice'
+        elif key is None:
+            tp = 'none'
+        else:
+            tp = 'int'
+
+        self.value = key
+        self.type = tp
+        self.set_shape()
+
+    def set_shape(self):
+        if self.type in ['int', 'none']:
+            self.shape = 0
+        elif self.type == 'list':
+            self.shape = len(self.value)
+
+    def apply(self, coord):
+        if self.type == 'int':
+            return coord.get_index(self.value)
+        if self.type == 'list':
+            return coord.get_indices(self.value)
+        if self.type == 'slice':
+            return coord.subset(self.value.start, self.value.stop)
+        raise TypeError("Not applicable (key type '%s')." % self.type)
+
+
 def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
     """Simplify a key.
 
