@@ -55,8 +55,6 @@ API Reference
    
       data_write
    
-      iter_dict
-   
       log
    
       scan_library
