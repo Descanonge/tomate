@@ -677,6 +677,14 @@ class Constructor():
                             fg.variables, coords)
                 raise RuntimeError(mess)
 
+    def add_disk_features(self):
+        """Add management of data on disk.
+
+        If not already present.
+        """
+        if DataDisk not in self.dt_types:
+            self.dt_types.insert(0, DataDisk)
+
     def make_data(self, scan=True) -> Type[DataBase]:
         """Create data instance.
 
