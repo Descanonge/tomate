@@ -33,11 +33,10 @@ class Variables(Coord):
     """
 
     def __init__(self, array: Union[str, Sequence[str]] = None,
-                 name: str = 'var',
                  **kwargs):
         kwargs.pop('name', None)
         kwargs.pop('array', None)
-        super().__init__(name, None, **kwargs)
+        super().__init__('var', None, **kwargs)
 
         if array is not None:
             self.update_values(array, dtype=None)
