@@ -28,11 +28,11 @@ class DataDisk(DataBase):
         Functions applied after loading data.
 
     """
-    def __init__(self, *args,
-                 filegroups: List[FilegroupLoad],
+    def __init__(self, coords: List[Coord],
+                 vi: VariablesInfo,
                  root: str,
-                 **kwargs):
-        super().__init__(*args, **kwargs)
+                 filegroups: List[FilegroupLoad]):
+        super().__init__(coords, vi)
         self.root = root
         self.filegroups = filegroups
         self.link_filegroups()
