@@ -27,6 +27,8 @@ class Scope():
     Coordinates and variable list can be accessed as items:
     `Scope[{name of coordinate | 'var'}]`.
 
+    :param copy: Copy coordinates objects. Default: yes.
+
     Attributes
     ----------
     name: str
@@ -39,8 +41,11 @@ class Scope():
     """
 
     def __init__(self, coords: List[Coord],
-                 name: str = None):
-        self.dims = {c.name: c.copy() for c in coords}
+                 name: str = None,
+                 copy: bool = True):
+        if copy:
+            coords = [c.copy() for c in coords]
+        self.dims = {c.name: c for c in coords}
 
         self.parent_scope = None
         self.parent_keyring = Keyring()
