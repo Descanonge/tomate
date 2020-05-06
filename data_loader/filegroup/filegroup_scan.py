@@ -418,22 +418,6 @@ class FilegroupScan():
         """
         self.scan_attr['var'] = [func, False, kwargs]
 
-    def find_contained(self, values: Dict[np.ndarray]):
-        """Set contains attribute.
-
-        :param values: Available values.
-        """
-        for dim, cs in self.cs.items():
-            # No information on CS values:
-            # no conversion between avail and FG
-            if cs.size is None:
-                contains = np.arange(len(values[dim]))
-            else:
-                # FIXME: float comparison value
-                contains = _get_contained(dim, cs[:], values[dim], 1e-5)
-                contains = np.array(contains)
-            self.contains[dim] = contains
-
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
         for dim, key in self.selection.items():
@@ -441,38 +425,6 @@ class FilegroupScan():
             if isinstance(key, KeyValue):
                 key = Key(key.apply(cs))
             cs.slice(key.no_int())
-
-
-def _get_contained(dim: str,
-                   inner: np.ndarray,
-                   outer: np.ndarray,
-                   float_comparison: float) -> List[Union[int, None]]:
-    """Find values of inner contained in outer.
-
-    :param inner: Smaller list of values.
-        Can be floats, in which case self.float_comparison
-        is used as a threshold comparison.
-        Can be strings, if `dim` is 'var'.
-    :param outer: Longer list of values.
-
-    :returns:  List of the index of the outer values in the
-        inner list. If the value is not contained in
-        inner, the index is `None`.
-    """
-    contains = []
-
-    # TODO: comparison taken in charge by coordinate
-    for value in outer:
-        if dim == 'var':
-            idx = np.where(inner == value)[0]
-        else:
-            idx = np.where(np.abs(inner-value) < float_comparison)[0]
-        if len(idx) == 0:
-            idx = None
-        else:
-            idx = idx[0]
-        contains.append(idx)
-    return contains
 
 def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
                                     **kwargs: Any) -> Dict[str, Any]:

@@ -263,8 +263,8 @@ class DataDisk(DataBase):
         for fg in self.filegroups:
             fg.apply_coord_selection()
         values = self._get_coord_values()
-
         self._find_contained(values)
+
         if not self.allow_advanced:
             self._get_intersection(values)
             self._find_contained(values)
@@ -274,7 +274,8 @@ class DataDisk(DataBase):
 
     def _find_contained(self, values):
         for fg in self.filegroups:
-            fg.find_contained(values)
+            for dim, value in values.items():
+                fg.cs[dim].find_contained(value)
 
     def _get_coord_values(self) -> Dict[str, np.ndarray]:
         """Aggregate all available coordinate values.
@@ -368,29 +369,3 @@ class DataDisk(DataBase):
                             fg.name, coords)
                 raise RuntimeError(mess)
 
-
-def _slice_cs(fg: FilegroupLoad,
-              dim: str,
-              remove: np.ndarray,
-              select: np.ndarray):
-    """Slice all CoordScan according to smaller values.
-
-    :param dim: Dimension to slice.
-    :param remove: Indices to remove from available.
-    :param select: Indices to keep in available.
-
-    :raises IndexError: If no common values are found.
-    """
-    cs = fg.cs[dim]
-    if cs.size is not None:
-        indices = fg.contains[dim][select]
-        indices = np.delete(indices,
-                            np.where(np.equal(indices, None))[0])
-        if indices.size == 0:
-            raise IndexError("No common values for '%s'." % dim)
-
-        if indices.size != cs.size:
-            log.warning("'%s' in %s will be cut: found %d values ranging %s",
-                        dim, fg.name, fg.cs[dim].size,
-                        fg.cs[dim].get_extent_str())
-        cs.slice(indices.astype(int))
