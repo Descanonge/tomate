@@ -67,6 +67,10 @@ class CoordScan(Coord):
         If attributes are to be scanned.
     scan_attributes_func: Callable
         Function to scan for attributes.
+
+    find_contained_kwargs: Dict[str, Any]
+        Keywords argument passed to get_index_exact when finding
+        values contained in CS.
     """
     def __init__(self, filegroup: 'FilegroupLoad',
                  coord: Coord, *,
@@ -85,6 +89,7 @@ class CoordScan(Coord):
         self.scan_attributes_func = scan_attributes_default
 
         self.change_units_custom = None
+        self.find_contained_kwargs = {}
 
         self.values = []
         self.in_idx = []
@@ -282,6 +287,24 @@ class CoordScan(Coord):
                 self.in_idx += in_idx
 
         return values
+
+    def find_contained(self, outer: np.ndarray) -> List[Union[int, None]]:
+        """Find values of inner contained in outer.
+
+        :param outer: List of values.
+
+        :returns:  List of the index of the outer values in the CS.
+            If the value is not contained in CS, the index is `None`.
+        """
+        if self.size is None:
+            contains = np.arange(len(outer))
+        else:
+            contains = []
+            for value in outer:
+                contains.append(self.get_index_exact(value,
+                                                     **self.find_contained_kwargs))
+            contains = np.array(contains)
+        self.contains = contains
 
 
 class CoordScanVar(CoordScan):
