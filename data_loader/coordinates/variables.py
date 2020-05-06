@@ -5,7 +5,7 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-from typing import Iterator, List, Sequence, Union
+from typing import Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 
@@ -81,6 +81,12 @@ class Variables(Coord):
         i = np.where(self._array == value)[0][0]
         i = int(i)
         return i
+
+    def get_index_exact(self, value: str, **kwargs) -> Optional[int]:
+        try:
+            return self.get_index(value)
+        except KeyError:
+            return None
 
     def idx(self, y: Union[str, int]) -> int:
         """Return index of variable."""

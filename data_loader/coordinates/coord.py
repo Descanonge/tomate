@@ -8,7 +8,7 @@
 
 import logging
 import bisect
-from typing import Any, List, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -302,6 +302,18 @@ class Coord():
         """
         indices = [self.get_index(v, loc) for v in values]
         return indices
+
+    def get_index_exact(self, value: float,
+                        threshold: float = 1e-5,
+                        **kwargs) -> Optional[int]:
+        """Return index of value if present.
+
+        None if value is not present.
+        """
+        idx = np.where(np.abs(self._array - value) < threshold)[0]
+        if len(idx) == 0:
+            return None
+        return idx[0]
 
     @staticmethod
     def format(value: float, fmt: str = '{:.2f}') -> str:

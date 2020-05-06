@@ -391,4 +391,3 @@ def _slice_cs(fg: FilegroupLoad,
                         dim, fg.name, fg.cs[dim].size,
                         fg.cs[dim].get_extent_str())
         cs.slice(indices.astype(int))
-    fg.contains[dim] = np.delete(fg.contains[dim], remove)
