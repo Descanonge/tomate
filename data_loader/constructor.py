@@ -479,7 +479,7 @@ class Constructor():
         """
         args = [list(self.dims.values()), self.vi]
 
-        if scan:
+        if scan or self.filegroups:
             self.add_disk_features()
         if DataDisk in self.dt_types:
             args += [self.root, self.filegroups]
