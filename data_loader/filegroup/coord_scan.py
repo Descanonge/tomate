@@ -140,6 +140,22 @@ class CoordScan(Coord):
         if self.size is not None:
             super().slice(key)
 
+    def slice_from_avail(self, key: KeyLikeInt) -> bool:
+        """Slice using a key working on available scope.
+
+        Use `contains` attribute to convert.
+        Returns true if there was a change in number
+        of value. False otherwise.
+        """
+        indices = self.contains[key]
+        indices = np.delete(indices,
+                            np.where(np.equal(indices, None))[0])
+        out = False
+        if indices.size != self.size:
+            out = True
+        self.slice(indices.astype(int))
+        return out
+
     def get_in_idx(self, key: KeyLike) -> Key:
         """Get the in file indices.
 
