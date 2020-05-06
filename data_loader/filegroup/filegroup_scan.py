@@ -376,7 +376,7 @@ class FilegroupScan():
                 else:
                     f = cs.change_units_other
                 log.debug("Changing units for '%s' from '%s' to '%s'",
-                         cs.coord.name, cs.units, cs.coord.units)
+                          cs.coord.name, cs.units, cs.coord.units)
                 try:
                     cs.values = f(cs.values, cs.units, cs.coord.units)
                 except NotImplementedError:
@@ -410,7 +410,11 @@ class FilegroupScan():
         """
         self.scan_attr['var'] = [func, False, kwargs]
 
-    def find_contained(self, values):
+    def find_contained(self, values: Dict[np.ndarray]):
+        """Set contains attribute.
+
+        :param values: Available values.
+        """
         for dim, cs in self.cs.items():
             # No information on CS values:
             # no conversion between avail and FG
@@ -423,11 +427,11 @@ class FilegroupScan():
             self.contains[dim] = contains
 
     def apply_coord_selection(self):
+        """Apply CoordScan selection."""
         for dim, key in self.selection.items():
             cs = self.cs[dim]
             if isinstance(key, KeyValue):
                 key = Key(key.apply(cs))
-            print(key)
             cs.slice(key.no_int())
 
 

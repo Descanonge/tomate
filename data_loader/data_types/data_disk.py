@@ -1,10 +1,10 @@
 """Manage on-disk data."""
 
-import numpy as np
-
 import logging
 import itertools
 from typing import Dict, List, Union
+
+import numpy as np
 
 from data_loader.coordinates.coord import Coord
 from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
@@ -19,16 +19,21 @@ log = logging.getLogger(__name__)
 
 
 class DataDisk(DataBase):
-    """Added functionalities for data on-disk.
+    """Added functionalities for on-disk data management.
 
     Scan metadata.
     Load data from disk.
-    filegroups: List[FilegroupLoad]
+
 
     :param root: Root data directory containing all files.
 
     root: str
         Root data directory containing all files.
+    filegroups: List[FilegroupLoad]
+
+    allow_advanced: bool
+        If allows advanced data arrangement.
+
     post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
         Functions applied after loading data.
     """
@@ -237,12 +242,24 @@ class DataDisk(DataBase):
                 fg.scan_variables_attributes()
 
     def scan_files(self):
+        """Scan files for metadata.
+
+        :raises RuntimeError: If no filegroups in database.
+        """
         if not self.filegroups:
-            raise RuntimeError("No filegroups in constructor.")
+            raise RuntimeError("No filegroups in database.")
         for fg in self.filegroups:
             fg.scan_files()
 
     def compile_scanned(self):
+        """Compile metadata scanned.
+
+        -Apply CoordScan selections.
+        -Aggregate coordinate values from all filegroups.
+        -If advanced data organization is not allowed, only keep
+        intersection.
+        -Apply coordinates values to available scope.
+        """
         for fg in self.filegroups:
             fg.apply_coord_selection()
         values = self._get_coord_values()
@@ -263,6 +280,7 @@ class DataDisk(DataBase):
         """Aggregate all available coordinate values.
 
         :returns: Values for each dimension.
+        :raises ValueError: No values found for a variable.
         """
         values_c = {}
         for c in self.dims:
