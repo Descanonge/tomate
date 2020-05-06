@@ -487,6 +487,7 @@ class Constructor():
         dt_class = self.create_data_class()
         dt = dt_class(*args)
         dt.post_loading_funcs += self.post_loading_funcs
+        dt.allow_advanced = self.allow_advanced
 
         if scan:
             dt.scan_files()
