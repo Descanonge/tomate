@@ -146,7 +146,12 @@ class Coord():
         return self.__class__(self.name, self._array, self.units, self.fullname)
 
     def slice(self, key: KeyLike):
-        """Slice the coordinate."""
+        """Slice the coordinate.
+
+        :raises IndexError: If there is no data.
+        """
+        if not self.has_data():
+            raise IndexError("Coordinate has no values to slice.")
         if key is None:
             key = slice(None, None)
         data = self._array[key]
