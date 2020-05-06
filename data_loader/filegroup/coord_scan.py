@@ -80,6 +80,7 @@ class CoordScan(Coord):
 
         self.filegroup = filegroup
         self.coord = coord
+        self.contains = None
 
         self.shared = shared
         self.scan = {}

@@ -102,8 +102,6 @@ class FilegroupScan():
         self.cs = {}
         self.make_coord_scan(coords_fg)
 
-        self.contains = {dim: [] for dim in self.cs}
-
         self.post_loading_funcs = []
         self.selection = {}
 
@@ -116,6 +114,16 @@ class FilegroupScan():
         else:
             v = []
         return v
+
+    @property
+    def contains(self) -> Dict[str, Optional[np.ndarray]]:
+        """Index of values contained in this filegroup.
+
+        Indexed on available scope.
+        None designate a value not contained.
+        """
+        out = {name: c.contains for name, c in self.cs.items()}
+        return out
 
     def __str__(self):
         s = [self.__class__.__name__]
