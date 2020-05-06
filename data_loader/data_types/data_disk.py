@@ -314,20 +314,23 @@ class DataDisk(DataBase):
             accross filegroups.
         """
         for dim in self.coords:
-            any_cut = False
+            none = np.zeros(values[dim].size, bool)
             for fg in self.filegroups:
-                none = np.equal(fg.contains[dim], None)
-                rem = np.where(none)[0]
+                none ^= np.equal(fg.contains[dim], None)
+            if np.any(none):
                 sel = np.where(~none)[0]
-                if rem.size > 0:
-                    any_cut = True
-                    values[dim] = np.delete(values[dim], rem)
-                    for fg_ in self.filegroups:
-                        _slice_cs(fg_, dim, rem, sel)
-            if any_cut:
-                c = self.filegroups[0].cs[dim]
-                log.warning("Common values taken for '%s', %d values ranging %s",
-                            dim, c.size, c.get_extent_str())
+                for fg in self.filegroups:
+                    cs = fg.cs[dim]
+                    size, extent = cs.size, cs.get_extent_str()
+                    if cs.slice_from_avail(sel):
+                        log.warning("'%s' in '%s' will be cut: found %d values ranging %s",
+                                    dim, fg.name, size, extent)
+                        if cs.size == 0:
+                            raise IndexError("No common values for '%s'" % dim)
+
+                cs = self.filegroups[0].cs[dim]
+                log.warning("Common values taken for '%s', %d values ranging %s.",
+                            dim, cs.size, cs.get_extent_str())
 
     def _apply_coord_values(self, values: Dict[str, np.ndarray]):
         """Set found values to master coordinates."""
