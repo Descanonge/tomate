@@ -249,14 +249,11 @@ class DataDisk(DataBase):
 
         if not self.allow_advanced:
             self._get_intersection(values)
-            self._apply_coord_values(values)
-            for fg in self.filegroups:
-                fg.find_contained(values)
-        else:
-            self._apply_coord_values(values)
 
+        for fg in self.filegroups:
+            fg.find_contained(values)
         self.check_duplicates()
-
+        self._apply_coord_values(values)
 
     def _get_coord_values(self) -> Dict[str, np.ndarray]:
         """Aggregate all available coordinate values.
