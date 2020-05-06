@@ -303,40 +303,13 @@ class DataDisk(DataBase):
                 sel = np.where(~none)[0]
                 if rem.size > 0:
                     any_cut = True
-                    self._slice_cs(dim, values, rem, sel)
-
+                    values[dim] = np.delete(values[dim], rem)
+                    for fg_ in self.filegroups:
+                        _slice_cs(fg_, dim, rem, sel)
             if any_cut:
                 c = self.filegroups[0].cs[dim]
                 log.warning("Common values taken for '%s', %d values ranging %s",
                             dim, c.size, c.get_extent_str())
-
-    def _slice_cs(self, dim: str, values: np.ndarray,
-                  remove: np.ndarray, select: np.ndarray):
-        """Slice all CoordScan according to smaller values.
-
-        :param dim: Dimension to slice.
-        :param values: New values.
-        :param remove: Indices to remove from available.
-        :param select: Indices to keep in available.
-
-        :raises IndexError: If no common values are found.
-        """
-        values[dim] = np.delete(values[dim], remove)
-        for fg_ in self.filegroups:
-            cs = fg_.cs[dim]
-            if cs.size is not None:
-                indices = fg_.contains[dim][select]
-                indices = np.delete(indices,
-                                    np.where(np.equal(indices, None))[0])
-                if indices.size == 0:
-                    raise IndexError("No common values for '%s'." % dim)
-
-                if indices.size != cs.size:
-                    log.warning("'%s' in %s will be cut: found %d values ranging %s",
-                                dim, fg_.name, fg_.cs[dim].size,
-                                fg_.cs[dim].get_extent_str())
-                cs.slice(indices.astype(int))
-            fg_.contains[dim] = np.delete(fg_.contains[dim], remove)
 
     def _apply_coord_values(self, values: Dict[str, np.ndarray]):
         """Set found values to master coordinates."""
@@ -373,3 +346,31 @@ class DataDisk(DataBase):
                         "Contains: {0}\nCoordinates: {1}").format(
                             fg.name, coords)
                 raise RuntimeError(mess)
+
+
+def _slice_cs(fg: FilegroupLoad,
+              dim: str,
+              remove: np.ndarray,
+              select: np.ndarray):
+    """Slice all CoordScan according to smaller values.
+
+    :param dim: Dimension to slice.
+    :param remove: Indices to remove from available.
+    :param select: Indices to keep in available.
+
+    :raises IndexError: If no common values are found.
+    """
+    cs = fg.cs[dim]
+    if cs.size is not None:
+        indices = fg.contains[dim][select]
+        indices = np.delete(indices,
+                            np.where(np.equal(indices, None))[0])
+        if indices.size == 0:
+            raise IndexError("No common values for '%s'." % dim)
+
+        if indices.size != cs.size:
+            log.warning("'%s' in %s will be cut: found %d values ranging %s",
+                        dim, fg.name, fg.cs[dim].size,
+                        fg.cs[dim].get_extent_str())
+        cs.slice(indices.astype(int))
+    fg.contains[dim] = np.delete(fg.contains[dim], remove)
