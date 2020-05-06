@@ -319,6 +319,7 @@ class DataDisk(DataBase):
             for fg in self.filegroups:
                 none ^= np.equal(fg.contains[dim], None)
             if np.any(none):
+                values[dim] = np.delete(values[dim], np.where(none))
                 sel = np.where(~none)[0]
                 for fg in self.filegroups:
                     cs = fg.cs[dim]
@@ -368,4 +369,3 @@ class DataDisk(DataBase):
                         "Contains: {0}\nCoordinates: {1}").format(
                             fg.name, coords)
                 raise RuntimeError(mess)
-

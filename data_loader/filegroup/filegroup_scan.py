@@ -7,7 +7,7 @@
 
 
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 import os
 import re
@@ -68,11 +68,6 @@ class FilegroupScan():
     scan_attr: Dict[type: {'gen' | 'var'}, [Callable, scanned:bool, kwargs: Dict]]
         Functions to call to scan variables specific
         attributes or general attributes.
-    contains: Dict[dim:str, Array]
-        For each dimension, for each value in the available
-        scope, the index of that value in the filegroups CS.
-        If that value is not contained in this filegroup, the
-        index is None.
 
     selection: Dict[str, Tuple[bool, Union[KeyLike, KeyLikeValue]]]
 

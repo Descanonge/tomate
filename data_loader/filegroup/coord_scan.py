@@ -47,6 +47,12 @@ class CoordScan(Coord):
         Parent coordinate object.
     shared: bool
         If the coordinate is shared accross files.
+    contains: Optional[np.ndarray]
+        For each value of the available scope, the index of the
+        corresponding value in that CS.
+        If that value is not contained in this filegroup, the
+        index is None.
+
     values: np.ndarray
         Temporary list of values found for this coordinate.
     in_idx: np.ndarray
