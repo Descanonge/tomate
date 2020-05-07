@@ -19,6 +19,7 @@ else:
 
 import numpy as np
 
+from data_loader.accessor import Accessor
 from data_loader.custom_types import File
 from data_loader.keys.keyring import Keyring
 from data_loader.filegroup.filegroup_load import FilegroupLoad
@@ -30,6 +31,8 @@ log = logging.getLogger(__name__)
 
 class FilegroupNetCDF(FilegroupLoad):
     """Filegroup class for NetCDF files."""
+
+    acs = Accessor
 
     def __init__(self, *args, **kwargs):
         if not _has_netcdf:
@@ -75,7 +78,7 @@ class FilegroupNetCDF(FilegroupLoad):
         int_krg = self._get_internal_keyring(order, keyring)
 
         log.info("Taking keys %s", int_krg.print())
-        chunk = self.acs.take(int_krg, file[ncname])
+        chunk = self.acs.take_normal(int_krg, file[ncname])
 
         chunk = self.reorder_chunk(chunk, keyring, int_krg)
         return chunk
