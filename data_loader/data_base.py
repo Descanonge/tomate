@@ -150,20 +150,20 @@ class DataBase():
         if self.data is None:
             raise RuntimeError("Data not loaded.")
 
-    def __getitem__(self, y: str):
+    def __getitem__(self, key: str) -> np.ndarray:
         """Return a coordinate, or data for a variable.
 
         If y is a variable name, return the corresponding data slice.
 
-        :param y: Coordinate or variable name.
+        :param y: Coordinate or variable name or index.
 
         :raises KeyError: If key is not a coordinate or variable.
         """
-        if isinstance(y, str):
-            if y in self.loaded:
-                y = self.idx(y)
-                return self.data[y]
-            raise KeyError("Variable '%s' is not loaded." % y)
+        if isinstance(key, str):
+            if key in self.loaded:
+                key = self.idx(key)
+                return self.data[key]
+            raise KeyError("Variable '%s' is not loaded." % key)
         raise TypeError("Key must be a str.")
 
     def __getattribute__(self, name):
