@@ -19,7 +19,6 @@ from data_loader import VariablesInfo, Constructor
 
 
 log = logging.getLogger(__name__)
-__all__ = ['write', 'read']
 
 
 def serialize_type(tp):
@@ -28,6 +27,7 @@ def serialize_type(tp):
     return top
 
 def read_type(j_tp):
+    # TODO: add try except. We cannot except to be able to import anything
     module = import_module(j_tp['__module__'])
     tp = getattr(module, j_tp['__name__'])
     return tp
@@ -37,6 +37,8 @@ def default(obj):
         s = str(obj)
     except TypeError:
         s = None
+
+    # TODO: slices
 
     if isinstance(obj, np.ndarray):
         obj = obj.tolist()
@@ -52,46 +54,45 @@ def default(obj):
     return obj
 
 
-def write(filename, cstr):
-    j_cstr = serialize_cstr(cstr)
+def write(filename, db):
+    j_db = serialize_db(db)
     with open(filename, 'w') as f:
-        json.dump({'cstr': j_cstr},
+        json.dump({'db': j_db},
                   f, indent=4, default=default)
 
-def read(filename):
+def recreate_cstr(filename):
     with open(filename, 'r') as f:
         d = json.load(f)
-    cstr = read_cstr(d['cstr'])
+    cstr = read_cstr(d['db'])
     return cstr
 
-def serialize_cstr(cstr):
-    j_bases = [serialize_type(cls) for cls in cstr.dt_types]
-    j_acs = serialize_type(cstr.acs)
-    j_coords = {name: serialize_coord(c) for name, c in cstr.coords.items()}
-    j_vi = serialize_vi(cstr.vi)
-    j_filegroups = [serialize_filegroup(fg) for fg in cstr.filegroups]
+def serialize_db(db):
+    j_bases = [serialize_type(cls) for cls in db.__class__.__bases__]
+    j_acs = serialize_type(db.acs)
+    j_dims = {name: serialize_coord(c) for name, c in db.avail.dims.items()}
+    j_vi = serialize_vi(db.vi)
+    j_filegroups = [serialize_filegroup(fg) for fg in db.filegroups]
 
-    top = {"bases": j_bases,
-           "acs": j_acs,
-           "root": cstr.root,
-           "coords": j_coords,
-           "vi": j_vi,
-           "filegroups": j_filegroups}
-    return top
+    j_db = {"bases": j_bases,
+            "acs": j_acs,
+            "root": db.root,
+            "dims": j_dims,
+            "vi": j_vi,
+            "filegroups": j_filegroups}
+    return j_db
 
-# FIXME: coord selection
-def read_cstr(j_cstr):
-    root = j_cstr["root"]
-    coords = [read_coord(j_c) for j_c in j_cstr["coords"].values()]
-    cstr = Constructor(root, coords)
+def read_cstr(j_db):
+    root = j_db["root"]
+    dims = [read_coord(j_c) for j_c in j_db["dims"].values()]
+    cstr = Constructor(root, dims)
 
-    bases = [read_type(j_tp) for j_tp in j_cstr["bases"]]
-    acs = read_type(j_cstr["acs"])
+    bases = [read_type(j_tp) for j_tp in j_db["bases"]]
+    acs = read_type(j_db["acs"])
     cstr.set_data_types(bases, acs)
 
-    cstr.vi = read_vi(j_cstr["vi"])
+    cstr.vi = read_vi(j_db["vi"])
 
-    for j_fg in j_cstr["filegroups"]:
+    for j_fg in j_db["filegroups"]:
         add_filegroup(cstr, j_fg)
 
     return cstr
@@ -99,15 +100,12 @@ def read_cstr(j_cstr):
 def add_filegroup(cstr, j_fg):
     tp = read_type(j_fg["class"])
     root = j_fg["root"]
-    contains = j_fg["contains"]
-    coords = [[cstr.coords[name], c["shared"], c["name"]]
+    coords = [[cstr.dims[name], c["shared"], c["name"]]
               for name, c in j_fg["cs"].items()]
-    variables_shared = j_fg["cs"]["var"]["shared"]
     name = j_fg["name"]
     # TODO: kwargs in FG creation missing
 
-    cstr.add_filegroup(tp, coords, name=name, root=root,
-                       variables_shared=variables_shared)
+    cstr.add_filegroup(tp, coords, name=name, root=root)
     cstr.set_fg_regex(j_fg["pregex"])
     fg = cstr.current_fg
     fg.segments = j_fg["segments"]
@@ -120,15 +118,20 @@ def add_filegroup(cstr, j_fg):
 
         for tp, j_scan in j_cs["scan"].items():
             func = None if j_scan['func'] is None else read_type(j_scan['func'])
-            cs.scan[tp] = [j_scan['elts'], func, j_scan['kwargs']]
+            cs.scan[tp] = [func, j_scan['elts'], j_scan['kwargs']]
         cs.scan_attributes_func = read_type(j_cs["scan_attributes_func"])
 
-        cs.values = j_cs["values"][0]
-        cs.in_idx = j_cs["in_idx"][0]
+        cs.values = j_cs["values"]
+        cs.in_idx = j_cs["in_idx"]
         if cs.shared:
             cs.matches = j_cs["matches"]
         cs.set_values()
-        cs.update_values(cs.values)
+        if cs.is_to_check() or cs.name == 'var':
+            cs.update_values(cs.values)
+
+        cs.change_units_custom = (None if j_cs["change_units_custom"] is None else
+                                  read_type(j_cs["change_units_custom"]))
+        cs.find_contained_kwargs = j_cs["find_contained_kwargs"]
 
         cs.force_idx_descending = j_cs["force_idx_descending"]
 
@@ -136,7 +139,6 @@ def add_filegroup(cstr, j_fg):
 def serialize_filegroup(fg):
     top = {"name": fg.name,
            "root": fg.root,
-           "contains": fg.variables,
            "class": serialize_type(fg.__class__),
            "segments": fg.segments,
            "pregex": fg.pregex}
@@ -155,6 +157,10 @@ def serialize_coord_scan(cs):
     top = {"name": cs.name,
            "base": serialize_type(type(cs)),
 
+           "change_units_custom": (None if cs.change_units_custom is None
+                                   else serialize_type(cs.change_units_custom)),
+           "find_contained_kwargs": cs.find_contained_kwargs,
+
            "shared": cs.shared,
            "force_idx_descending": cs.force_idx_descending}
 
@@ -168,8 +174,12 @@ def serialize_coord_scan(cs):
     top['scan'] = scan
     top['scan_attributes_func'] = serialize_type(cs.scan_attributes_func)
 
-    top["values"] = cs[:].tolist(),
-    top["in_idx"] = cs.in_idx.tolist(),
+    if cs.size is None:
+        top["values"] = []
+        top["in_idx"] = []
+    else:
+        top["values"] = cs[:].tolist()
+        top["in_idx"] = cs.in_idx.tolist()
     if cs.shared:
         top["matches"] = cs.matches.tolist()
 
@@ -204,5 +214,6 @@ def serialize_coord(coord, values=False):
 
 def read_coord(j_c):
     cls = read_type(j_c['class'])
-    coord = cls(j_c['name'], j_c['values'], j_c['units'], j_c['fullname'])
+    coord = cls(name=j_c['name'], array=j_c['values'],
+                units=j_c['units'], fullname=j_c['fullname'])
     return coord

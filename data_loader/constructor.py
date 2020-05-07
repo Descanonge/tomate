@@ -24,8 +24,6 @@ from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.keys.key import Key, KeyVar, KeyValue
 from data_loader.variables_info import VariablesInfo
 
-# import data_loader.data_write as dw
-
 
 log = logging.getLogger(__name__)
 
@@ -504,11 +502,6 @@ class Constructor():
         dt_class = create_data_class(self.dt_types, self.acs)
         self.acs = dt_class.acs
         return dt_class
-
-    # def write(self, filename):
-    #     self.create_data_class()
-    #     self.scan_files()
-    #     dw.write(filename, self)
 
 
 def create_data_class(dt_types: List[Type[DataBase]],

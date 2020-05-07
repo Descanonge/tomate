@@ -58,7 +58,7 @@ class CoordScan(Coord):
     in_idx: np.ndarray
         List of the index for each value inside the files.
 
-    scan: Dict[str, List[List[str], Callable, Dict]]
+    scan: Dict[str, List[Callable, List[str], Dict]]
         What and how to scan.
         Keys can be 'manual': values and in-indices are manually set,
         'in': stuff is to find inside the file, 'filename': stuff is to find
