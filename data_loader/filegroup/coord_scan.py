@@ -93,7 +93,7 @@ class CoordScan(Coord):
         self.scanned = False
 
         self.scan_attr = False
-        self.scan_attributes_func = scan_attributes_default
+        self.scan_attributes_func = None
 
         self.change_units_custom = None
         self.find_contained_kwargs = {}
@@ -255,6 +255,7 @@ class CoordScan(Coord):
         """
         if self.scan_attr:
             attrs = self.scan_attributes_func(self, file)
+            log.debug("Found coordinates attributes %s", list(attrs.keys()))
             for name, value in attrs.items():
                 self.set_attr(name, value)
             self.scan_attr = False

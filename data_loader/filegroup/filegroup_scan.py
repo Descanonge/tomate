@@ -358,7 +358,8 @@ class FilegroupScan():
         for cs in self.cs.values():
             if cs.is_to_scan():
                 cs.scanned = False
-                cs.scan_attr = False
+                if cs.scan_attributes_func is not None:
+                    cs.scan_attr = True
                 if 'manual' not in cs.scan:
                     cs.reset()
                 elif cs.shared:
