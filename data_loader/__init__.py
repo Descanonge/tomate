@@ -34,14 +34,9 @@ from .variables_info import VariablesInfo
 from .data_base import DataBase
 from .constructor import Constructor
 
-from . import dt
-
-
 __version__ = "0.3"
 
 __all__ = [
-    'dt',
-
     'Coord',
     'Time',
     'Lat',
