@@ -2,9 +2,8 @@
 
 from data_loader import Coord, Time, Constructor
 from data_loader.filegroup import FilegroupNetCDF
-from data_loader.data_plot import DataPlot
-from data_loader.masked import DataMasked
 
+import data_loader.db_types as dt
 import data_loader.scan_library as scanlib
 
 
@@ -71,22 +70,22 @@ cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
 cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
 
 
-cstr.set_data_types([DataMasked, DataPlot])
+cstr.set_data_types([dt.DataMasked, dt.DataPlot])
 
 # Create database
-dt = cstr.make_data()
+db = cstr.make_data()
 
 # Access attributes
-print(dt.vi.fullname)
+print(db.vi.fullname)
 
 # Load all SST
-dt.load(var='SST')
+db.load(var='SST')
 
 # Load first time step of SST and SSH
-dt.load(['SST', 'SSH'], time=0)
+db.load(['SST', 'SSH'], time=0)
 
 # Load a subpart of all variables.
 # The variables order in data is reversed
-dt.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
+db.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
-print(dt.data)
+print(db.data)

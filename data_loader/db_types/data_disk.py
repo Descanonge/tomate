@@ -82,24 +82,24 @@ class DataDisk(DataBase):
         --------
         Load everything available
 
-        >>> dt.load(None)
+        >>> db.load(None)
 
         Load first index of the first coordinate for the SST variable
 
-        >>> dt.load("SST", 0)
+        >>> db.load("SST", 0)
 
         Load everything for SST and Chla variables.
 
-        >>> dt.load(["SST", "Chla"], slice(None, None), None)
+        >>> db.load(["SST", "Chla"], slice(None, None), None)
 
         Load time steps 0, 10, and 12 of all variables.
 
-        >>> dt.load(None, time=[0, 10, 12])
+        >>> db.load(None, time=[0, 10, 12])
 
         Load first index of the first coordinate, and a slice of lat
         for the SST variable.
 
-        >>> dt.load("SST", 0, lat=slice(200, 400))
+        >>> db.load("SST", 0, lat=slice(200, 400))
         """
         self.unload_data()
 
@@ -139,16 +139,16 @@ class DataDisk(DataBase):
         Examples
         --------
         Load latitudes from 10N to 30N.
-        >>> dt.load_by_value('SST', lat=slice(10, 30))
+        >>> db.load_by_value('SST', lat=slice(10, 30))
 
         Load latitudes from 5N to maximum available.
-        >>> dt.load_by_value('SST', lat=slice(5, None))
+        >>> db.load_by_value('SST', lat=slice(5, None))
 
         Load depth closest to 500.
-        >>> dt.load_by_value(None, depth=500.)
+        >>> db.load_by_value(None, depth=500.)
 
         Load depths closest to 0, 10, 50
-        >>> dt.load_by_value(None, depth=[0, 10, 50])
+        >>> db.load_by_value(None, depth=[0, 10, 50])
         """
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)

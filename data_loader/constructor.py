@@ -11,14 +11,12 @@ import os
 import inspect
 from typing import Any, Callable, Dict, List, Tuple, Sequence, Type, Union
 
-import numpy as np
-
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.variables import Variables
 from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
 from data_loader.data_base import DataBase
-from data_loader.data_types.data_disk import DataDisk
+from data_loader.db_types.data_disk import DataDisk
 from data_loader.filegroup.coord_scan import CoordScan
 from data_loader.filegroup.filegroup_load import FilegroupLoad
 from data_loader.keys.key import Key, KeyVar, KeyValue
@@ -54,7 +52,7 @@ class Constructor():
     post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
         Functions applied after loading data.
 
-    dt_types: List[Type[DataBase]]
+    db_types: List[Type[DataBase]]
         Subclass of DataBase to use to create a new dynamic
         database class.
     acs: Type[Accessor]
@@ -80,7 +78,7 @@ class Constructor():
         self.selection_by_value = []
 
         self.post_loading_funcs = []
-        self.dt_types = [DataBase]
+        self.db_types = [DataBase]
         self.acs = None
 
         self.allow_advanced = False
@@ -432,11 +430,11 @@ class Constructor():
         for_append.post_loading_funcs.append((func, KeyVar(variables),
                                               all_variables, kwargs))
 
-    def set_data_types(self, dt_types: Union[Type[DataBase], List[Type[DataBase]]] = None,
+    def set_data_types(self, db_types: Union[Type[DataBase], List[Type[DataBase]]] = None,
                        accessor: Type[Accessor] = None):
         """Set database and accessor subclasses.
 
-        :param dt_types: [opt] Subclass (or list of) of DataBase
+        :param db_types: [opt] Subclass (or list of) of DataBase
             to derive the class of database from.
             If None, basic DataBase will be used.
         :param accessor: [opt] Subclass of Accessor to use for
@@ -448,11 +446,11 @@ class Constructor():
         :ref:`Additional methods` for details.
         create_data_class: for implementation
         """
-        if dt_types is None:
-            dt_types = [DataBase]
-        elif not isinstance(dt_types, (list, tuple)):
-            dt_types = [dt_types]
-        self.dt_types = dt_types
+        if db_types is None:
+            db_types = [DataBase]
+        elif not isinstance(db_types, (list, tuple)):
+            db_types = [db_types]
+        self.db_types = db_types
         self.acs = accessor
 
     def add_disk_features(self):
@@ -460,8 +458,8 @@ class Constructor():
 
         If not already present.
         """
-        if DataDisk not in self.dt_types:
-            self.dt_types.insert(0, DataDisk)
+        if DataDisk not in self.db_types:
+            self.db_types.insert(0, DataDisk)
 
     def make_data(self, scan=True) -> Type[DataBase]:
         """Create data instance.
@@ -479,18 +477,18 @@ class Constructor():
 
         if scan or self.filegroups:
             self.add_disk_features()
-        if DataDisk in self.dt_types:
+        if DataDisk in self.db_types:
             args += [self.root, self.filegroups]
 
-        dt_class = self.create_data_class()
-        dt = dt_class(*args)
-        dt.post_loading_funcs += self.post_loading_funcs
-        dt.allow_advanced = self.allow_advanced
+        db_class = self.create_data_class()
+        db = db_class(*args)
+        db.post_loading_funcs += self.post_loading_funcs
+        db.allow_advanced = self.allow_advanced
 
         if scan:
-            dt.scan_files()
-            dt.compile_scanned()
-        return dt
+            db.scan_files()
+            db.compile_scanned()
+        return db
 
     def create_data_class(self) -> Type[DataBase]:
         """Create dynamic data class.
@@ -499,37 +497,37 @@ class Constructor():
         --------
         create_data_class: for implementation
         """
-        dt_class = create_data_class(self.dt_types, self.acs)
-        self.acs = dt_class.acs
-        return dt_class
+        db_class = create_data_class(self.db_types, self.acs)
+        self.acs = db_class.acs
+        return db_class
 
 
-def create_data_class(dt_types: List[Type[DataBase]],
+def create_data_class(db_types: List[Type[DataBase]],
                       accessor: Type[Accessor] = None) -> Type[DataBase]:
     """Create a dynamic data class.
 
     Find a suitable name.
     Check that there is no clash between methods.
 
-    :param dt_types: DataBase subclasses to use, in order of
+    :param db_types: DataBase subclasses to use, in order of
         priority for method resolution (First one in
         the list is the first class checked).
     :param accessor: Accessor subclass to use for data.
         If None, the accessor found in provided data types
         will be used (according to mro priority).
     """
-    if isinstance(dt_types, type):
-        dt_types = [dt_types]
+    if isinstance(db_types, type):
+        db_types = [db_types]
 
     class_name = 'Data'
-    if len(dt_types) == 1:
-        class_name = dt_types[0].__name__
+    if len(db_types) == 1:
+        class_name = db_types[0].__name__
 
-    if isinstance(dt_types, list):
-        dt_types = tuple(dt_types)
+    if isinstance(db_types, list):
+        db_types = tuple(db_types)
 
     methods = set()
-    for tp in dt_types:
+    for tp in db_types:
         for name, func in inspect.getmembers(tp, predicate=inspect.isfunction):
             if (func.__module__ != 'data_loader.data_base'
                     and name != '__init__'):
@@ -542,16 +540,16 @@ def create_data_class(dt_types: List[Type[DataBase]],
     if accessor is None:
         d = {}
         acs_types = set()
-        for tp in dt_types:
+        for tp in db_types:
             acs_tp = tp.acs
             if acs_tp != Accessor:
                 if acs_tp in acs_types:
                     log.warning("Multiple subclasses of Accessor. "
-                                "%s will take precedence.", dt_types[0])
+                                "%s will take precedence.", db_types[0])
                 acs_types.add(acs_tp)
     else:
         d = {'acs': accessor}
 
-    dt_class = type(class_name, dt_types, d)
+    db_class = type(class_name, db_types, d)
 
-    return dt_class
+    return db_class

@@ -100,25 +100,25 @@ class FilegroupNetCDF(FilegroupLoad):
         if wd is None:
             wd = self.root
 
-        file = os.path.join(wd, filename)
+        filename = os.path.join(wd, filename)
 
-        with self.open_file(file, mode='w', log_lvl='INFO') as dt:
+        with self.open_file(filename, mode='w', log_lvl='INFO') as file:
             for name, coord in self.db.loaded.coords.items():
                 key = keyring[name].copy()
                 key.set_shape_coord(coord)
                 if key.shape != 0:
-                    dt.createDimension(name, key.shape)
-                    dt.createVariable(name, 'f', [name])
-                    dt[name][:] = coord[key.value]
+                    file.createDimension(name, key.shape)
+                    file.createVariable(name, 'f', [name])
+                    file[name][:] = coord[key.value]
                     log.info("Laying %s values, extent %s", name,
                              coord.get_extent_str(key.no_int()))
 
-                    dt[name].setncattr('fullname', coord.fullname)
-                    dt[name].setncattr('units', coord.units)
+                    file[name].setncattr('fullname', coord.fullname)
+                    file[name].setncattr('units', coord.units)
 
             for info in self.db.vi.infos:
                 if not info.startswith('_'):
-                    dt.setncattr(info, self.db.vi.get_info(info))
+                    file.setncattr(info, self.db.vi.get_info(info))
 
             for var in keyring['var']:
                 cs = self.cs['var']
@@ -133,14 +133,14 @@ class FilegroupNetCDF(FilegroupLoad):
                     tp = '{}{}'.format(dtype.kind, dtype.itemsize)
                     fillvalue = nc.default_fillvals.get(tp, None)
 
-                dt.createVariable(name, t, dimensions, fill_value=fillvalue)
-                dt[name][:] = self.db.view(keyring=keyring, var=var)
+                file.createVariable(name, t, dimensions, fill_value=fillvalue)
+                file[name][:] = self.db.view(keyring=keyring, var=var)
 
                 if var in self.db.vi.variables:
                     attrs = self.db.vi[var]
                     for attr in attrs:
                         if not attr.startswith('_'):
-                            dt[name].setncattr(attr, self.db.vi.get_attr(attr, var))
+                            file[name].setncattr(attr, self.db.vi.get_attr(attr, var))
 
     def write_variable(self, file: nc.Dataset, cmd: Command,
                        var: str, inf_name: str):

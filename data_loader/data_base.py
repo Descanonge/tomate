@@ -286,11 +286,11 @@ class DataBase():
 
         Examples
         --------
-        >>> print(dt.coords)
+        >>> print(db.coords)
         ['time', 'lat', 'lon']
-        >>> print(dt.shape)
+        >>> print(db.shape)
         [12, 300, 500]
-        >>> a = dt.view_orderd(['lon', 'lat'], time=[1])
+        >>> a = db.view_orderd(['lon', 'lat'], time=[1])
         ... print(a.shape)
         [1, 500, 300]
 
@@ -377,10 +377,10 @@ class DataBase():
 
         Examples
         --------
-        >>> print(dt.get_limits('lon', 'lat'))
+        >>> print(db.get_limits('lon', 'lat'))
         [-20.0 55.0 10.0 60.0]
 
-        >>> print(dt.get_extent(lon=slice(0, 10)))
+        >>> print(db.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
         scope = self.get_scope(scope)
@@ -405,10 +405,10 @@ class DataBase():
 
         Examples
         --------
-        >>> print(dt.get_extent('lon', 'lat'))
+        >>> print(db.get_extent('lon', 'lat'))
         [-20.0 55.0 60.0 10.0]
 
-        >>> print(dt.get_extent(lon=slice(0, 10)))
+        >>> print(db.get_extent(lon=slice(0, 10)))
         [-20.0 0.]
         """
         scope = self.get_scope(scope)
@@ -428,7 +428,7 @@ class DataBase():
 
         Examples
         --------
-        >>> print( dt.get_kw_keys([0, 1], lat=slice(0, 10)) )
+        >>> print( db.get_kw_keys([0, 1], lat=slice(0, 10)) )
         {'time': [0, 1], 'lat': slice(0, 10)}
         """
         for i, key in enumerate(keys):
@@ -493,8 +493,8 @@ class DataBase():
 
         Examples
         --------
-        >>> dt.select(var='sst', time=20)
-        >>> dt.select('loaded', lat=slice(10, 30))
+        >>> db.select(var='sst', time=20)
+        >>> db.select('loaded', lat=slice(10, 30))
 
         See also
         --------

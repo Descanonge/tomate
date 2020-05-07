@@ -106,7 +106,7 @@ class DataCompute(DataBase):
 
         Examples
         --------
-        >>> avg = dt.mean(['lat', 'lon'], var='SST', lat=slice(0, 50))
+        >>> avg = db.mean(['lat', 'lon'], var='SST', lat=slice(0, 50))
 
         Compute the average SST on the 50 first indices of latitude,
         and all longitude. If the data is indexed on [time, lat, lon]

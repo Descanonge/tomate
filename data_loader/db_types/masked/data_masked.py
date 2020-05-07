@@ -13,7 +13,8 @@ import numpy as np
 from data_loader.data_base import DataBase
 from data_loader.accessor import Accessor
 from data_loader.keys.keyring import Keyring
-import data_loader.data_types.masked.mask
+
+import data_loader.db_types.masked.mask
 
 
 log = logging.getLogger(__name__)
@@ -110,7 +111,7 @@ class DataMasked(DataBase):
         """
         data = self.view(variables, **kw_coords)
         if fill == 'edge':
-            filled = data_loader.masked.mask.fill_edge(data, axes)
+            filled = data_loader.db_types.masked.mask.fill_edge(data, axes)
         else:
             if fill == 'nan':
                 fill_value = np.nan
@@ -182,13 +183,13 @@ class DataMasked(DataBase):
         if inland:
             m = self.get_land_mask()
             if coast > 0:
-                m = data_loader.masked.mask.enlarge_mask(m, coast)
+                m = data_loader.db_types.masked.mask.enlarge_mask(m, coast)
             self.data.mask |= m
 
         if chla:
-            A = self.data[self.idx['Chla_OC5']]
+            A = self.data[self.idx('Chla_OC5')]
             A = np.clip(A, 0, 3)
-            self.data[self.idx['Chla_OC5']] = A
+            self.data[self.idx('Chla_OC5')] = A
             # A[A > 3] = np.nan
 
     def set_compute_land_mask(self, func):

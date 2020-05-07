@@ -238,8 +238,8 @@ class Scope():
         Examples
         --------
         We make a selection, and iterate through it.
-        >>> dt.select(time=slice(10, 15))
-        >>> for time_slice in dt.selected.iter_slices_parent('time', 3):
+        >>> db.select(time=slice(10, 15))
+        >>> for time_slice in db.selected.iter_slices_parent('time', 3):
         ...     print(time_slice)
         slice(10, 12, 1)
         slice(12, 14, 1)

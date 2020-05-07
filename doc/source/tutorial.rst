@@ -231,17 +231,22 @@ The scanning will not overwrite information already present in the VI.
 
 The last step is to tell what kind of database object we want. If we say
 nothing, the basic :class:`data_base.DataBase` will be used.
-But we can add more functionalities by specifying additional child classes of
-DataBase.
-Here let's use :class:`masked.data_masked.DataMasked` that add support for
-masked data, and :class:`data_plot.DataPlot` which provides convenience plotting
-functions::
+If we want to add on-disk data management (scanning and loading data), we can
+use
+:func:`Constructor.add_disk_features<constructor.Constructor.add_disk_features>`.
+Note this is automatically done if at least one filegroup was added to the
+constructor, or if we keep the 'scan' flag to its default (True) when creating
+the database.
 
-  from data_loader.masked import DataMasked
-  from data_loader.data_plot import DataPlot
+We can add more functionalities by specifying additional child classes of
+DataBase. All of those provided by the package are present in the
+:mod:`data_loader.db_types`.
+Here let's use :class:`DataMasked<db_types.data_masked.DataMasked>` that add support
+for masked data, and :class:`DataPlot<db_types.data_plot.DataPlot>` which provides
+convenience plotting functions::
 
-  cstr.set_data_types([DataMasked, DataPlot])
-
+  import data_loader.db_types as dt
+  cstr.set_data_types([dt.DataMasked, dt.DataPlot])
 
 More details on adding functionalities: :ref:`Additional methods`.
 
@@ -251,7 +256,7 @@ The data object
 
 Now that everything is in place, we can create the data object::
 
-  dt = cstr.make_data()
+  db = cstr.make_data()
 
 The line above will start the scanning process. Each filegroup will
 scan their files for coordinates values and indices. The values obtained
@@ -280,28 +285,28 @@ specify variables names instead of their index.
 For instance::
 
     # Load all SST
-    dt.load(var='SST')
+    db.load(var='SST')
 
     # Load first time step of SST and SSH
-    dt.load(['SST', 'SSH'], time=0)
+    db.load(['SST', 'SSH'], time=0)
 
     # Load a subpart of all variables.
-    dt.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
+    db.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
 
     # Load by value instead of index
-    slice_lat = dt.avail.lat.subset(10., 30.)
-    dt.load(lat=slice_lat)
+    slice_lat = db.avail.lat.subset(10., 30.)
+    db.load(lat=slice_lat)
     # or directly
-    dt.load_value(lat=slice(10., 30.))
+    db.load_value(lat=slice(10., 30.))
 
-    print(dt.data)
+    print(db.data)
 
 After loading data, the coordinates of the corresponding scope ('loaded')
 will be adjusted, so that the coordinates are in sync with the data.
 
 Once loaded, the data can be sliced further using::
 
-    dt.slice_data('SST', time=[0, 1, 2, 5, 10])
+    db.slice_data('SST', time=[0, 1, 2, 5, 10])
 
 
 To go further
