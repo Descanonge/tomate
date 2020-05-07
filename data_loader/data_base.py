@@ -166,6 +166,13 @@ class DataBase():
             raise KeyError("Variable '%s' is not loaded." % key)
         raise TypeError("Key must be a str.")
 
+    def __setitem__(self, key: str, value: np.ndarray):
+        """Assign data to a variable.
+
+        Wrapper around set_data
+        """
+        self.set_data(key, value)
+
     def __getattribute__(self, name):
         """Get attribute.
 
