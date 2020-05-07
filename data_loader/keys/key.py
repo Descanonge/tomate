@@ -9,7 +9,7 @@ from typing import Iterator, List, Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
 
-from data_loader.custom_types import KeyLikeInt, KeyLikeVar
+from data_loader.custom_types import KeyLikeInt, KeyLikeVar, KeyLikeValue
 
 if TYPE_CHECKING:
     from data_loader.coordinates.coord import Coord
@@ -437,14 +437,20 @@ class KeyVar(Key):
 
 
 class KeyValue():
+    """KeyLike object storing values.
 
-    def __init__(self, key):
+    Can act like a Key, but missing lot of features
+    presently.
+    Should not be stored in a keyring.
+    """
+    def __init__(self, key: KeyLikeValue):
         self.value = None
         self.type = ''
         self.shape = None
         self.set(key)
 
-    def set(self, key):
+    def set(self, key: KeyLikeValue):
+        """Set value."""
         if isinstance(key, (list, tuple, np.ndarray)):
             tp = 'list'
         elif isinstance(key, slice):
@@ -459,12 +465,14 @@ class KeyValue():
         self.set_shape()
 
     def set_shape(self):
+        """Set shape."""
         if self.type in ['int', 'none']:
             self.shape = 0
         elif self.type == 'list':
             self.shape = len(self.value)
 
-    def apply(self, coord):
+    def apply(self, coord) -> KeyLikeInt:
+        """Find corresponding index."""
         if self.type == 'int':
             return coord.get_index(self.value)
         if self.type == 'list':

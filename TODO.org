@@ -5,16 +5,9 @@
 To not need to scan files each time
 * TODO: Multiple selections
 in a subclass of database ?
-* TODO: ensure VI stays global
-* TODO: doc
-** examples
-** scan variables examples
 * TODO: Write: add to file
 ** use existing filegroup information to open some files and add variables
 * TODO: Compute min / max value
-* TODO: no type restrictions on keyring
-or maybe a new type of Key, for values
-it could even englob KeyVar (that seems complicated)
 * TODO: check error when shared cs has no scanning
 * TODO: Plot return new object
 returns object with info about whats plotted
@@ -25,4 +18,3 @@ then no need for dt.plotted
 * TODO: Log into debug the coord slicing after scanning
 * TODO: Add index keys in load_by_value and select_by_value
 stuff like lat=slice(10., 30.), time_i=0
-* TODO: Exception handling in post_loading_funcs
