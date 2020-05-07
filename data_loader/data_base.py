@@ -16,6 +16,7 @@ from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
 from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
 from data_loader.filegroup.filegroup_load import FilegroupLoad, do_post_loading
+from data_loader.keys.key import KeyValue
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 from data_loader.variables_info import VariablesInfo
@@ -458,7 +459,6 @@ class DataBase():
         return subscope
 
     def get_subscope_by_value(self, scope: Union[str, Scope] = 'avail',
-                              keyring: Keyring = None,
                               int2list: bool = True,
                               by_day: bool = False,
                               **keys: KeyLikeValue) -> Scope:
@@ -467,15 +467,11 @@ class DataBase():
         keyring = Keyring()
         for name, key in keys.items():
             c = scope.dims[name]
-            if isinstance(key, slice):
-                if issubclass(type(c), Time) and by_day:
-                    key = c.subset_day(key.start, key.stop)
-                else:
-                    key = c.subset(key.start, key.stop)
-            elif isinstance(key, (list, tuple, np.ndarray)):
-                key = [c.get_index(k) for k in key]
+            key = KeyValue(key)
+            if key.type == 'slice' and issubclass(type(c), Time):
+                key = c.subset_day(key.value.start, key.value.stop)
             else:
-                key = c.get_index(key)
+                key = key.apply(c)
             keyring[name] = key
         return self.get_subscope(scope, keyring, int2list)
 
