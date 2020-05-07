@@ -87,10 +87,12 @@ Accessors
 ---------
 
 Arrays can be accessed and manipulated using an
-:class:`Accessor<accessor.Accessor>` object.
+:class:`AccessorABC<accessor.AccessorABC>` object.
 This class is a collection of static and class methods,
 it does not need instanciation per se.
 One can subclass it to modify the implementation of data storage.
+By default an :class:`Accessor<accessor.Accessor>` for numpy arrays
+is used.
 
 It is available as a class attribute of the Data class
 (:attr:`Data.acs<data_base.DataBase.acs>`),
@@ -162,7 +164,7 @@ As with numpy normal indexing, an integer key will result in the dimension
 being squeezed, but a list of length one (or the corresponding slice) will
 keep the dimension.
 The expection to this rule is when using
-:func:`load<data_base.DataBase.load>` and
+:func:`load<data_types.data_disk.DataDisk.load>` and
 :func:`slice_data<data_base.DataBase.slice_data>` (or other functions
 acting on the data attribute). The data object will always keep the same number
 of dimensions.

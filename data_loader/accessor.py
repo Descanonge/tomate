@@ -12,12 +12,14 @@ from typing import List, Iterable
 import numpy as np
 
 
+from data_loader.custom_types import Array
 from data_loader.keys.keyring import Keyring
 
 log = logging.getLogger(__name__)
 
 
-class Accessor():
+
+class AccessorABC():
     """Manages access to arrays.
 
     Stores static and class methods.
@@ -25,19 +27,18 @@ class Accessor():
 
     See :doc:`../accessor`.
     """
-
     @staticmethod
-    def ndim(array: np.ndarray):
+    def ndim(array: Array):
         """Return number of dimensions of array."""
-        return array.ndim
+        raise NotImplementedError
 
     @staticmethod
-    def shape(array: np.ndarray) -> List[int]:
+    def shape(array: Array) -> List[int]:
         """Return shape of array."""
-        return list(array.shape)
+        raise NotImplementedError
 
     @classmethod
-    def check_dim(cls, keyring: Iterable, array: np.ndarray):
+    def check_dim(cls, keyring: Iterable, array: Array):
         """Check if keyring match array rank.
 
         :param keyring: Keys used for creating the array.
@@ -49,9 +50,8 @@ class Accessor():
                              "and keyring length (shape: %s, keyring length: %s)"
                              % (cls.shape(array), len(keyring)))
 
-
     @classmethod
-    def check_shape(cls, keyring: Keyring, array: np.ndarray):
+    def check_shape(cls, keyring: Keyring, array: Array):
         """Check if keyring match array shape.
 
         :param keyring: Keys used for creating the array.
@@ -64,8 +64,108 @@ class Accessor():
                              % (cls.shape(array), keyring.shape))
 
     @staticmethod
-    def allocate(shape: List[int]) -> np.ndarray:
+    def allocate(shape: List[int]) -> Array:
         """Allocate array of given shape."""
+        raise NotImplementedError
+
+    @classmethod
+    def take(cls, keyring: Keyring, array: Array) -> Array:
+        """Retrieve part of an array.
+
+        Amounts to `return array[keyring]`.
+        :param keyring: Part of the array to take.
+        :returns: View or copy of the array.
+
+        Notes
+        -----
+        See :doc:`../accessor` for more information.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def place(cls, keyring: Keyring, array: Array, chunk: Array):
+        """Assign a part of array with another array.
+
+        Amounts to `array[keyring] = chunk`.
+
+        :param keyring: Part of array to assign.
+        :param array: Array to assign.
+        :param chunk: Array to be assigned.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def moveaxis(array: Array,
+                 source: List[int],
+                 destination: List[int]) -> Array:
+        """
+        Exchange axes.
+
+        :param source: Original position of axes to move.
+        :param destination: Destination positions of axes to move.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def reorder(cls, keyring: Keyring,
+                array: Array,
+                order: List[str]) -> Array:
+        """Reorder array dimensions.
+
+        :param keyring: Keyring used to take the array.
+            Defines the dimensions names.
+        :param order: Target dimensions order.
+            Not all dimensions names need to be specified,
+            but all dimensions specified must be in the
+            array (ie be in the keyring, with a shape above 0).
+        """
+        # Current data order
+        current = keyring.get_non_zeros()
+
+        if len(order) != len(current):
+            if len(order) != 2:
+                raise IndexError("Length of order must be the same as the array, or 2.")
+            dest = [current.index(n) for n in order]
+            source = dest[::-1]
+        else:
+            source = list(range(len(order)))
+            dest = [order.index(n) for n in current]
+        if source != dest:
+            return cls.moveaxis(array, source, dest)
+        return array
+
+    @staticmethod
+    def concatenate(arrays: List[Array],
+                    axis: int = 0,
+                    out: Array = None) -> Array:
+        """Concatenate arrays.
+
+        :param arrays: Arrays to concatenate.
+        :param axis: The axis along which the arrays will be joined.
+            If None, the arrays are flattened.
+        :param out: Array to place the result in.
+        """
+        raise NotImplementedError
+
+class Accessor(AccessorABC):
+    """Manages access to arrays.
+
+    Stores static and class methods.
+    Can be subclassed for different implementation.
+
+    See :doc:`../accessor`.
+    """
+
+    @staticmethod
+    def ndim(array: np.ndarray):
+        return array.ndim
+
+    @staticmethod
+    def shape(array: np.ndarray) -> List[int]:
+        return list(array.shape)
+
+    @staticmethod
+    def allocate(shape: List[int]) -> np.ndarray:
         return np.zeros(shape)
 
     @classmethod
@@ -214,35 +314,6 @@ class Accessor():
         """
         out = np.moveaxis(array, source, destination)
         return out
-
-
-    @classmethod
-    def reorder(cls, keyring: Keyring,
-                array: np.ndarray,
-                order: List[str]) -> np.ndarray:
-        """Reorder array dimensions.
-
-        :param keyring: Keyring used to take the array.
-            Defines the dimensions names.
-        :param order: Target dimensions order.
-            Not all dimensions names need to be specified,
-            but all dimensions specified must be in the
-            array (ie be in the keyring, with a shape above 0).
-        """
-        # Current data order
-        current = keyring.get_non_zeros()
-
-        if len(order) != len(current):
-            if len(order) != 2:
-                raise IndexError("Length of order must be the same as the array, or 2.")
-            dest = [current.index(n) for n in order]
-            source = dest[::-1]
-        else:
-            source = list(range(len(order)))
-            dest = [order.index(n) for n in current]
-        if source != dest:
-            return cls.moveaxis(array, source, dest)
-        return array
 
     @staticmethod
     def concatenate(arrays: List[np.ndarray],

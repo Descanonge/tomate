@@ -50,12 +50,11 @@ combination of thoses.
 See :ref:`Additional methods` for details.
 
 It is also possible to change how the data is stored, or accessed.
-To do that, it is necessary to modify the
-:ref:`Accessors` class.
+To do that, it is necessary to modify the :ref:`Accessors` class.
 
 One can look at
-:class:`DataMasked<masked.data_masked.DataMasked>` and
-:class:`DataPlot<data_plot.DataPlot>`
+:class:`DataMasked<data_types.masked.data_masked.DataMasked>` and
+:class:`DataPlot<data_types.data_plot.DataPlot>`
 for inspiration.
 
 

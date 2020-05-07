@@ -25,6 +25,8 @@ File: Type
 
 from typing import Any, List, Union, TypeVar
 
+Array = TypeVar('Array')
+
 KeyLikeInt = TypeVar('KeyLikeInt', int, List[int], slice, None)
 
 KeyLikeStr = TypeVar('KeyLikeStr', str, List[str], slice, None)
