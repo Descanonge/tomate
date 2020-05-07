@@ -158,7 +158,7 @@ class Variables(Coord):
         self.update_values(self[key])
 
     def copy(self) -> "Variables":
-        return Variables(self[:], units=self.units, fullname=self.fullname)
+        return Variables(self._array, units=self.units, fullname=self.fullname)
 
     def append(self, var: str):
         """Add variable."""
