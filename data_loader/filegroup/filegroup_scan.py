@@ -352,9 +352,13 @@ class FilegroupScan():
         :raises NameError: If no files matching the regex were found.
         :raises ValueError: If no values were detected for a coordinate.
         """
+        for elt in self.scan_attr:
+            self.scan_attr[elt][2] = False
         # Reset CoordScan
         for cs in self.cs.values():
             if cs.is_to_scan():
+                cs.scanned = False
+                cs.scan_attr = False
                 if 'manual' not in cs.scan:
                     cs.reset()
                 elif cs.shared:
