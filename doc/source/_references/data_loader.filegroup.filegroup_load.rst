@@ -1,10 +1,32 @@
+
+
+
 data\_loader.filegroup.filegroup\_load
 ======================================
-.. autosummary::
-   :toctree:
-   :nosignatures:
+
+
 
 .. automodule:: data_loader.filegroup.filegroup_load
+.. rubric:: Classes
+.. autosummary::
+   
+       FilegroupLoad
+   
+
+.. rubric:: Functions
+.. autosummary::
+   
+       do_post_loading
+   
+
+
+
+..
+
+
+   .. autoclass:: FilegroupLoad
+      :show-inheritance:
       :members:
       :undoc-members:
-      :show-inheritance:
+      :private-members:
+   .. autofunction:: do_post_loading

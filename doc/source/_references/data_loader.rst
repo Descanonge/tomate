@@ -29,7 +29,7 @@ API Reference
    
       coordinates
    
-      data_types
+      db_types
    
       filegroup
    
@@ -50,8 +50,6 @@ API Reference
       data_base
    
       data_write
-   
-      dt
    
       log
    

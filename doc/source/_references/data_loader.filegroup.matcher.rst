@@ -1,10 +1,26 @@
+
+
+
 data\_loader.filegroup.matcher
 ==============================
-.. autosummary::
-   :toctree:
-   :nosignatures:
+
+
 
 .. automodule:: data_loader.filegroup.matcher
+.. rubric:: Classes
+.. autosummary::
+   
+       Matcher
+   
+
+
+
+
+..
+
+
+   .. autoclass:: Matcher
+      :show-inheritance:
       :members:
       :undoc-members:
-      :show-inheritance:
+      :private-members:

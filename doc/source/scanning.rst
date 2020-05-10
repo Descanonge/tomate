@@ -237,18 +237,15 @@ which dimension / coordinate.
 To this end, we use :class:`matchers<filegroup.matcher.Matcher>`.
 This is a part of the pre-regex, enclosed in parenthesis and preceded
 by a `%`. It specifies the coordinate name and the element of the coordinate.
+The element dictate the regex that will be used for that matcher, and
+how it will eventually be treated by the filename scanning function.
 
-Re-using the example above, we would use three matchers - one for each
-element of the date - for the time coordinate::
+Various elements are already coded. Elements for dates and times follow
+*strftime* format specifications.
+For instance the element 'Y' designate a year. It will be replaced by a
+regex searching for 4 digits and :func:`scan_library.get_date_from_matches`
+will use this to create a date.
 
-  sst_%(time:Y)-%(time:mm)-%(time:dd)
-
-The first matcher corresponds to the year. The element name ('Y'), is
-used later to extract information from the filename. It is also
-used to construct a proper regex, by indicating that we expect four
-digits there.
-
-Hard coded elements are available:
 
 +----------------+-------------------------+--------------------------+
 |  Element name  |          Regex          |                          |
@@ -259,25 +256,38 @@ Hard coded elements are available:
 +----------------+-------------------------+--------------------------+
 |      char      |          \\S*           |        Character         |
 +----------------+-------------------------+--------------------------+
-|        x       |    \d\d\d\d\d\d\d\d     |     Date (YYYYMMDD)      |
+|       x        |         %Y%m%d          |     Date (YYYYMMDD)      |
 +----------------+-------------------------+--------------------------+
-|        Y       |      \\d\\d\\d\\d       |       Year (YYYY)        |
+|       X        |         %H%M%S          |     Time (HHMMSS)        |
 +----------------+-------------------------+--------------------------+
-|       mm       |         \\d?\\d         |       Month ([M]M)       |
+|       Y        |      \\d\\d\\d\\d       |       Year (YYYY)        |
 +----------------+-------------------------+--------------------------+
-|       dd       |         \\d?\\d         |    Day of month ([D]D)   |
+|       m        |         \\d\\d          |        Month (MM)        |
 +----------------+-------------------------+--------------------------+
-|       doy      |       \\d?\\d?\\d       |   Day of year ([DD]D)    |
+|       d        |         \\d\\d          |    Day of month (DD)     |
 +----------------+-------------------------+--------------------------+
-|        M       |        [a-zA-Z]*        |        Month name        |
+|       j        |        \\d\\d\\d        |    Day of year (DDD)     |
++----------------+-------------------------+--------------------------+
+|       B        |        [a-zA-Z]*        |        Month name        |
++----------------+-------------------------+--------------------------+
+|       H        |         \\d\\d          |        Hour 24 (HH)      |
++----------------+-------------------------+--------------------------+
+|       M        |         \\d\\d          |        Minute (MM)       |
++----------------+-------------------------+--------------------------+
+|       S        |         \\d\\d          |       Seconds (SS)       |
 +----------------+-------------------------+--------------------------+
 
+
+Single letters preceded by a percentage in the regex will recursively be
+replaced by the corresponding regex.
+So `%X` will be replaced by `%H%M%S`. This still counts as a single matcher
+and its element name will not be changed.
+A percentage character can be escaped by another percentage (`%%`)
 
 All the use cases are not covered, and one might want to use a specific
-regex in place of the matcher. One could modify the definition of the
-Matcher class, or use a custom regex as so::
+regex in place of the matcher::
 
-  sst_%(time:Y:custom=\d\d\d\d:)-%(time:mm)-%(time:dd)
+  sst_%(time:Y:custom=\d\d:)-%(time:m)-%(time:d)
 
 **The custom regex must be terminated with a colon `:`**.
 

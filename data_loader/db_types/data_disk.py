@@ -24,16 +24,15 @@ class DataDisk(DataBase):
     Scan metadata.
     Load data from disk.
 
-
     :param root: Root data directory containing all files.
 
+    Attributes
+    ----------
     root: str
         Root data directory containing all files.
     filegroups: List[FilegroupLoad]
-
     allow_advanced: bool
         If allows advanced data arrangement.
-
     post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
         Functions applied after loading data.
     """

@@ -1,12 +1,12 @@
 
 
 
-data\_loader.masked.data\_masked
-================================
+data\_loader.db\_types.masked.data\_masked
+==========================================
 
 
 
-.. automodule:: data_loader.masked.data_masked
+.. automodule:: data_loader.db_types.masked.data_masked
 .. rubric:: Classes
 .. autosummary::
    

@@ -1,10 +1,26 @@
+
+
+
 data\_loader.scope
 ==================
-.. autosummary::
-   :toctree:
-   :nosignatures:
+
+
 
 .. automodule:: data_loader.scope
+.. rubric:: Classes
+.. autosummary::
+   
+       Scope
+   
+
+
+
+
+..
+
+
+   .. autoclass:: Scope
+      :show-inheritance:
       :members:
       :undoc-members:
-      :show-inheritance:
+      :private-members:

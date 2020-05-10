@@ -1,12 +1,12 @@
 
 
 
-data\_loader.data\_plot
-=======================
+data\_loader.db\_types.data\_plot
+=================================
 
 
 
-.. automodule:: data_loader.data_plot
+.. automodule:: data_loader.db_types.data_plot
 .. rubric:: Classes
 .. autosummary::
    

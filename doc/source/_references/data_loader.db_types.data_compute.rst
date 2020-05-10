@@ -1,12 +1,12 @@
 
 
 
-data\_loader.data\_compute
-==========================
+data\_loader.db\_types.data\_compute
+====================================
 
 
 
-.. automodule:: data_loader.data_compute
+.. automodule:: data_loader.db_types.data_compute
 .. rubric:: Classes
 .. autosummary::
    
