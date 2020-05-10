@@ -466,12 +466,17 @@ class DataBase():
         scope = self.get_scope(scope)
         keyring = Keyring()
         for name, key in keys.items():
-            c = scope.dims[name]
-            key = KeyValue(key)
-            if key.type == 'slice' and issubclass(type(c), Time):
-                key = c.subset_day(key.value.start, key.value.stop)
+            if name in self.dims:
+                c = scope.dims[name]
+                key = KeyValue(key)
+                if key.type == 'slice' and issubclass(type(c), Time):
+                    key = c.subset_day(key.value.start, key.value.stop)
+                else:
+                    key = key.apply(c)
+            elif name.endswith('_idx') and name[:-4] in self.dims:
+                name = name[:-4]
             else:
-                key = key.apply(c)
+                raise KeyError("'%s' not in dimensions" % name)
             keyring[name] = key
         return self.get_subscope(scope, keyring, int2list)
 
