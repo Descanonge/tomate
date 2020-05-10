@@ -35,14 +35,17 @@ class Matcher():
         Regex str for each type of element.
     """
 
-    ELT_RGX = {"idx": r"\d*",
-               "x": r"\d\d\d\d\d\d\d\d",
+    ELT_RGX = {"idx": r"\d+",
                "Y": r"\d\d\d\d",
-               "yy": r"\d\d",
-               "M": r"[a-zA-Z]*",
-               "mm": r"\d?\d",
-               "dd": r"\d?\d",
-               "doy": r"\d?\d?\d",
+               "m": r"\d\d",
+               "d": r"\d\d",
+               "j": r"\d\d\d",
+               "H": r"\d\d",
+               "M": r"\d\d",
+               "S": r"\d\d",
+               "x": r"%Y%m%d",
+               "X": r"%H%M%S",
+               "B": r"[a-zA-Z]*",
                "text": r"[a-zA-Z]*",
                "char": r"\S*"}
 

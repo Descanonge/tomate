@@ -40,55 +40,56 @@ def get_date_from_matches(cs: CoordScan,
 
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
-    match = False
+    elt = elts.pop("x", None)
+    if elt is not None:
+        elts["Y"] = elt[:4]
+        elts["m"] = elt[4:6]
+        elts["d"] = elt[6:8]
 
-    y = elts.pop("x", None)
-    if y is not None:
-        match = True
-        date["year"] = int(y[:4])
-        date["month"] = int(y[4:6])
-        date["day"] = int(y[6:8])
+    elt = elts.pop("X", None)
+    if elt is not None:
+        elts["H"] = elt[:2]
+        elts["M"] = elt[2:4]
+        if len(elt) > 4:
+            elts["S"] = elt[4:6]
 
-    y = elts.pop("Y", None)
-    if y is not None:
-        match = True
-        date["year"] = int(y)
+    elt = elts.pop("Y", None)
+    if elt is not None:
+        date["year"] = int(elt)
 
-    y = elts.pop("yy", None)
-    if y is not None:
-        match = True
-        date["year"] = int("20"+y)
+    elt = elts.pop("m", None)
+    if elt is not None:
+        date["month"] = int(elt)
 
-    M = elts.pop("M", None)
-    if M is not None:
-        M = _find_month_number(M)
-        if M is not None:
-            match = True
-            date["month"] = M
+    elt = elts.pop("B", None)
+    if elt is not None:
+        elt = _find_month_number(elt)
+        if elt is not None:
+            date["month"] = elt
 
-    m = elts.pop("mm", None)
-    if m is not None:
-        match = True
-        date["month"] = int(m)
+    elt = elts.pop("d", None)
+    if elt is not None:
+        date["day"] = int(elt)
 
-    d = elts.pop("dd", None)
-    if d is not None:
-        match = True
-        date["day"] = int(d)
+    elt = elts.pop("j", None)
+    if elt is not None:
+        elt = datetime(date["year"], 1, 1) + timedelta(days=int(elt)-1)
+        date["month"] = elt.month
+        date["day"] = elt.day
 
-    d = elts.pop("doy", None)
-    if d is not None:
-        match = True
-        doy = datetime(date["year"], 1, 1) + timedelta(days=int(d)-1)
-        date["month"] = doy.month
-        date["day"] = doy.day
+    elt = elts.pop("H", None)
+    if elt is not None:
+        date["hour"] = int(elt)
 
-    # TODO: add hours
+    elt = elts.pop("M", None)
+    if elt is not None:
+        date["minute"] = int(elt)
 
-    if match:
-        return nc.date2num(datetime(**date), cs.units), None
+    elt = elts.pop("S", None)
+    if elt is not None:
+        date["second"] = int(elt)
 
-    return None, None
+    return nc.date2num(datetime(**date), cs.units), None
 
 
 def get_value_from_matches(cs: CoordScan,
