@@ -66,8 +66,32 @@ class Matcher():
         else:
             self.rgx = self.ELT_RGX[elt]
 
+        self.rgx = self.process_regex(self.rgx)
+
+    @classmethod
+    def process_regex(cls, rgx):
+        """Replace elements.
+
+        % followed by a single letter is replaced by the corresponding
+        regex from `ELT_RGX`.
+        %% is replaced by a single percentage character.
+        """
+        def replace(match):
+            group = match.group(1)
+            if group == '%':
+                return '%'
+            if group in cls.ELT_RGX:
+                replacement = cls.ELT_RGX[group]
+                if '%' in replacement:
+                    return cls.process_regex(replacement)
+                return replacement
+            raise KeyError("Unknown replacement '%s'." % match.group(0))
+        rgx_new = re.sub("%([a-zA-Z%])", replace, rgx)
+        return rgx_new
+
     def __str__(self):
         s = '{0}:{1}, idx={2}'.format(self.coord, self.elt, self.idx)
         if self.dummy:
             s += ', dummy'
         return s
+
