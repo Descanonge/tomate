@@ -481,6 +481,9 @@ class DataBase():
                     key = key.apply(c)
             elif name.endswith('_idx') and name[:-4] in self.dims:
                 name = name[:-4]
+                if name in keyring:
+                    log.warning("'%s' specified more than once", name)
+                    continue
             else:
                 raise KeyError("'%s' not in dimensions" % name)
             keyring[name] = key
