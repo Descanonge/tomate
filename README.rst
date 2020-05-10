@@ -84,6 +84,7 @@ Optional dependencies::
 
   [NetCDF] NetCDF4 (for netcdf files, and time coordinate)
   [Mask] scipy (for some features of masked data)
+  [Plots] matplotlib (for some of the plotting features)
 
 
 Install
@@ -97,7 +98,7 @@ To install, run::
 To add optional dependencies::
 
   pip install .[Feature name]
-  # Feature name can be Mask, NetCDF
+  # Feature name can be Mask, NetCDF, Plots
 
 To remove::
 

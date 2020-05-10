@@ -9,7 +9,12 @@
 import logging
 import numpy as np
 
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+try:
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+except ImportError:
+    _has_matplotlib = False
+else:
+    _has_matplotlib = True
 
 from data_loader.data_base import DataBase
 from data_loader.keys.keyring import Keyring
@@ -309,11 +314,11 @@ class DataPlot(DataBase):
             title = dt.vi.get_attr_safe('fullname', var, default=var)
             ax.set_title(title)
 
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", "2%", 0)
-            label = dt.vi.get_attr_safe('units', var, default='')
-
-            ax.get_figure().colorbar(im, cax=cax, label=label)
+            if _has_matplotlib:
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", "2%", 0)
+                label = dt.vi.get_attr_safe('units', var, default='')
+                ax.get_figure().colorbar(im, cax=cax, label=label)
 
             return im
 
