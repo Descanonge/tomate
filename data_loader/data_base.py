@@ -462,7 +462,13 @@ class DataBase():
                               int2list: bool = True,
                               by_day: bool = False,
                               **keys: KeyLikeValue) -> Scope:
-        """Return subset of scope."""
+        """Return subset of scope.
+
+        :param bool: Use `subset_by_day` for Time dimension rather than `subset`.
+            Default to False.
+        :param kw_keys: [opt] Argument name is dimension name for value selection,
+            or dimension name appended with `_idx` for index selection.
+        """
         scope = self.get_scope(scope)
         keyring = Keyring()
         for name, key in keys.items():
