@@ -5,56 +5,39 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-
+from typing import List
 import logging
+
 import numpy as np
+from matplotlib.axes import Axes
 
-try:
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-except ImportError:
-    _has_matplotlib = False
-else:
-    _has_matplotlib = True
-
+from data_loader.custom_types import KeyLikeInt
 from data_loader.data_base import DataBase
 from data_loader.keys.keyring import Keyring
+from data_loader.scope import Scope
+
+from data_loader.db_types.plotting.image import PlotObjectImage
 
 
 log = logging.getLogger(__name__)
 
 
 class DataPlot(DataBase):
-    """Added functionalities for plotting data.
+    """Added functionalities for plotting data."""
 
-    Attributes
-    ----------
-    plotted
-    plot_coords
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.plotted = self.avail.copy()
-        self.plotted.empty()
-
-        self.plot_coords = []
-
-    def get_scope(self, scope):
-        if scope == 'plotted':
-            return self.plotted
-        return super().get_scope(scope)
-
-    def set_limits(self, ax, *coords, scope=None, keyring=None, **keys):
+    def set_limits(self, ax: Axes,
+                   coords: List[str],
+                   scope: Scope,
+                   keyring: Keyring = None, **keys: KeyLikeInt):
         """Set axis limits.
 
         Parameters
         ----------
-        ax: Matplotlib.Axes
         coords: str, optional
             Coords to take limit from.
             Default to firts coordinates present in scope,
             of size above 1.
-            or first `kw_keys` if present.
+            or firsts `keys` if present.
         scope: Scope, optional
             Scope to act on. Default is plotted if not empty
             available otherwise.
@@ -63,12 +46,6 @@ class DataPlot(DataBase):
             If not specified, all coordinates range are taken.
         """
         scope = self.get_scope(scope)
-        if scope is None:
-            if not self.plotted.is_empty():
-                scope = self.plotted
-            else:
-                scope = self.avail
-
         keyring = Keyring.get_default(keyring, **keys)
         if coords:
             names = coords
@@ -83,6 +60,21 @@ class DataPlot(DataBase):
             axis = axes[i]
             limits = scope[name].get_limits(keyring[name].value)
             axis.limit_range_for_scale(*limits)
+
+    def imshow(self, ax, variable, data=None, coords=None, plot=True,
+               limits=True, kwargs=None, **keys):
+        self.check_loaded()
+        po = PlotObjectImage.create(self, ax, data=data, coords=coords, kwargs=kwargs,
+                                    var=variable, **keys)
+        if plot:
+            po.create_plot()
+        if limits:
+            po.set_limits()
+
+        return po
+
+class DataPlot_(DataBase):
+    """Added functionalities for plotting data."""
 
     def imshow(self, ax, variable, data=None, coords=None, limits=True, kwargs=None, **kw_keys):
         """Plot an image on a heatmap.
@@ -114,7 +106,7 @@ class DataPlot(DataBase):
         IndexError:
             If image has wrong shape.
         """
-        self._check_loaded()
+        self.check_loaded()
 
         keyring = Keyring(var=variable, **kw_keys)
         keyring.make_full(self.dims)
@@ -213,7 +205,7 @@ class DataPlot(DataBase):
         IndexError:
             If image has wrong shape.
         """
-        self._check_loaded()
+        self.check_loaded()
 
         if kwargs is None:
             kwargs = {}
