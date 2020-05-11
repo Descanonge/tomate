@@ -38,7 +38,7 @@ class DataCompute(DataBase):
         coords: List[str]
             Coordinates to compute the gradient along.
         """
-        self._check_loaded()
+        self.check_loaded()
         axis = [self.coords.index(c) for c in coords]
         values = [self.coords[c][:] for c in coords]
 
@@ -80,7 +80,7 @@ class DataCompute(DataBase):
     def apply_on_subpart(self, func, args=None, kwargs=None, keyring=None, **keys):
         """Apply function on data subset.
         """
-        self._check_loaded()
+        self.check_loaded()
 
         if args is None:
             args = []

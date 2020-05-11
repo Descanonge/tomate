@@ -84,7 +84,7 @@ class DataMasked(DataBase):
         IndexError:
             Mask does not have the shape of the data.
         """
-        self._check_loaded()
+        self.check_loaded()
 
         if isinstance(mask, (bool, int)):
             mask_array = np.ma.make_mask_none(self.shape[1:])

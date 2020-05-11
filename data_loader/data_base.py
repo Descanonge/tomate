@@ -143,7 +143,7 @@ class DataBase():
                for c in bases}
         return out
 
-    def _check_loaded(self):
+    def check_loaded(self):
         """Check if data is loaded.
 
         :raises RuntimeError: If the data is not loaded.
@@ -231,7 +231,7 @@ class DataBase():
 
         :returns: Subset of data, in storage order.
         """
-        self._check_loaded()
+        self.check_loaded()
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring.get_default(keyring, **kw_keys, variables=self.loaded.var)
@@ -300,7 +300,7 @@ class DataBase():
         Accessor.reorder: The underlying function.
         view: For details on subsetting data (without reordering).
         """
-        self._check_loaded()
+        self.check_loaded()
 
         keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
         keyring.make_full(self.dims)
@@ -561,7 +561,7 @@ class DataBase():
         :param keyring: [opt]
         :param keys: [opt]
         """
-        self._check_loaded()
+        self.check_loaded()
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_int_list()
         self.loaded = self.get_subscope('loaded', keyring)
