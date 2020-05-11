@@ -49,6 +49,8 @@ class Keyring():
         keyring.update(keys)
 
         if variables is not None:
+            if not variables.has_data():
+                raise ValueError("Variables dimension is empty.")
             keyring.make_var_idx(variables)
 
         return keyring
