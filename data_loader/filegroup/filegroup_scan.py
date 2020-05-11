@@ -371,7 +371,7 @@ class FilegroupScan():
 
         if not self.found_file:
             raise NameError("No file matching the regex found ({0}, regex={1})".format(
-                self.variables, self.regex))
+                self.name, self.regex))
 
         for cs in self.cs.values():
             cs.set_values()
