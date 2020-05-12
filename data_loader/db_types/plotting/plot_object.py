@@ -124,12 +124,10 @@ class PlotObjectABC():
             self.ax.set_xlim(*limits)
         else:
             self.ax.set_ylim(*limits)
-        print('dim ', x, *limits)
 
     def _set_limits_var(self, var, x=True):
         vmin = self.db.vi.get_attr_safe(var, 'vmin')
         vmax = self.db.vi.get_attr_safe(var, 'vmax')
-        print('var ', x, vmin, vmax)
         if x:
             self.ax.set_xlim(vmin, vmax)
         else:
