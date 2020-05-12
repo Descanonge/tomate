@@ -7,13 +7,18 @@
 
 
 from typing import Dict, Iterator, List, Union
+import logging
 
 import numpy as np
 
 from data_loader.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
+from data_loader.keys.key import KeyValue
 from data_loader.keys.keyring import Keyring, Key
 from data_loader.coordinates.coord import Coord
 from data_loader.coordinates.time import Time
+
+
+log = logging.getLogger(__name__)
 
 
 class Scope():
@@ -172,19 +177,34 @@ class Scope():
 
         self.parent_keyring *= keyring
 
-    def slice_by_value(self, int2list: bool = True, **keys: KeyLikeValue):
+    def slice_by_value(self, int2list: bool = True,
+                       by_day: bool = True,
+                       **keys: KeyLikeValue):
         """Slice dimensions by values."""
-        keyring = Keyring()
-        for name, key in keys.items():
-            c = self.dims[name]
-            if isinstance(key, slice):
-                key = c.subset(key.start, key.stop)
-            elif isinstance(key, (list, tuple, np.ndarray)):
-                key = [c.get_index(k) for k in key]
-            else:
-                key = c.get_index(key)
-            keyring[name] = key
+        keyring = self.get_keyring_by_index(by_day=by_day, **keys)
         self.slice(keyring, int2list)
+
+    def get_keyring_by_index(self,
+                             by_day: bool = False,
+                             **keys: KeyLikeValue) -> Keyring:
+        keyring = Keyring()
+        for dim, key in keys.items():
+            if dim in self.dims:
+                c = self.dims[dim]
+                key = KeyValue(key)
+                if by_day and key.type == 'slice' and issubclass(type(c), Time):
+                    key = c.subset_day(key.value.start, key.value.stop)
+                else:
+                    key = key.apply(c)
+            elif dim.endswith('_idx') and dim[:-4] in self.dims:
+                dim = dim[:-4]
+                if dim in keyring:
+                    log.warning("'%s' specified more than once", dim)
+                    continue
+            else:
+                raise KeyError("'%s' not in dimensions" % dim)
+            keyring[dim] = key
+        return keyring
 
     def copy(self) -> 'Scope':
         """Return a copy of self."""

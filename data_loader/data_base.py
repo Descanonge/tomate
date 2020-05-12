@@ -13,10 +13,7 @@ import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
-from data_loader.coordinates.time import Time
-from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
-from data_loader.filegroup.filegroup_load import FilegroupLoad, do_post_loading
-from data_loader.keys.key import KeyValue
+from data_loader.custom_types import KeyLike, KeyLikeValue
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 from data_loader.variables_info import VariablesInfo
@@ -474,23 +471,7 @@ class DataBase():
             or dimension name appended with `_idx` for index selection.
         """
         scope = self.get_scope(scope)
-        keyring = Keyring()
-        for name, key in keys.items():
-            if name in self.dims:
-                c = scope.dims[name]
-                key = KeyValue(key)
-                if key.type == 'slice' and issubclass(type(c), Time):
-                    key = c.subset_day(key.value.start, key.value.stop)
-                else:
-                    key = key.apply(c)
-            elif name.endswith('_idx') and name[:-4] in self.dims:
-                name = name[:-4]
-                if name in keyring:
-                    log.warning("'%s' specified more than once", name)
-                    continue
-            else:
-                raise KeyError("'%s' not in dimensions" % name)
-            keyring[name] = key
+        keyring = scope.get_keyring_by_index(by_day=by_day, **keys)
         return self.get_subscope(scope, keyring, int2list, name)
 
     def select(self, scope: Union[str, Scope] = 'current',
@@ -534,7 +515,7 @@ class DataBase():
         """
         self.selected = self.get_subscope_by_value(scope, int2list=True,
                                                    by_day=by_day,
-                                                   name = 'selected'
+                                                   name='selected'
                                                    **keys)
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
