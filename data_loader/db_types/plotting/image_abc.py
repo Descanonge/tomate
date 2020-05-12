@@ -27,5 +27,5 @@ class PlotObjectImageABC(PlotObjectABC):
         return axes_
 
     def set_limits(self):
-        for x, dim in zip([True, False], self.axes[:2]):
-            self._set_limits_dim(dim, x)
+        for x, coord in zip([True, False], self.axes[:2]):
+            self._set_limits_coord(coord, x)

@@ -118,8 +118,8 @@ class PlotObjectABC():
     def set_limits(self):
         raise NotImplementedError()
 
-    def _set_limits_dim(self, dim, x=True):
-        limits = self.scope[dim].get_limits()
+    def _set_limits_coord(self, coord: str, x: bool = True):
+        limits = self.scope[coord].get_limits()
         if x:
             self.ax.set_xlim(*limits)
         else:
@@ -132,6 +132,7 @@ class PlotObjectABC():
             self.ax.set_xlim(vmin, vmax)
         else:
             self.ax.set_ylim(vmin, vmax)
+
 
 def set_limits_dim(ax, scope, axes=None, keyring=None, **keys):
     keyring = Keyring.get_default(keyring, **keys)

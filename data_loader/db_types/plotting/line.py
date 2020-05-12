@@ -46,4 +46,4 @@ class PlotObjectLine(PlotObjectABC):
 
     def set_limits(self):
         self._set_limits_var(self.axes[self.axis_var], x=self.axis_var == 0)
-        self._set_limits_dim(self.axes[1-self.axis_var], x=self.axis_var == 1)
+        self._set_limits_coord(self.axes[1-self.axis_var], x=self.axis_var == 1)
