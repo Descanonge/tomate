@@ -1,12 +1,16 @@
-"""Contour objects for contours."""
+"""Plot objects for contours."""
+
+import matplotlib.contour
 
 from data_loader.db_types.plotting.image_abc import PlotObjectImageABC
 
 
 class PlotObjectContour(PlotObjectImageABC):
+    """Plot object for contours."""
 
     @property
-    def contour(self):
+    def contour(self) -> matplotlib.contour.QuadContourSet:
+        """Matplotlib contour set."""
         return self.object
 
     def create_plot(self):

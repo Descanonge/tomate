@@ -1,9 +1,21 @@
-"""Plot evolution of a variable against one dimension."""
+"""Plot evolution of a variable against one coordinate."""
 
+from typing import List
+
+import matplotlib.lines
+
+from data_loader.custom_types import Array, KeyLikeInt
 from data_loader.db_types.plotting.plot_object import PlotObjectABC
 
 
 class PlotObjectLine(PlotObjectABC):
+    """Plot a variables against a coordinate.
+
+    Attributes
+    ----------
+    axis_var: int
+        Place of variable in axes (0 if variable is on X, 1 if on Y)
+    """
 
     DIM = 1
 
@@ -12,10 +24,11 @@ class PlotObjectLine(PlotObjectABC):
         self.axis_var = 0
 
     @property
-    def line(self):
+    def line(self) -> matplotlib.lines.Line2D:
+        """Matplotlib line."""
         return self.object
 
-    def find_axes(self, axes=None):
+    def find_axes(self, axes: List[str] = None) -> List[str]:
         if axes is not None:
             axes_ = axes
         else:
@@ -29,7 +42,7 @@ class PlotObjectLine(PlotObjectABC):
 
         return axes_
 
-    def _get_data(self):
+    def _get_data(self) -> Array:
         data = [None, None]
         data[self.axis_var] = self.db.view_selected(self.scope)
         data[1-self.axis_var] = self.scope[self.axes[1-self.axis_var]][:]
@@ -39,7 +52,7 @@ class PlotObjectLine(PlotObjectABC):
         data = self.get_data()
         self.object, = self.ax.plot(*data, **self.kwargs)
 
-    def update_plot(self, **keys):
+    def update_plot(self, **keys: KeyLikeInt):
         self.up_scope(**keys)
         _, line = self.get_data()
         self.line.set_ydata(line)
