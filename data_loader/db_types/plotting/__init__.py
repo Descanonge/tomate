@@ -1,4 +1,4 @@
 """Plotting subpackage.
 
-See :doc:`plotting`.
+See :doc:`../plotting`.
 """
