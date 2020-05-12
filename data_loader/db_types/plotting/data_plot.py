@@ -25,41 +25,8 @@ log = logging.getLogger(__name__)
 class DataPlot(DataBase):
     """Added functionalities for plotting data."""
 
-    def set_limits(self, ax: Axes,
-                   coords: List[str],
-                   scope: Scope,
-                   keyring: Keyring = None, **keys: KeyLikeInt):
-        """Set axis limits.
 
-        Parameters
-        ----------
-        coords: str, optional
-            Coords to take limit from.
-            Default to firts coordinates present in scope,
-            of size above 1.
-            or firsts `keys` if present.
-        scope: Scope, optional
-            Scope to act on. Default is plotted if not empty
-            available otherwise.
-        kw_keys: key-like, optional
-            Subpart of coordinates to consider.
-            If not specified, all coordinates range are taken.
-        """
-        scope = self.get_scope(scope)
-        keyring = Keyring.get_default(keyring, **keys)
-        if coords:
-            names = coords
-        elif keyring.kw:
-            name = keyring.dims
-        else:
-            names = scope.get_high_dim()
-        keyring.make_full(names)
-        keyring.make_total()
-        axes = [ax.xaxis, ax.yaxis]
-        for i, name in enumerate(names[:2]):
-            axis = axes[i]
-            limits = scope[name].get_limits(keyring[name].value)
-            axis.limit_range_for_scale(*limits)
+        return po
 
     def imshow(self, ax, variable, data=None, coords=None, plot=True,
                limits=True, kwargs=None, **keys):
