@@ -440,6 +440,7 @@ class DataBase():
 
     def get_subscope(self, scope: Union[str, Scope] = 'avail',
                      keyring: Keyring = None, int2list: bool = True,
+                     name: str = None,
                      **keys: KeyLike) -> Scope:
         """Return subset of scope.
 
@@ -453,6 +454,8 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         subscope = scope.copy()
+        if name is not None:
+            subscope.name = name
         subscope.reset_parent_keyring()
         subscope.parent_scope = scope
         subscope.slice(keyring, int2list=int2list, **keys)
@@ -460,6 +463,7 @@ class DataBase():
 
     def get_subscope_by_value(self, scope: Union[str, Scope] = 'avail',
                               int2list: bool = True,
+                              name: str = None,
                               by_day: bool = False,
                               **keys: KeyLikeValue) -> Scope:
         """Return subset of scope.
@@ -487,7 +491,7 @@ class DataBase():
             else:
                 raise KeyError("'%s' not in dimensions" % name)
             keyring[name] = key
-        return self.get_subscope(scope, keyring, int2list)
+        return self.get_subscope(scope, keyring, int2list, name)
 
     def select(self, scope: Union[str, Scope] = 'current',
                keyring: Keyring = None, **keys: KeyLike):
@@ -511,8 +515,9 @@ class DataBase():
         get_subscope
         """
         self.selected = self.get_subscope(scope, keyring,
-                                          int2list=False, **keys)
-        self.selected.name = 'selected'
+                                          int2list=False,
+                                          name='selected',
+                                          **keys)
 
     def select_by_value(self, scope: Union[str, Scope] = 'current',
                         by_day: bool = False,
@@ -528,8 +533,9 @@ class DataBase():
            Similar management of keys arguments.
         """
         self.selected = self.get_subscope_by_value(scope, int2list=True,
-                                                   by_day=by_day, **keys)
-        self.selected.name = 'selected'
+                                                   by_day=by_day,
+                                                   name = 'selected'
+                                                   **keys)
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
