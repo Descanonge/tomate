@@ -12,7 +12,7 @@ class PlotObjectContour(PlotObjectImageABC):
     def create_plot(self):
         image = self.get_data()
         coords = [self.scope[name][:]
-                  for name in self.coords]
+                  for name in self.axes[:2]]
         self.object = self.ax.contour(*coords, image, **self.kwargs)
 
     def remove(self):
