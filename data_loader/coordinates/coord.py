@@ -139,6 +139,8 @@ class Coord():
 
         :param slc: [opt]
         """
+        if self.size == 1:
+            return self.format(self._array[0])
         return "%s - %s" % tuple(self.format(v) for v in self.get_extent(slc))
 
     def copy(self) -> "Coord":

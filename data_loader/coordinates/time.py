@@ -49,6 +49,8 @@ class Time(Coord):
             raise ValueError("Time coordinate must be supplied CF-compliant units.")
 
     def get_extent_str(self, slc: KeyLike = None) -> str:
+        if self.size == 1:
+            return self.format(self.index2date(0))
         return "%s - %s" % tuple(self.format(v)
                                  for v in self.index2date(slc)[[0, -1]])
 
