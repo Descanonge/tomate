@@ -16,9 +16,9 @@ data\_loader.db\_types
    
        masked.data_masked.DataMasked
    
-       data_plot.DataPlot
-   
        data_disk.DataDisk
+   
+       plotting.data_plot.DataPlot
    
 
 .. rubric:: Subpackages
@@ -29,6 +29,8 @@ data\_loader.db\_types
    
       masked
    
+      plotting
+   
 .. rubric:: Submodules
 .. autosummary::
    :toctree:
@@ -38,6 +40,4 @@ data\_loader.db\_types
       data_compute
    
       data_disk
-   
-      data_plot
    

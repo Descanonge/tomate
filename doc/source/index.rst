@@ -20,6 +20,7 @@ Check out the :doc:`general` if you're lost !
    scanning
    variables_info
    log
+   plotting
 
    accessor
    expanding
