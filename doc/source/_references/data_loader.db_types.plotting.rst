@@ -19,6 +19,8 @@ data\_loader.db\_types.plotting
    :nosignatures:
 
    
+      average_abc
+   
       contour
    
       data_plot
@@ -27,7 +29,13 @@ data\_loader.db\_types.plotting
    
       image_abc
    
+      image_average
+   
       line
    
+      line_average
+   
       plot_object
+   
+      scatter
    
