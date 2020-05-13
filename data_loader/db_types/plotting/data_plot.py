@@ -18,7 +18,9 @@ from data_loader.scope import Scope
 
 from data_loader.db_types.plotting.image import PlotObjectImage
 from data_loader.db_types.plotting.contour import PlotObjectContour
+from data_loader.db_types.plotting.image_average import PlotObjectImageAvg
 from data_loader.db_types.plotting.line import PlotObjectLine
+from data_loader.db_types.plotting.line_average import PlotObjectLineAvg
 
 
 log = logging.getLogger(__name__)
