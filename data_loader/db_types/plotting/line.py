@@ -53,13 +53,20 @@ class PlotObjectLine(PlotObjectABC):
 
     def create_plot(self):
         data = self.get_data()
-        self.object, = self.ax.plot(self.scope[self.axes[1-self.axis_var]], data,
-                                    **self.kwargs)
+        dim = self.scope[self.axes[1-self.axis_var]]
+        to_plot = [dim, data]
+        if self.axis_var != 1:
+            to_plot.reverse()
+        self.object, = self.ax.plot(*to_plot, **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
         self.up_scope(**keys)
-        line = self.get_data()
-        self.line.set_ydata(line)
+        x = self.scope[self.axes[1-self.axis_var]]
+        y = self.get_data()
+        if self.axis_var != 1:
+            x, y = y, x
+        self.object.set_xdata(x)
+        self.object.set_ydata(y)
 
     def set_limits(self):
         self._set_limits_var(self.axes[self.axis_var], x=self.axis_var == 0)
