@@ -5,7 +5,7 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import logging
 
 import numpy as np
@@ -13,8 +13,6 @@ from matplotlib.axes import Axes
 
 from data_loader.custom_types import Array, KeyLikeInt, KeyLikeVar
 from data_loader.data_base import DataBase
-from data_loader.keys.keyring import Keyring
-from data_loader.scope import Scope
 
 from data_loader.db_types.plotting.contour import PlotObjectContour
 from data_loader.db_types.plotting.image import PlotObjectImage
@@ -116,7 +114,7 @@ class DataPlot(DataBase):
                 data: Tuple[Array, Array] = None,
                 sizes=None, colors=None,
                 plot: bool = True, limits: bool = True,
-                kwargs: Dict[str, Any]=None,
+                kwargs: Dict[str, Any] = None,
                 **keys: KeyLikeInt) -> PlotObjectScatter:
         """Plot a variable against another.
 

@@ -43,6 +43,8 @@ class PlotObjectLine(PlotObjectABC):
 
         if axes_[0] in self.scope.coords:
             self.axis_var = 1
+        else:
+            self.axis_var = 0
 
         return axes_
 
