@@ -43,18 +43,16 @@ class PlotObjectLine(PlotObjectABC):
         return axes_
 
     def _get_data(self) -> Array:
-        data = [None, None]
-        data[self.axis_var] = self.db.view_selected(self.scope)
-        data[1-self.axis_var] = self.scope[self.axes[1-self.axis_var]][:]
-        return data
+        return self.db.view_selected(self.scope)
 
     def create_plot(self):
         data = self.get_data()
-        self.object, = self.ax.plot(*data, **self.kwargs)
+        self.object, = self.ax.plot(self.scope[self.axes[1-self.axis_var]], data,
+                                    **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
         self.up_scope(**keys)
-        _, line = self.get_data()
+        line = self.get_data()
         self.line.set_ydata(line)
 
     def set_limits(self):
