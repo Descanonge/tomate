@@ -9,7 +9,9 @@ from data_loader.db_types.plotting.image_abc import PlotObjectImageABC
 class PlotObjectImage(PlotObjectImageABC):
     """Plot object for images.
 
-    Relies on matplotlib 'imshow'
+    See also
+    --------
+    matplotlib.axes.Axes.imshow: Function used.
     """
 
     def __init__(self, *args, **kwargs):

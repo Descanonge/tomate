@@ -199,6 +199,7 @@ class PlotObjectABC():
 
         :param x: For the x-axis if True, y-axis otherwise.
         """
+        # TODO: use self.kwargs if there
         limits = self.scope[coord].get_limits()
         if x:
             self.ax.set_xlim(*limits)

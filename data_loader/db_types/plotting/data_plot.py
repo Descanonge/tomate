@@ -5,22 +5,23 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-from typing import List
+from typing import Any, Dict, List
 import logging
 
 import numpy as np
 from matplotlib.axes import Axes
 
-from data_loader.custom_types import KeyLikeInt
+from data_loader.custom_types import Array, KeyLikeInt, KeyLikeVar
 from data_loader.data_base import DataBase
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 
-from data_loader.db_types.plotting.image import PlotObjectImage
 from data_loader.db_types.plotting.contour import PlotObjectContour
+from data_loader.db_types.plotting.image import PlotObjectImage
 from data_loader.db_types.plotting.image_average import PlotObjectImageAvg
 from data_loader.db_types.plotting.line import PlotObjectLine
 from data_loader.db_types.plotting.line_average import PlotObjectLineAvg
+from data_loader.db_types.plotting.scatter import PlotObjectScatter
 
 
 log = logging.getLogger(__name__)
@@ -29,8 +30,34 @@ log = logging.getLogger(__name__)
 class DataPlot(DataBase):
     """Added functionalities for plotting data."""
 
-    def plot(self, ax, variable, data=None, axes=None, plot=True,
-             limits=True, kwargs=None, **keys):
+    def plot(self, ax: Axes, variable: KeyLikeVar,
+             data: Array = None, axes: List[str] = None,
+             plot: bool = True, limits: bool = True,
+             kwargs: Dict[str, Any] = None,
+             **keys: KeyLikeInt) -> PlotObjectLine:
+        """Plot evolution of a variable against a dimension.
+
+        Creates a plot object and eventually plots data.
+
+        :param ax: Matplotlib axis to plot upon.
+        :param variable: Variable to plot.
+        :param data: [opt] Data to plot. If not specified, data
+            is fetched from loaded scope using `keys`.
+        :param axes: [opt] Dimension or variable to put on what axis
+            (X-axis, then Y-axis, and eventually Z-axis (colors))
+            If not supplied, the plot object will do its best to guess
+            what goes on which axis from what data is selected for plotting.
+            This is not always possible !
+        :param plot: Draw the plot if True (default).
+        :param limits: Change axis limits to data limits if True (default).
+        :param kwargs: [opt] Keywords arguments to pass to plotting function.
+        :param keys: Select part of data to plot.
+            Selected data should have correct dimension (here 1D).
+
+        See also
+        --------
+        matplotlib.axes.Axes.plot: Function used.
+        """
         self.check_loaded()
         po = PlotObjectLine.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                    var=variable, **keys)
@@ -41,8 +68,18 @@ class DataPlot(DataBase):
 
         return po
 
-    def imshow(self, ax, variable, data=None, axes=None, plot=True,
-               limits=True, kwargs=None, **keys):
+    def imshow(self, ax: Axes, variable: KeyLikeVar,
+               data: Array = None, axes: List[str] = None,
+               plot: bool = True, limits: bool = True,
+               kwargs: Dict[str, Any] = None,
+               **keys: KeyLikeInt) -> PlotObjectImage:
+        """Plot variable as 2D image.
+
+        See also
+        --------
+        DataPlot.plot: For more details on arguments.
+        matplotlib.axes.Axes.imshow: Function used.
+        """
         self.check_loaded()
         po = PlotObjectImage.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                     var=variable, **keys)
@@ -53,8 +90,18 @@ class DataPlot(DataBase):
 
         return po
 
-    def contour(self, ax, variable, data=None, axes=None, plot=True,
-                limits=True, kwargs=None, **keys):
+    def contour(self, ax: Axes, variable: KeyLikeVar,
+                data: Array = None, axes: List[str] = None,
+                plot: bool = True, limits: bool = True,
+                kwargs: Dict[str, Any] = None,
+                **keys: KeyLikeInt) -> PlotObjectContour:
+        """Plot variable as contours.
+
+        See also
+        --------
+        DataPlot.plot: For more details on arguments.
+        matplotlib.axes.Axes.imshow: Function used.
+        """
         self.check_loaded()
         po = PlotObjectContour.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                       var=variable, **keys)
@@ -65,98 +112,111 @@ class DataPlot(DataBase):
 
         return po
 
-class DataPlot_(DataBase):
-    """Added functionalities for plotting data."""
-    def contour(self, ax, variable, coords=None, limits=True, kwargs=None, **keys):
-        """Plot contour of a variable.
+    def scatter(self, ax: Axes, variable1: str, variable2: str,
+                data: Tuple[Array, Array] = None,
+                sizes=None, colors=None,
+                plot: bool = True, limits: bool = True,
+                kwargs: Dict[str, Any]=None,
+                **keys: KeyLikeInt) -> PlotObjectScatter:
+        """Plot a variable against another.
 
-        Parameters
-        ----------
-        ax: Matplotlib axis
-        variable: str
-        coords: List[str], optional
-            Coordinates to plot along to.
-            If None, selected coordinates with dimension higher
-            than 1 will be used.
-        limits: bool, optional
-            Set axis limits.
-        kwargs: Dict[Any]
-            Passed to contour.
-        kw_coords: Keys
-            Subset of data to plot.
+        :param variable1: Variable on X-axis
+        :param variable2: Variable on Y-axis
+        :param sizes: Sizes of markers. If a variable name is used,
+            data is fetched from database. Otherwise the argument is
+            send as is to scatter.
+        :param colors: Colors of markers. If a variable name is used,
+            data is fetched from database. Otherwise the argument is
+            send as is to scatter.
 
-        Returns
-        -------
-        Matplotlib contour
-
-        Raises
-        ------
-        IndexError:
-            If image has wrong shape.
+        See also
+        --------
+        DataPlot.plot: For more details on arguments.
+        matplotlib.axes.Axes.scatter: Function used.
         """
         self.check_loaded()
-
         if kwargs is None:
             kwargs = {}
-
-        keyring = Keyring(var=variable, **keys)
-        keyring.make_full(self.dims)
-        keyring.make_total()
-        keyring.make_var_idx(self.loaded.var)
-
-        if coords is None:
-            coords = keyring.get_high_dim()[::-1]
-        self.plot_coords = coords
-
-        self.plotted = self.get_subscope('loaded', keyring)
-
-        image = self.view_ordered(coords[::-1], keyring)
-        if image.ndim != 2:
-            raise IndexError("Selected data does not have the dimension"
-                             " of an image %s" % image.shape)
-
-        coord_values = [self.plotted[name][:]
-                        for name in coords]
-
-        c = ax.contour(*coord_values, image, **kwargs)
+        kwargs['sizes'] = sizes
+        kwargs['colors'] = colors
+        po = PlotObjectScatter.create(self, ax, data=data,
+                                      axes=[variable1, variable2],
+                                      kwargs=kwargs, **keys)
+        if plot:
+            po.create_plot()
         if limits:
-            self.set_limits(ax, *coords, scope=self.plotted)
+            po.set_limits()
 
-        return c
+        return po
 
-    def update_contour(self, ax, c, variable=None, coords=None, kwargs=None, **keys):
-        """Update a contour plot.
+    def plot_avg(self, ax: Axes, variable: KeyLikeInt,
+                 data: Array = None, axes: List[str] = None,
+                 avg_dims: List[str] = None,
+                 plot: bool = True, limits: bool = True,
+                 kwargs: Dict[str, Any] = None,
+                 **keys: KeyLikeInt) -> PlotObjectLineAvg:
+        """Plot evolution of average of a variable against a dimension.
 
-        Parameters
-        ----------
-        ax: Matplotlib axis
-        c: Contour
-        variable: str, optional
-            If None, previously plotted is used.
-        coords: List[str], optional
-            Coordinates to use.
-            If None, selected coordinates with size higher
-            than 1 will be used.
-        kwargs: Dict[An]
-            Passed to contour.
-        kw_coords: Keys
-            Subset of data to plot.
-            If missing, last plotted is used.
+        Selected data once averaged should be of dimension 1.
+        Needs DataCompute base for computing average.
 
-        Raises
-        ------
-        IndexError:
-            If image has wrong shape.
+        :param avg_dims: List of dimensions to average along.
+
+        See also
+        --------
+        DataPlot.plot: For more details on arguments.
+        matplotlib.axes.Axes.plot: Function used.
+        data_loader.db_types.data_compute.DataCompute.mean: Function used for averaging.
         """
-        if variable is None:
-            variable = self.plotted.var[0]
+        self.check_loaded()
+        if kwargs is None:
+            kwargs = {}
+        kwargs['avg_dims'] = avg_dims
+        po = PlotObjectLineAvg.create(self, ax, data=data, axes=axes,
+                                      kwargs=kwargs,
+                                      var=variable, **keys)
+        if plot:
+            po.create_plot()
+        if limits:
+            po.set_limits()
 
-        for coll in c.collections:
-            ax.collections.remove(coll)
+        return po
 
-        c = self.contour(ax, variable, coords=coords, limits=False, kwargs=kwargs, **keys)
+    def imshow_avg(self, ax: Axes, variable: KeyLikeVar,
+                   data: Array = None, axes: List[str] = None,
+                   avg_dims: List[str] = None,
+                   plot: bool = True, limits: bool = True,
+                   kwargs: Dict[str, Any] = None,
+                   **keys: KeyLikeInt) -> PlotObjectImageAvg:
+        """Plot image of average of a variable against a dimension.
 
-        return c
+        Selected data once averaged should be of dimension 2.
+        Needs DataCompute base for computing average.
+
+        :param avg_dims: List of dimensions to average along.
+
+        See also
+        --------
+        DataPlot.plot: For more details on arguments.
+        matplotlib.axes.Axes.imshow: Function used.
+        data_loader.db_types.data_compute.DataCompute.mean: Function used for averaging.
+        """
+        self.check_loaded()
+        if kwargs is None:
+            kwargs = {}
+        kwargs['avg_dims'] = avg_dims
+        po = PlotObjectImageAvg.create(self, ax, data=data, axes=axes,
+                                       kwargs=kwargs,
+                                       var=variable, **keys)
+        if plot:
+            po.create_plot()
+        if limits:
+            po.set_limits()
+
+        return po
+
+class _DataPlot_(DataBase):
+    """Added functionalities for plotting data."""
 
     def imshow_all(self, axes, variables=None, coords=None, limits=None, kwargs=None, **kw_coords):
         """Plot all variables.
@@ -210,23 +270,6 @@ class DataPlot_(DataBase):
                                 **kw_coords)
         self.plotted = self.get_subscope('loaded', var=variables, **kw_coords)
         return images
-
-    def update_imshow_all(self, axes, images, variables=None, **kw_coords):
-        """Update plots of multiple variables.
-
-        Parameters
-        ----------
-        axes: Array of Matplotlib axes
-        images: Array of Matplotlib images
-        variables: List[str]
-        kw_coords: Keys
-        """
-        if variables is None:
-            variables = self.plotted.var[:]
-        def update(ax, dt, var, im, **kw_coords):
-            dt.update_imshow(im, var, **kw_coords)
-        self.iter_axes(axes, update, variables, iterables=[images], **kw_coords)
-        self.plotted = self.get_subscope('loaded', var=variables, **kw_coords)
 
     def del_axes_none(self, fig, axes, variables=None):
         """Delete axes for which variables is None.

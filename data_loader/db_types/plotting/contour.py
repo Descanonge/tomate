@@ -6,7 +6,12 @@ from data_loader.db_types.plotting.image_abc import PlotObjectImageABC
 
 
 class PlotObjectContour(PlotObjectImageABC):
-    """Plot object for contours."""
+    """Plot object for contours.
+
+    See also
+    --------
+    matplotlib.axes.Axes.contour: Function used.
+    """
 
     @property
     def contour(self) -> matplotlib.contour.QuadContourSet:

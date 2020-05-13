@@ -15,6 +15,10 @@ class PlotObjectLine(PlotObjectABC):
     ----------
     axis_var: int
         Place of variable in axes (0 if variable is on X, 1 if on Y)
+
+    See also
+    --------
+    matplotlib.axes.Axes.plot: Function used.
     """
 
     DIM = 1
@@ -35,7 +39,7 @@ class PlotObjectLine(PlotObjectABC):
             axes_ = [self.keyring.get_high_dim()[0], self.scope.var[0]]
 
         if len(axes_) != 2:
-            raise IndexError("Number of axes not 2 (is %d)" % len(axes_))
+            raise IndexError("Number of axes not 2 (%s)" % axes_)
 
         if axes_[0] in self.scope.coords:
             self.axis_var = 1
