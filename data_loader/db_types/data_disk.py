@@ -128,30 +128,9 @@ class DataDisk(DataBase):
 
         Part of the data to load is specified by values or index.
 
-        :param keys: [opt] Values to select for a coordinate.
-            If is slice, use start and stop as boundaries. Step has no effect.
-            If is float, int, or a list of, closest index for each value is taken.
-        :param bool: Use `subset_by_day` for Time dimension rather than `subset`.
-            Default to False.
-        :param kw_keys: [opt] Argument name is dimension name, argument value is
-            similar to `keys`.
-            Argument name can also be a dimension name appended with `_idx`, in
-            which case the selection is made by index instead. Value selection
-            has priority.
-
-        Examples
+        See also
         --------
-        Load latitudes from 10N to 30N.
-        >>> db.load_by_value('SST', lat=slice(10, 30))
-
-        Load latitudes from 5N to maximum available.
-        >>> db.load_by_value('SST', lat=slice(5, None))
-
-        Load depth closest to 500 and first time index.
-        >>> db.load_by_value(depth=500., time_idx=0)
-
-        Load depths closest to 0, 10, 50
-        >>> db.load_by_value(depth=[0, 10, 50])
+        view_by_value: Arguments function similarly.
         """
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)

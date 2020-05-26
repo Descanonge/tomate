@@ -13,7 +13,7 @@ import numpy as np
 
 from data_loader.accessor import Accessor
 from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import KeyLike, KeyLikeValue
+from data_loader.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
 from data_loader.keys.keyring import Keyring
 from data_loader.scope import Scope
 from data_loader.variables_info import VariablesInfo
@@ -223,10 +223,13 @@ class DataBase():
         array will be squeezed.
 
         :param keyring: [opt] Keyring specifying parts of dimensions to take.
-        :param keys: [opt] Keys specifying parts of dimensions to take.
-            Take precedence over keyring.
+        :param keys: [opt] Keys specifying parts of dimensions to take, in
+            the order of stored dimensions.
+            Take precedence over `keyring`.
+        :param kw_keys: [opt] Argument name is dimension name. Takes precedence
+            over `keys`.
 
-        :returns: Subset of data, in storage order.
+        :returns: Subset of data.
         """
         self.check_loaded()
 
@@ -238,6 +241,47 @@ class DataBase():
         keyring.sort_by(self.dims)
         log.debug('Taking keys in data: %s', keyring.print())
         return self.acs.take(keyring, self.data)
+
+    def view_by_value(self, *keys: KeyLikeInt,
+                      by_day: bool = False,
+                      **kw_keys: KeyLike) -> np.ndarray:
+        """Returns a subset of loaded data.
+
+        Keys act on loaded scope.
+
+        :param keys: [opt] Values to select for a coordinate.
+            If is slice, use start and stop as boundaries. Step has no effect.
+            If is float, int, or a list of, closest index for each value is taken.
+        :param by_day: Use `subset_by_day` for Time dimension rather than `subset`
+            if True. Default to False.
+        :param kw_keys: [opt] Argument name is dimension name, argument value is
+            similar to `keys`.
+            Argument name can also be a dimension name appended with `_idx`, in
+            which case the selection is made by index instead. Value selection
+            has priority.
+
+        Examples
+        --------
+        Load latitudes from 10N to 30N.
+        >>> db.load_by_value('SST', lat=slice(10., 30.))
+
+        Load latitudes from 5N to maximum available.
+        >>> db.load_by_value('SST', lat=slice(5, None))
+
+        Load depth closest to 500 and first time index.
+        >>> db.load_by_value(depth=500., time_idx=0)
+
+        Load depths closest to 0, 10, 50
+        >>> db.load_by_value(depth=[0, 10, 50])
+
+        See also
+        --------
+        view
+        """
+        self.check_loaded()
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
+        return self.view(keyring=keyring)
 
     def view_selected(self, scope: Union[str, Scope] = 'selected',
                       keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
@@ -500,23 +544,24 @@ class DataBase():
                                           name='selected',
                                           **keys)
 
-    def select_by_value(self, scope: Union[str, Scope] = 'current',
+    def select_by_value(self, *keys: KeyLikeInt,
+                        scope: Union[str, Scope] = 'current',
                         by_day: bool = False,
-                        **keys: KeyLikeValue):
+                        **kw_keys: KeyLike):
         """Select by value.
 
-        :param scope: [opt] Scope to select from.
-        :param keys: [opt]
+        :param scope: Scope to select from. Defaults to current
+            (loaded if data has been loaded, available otherwise).
 
         See also
         --------
-        load_by_value:
-           Similar management of keys arguments.
+        select
+        view_by_value: Arguments function similarly.
         """
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
         self.selected = self.get_subscope_by_value(scope, int2list=True,
                                                    by_day=by_day,
-                                                   name='selected'
-                                                   **keys)
+                                                   name='selected', **kw_keys)
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
