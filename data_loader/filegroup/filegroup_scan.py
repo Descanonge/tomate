@@ -257,7 +257,7 @@ class FilegroupScan():
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
         to_open = (any([cs.is_to_open() for cs in self.cs.values()])
-                   or not self.scan_attr.get('gen', True))
+                   or ('gen' in self.scan_attr and not self.scan_attr['gen'][1]))
         return to_open
 
     def scan_general_attributes(self, file: File):
@@ -304,7 +304,7 @@ class FilegroupScan():
             file = self.open_file(filename, mode='r', log_lvl='debug')
 
         try:
-            if not self.scan_attr.get('gen', True):
+            if 'gen' in self.scan_attr and not self.scan_attr['gen'][1]:
                 self.scan_general_attributes(file)
 
             for cs in self.cs.values():
@@ -353,7 +353,7 @@ class FilegroupScan():
         :raises ValueError: If no values were detected for a coordinate.
         """
         for elt in self.scan_attr:
-            self.scan_attr[elt][2] = False
+            self.scan_attr[elt][1] = False
         # Reset CoordScan
         for cs in self.cs.values():
             if cs.is_to_scan():
