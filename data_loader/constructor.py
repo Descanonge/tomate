@@ -488,6 +488,7 @@ class Constructor():
         if scan:
             db.scan_files()
             db.compile_scanned()
+            db.scan_variables_attributes()
         return db
 
     def create_data_class(self) -> Type[DataBase]:
