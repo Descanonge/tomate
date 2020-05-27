@@ -18,9 +18,7 @@ from datetime import datetime, timedelta
 try:
     import netCDF4 as nc
 except ImportError:
-    _has_netcdf = False
-else:
-    _has_netcdf = True
+    raise ImportError("netCDF4 package necessary for using Time coordinate.")
 
 from data_loader.coordinates.coord import Coord
 from data_loader.custom_types import KeyLike
@@ -62,9 +60,6 @@ class Time(Coord):
         :returns: Return a list if the input was a list.
         :raises ImportError: If netCDF4 package is missing.
         """
-        if not _has_netcdf:
-            raise ImportError("netCDF4 package necessary for index2date.")
-
         if indices is None:
             indices = slice(None, None)
 
@@ -99,8 +94,6 @@ class Time(Coord):
             Is replaced by Time.get_indices().
         """
         log.warning("date2index() is deprecated. Use get_indices().")
-        if not _has_netcdf:
-            raise ImportError("netCDF4 package necessary for date2index.")
 
         # If the user has asked a single date
         single = False
@@ -131,8 +124,6 @@ class Time(Coord):
         --------
         >>> time.change_units("hours since 1950-01-01 12:00:00")
         """
-        if not _has_netcdf:
-            raise ImportError("netCDF4 package necessary for change_units.")
         dates = nc.num2date(values, old)
         values = nc.date2num(dates, new)
         return values
@@ -146,12 +137,11 @@ class Time(Coord):
             datetime object, or a list of value that can be transformed
             to date ([year, month, day [, hours, minutes, ...]])
         loc: {'closest', 'below', 'above'}
+            Works as for Coord.get_index.
         """
         if isinstance(value, (list, tuple)):
             value = datetime(*value)
         if isinstance(value, datetime):
-            if not _has_netcdf:
-                raise ImportError("netCDF4 package necessary for get_index with dates.")
             value = nc.date2num(value, self.units)
         return super().get_index(value, loc)
 
@@ -173,8 +163,6 @@ class Time(Coord):
         bounds = []
         for day in [dmin, dmax]:
             if isinstance(day, float):
-                if not _has_netcdf:
-                    raise ImportError("netCDF package necessary for subset_day with floats.")
                 day = nc.num2date(day, self.units)
             elif isinstance(day, (list, tuple)):
                 day = datetime(*day)
