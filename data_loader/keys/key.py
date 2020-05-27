@@ -13,6 +13,7 @@ from data_loader.custom_types import KeyLikeInt, KeyLikeVar, KeyLikeValue
 
 if TYPE_CHECKING:
     from data_loader.coordinates.coord import Coord
+    from data_loader.coordinates.time import Time
     from data_loader.coordinates.variables import Variables
 
 
@@ -471,7 +472,7 @@ class KeyValue():
         elif self.type == 'list':
             self.shape = len(self.value)
 
-    def apply(self, coord) -> KeyLikeInt:
+    def apply(self, coord: 'Coord') -> KeyLikeInt:
         """Find corresponding index."""
         if self.type == 'int':
             return coord.get_index(self.value)
@@ -480,6 +481,16 @@ class KeyValue():
         if self.type == 'slice':
             return coord.subset(self.value.start, self.value.stop)
         raise TypeError("Not applicable (key type '%s')." % self.type)
+
+    def apply_by_day(self, coord: 'Time') -> KeyLikeInt:
+        """Find corresponding index on same day."""
+        if self.type == 'int':
+            return coord.get_index_by_day(self.value)
+        if self.type == 'list':
+            return coord.get_indices_by_day(self.value)
+        if self.type == 'slice':
+            return coord.subset_day(self.value.start, self.value.stop)
+        raise TypeError("Not applicable (key type '%s')" % self.type)
 
 
 def simplify_key(key: KeyLikeInt) -> KeyLikeInt:

@@ -187,13 +187,26 @@ class Scope():
     def get_keyring_by_index(self,
                              by_day: bool = False,
                              **keys: KeyLikeValue) -> Keyring:
+        """Get indices from values.
+
+        Returned indices act on this scope.
+
+        :param keys: Values to select.
+        :param by_day: If corresponding coordinate is a subclass of
+            Time, and by_day is true, limit selection to date.
+
+        See also
+        --------
+        data_loader.coordinates.time.Time.get_index_by_date
+        data_loader.coordinates.time.Time.subset_by_date
+        """
         keyring = Keyring()
         for dim, key in keys.items():
             if dim in self.dims:
                 c = self.dims[dim]
                 key = KeyValue(key)
-                if by_day and key.type == 'slice' and issubclass(type(c), Time):
-                    key = c.subset_day(key.value.start, key.value.stop)
+                if by_day and issubclass(type(c), Time):
+                    key = key.apply_by_day(c)
                 else:
                     key = key.apply(c)
             elif dim.endswith('_idx') and dim[:-4] in self.dims:

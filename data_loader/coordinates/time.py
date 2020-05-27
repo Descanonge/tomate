@@ -15,6 +15,8 @@ from typing import List, Sequence, Union
 
 from datetime import datetime, timedelta
 
+import cftime
+
 try:
     import netCDF4 as nc
 except ImportError:
@@ -144,6 +146,53 @@ class Time(Coord):
         if isinstance(value, datetime):
             value = nc.date2num(value, self.units)
         return super().get_index(value, loc)
+
+    def get_index_by_day(self, value: Union[datetime, List[Union[int, float]],
+                                            float, int],
+                         loc: str = 'closest') -> int:
+        """Get index of value on the same day only.
+
+        :raises IndexError: If no timestamp is found on the same day with
+            specified loc.
+        :raises TypeError: If `loc` is not valid.
+        """
+        if isinstance(value, (list, tuple)):
+            value = datetime(*value)
+        if isinstance(value, datetime):
+            value = nc.date2num(value, self.units)
+
+        date = cftime.num2pydate(value, self.units).date()
+        if loc == 'below':
+            idx = self.get_index(value, loc=loc)
+            if self.index2date(idx).date() != date:
+                raise IndexError("No timestamp below on same day.")
+            return idx
+        if loc == 'above':
+            idx = self.get_index(value, loc=loc)
+            if self.index2date(idx).date() != date:
+                raise IndexError("No timestamp above on same day.")
+            return idx
+        if loc == 'closest':
+            lo = self.get_index(value, loc='below')
+            hi = lo + 1
+            same_day = [self.index2date(idx).date() == date for idx in [lo, hi]]
+            if all(same_day):
+                if (self[hi] - value) < (value - self[lo]):
+                    return hi
+                return lo
+            if same_day[0]:
+                return lo
+            if same_day[1]:
+                return hi
+            raise IndexError("No timestamp on same day.")
+
+        raise TypeError("'%s' loc not recognized, should be one of 'below', 'above', 'closest'."
+                        % loc)
+
+    def get_indices_by_day(self, values: Sequence[float],
+                           loc: str = 'closest') -> List[int]:
+        indices = [self.get_index_by_day(v, loc) for v in values]
+        return indices
 
     def subset_day(self, dmin: Union[datetime, List[int],
                                      float, int] = None,
