@@ -200,8 +200,9 @@ class Coord():
         if stop < 0:
             stop = None
         slc = slice(start, stop, step)
+
+        # Untested
         if self.is_descending():
-            # TODO: Untested
             slc = reverse_slice_order(slc)
 
         return slc
@@ -302,7 +303,7 @@ class Coord():
 
         return idx
 
-    def get_indices(self, values: Sequence[float], loc: str = 'closest') -> int:
+    def get_indices(self, values: Sequence[float], loc: str = 'closest') -> List[int]:
         """Return indices of the elements closest to values.
 
         loc: {'closest', 'below', 'above'}

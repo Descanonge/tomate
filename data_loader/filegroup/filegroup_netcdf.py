@@ -153,7 +153,6 @@ class FilegroupNetCDF(FilegroupLoad):
                 file.createVariable(inf_name, t, self.db.coords)
 
                 for attr in self.db.vi.attrs:
-                    # TODO: no attributes for all variables.
                     if not attr.startswith('_'):
                         value = self.db.vi.get_attr(attr, var)
                         if value is not None:

@@ -350,7 +350,6 @@ class DataBase():
 
         log.debug('Taking keys in data: %s', keyring.print())
         array = self.acs.take(keyring, self.data)
-        # TODO: log reorder
         return self.acs.reorder(keyring, array, order)
 
     def iter_slices(self, coord: str, size: int = 12,
@@ -568,7 +567,7 @@ class DataBase():
         """Add to selection.
 
         Keys act upon the parent scope of selection.
-        TODO: Keys are always sorted in increasing order
+        Keys are always sorted in increasing order
 
         :param Scope: [opt] If nothing was selected before, select keys from this scope.
         :param keyring: [opt]

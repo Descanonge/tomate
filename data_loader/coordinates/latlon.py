@@ -37,7 +37,6 @@ class Lon(Coord):
     :param units: [opt] Coordinate units
     :param fullname: [opt] Print name.
     """
-    # TODO: convert to km
 
     def __init__(self, name='lon', array=None,
                  units='degree_east', fullname='Longitude'):

@@ -6,7 +6,6 @@
 # in the root of this project. © 2020 Clément HAËCK
 
 
-# TODO: update to keyrings
 import logging
 
 import numpy as np

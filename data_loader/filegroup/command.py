@@ -174,7 +174,6 @@ class Command():
             krg.set(krg_inf, krg_mem)
 
     def merge_keys(self):
-        # TODO: test for multiple shared keys
         """Merge successive shared keys.
 
         Due to the way get_commands_shared is written,
@@ -267,7 +266,6 @@ def simplify_keys(keys: List[Key]) -> Key:
     :raises ValueError: If keys are not all identical, or
         of not of type int.
     """
-    # TODO: For other types (list and slices)
     start = keys[0]
     if all(k == start for k in keys):
         return start

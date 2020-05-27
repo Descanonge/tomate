@@ -18,7 +18,6 @@ from data_loader.keys.keyring import Keyring
 log = logging.getLogger(__name__)
 
 
-
 class AccessorABC():
     """Manages access to arrays.
 

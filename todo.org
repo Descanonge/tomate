@@ -1,0 +1,47 @@
+* General
+** TODO Refactor, align on get_index_by_day
+[[file:data_loader/coordinates/time.py::def subset_day]]
+
+** TODO Keys always sorted in increasing order
+[[file:data_loader/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
+
+** TODO Log reorder
+[[file:data_loader/data_base.py::def view_ordered(self, order: List\[str\],]]
+
+** TODO Convert to km
+[[file:data_loader/coordinates/latlon.py::class Lat(Coord):]]
+
+** TODO Subset untested for reverse coordinate
+[[file:data_loader/coordinates/coord.py:: Untested]]
+
+** TODO Compute min / max value
+
+** TODO Type hinting
+
+** TODO Log into debug the coord slicing after scanning
+
+** TODO Use self.kwargs if there
+[[file:data_loader/db_types/plotting/plot_object.py::def _set_limits_coord(self, coord: str, x: bool = True):]]
+
+** TODO Test for multiple shared keys
+[[file:data_loader/filegroup/command.py::def merge_keys(self):]]
+
+** TODO Simplify
+[[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
+
+* WIP
+
+** TODO Save metadata to file
+To not need to scan files each time
+
+** TODO Multiple selections
+in a subclass of database ?
+
+** TODO Write: add to file
+use existing filegroup information to open some files and add variables
+
+** TODO check error when shared cs has no scanning
+
+** TODO Use cftime module rather than netCDF4
+it is included in netCDF4 and work similarly
+it has some nice function like num2pydate

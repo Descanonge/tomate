@@ -208,7 +208,6 @@ class FilegroupLoad(FilegroupScan):
                                        keyring: Keyring) -> Tuple[List[np.ndarray],
                                                                   List[List[int]],
                                                                   Union[List[int], None]]:
-        # TODO: simplify
         """For all asked values, retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.
