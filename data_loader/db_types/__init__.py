@@ -1,7 +1,7 @@
 """Collection of DataBase subclasses."""
 
 
-import importlib
+import importlib.util
 
 from .data_compute import DataCompute
 from .masked.data_masked import DataMasked
