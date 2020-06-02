@@ -44,7 +44,7 @@ extensions = [
 ]
 
 napoleon_use_param = True
-autosummary_generate = True
+autosummary_generate = False
 always_document_param_types = True
 
 
