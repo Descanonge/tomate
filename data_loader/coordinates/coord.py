@@ -37,8 +37,6 @@ class Coord():
         Coordinate units.
     fullname: str
         Print name.
-    size: int
-        Length of values.
     """
 
     def __init__(self, name: str,

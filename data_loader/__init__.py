@@ -21,7 +21,7 @@ or coordinates values can be retrieved automatically.
 
 import sys
 
-from .log import set_logging
+import data_loader.log
 
 from .coordinates.coord import Coord
 from .coordinates.time import Time
@@ -55,4 +55,4 @@ if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or above is required.")
 
 
-set_logging()
+data_loader.log.set_logging_defaults()

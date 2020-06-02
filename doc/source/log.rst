@@ -1,31 +1,60 @@
 
+.. currentmodule:: data_loader.log
+
 Logging
 =======
 
 This code make use of the logging built-in module to log out information.
-A global Logger is set when importing the package, and all submodules
-inherits its configuration.
+Those logs are data-loader efforts to be accountable so that the user
+can check it is doing everything right, but also to warn the user of
+any potential error or mistake. Either way, they should not be ignored.
 
-By default, the parent logger logs into the stdout at the 'INFO' level.
-Info includes most notably information on how the data is loaded (the
-size of the data allocated, the file being opened, what is taken in that
-file, where it is put,...).
-I strongly advise to look carefully at those logs to check that the package
-is working as intended.
-More information on the scanning of coordinates can be found at the
-'DEBUG' level.
+Most of that information comes at the 'INFO' level,
+Warnings indicating something might not be well setup, log at the 'WARNING'
+level.
+Additional information, especially during the scanning process is output
+at 'DEBUG'.
 
-Some aspects of the logging can be modified using functions from the
-:mod:`log<data_loader.log>` module.
-More experienced users can directly modify the global logger, whose
-name is 'data_loader'.
 
-If you really don't want logs in your terminal ((ง •̀_•́)ง),
-use the following code::
+All logging related function are in :mod:`data_loader.log`.
 
-  from data_loader import log
-  log.set_logging('WARN')
+Basic configuration
+-------------------
 
-or to redirect it to a file::
+Logging is activated whenever data_loader is first imported.
+A top-level logger named 'data_loader' is setup by
+:func:`set_logging_defaults`.
+It outputs everything above (including) the 'INFO' level to stderr.
+A logfile can be added by using :func:`add_file_handler`.
 
-  log.set_file_log('log.txt', no_stdout=True)
+All 'data-loader' related logs can be limited to a certain level
+by using :func:`set_logging_level`. Again, it is always advised to look
+at 'INFO' outputs to check against potential errors.
+
+
+Advanced configuration
+----------------------
+
+The basic configuration should supply sane defaults, but can be
+configured more finely.
+Being familiar with the `logging` module is advised though.
+
+Logging is setup package-wide with the 'data_loader' logger.
+The logger does not propagate to the root logger by default.
+This is done to avoid tempering with the root logger configuration
+that users might have already setup.
+It can easily be setup to propagate again::
+
+  log = data_loader.log.get_logger(``
+  log.propagate = True
+
+You might want to remove the package specific stderr handler present
+by default.
+Function are provided to remove specific handlers:
+:func:`remove_handlers`, :func:`remove_stream_handlers`,
+:func:`remove_file_handlers`.
+
+The format of log message can be changed for all handlers conveniently using
+:func:`change_format`.
+Knowing the filename from whence the message originated can be useful, it can
+be added with :func:`add_filename_message`.
