@@ -23,11 +23,9 @@ data\_loader.coordinates.latlon
 
    .. autoclass:: Lat
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: Lon
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

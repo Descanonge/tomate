@@ -26,7 +26,6 @@ data\_loader.db\_types.plotting.plot\_object
 
    .. autoclass:: PlotObjectABC
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: set_limits_dim

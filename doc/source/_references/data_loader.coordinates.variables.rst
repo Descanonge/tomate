@@ -21,6 +21,5 @@ data\_loader.coordinates.variables
 
    .. autoclass:: Variables
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

@@ -21,6 +21,5 @@ data\_loader.db\_types.plotting.line
 
    .. autoclass:: PlotObjectLine
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

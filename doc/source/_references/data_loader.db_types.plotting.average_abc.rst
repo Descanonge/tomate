@@ -21,6 +21,5 @@ data\_loader.db\_types.plotting.average\_abc
 
    .. autoclass:: PlotObjectAvgABC
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

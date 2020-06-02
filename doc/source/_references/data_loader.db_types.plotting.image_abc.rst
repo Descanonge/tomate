@@ -21,6 +21,5 @@ data\_loader.db\_types.plotting.image\_abc
 
    .. autoclass:: PlotObjectImageABC
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

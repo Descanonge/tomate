@@ -25,16 +25,13 @@ data\_loader.variables\_info
 
    .. autoclass:: Attribute
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: VariableAttributes
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: VariablesInfo
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

@@ -23,11 +23,9 @@ data\_loader.accessor
 
    .. autoclass:: Accessor
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: AccessorABC
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

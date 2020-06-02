@@ -21,6 +21,5 @@ data\_loader.filegroup.matcher
 
    .. autoclass:: Matcher
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

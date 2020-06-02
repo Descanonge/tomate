@@ -21,6 +21,8 @@ data\_loader.db\_types.plotting
    
       average_abc
    
+      colorbar
+   
       contour
    
       data_plot

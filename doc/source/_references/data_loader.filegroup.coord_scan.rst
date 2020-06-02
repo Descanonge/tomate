@@ -40,22 +40,18 @@ data\_loader.filegroup.coord\_scan
 
    .. autoclass:: CoordScan
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: CoordScanIn
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: CoordScanShared
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: CoordScanVar
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: get_coordscan

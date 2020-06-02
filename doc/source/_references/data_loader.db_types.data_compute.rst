@@ -26,7 +26,6 @@ data\_loader.db\_types.data\_compute
 
    .. autoclass:: DataCompute
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: do_stack

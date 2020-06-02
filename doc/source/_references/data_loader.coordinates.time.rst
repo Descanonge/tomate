@@ -21,6 +21,5 @@ data\_loader.coordinates.time
 
    .. autoclass:: Time
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:

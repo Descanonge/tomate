@@ -28,7 +28,6 @@ data\_loader.coordinates.coord
 
    .. autoclass:: Coord
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: get_closest

@@ -21,6 +21,5 @@ data\_loader.db\_types.plotting.line\_average
 
    .. autoclass:: PlotObjectLineAvg
       :show-inheritance:
-      :members:
       :undoc-members:
       :private-members:
