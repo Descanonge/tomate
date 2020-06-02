@@ -65,7 +65,7 @@ for f in "${files[@]}"; do
     file=$(realpath "$f" --relative-to="$gen")
     if [[ "$move" == "0" ]]; then
         echo "move $file to $ref"
-        mv "$f" "$ref/"
+        cp "$f" "$ref/"
     else
         echo "combine $file"
         sta="$(cat "$gen/$file")"
@@ -88,11 +88,11 @@ for f in "${files[@]}"; do
     if [ -f "$f_old" ]; then
         if [[ ! -z "$(diff "$f_old" "$f")" ]]; then
             echo "Updated $file"
-            mv "$f" "$f_old"
+            cp "$f" "$f_old"
         fi
     else
         echo "New file $file"
-        mv "$f" "$f_old"
+        cp "$f" "$f_old"
     fi
 done
 
