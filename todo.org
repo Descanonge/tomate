@@ -1,5 +1,8 @@
 * General
 ** TODO Refactor, align on get_index_by_day
+:PROPERTIES:
+:Release:  0.4
+:END:
 [[file:data_loader/coordinates/time.py::def subset_day]]
 
 ** TODO Keys always sorted in increasing order
@@ -21,7 +24,8 @@
 ** TODO Log into debug the coord slicing after scanning
 
 ** TODO Use self.kwargs if there
-[[file:data_loader/db_types/plotting/plot_object.py::def _set_limits_coord(self, coord: str, x: bool = True):]]
+[[file:data_loader/db_types/plotting/plot_object.py::def set_limits]]
+[[file:data_loader/db_types/plotting/plot_object.py::def set_labels]]
 
 ** TODO Test for multiple shared keys
 [[file:data_loader/filegroup/command.py::def merge_keys(self):]]
@@ -29,9 +33,19 @@
 ** TODO Simplify
 [[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
 
+** TODO Maybe not change __repr__ ?
+:PROPERTIES:
+:Release:  0.4
+:END:
+
+** TODO check error when shared cs has no scanning
+
 * WIP
 
 ** TODO Save metadata to file
+:PROPERTIES:
+:Release:  0.4
+:END:
 To not need to scan files each time
 - [ ] Make it user friendly
 - [ ] Check for consistency
@@ -44,8 +58,9 @@ in a subclass of database ?
 ** TODO Write: add to file
 use existing filegroup information to open some files and add variables
 
-** TODO check error when shared cs has no scanning
-
 ** TODO Use cftime module rather than netCDF4
+:PROPERTIES:
+:Release:  0.4
+:END:
 it is included in netCDF4 and work similarly
 it has some nice function like num2pydate
