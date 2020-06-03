@@ -107,6 +107,8 @@ class Coord():
         s = []
         s.append(str(type(self)))
         s.append("Name: %s" % self.name)
+        if self.fullname:
+            s.append("Fullname: %s" % self.fullname)
         if self.has_data():
             s.append("Size: %d" % self.size)
             s.append("Extent: %s" % self.get_extent_str())
