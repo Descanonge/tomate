@@ -75,10 +75,6 @@ class PlotObjectScatter(PlotObjectABC):
         self.object = self.ax.scatter(*data, s=sizes, c=colors,
                                       **self.kwargs)
 
-    def set_limits(self):
-        self._set_limits_var(self.axes[0], True)
-        self._set_limits_var(self.axes[1], False)
-
     def update_plot(self, **keys):
         self.up_scope(**keys)
         self.object.set_offsets(np.column_stack(self.get_data()))

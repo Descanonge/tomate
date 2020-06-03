@@ -200,26 +200,21 @@ class PlotObjectABC():
 
     def set_limits(self):
         """Change axis limits to data."""
-        raise NotImplementedError()
+        self.ax.set_xlim(*self.get_limits(self.axes[0]))
+        self.ax.set_ylim(*self.get_limits(self.axes[1]))
 
-    def _set_limits_coord(self, coord: str, x: bool = True):
-        """Set limits if the axis is for a coordinate.
+    def get_limits(self, name):
+        """Retrieve limits for one of the axis.
 
-        :param x: For the x-axis if True, y-axis otherwise.
+        :param name: Coordinate or variable name.
         """
-        limits = self.scope[coord].get_limits()
-        if x:
-            self.ax.set_xlim(*limits)
+        if name in self.scope.coords:
+            limits = self.scope[name].get_limits()
         else:
-            self.ax.set_ylim(*limits)
-
-    def _set_limits_var(self, var: str, x: bool = True):
-        """Set limits if the axis is for a variable.
-
-        Use the database VI attributes 'vmin' and 'vmax' if
-        available.
-
-        :param x: For the x-axis if True, y-axis otherwise.
+            vmin = self.db.vi.get_attr_safe(name, 'vmin')
+            vmax = self.db.vi.get_attr_safe(name, 'vmax')
+            limits = vmin, vmax
+        return limits
 
     def add_colorbar_axis(self, loc, size, pad, **kwargs):
         """Add axis for colorbar."""
@@ -234,27 +229,79 @@ class PlotObjectABC():
 
         :param loc: {'left', 'right', 'bottom', 'top'}
         """
-        vmin = self.db.vi.get_attr_safe(var, 'vmin')
-        vmax = self.db.vi.get_attr_safe(var, 'vmax')
-        if x:
-            self.ax.set_xlim(vmin, vmax)
         self.add_colorbar_axis(loc, size, pad, **kwargs)
         self.colorbar = plt.colorbar(self.object, cax=self.cax, ax=self.ax)
+
+    def _get_label(self, name: str,
+                   fullname: Union[bool, str], units: Union[bool, str]):
+        """Get label for axis.
+
+        :param name: Coordinate or variable name.
+        :param fullname: If True, use fullname if available.
+            'fullname' attribute from a coordinate or the VI is used.
+            If `fullname` is a string, use that attribute instead in the VI.
+        :param units: If True, add units to label if available.
+            'fullname' attribute from a coordinate or the VI is used.
+            If `fullname` is a string, use that attribute instead in the VI.
+        """
+        if name in self.scope.coords:
+            label = self.scope[name].fullname
+            if not label or not fullname:
+                label = name
+            if units:
+                c_units = self.scope[name].units
+                if c_units:
+                    label += ' [{}]'.format(c_units)
         else:
-            self.ax.set_ylim(vmin, vmax)
+            attr = fullname if isinstance(fullname, str) else 'fullname'
+            label = self.db.vi.get_attr_safe(attr, name)
+            if label is None or not fullname:
+                label = name
+            if units:
+                attr = units if isinstance(units, str) else 'units'
+                v_units = self.db.vi.get_attr_safe('units', name)
+                if v_units:
+                    label += ' [{}]'.format(v_units)
+
+        return label
+
+    def set_labels(self, axes: Union[str, List[str]] = None,
+                   fullname: Union[bool, str] = True,
+                   units: Union[bool, str] = True):
+        """Set axes labels.
+
+        Set colorbar labels if present.
+
+        :param axes: Axes to set labels to, can be 'x', 'y', 'colorbar' or 'cbar'.
+            If None, all are set.
+        :param fullname: If True, use fullname if available.
+            'fullname' attribute from a coordinate or the VI is used.
+            If `fullname` is a string, use that attribute instead in the VI.
+        :param units: If True, add units to label if available.
+            'fullname' attribute from a coordinate or the VI is used.
+            If `fullname` is a string, use that attribute instead in the VI.
+        """
+        if axes is None:
+            axes = ['X', 'Y']
+            if self.colorbar is not None:
+                axes.append('colorbar')
+        elif not isinstance(axes, (list, tuple)):
+            axes = [axes]
+        for ax in axes:
+            if ax.upper() == 'X':
+                name = self.axes[0]
+                f = self.ax.set_xlabel
+            elif ax.upper() == 'Y':
+                name = self.axes[1]
+                f = self.ax.set_ylabel
+            elif ax.upper() in ['COLORBAR', 'CBAR']:
+                name = self.axes[-1]
+                f = self.colorbar.set_label
+            else:
+                raise KeyError("Axis name not recognized (%s)." % ax)
+
+            label = self._get_label(name, fullname, units)
+            if label is not None:
+                f(label)
 
 
-def set_limits_dim(ax, scope, axes=None, keyring=None, **keys):
-    keyring = Keyring.get_default(keyring, **keys)
-    if axes:
-        names = axes
-    elif keyring:
-        names = keyring.dims[:2]
-    else:
-        names = [c.name for c in scope.coords if c.size > 1]
-    keyring.make_full(names)
-    keyring.make_total()
-    funcs = [ax.set_xlim, ax.set_ylim]
-    for f, name in zip(funcs[:len(names)], names):
-        limits = scope[name].get_limits(keyring[name].value)
-        f(*limits)

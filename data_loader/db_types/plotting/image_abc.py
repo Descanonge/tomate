@@ -31,5 +31,7 @@ class PlotObjectImageABC(PlotObjectABC):
         return axes_
 
     def set_limits(self):
-        for x, coord in zip([True, False], self.axes[:2]):
-            self._set_limits_coord(coord, x)
+        """Change axis limits to data."""
+        self.ax.set_xlim(*self.get_limits(self.axes[0]))
+        self.ax.set_ylim(*self.get_limits(self.axes[1]))
+        self.image.set_clim(*self.get_limits(self.axes[2]))
