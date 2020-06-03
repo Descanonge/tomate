@@ -26,6 +26,7 @@ data\_loader.constructor
 
    .. autoclass:: Constructor
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: create_data_class

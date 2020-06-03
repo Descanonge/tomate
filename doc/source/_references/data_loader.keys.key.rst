@@ -40,14 +40,17 @@ data\_loader.keys.key
 
    .. autoclass:: Key
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: KeyValue
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
    .. autoclass:: KeyVar
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: guess_slice_shape

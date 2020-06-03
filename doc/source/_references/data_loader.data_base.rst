@@ -21,5 +21,6 @@ data\_loader.data\_base
 
    .. autoclass:: DataBase
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

@@ -21,5 +21,6 @@ data\_loader.db\_types.plotting.contour
 
    .. autoclass:: PlotObjectContour
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

@@ -21,5 +21,6 @@ data\_loader.db\_types.plotting.image\_average
 
    .. autoclass:: PlotObjectImageAvg
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

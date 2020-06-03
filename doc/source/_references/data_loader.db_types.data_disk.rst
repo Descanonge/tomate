@@ -21,5 +21,6 @@ data\_loader.db\_types.data\_disk
 
    .. autoclass:: DataDisk
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

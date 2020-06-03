@@ -28,6 +28,7 @@ data\_loader.filegroup.filegroup\_scan
 
    .. autoclass:: FilegroupScan
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
    .. autofunction:: scan_general_attributes_default

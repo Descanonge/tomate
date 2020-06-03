@@ -42,8 +42,9 @@
 {%- for item in classes %}
    .. autoclass:: {{ item }}
       :show-inheritance:
-      :undoc-members:
+      :members:
       :private-members:
+      :special-members:
 {%- endfor %}
 {%- endif %}
 

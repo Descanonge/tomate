@@ -21,5 +21,6 @@ data\_loader.db\_types.plotting.scatter
 
    .. autoclass:: PlotObjectScatter
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

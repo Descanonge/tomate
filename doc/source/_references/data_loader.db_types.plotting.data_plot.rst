@@ -21,5 +21,6 @@ data\_loader.db\_types.plotting.data\_plot
 
    .. autoclass:: DataPlot
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:

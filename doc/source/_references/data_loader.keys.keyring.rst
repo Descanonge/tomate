@@ -21,5 +21,6 @@ data\_loader.keys.keyring
 
    .. autoclass:: Keyring
       :show-inheritance:
+      :members:
       :undoc-members:
       :private-members:
