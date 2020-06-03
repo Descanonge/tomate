@@ -33,6 +33,10 @@
 
 ** TODO Save metadata to file
 To not need to scan files each time
+- [ ] Make it user friendly
+- [ ] Check for consistency
+  maybe set up a test
+- [ ] Check for user input arguments types
 
 ** TODO Multiple selections
 in a subclass of database ?

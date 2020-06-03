@@ -2,7 +2,9 @@
 
 from typing import Any, Dict, List, Union, TYPE_CHECKING
 
+import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from data_loader.custom_types import Array, KeyLikeInt, KeyLikeValue
 from data_loader.keys.key import KeyValue
@@ -42,6 +44,10 @@ class PlotObjectABC():
         (x, y, [z], [color]).
     dict: Dict[Any]
         Keyword arguments to use for creating plot.
+    cax: matplotlib.axes.Axes
+        Colorbar axis.
+    colorbar: matplotlib.colorbar.Colorbar
+        Colorbar object.
     """
 
     DIM = 0
@@ -56,6 +62,8 @@ class PlotObjectABC():
         self.data = data
         self.axes = axes
         self.kwargs = kwargs
+        self.cax = None
+        self.colorbar = None
 
     @property
     def keyring(self) -> Keyring:
@@ -120,7 +128,7 @@ class PlotObjectABC():
 
     def check_keyring(self):
         """Check if keyring has correct dimension.
-       
+
         :raises IndexError:
         """
         dim = len(self.keyring.get_high_dim())
@@ -212,11 +220,26 @@ class PlotObjectABC():
         available.
 
         :param x: For the x-axis if True, y-axis otherwise.
+
+    def add_colorbar_axis(self, loc, size, pad, **kwargs):
+        """Add axis for colorbar."""
+        divider = make_axes_locatable(self.ax)
+        self.cax = divider.append_axes(loc, size, pad, **kwargs)
+
+    def add_colorbar(self, loc: str = "right",
+                     size: float = .1,
+                     pad: float = 0.,
+                     **kwargs):
+        """Add colorbar.
+
+        :param loc: {'left', 'right', 'bottom', 'top'}
         """
         vmin = self.db.vi.get_attr_safe(var, 'vmin')
         vmax = self.db.vi.get_attr_safe(var, 'vmax')
         if x:
             self.ax.set_xlim(vmin, vmax)
+        self.add_colorbar_axis(loc, size, pad, **kwargs)
+        self.colorbar = plt.colorbar(self.object, cax=self.cax, ax=self.ax)
         else:
             self.ax.set_ylim(vmin, vmax)
 
