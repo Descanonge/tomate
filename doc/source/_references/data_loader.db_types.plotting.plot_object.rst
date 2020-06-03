@@ -13,11 +13,6 @@ data\_loader.db\_types.plotting.plot\_object
        PlotObjectABC
    
 
-.. rubric:: Functions
-.. autosummary::
-   
-       set_limits_dim
-   
 
 
 
@@ -28,4 +23,3 @@ data\_loader.db\_types.plotting.plot\_object
       :show-inheritance:
       :undoc-members:
       :private-members:
-   .. autofunction:: set_limits_dim

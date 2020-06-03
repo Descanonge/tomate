@@ -13,6 +13,8 @@ data\_loader.log
    
        add_file_handler
    
+       add_filename_message
+   
        add_stream_handler
    
        change_format
@@ -36,6 +38,7 @@ data\_loader.log
 
 
    .. autofunction:: add_file_handler
+   .. autofunction:: add_filename_message
    .. autofunction:: add_stream_handler
    .. autofunction:: change_format
    .. autofunction:: get_logger
