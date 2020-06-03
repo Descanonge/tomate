@@ -29,14 +29,9 @@ class Coord():
     :param units: [opt] Coordinate units
     :param fullname: [opt] Print name.
 
-    Attributes
-    ----------
-    name: str
-        Identification of the coordinate.
-    units: str
-        Coordinate units.
-    fullname: str
-        Print name.
+    :attr name: str: Name of coordinate.
+    :attr units: str: Coordinate units.
+    :attr fullname: str: Print name.
     """
 
     def __init__(self, name: str,

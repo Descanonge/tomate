@@ -100,6 +100,7 @@ def sort_sections(app, what, name, obj, options, lines):
     rgx = '^:param ([^:]*)'
 
     parameters = {}
+    attributes = []
     types = []
     returns = []
     return_type = []
@@ -115,6 +116,10 @@ def sort_sections(app, what, name, obj, options, lines):
             i = add(parameters[argname], i)
         elif any([lines[i].startswith(k) for k in return_keys]):
             i = add(returns, i)
+        elif lines[i].startswith(':attr'):
+            attr = []
+            i = add(attr, i)
+            attributes.append(attr)
         elif lines[i].startswith(':rtype'):
             i = add(return_type, i)
         elif lines[i].startswith(':type '):
@@ -142,6 +147,14 @@ def sort_sections(app, what, name, obj, options, lines):
             lines += parameters[argname]
     lines += types
 
+    attrs = dict([get_attr_lines(attr) for attr in attributes])
+
+    if attrs:
+        lines += ['']
+        attrs_names = list(attrs.keys())
+        attrs_names.sort()
+        for name in attrs_names:
+            lines += attrs[name]
     if return_type:
         lines += [''] + return_type
     if returns:
@@ -151,6 +164,18 @@ def sort_sections(app, what, name, obj, options, lines):
     for sec in sections[1:]:
         lines += [''] + sec
 
+def get_attr_lines(lines):
+    text = ''.join(lines).strip()
+    elts = text.split(':')
+    name = elts[1].strip()[5:]
+    tp = elts[2].strip()
+    desc = ' '.join(elts[3:])
+
+    lines_ = ['.. attribute:: ' + name,
+              '    :type: ' + tp,
+              '',
+              '    ' + desc]
+    return name, lines_
 
 def move_opt(app, what, name, obj, options, lines):
     """Add optional to type if specified.
@@ -173,7 +198,8 @@ def move_opt(app, what, name, obj, options, lines):
                     break
 
 def debug(app, what, name, obj, options, lines):
-    if 'add_variable' in name:
+    # if 'Coord' in name:
+    if name.endswith('DataBase'):
         print(name)
         print('\n'.join(lines))
         print()
@@ -183,4 +209,4 @@ def debug(app, what, name, obj, options, lines):
 def setup(app):
     app.connect('autodoc-process-docstring', move_opt)
     app.connect('autodoc-process-docstring', sort_sections)
-    # app.connect('autodoc-process-docstring', debug)
+    app.connect('autodoc-process-docstring', debug)

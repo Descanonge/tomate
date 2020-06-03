@@ -51,33 +51,21 @@ class DataBase():
     :param coords: Coordinates, in the order the data should be kept.
         This includes variables.
 
-    Attributes
-    ----------
-    vi: VariablesInfo
-        Information on the variables and data.
+    :attr vi: VariablesInfo: Information on the variables and data.
 
-    coords: List[str]
-        Coordinates names, in the order the data
-        is kept in the array.
-    dims: List[str]
-        Dimensions names, in the order the data
-        is kept in the array.
+    :attr coords: List[str]: Coordinates names,
+        in the order the data is kept in the array.
+    :attr dims: List[str]: Dimensions names,
+        in the order the data is kept in the array.
 
-    data: np.ndarray or subclass
-        Data array if loaded, None otherwise.
+    :attr data: np.ndarray or subclass: Data array if loaded, None otherwise.
 
-    avail: Scope
-        Scope of available data (on disk).
-    loaded: Scope
-        Scope of loaded data.
-    selected: Scope
-        Scope of selected data.
-
-    acs: Type[Accessor]
-        Accessor class (or subclass) to use to access the data.
+    :attr avail: Scope: Scope of available data (on disk).
+    :attr loaded: Scope: Scope of loaded data.
+    :attr selected: Scope: Scope of selected data.
     """
 
-    acs = Accessor
+    acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
     def __init__(self, coords: List[Coord],
                  vi: VariablesInfo):

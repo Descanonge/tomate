@@ -33,35 +33,30 @@ class Constructor():
     :param coords: Coordinates, in the order the data should be kept.
         Variables can be omitted.
 
-    Attributes
-    ----------
-    root: str
-        Root directory of all files.
-    dims: Dict[str, Coord]
-        Coordinates, in the order the data should be kept.
+    :attr root: str: Root directory of all files.
+    :attr dims: Dict[str, Coord]: Coordinates, in the order
+        the data should be kept.
         These are the 'master' coordinate that will be
         transmitted to the database object.
-    filegroups: List[Filegroup]
-        Filegroups added so far.
-    vi: VariablesInfo
+    :attr filegroups: List[Filegroup]: Filegroups added so far.
+    :attr vi: VariablesInfo:
 
-    selection: List[Dict[str, KeyLike]]
+    :attr selection: List[Dict[str, KeyLike]]:
         Keys for selecting parts of the CoordScan.
-    selection_by_value: List[Dict[str, KeyLikeValue]]
+    :attr selection_by_value: List[Dict[str, KeyLikeValue]]:
         Keys for selecting parts of the CoordScan by value.
-    post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
+    :attr post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar,
+                                   bool, Dict[str, Any]]:
         Functions applied after loading data.
 
-    db_types: List[Type[DataBase]]
+    :attr db_types: List[Type[DataBase]]:
         Subclass of DataBase to use to create a new dynamic
         database class.
-    acs: Type[Accessor]
-        Subclass of Accessor to use for database object.
+    :attr acs: Type[Accessor]: Subclass of Accessor
+        to use for database object.
 
-    allow_advanced: bool
-        If advanced Filegroups arrangement is allowed.
-    float_comparison: float
-        Threshold for float comparison.
+    :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
+    :attr float_comparison: float: Threshold for float comparison.
     """
 
     def __init__(self, root: str, coords: List[Coord]):
