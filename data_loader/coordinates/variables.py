@@ -25,11 +25,6 @@ class Variables(Coord):
     :param array: [opt] Variables names.
     :param vi: [opt] VI containing information about those variables.
     :param kwargs: [opt] See Coord signature.
-
-    Attributes
-    ----------
-    vi: VariablesInfo
-        VI containing information about variables.
     """
 
     def __init__(self, array: Union[str, Sequence[str]] = None,

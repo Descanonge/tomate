@@ -45,9 +45,10 @@ class Constructor():
         Keys for selecting parts of the CoordScan.
     :attr selection_by_value: List[Dict[str, KeyLikeValue]]:
         Keys for selecting parts of the CoordScan by value.
+
     :attr post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar,
                                    bool, Dict[str, Any]]:
-        Functions applied after loading data.
+        Functions applied after loading data at the database level.
 
     :attr db_types: List[Type[DataBase]]:
         Subclass of DataBase to use to create a new dynamic

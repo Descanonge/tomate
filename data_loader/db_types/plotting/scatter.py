@@ -12,12 +12,10 @@ from data_loader.db_types.plotting.plot_object import PlotObjectABC
 class PlotObjectScatter(PlotObjectABC):
     """Plot a variable against another.
 
-    Attributes
-    ----------
 
-    sizes: Union[None, float, Sequence[float]]
+    :attr sizes: Union[None, float, Sequence[float]]:
         See `s` argument of scatter.
-    colors: Union[None, str, Sequence[float], Sequence[str]]
+    :attr colors: Union[None, str, Sequence[float], Sequence[str]]:
         See `c` argument of scatter.
 
     See also

@@ -22,35 +22,23 @@ class PlotObjectABC():
     Subclasses are to be made for different types of plot object,
     such as lines, 2D images, contours, ...
 
-    Attributes
-    ----------
-    DIM: int
-        Dimension of the data to plot.
-
-    db: DataBase
-    ax: matplotlib.axes.Axes
-    scope: Scope
-        Scope of plotted data.
+    :attr db: DataBase:
+    :attr ax: matplotlib.axes.Axes:
+    :attr scope: Scope: Scope of plotted data.
         If data is to be fetched from database, ought to be a
         child of its loaded scope, its parent keyring should
         have the correct dimension.
-    object: Any
-        Object returned by matplotlib.
-    data: Optional[Array]
-        If not None, data to use (instead of fetching it
-        from database).
-    axes: List[str]
-        Dimensions and variables name, in order of axes
+    :attr object: Any: Object returned by matplotlib.
+    :attr data: Optional[Array]: If not None, data to use
+        (instead of fetching it from database).
+    :attr axes: List[str]: Dimensions and variables name, in order of axes
         (x, y, [z], [color]).
-    dict: Dict[Any]
-        Keyword arguments to use for creating plot.
-    cax: matplotlib.axes.Axes
-        Colorbar axis.
-    colorbar: matplotlib.colorbar.Colorbar
-        Colorbar object.
+    :attr kwargs: Dict[Any]: Keyword arguments to use for creating plot.
+    :attr cax: matplotlib.axes.Axes: Colorbar axis.
+    :attr colorbar: matplotlib.colorbar.Colorbar: Colorbar object.
     """
 
-    DIM = 0
+    DIM = 0  #: Dimension of the data to plot.
 
     def __init__(self, db: 'DataPlot', ax: Axes,
                  scope: Scope, axes: List[str],

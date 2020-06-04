@@ -11,10 +11,7 @@ class PlotObjectAvgABC(PlotObjectABC):
     DataCompute is necessary as a base for computing
     average.
 
-    Attributes
-    ----------
-    avg_dims: List[str]
-        Dimensions to average along.
+    :attr avg_dims: List[str]: Dimensions to average along.
 
     See also
     --------

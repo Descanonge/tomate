@@ -48,18 +48,17 @@ class DataBase():
     See :doc:`../data` for more information.
 
     :param vi: Information on the variables and data.
-    :param coords: Coordinates, in the order the data should be kept.
+    :param dims: Dimensions, (ie subclasses of Coord)
+        in the order the data should be kept.
         This includes variables.
-
-    :attr vi: VariablesInfo: Information on the variables and data.
 
     :attr coords: List[str]: Coordinates names,
         in the order the data is kept in the array.
     :attr dims: List[str]: Dimensions names,
         in the order the data is kept in the array.
 
+    :attr vi: VariablesInfo: Information on the variables and data.
     :attr data: np.ndarray or subclass: Data array if loaded, None otherwise.
-
     :attr avail: Scope: Scope of available data (on disk).
     :attr loaded: Scope: Scope of loaded data.
     :attr selected: Scope: Scope of selected data.
@@ -192,14 +191,10 @@ class DataBase():
                      'current': self.scope}[scope]
         return scope
 
-    def idx(self, variable: str) -> int:
+    def idx(self, variable: Union[str, int]) -> int:
         """Index of variables in the data array.
 
         Wrapper around loaded Scope.idx()
-
-        Parameters
-        ----------
-        variable: str, List[str], slice
         """
         return self.loaded.idx(variable)
 

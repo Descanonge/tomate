@@ -404,17 +404,11 @@ def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
     return out
 
 
-def select_overlap(*coords):
+def select_overlap(*coords: Coord) -> List[slice]:
     # REVIEW
     """Return list of slices overlapping.
 
-    Parameters
-    ----------
-    coords: List[Coord]
-
-    Returns
-    -------
-    slices: List[Slice]
+    :returns:
         Slice for each coordinate so that the selected
         values have the same extent.
     """

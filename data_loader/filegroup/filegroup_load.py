@@ -35,14 +35,9 @@ class FilegroupLoad(FilegroupScan):
     A subclass would replace functions specific to a file format.
 
     See :doc:`../expanding` for more information about subclassing this.
-
-    Attributes
-    ----------
-    acs: Type[Accessor]
-        Accessor type used in the files.
     """
 
-    acs = Accessor
+    acs = Accessor  #: Accessor type used to fetch data in files.
 
     def load_from_available(self, keyring: Keyring) -> bool:
         """Load data.

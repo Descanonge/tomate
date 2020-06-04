@@ -28,12 +28,8 @@ class CmdKeyrings():
     :param memory: Keys to indicate where to put the data
         in the memory.
 
-    Attributes
-    ----------
-    infile: Keyring
-        Keys that will be taken in file
-    memory: Keyring
-        Keys to indicate where to put the data
+    :attr infile: Keyring: Keys that will be taken in file
+    :attr memory: Keyring: Keys to indicate where to put the data
         in the memory.
     """
 
@@ -86,15 +82,10 @@ class Command():
     part of the data to take, and where to
     place it.
 
-    Attributes
-    ----------
-    filename: str
-        File to open.
-    var_list: List[str]
-        Variables to take in that file.
-    keyrings: List[CmdKeyrings]
-        List of keyrings that tell what to take in the file,
-        and where to place it.
+    :attr filename: str: File to open.
+    :attr var_list: List[str]: Variables to take in that file.
+    :attr keyrings: List[CmdKeyrings]: List of keyrings that tell
+        what to take in the file, and where to place it.
     """
 
     def __init__(self):

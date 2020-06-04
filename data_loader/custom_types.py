@@ -1,21 +1,13 @@
 """Defines custom types.
 
 
-Attributes
-----------
-KeyLike: TypeVar
-    Key for indexing array or generic coordinate.
-KeyLikeStr: TypeVar
-    Key for indexing named coordinates using strings.
-KeyLikeVar: TypeVar
-    Key for indexing Variables. Support integers and strings.
-KeyLikeFloat: TypeVar
-    Key support for floats.
-KeyLikeValue: TypeVar
-    Key for indexing coordinate by value, using floats or strings.
+:attr KeyLike: TypeVar: Key for indexing array or generic coordinate.
+:attr KeyLikeStr: TypeVar: Key for indexing named coordinates using strings.
+:attr KeyLikeVar: TypeVar: Key for indexing Variables. Support integers and strings.
+:attr KeyLikeFloat: TypeVar: Key support for floats.
+:attr KeyLikeValue: TypeVar: Key for indexing coordinate by value, using floats or strings.
 
-File: Type
-    Object for manipulating an open file.
+:attr File: Type: Object for manipulating an open file.
 """
 
 # This file is part of the 'data-loader' project

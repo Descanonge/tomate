@@ -36,43 +36,42 @@ class FilegroupScan():
 
     :param root: Root data directory containing all files.
     :param db: Parent database.
-    :param coords_fg: Parent coordinates objects, a bool indicating if the coordinate
-        is shared accross files, and their name inside files.
+    :param coords_fg: Parent coordinates objects,
+        a bool indicating if the coordinate is shared accross files,
+        and their name inside files.
     :param vi: Global VariablesInfo instance.
     :param name: [opt] Name of the filegroup.
 
-    Attributes
-    ----------
-    root: str
-        Root data directory containing all files.
-    db: DataBase or subclass
-        Parent database.
-    vi: VariablesInfo
-        Global VariablesInfo instance.
-    name: str
-        Name of the filegroup.
+    :attr root: str: Root data directory containing all files.
+    :attr db: DataBase: Parent database.
+    :attr vi: VariablesInfo: Global VariablesInfo instance.
+    :attr name: str: Name of the filegroup.
 
-    cs: Dict[str, CoordScan or subclass]
-        Dictionnary of scanning coordinates,
-        each dynamically inheriting from its parent Coord.
+    :attr cs: Dict[str, CoordScan or subclass]: Dictionnary of scanning
+        coordinates, each dynamically inheriting from its parent Coord.
 
-    pregex: str
-        Pre-regex.
-    regex: str
-        Regex.
+    :attr pregex: str: Pre-regex.
+    :attr regex: str: Regex.
 
-    segments: List[str]
-        Fragments of filename used for reconstruction,
-        pair indices are replaced with matches.
+    :attr segments: List[str]: Fragments of filename used for reconstruction,
+        elements with pair indices are replaced with matches.
 
-    scan_attr: Dict[type: {'gen' | 'var'}, [Callable, scanned:bool, kwargs: Dict]]
+    :attr scan_attr: Dict[str, [Callable, scanned:bool, kwargs: Dict]]:
         Functions to call to scan variables specific
         attributes or general attributes.
+        Key is 'gen' for general attributes, 'var' for variable specific.
+        Value is a tuple of the function to call, a boolean if the attributes
+        have been scanned, and kwargs to pass to the function.
 
-    selection: Dict[str, Tuple[bool, Union[KeyLike, KeyLikeValue]]]
+    :attr selection: Dict[str, Union[KeyLike, KeyLikeValue]]:
+        Keys for selecting parts of the CoordScan, by index or value.
+        Dict key is dimension name.
 
-    post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]
+    :attr post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]:
         Functions applied after loading data.
+        Each element is a tuple of the function, the variable that triggers
+        the call, a boolean True if all said variables must present to trigger,
+        False if any variable must be loaded, and kwargs to pass.
     """
 
     def __init__(self, root: str,

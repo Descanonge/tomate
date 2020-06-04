@@ -39,42 +39,34 @@ class CoordScan(Coord):
     :param shared: If the coordinate is shared accross files.
     :param name: Name of the coordinate in file.
 
-    Attributes
-    ----------
-    filegroup: FilegroupLoad
-        Corresponding filegroup.
-    coord: Coord
-        Parent coordinate object.
-    shared: bool
-        If the coordinate is shared accross files.
-    contains: Optional[np.ndarray]
+    :attr filegroup: FilegroupLoad: Corresponding filegroup.
+    :attr coord: Coord: Parent coordinate object.
+    :attr shared: bool: If the coordinate is shared accross files.
+    :attr contains: Optional[np.ndarray]:
         For each value of the available scope, the index of the
         corresponding value in that CS.
         If that value is not contained in this filegroup, the
         index is None.
 
-    values: np.ndarray
-        Temporary list of values found for this coordinate.
-    in_idx: np.ndarray
-        List of the index for each value inside the files.
+    :attr values: Union[List, np.ndarray]: Temporary list of values found
+        for this coordinate.
+    :attr in_idx: Union[List, np.ndarray]: List of the index for each value
+        inside the files.
 
-    scan: Dict[str, List[Callable, List[str], Dict]]
+    :attr scan: Dict[str, List[Callable, List[str], Dict]]:
         What and how to scan.
         Keys can be 'manual': values and in-indices are manually set,
-        'in': stuff is to find inside the file, 'filename': stuff is to find
+        'in': stuff is to find inside the file, or 'filename': stuff is to find
         in the filename.
         The values are lists of length 3. The first element contains
         the things to scan (values or in-indices), the second the function
         to use, the third the keyword arguments to pass.
-    scanned: bool
-        If the coordinate has been scanned.
+    :attr scanned: bool: If the coordinate has been scanned.
 
-    scan_attr: bool
-        If attributes are to be scanned.
-    scan_attributes_func: Callable
-        Function to scan for attributes.
+    :attr scan_attr: bool: If attributes are to be scanned.
+    :attr scan_attributes_func: Callable: Function to scan for attributes.
 
-    find_contained_kwargs: Dict[str, Any]
+    :attr find_contained_kwargs: Dict[str, Any]:
         Keywords argument passed to get_index_exact when finding
         values contained in CS.
     """
@@ -96,7 +88,7 @@ class CoordScan(Coord):
         self.scan_attributes_func = None
 
         self.change_units_custom = None
-        self.find_contained_kwargs = {}
+        self.find_contained_kwargs = {}  # FIXME: this is not used anywhere.
 
         self.values = []
         self.in_idx = []
@@ -380,12 +372,8 @@ class CoordScanShared(CoordScan):
 
     Scan all files.
 
-    Attributes
-    ----------
-    matchers: List[Matcher]
-        Matcher objects corresponding to this coordinate.
-    matches: Array[str]
-        List of matches in the filename, for each file.
+    :attr matchers: List[Matcher]: Matcher objects for this coordinate.
+    :attr matches: Array[str]: List of matches in the filename, for each file.
     """
 
     def __init__(self, *args, **kwargs):

@@ -26,15 +26,15 @@ class DataDisk(DataBase):
 
     :param root: Root data directory containing all files.
 
-    Attributes
-    ----------
-    root: str
-        Root data directory containing all files.
-    filegroups: List[FilegroupLoad]
-    allow_advanced: bool
-        If allows advanced data arrangement.
-    post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar, bool, Dict[str, Any]]
+    :attr root: str: Root data directory containing all files.
+    :attr filegroups: List[FilegroupLoad]:
+    :attr allow_advanced: bool: If allows advanced data arrangement.
+    :attr post_loading_funcs: List[Tuple[Callable[DataBase]],
+                                   KeyVar, bool, Dict[str, Any]]:
         Functions applied after loading data.
+        Each element is a tuple of the function, the variable that triggers
+        the call, a boolean True if all said variables must present to trigger,
+        False if any variable must be loaded, and kwargs to pass.
     """
     def __init__(self, coords: List[Coord],
                  vi: VariablesInfo,

@@ -38,10 +38,7 @@ class Time(Coord):
 
     Use user settings to set locales.
 
-    Attributes
-    ----------
-    units: str
-        Time units.
+    :attr units: str: CF-compliant time units.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

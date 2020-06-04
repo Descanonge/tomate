@@ -26,25 +26,19 @@ class Key():
 
     :param key: Key-like object.
 
-    Attributes
-    ----------
     INT_TYPES: List[Type]
-        Types that are considered integer.
-    value: None, int, List[int], slice
-    type: str
-        {'none', 'int', 'list', 'slice'}
-    parent_size: int, None
-        Size of the sequence it would be applied to.
+
+    :attr type: str: {'none', 'int', 'list', 'slice'}
+    :attr parent_size: int, None: Size of the sequence it would be applied to.
         Useful for reversing keys, or turning slices into lists.
-    shape: int, None
-        Length of what the key would select.
+    :attr shape: int, None: Length of what the key would select.
         Integer and None keys have shape 0 (they would get
         a scalar).
         Is None if the shape is undecidable (for some slices
         for instance).
     """
 
-    INT_TYPES = (int, np.integer)
+    INT_TYPES = (int, np.integer)  #: Types that are considered integer.
 
     def __init__(self, key: Union[int, List[int], slice, None]):
         self.value = None
@@ -290,10 +284,7 @@ class KeyVar(Key):
         Can also be variable name, list of variables names, or
         a slice made from strings.
 
-    Attributes
-    ----------
-    var: bool
-        If the key-value can be used only for variables
+    :attr var: bool: If the key-value can be used only for variables
         (*ie* it is or contains a string). In which case
         one can use `make_var_idx`.
 

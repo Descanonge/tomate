@@ -54,10 +54,7 @@ class DataMasked(DataBase):
 
     See :class:`DataBase` for more information.
 
-    Attributes
-    ----------
-    compute_land_mask_func: Callable
-        Function to compute land mask.
+    :attr compute_land_mask_func: Callable: Function to compute land mask.
     """
 
     acs = AccessorMask

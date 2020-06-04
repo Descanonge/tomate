@@ -11,10 +11,8 @@ from data_loader.db_types.plotting.plot_object import PlotObjectABC
 class PlotObjectLine(PlotObjectABC):
     """Plot a variables against a coordinate.
 
-    Attributes
-    ----------
-    axis_var: int
-        Place of variable in axes (0 if variable is on X, 1 if on Y)
+    :attr axis_var: int: Place of variable in axes
+        (0 if variable is on X, 1 if on Y)
 
     See also
     --------

@@ -20,19 +20,11 @@ class Matcher():
         See FilegroupScan.scan_pregex().
     :param idx: Index of the matcher in the full pre-regex
 
-    Attributes
-    ----------
-    coord: str
-        Coordinate name.
-    idx: int
-        Matcher index in the full pre-regex.
-    elt: str
-        Coordinate element.
-    dummy: bool
-        If the matcher is a dummy, ie not containing any
-        information, or redondant information.
-    ELT_RGX: Dict
-        Regex str for each type of element.
+    :attr coord: str: Coordinate name.
+    :attr idx: int: Matcher index in the full pre-regex.
+    :attr elt: str: Coordinate element.
+    :attr dummy: bool: If the matcher is a dummy, ie not containing any
+        information, or redundant information.
     """
 
     ELT_RGX = {"idx": r"\d+",
@@ -48,6 +40,7 @@ class Matcher():
                "B": r"[a-zA-Z]*",
                "text": r"[a-zA-Z]*",
                "char": r"\S*"}
+    """Regex str for each type of element."""
 
     def __init__(self, m: re.match, idx: int):
         coord = m.group(1)

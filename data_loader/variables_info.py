@@ -23,10 +23,8 @@ class Attribute(dict):
     :param name: Name of the attribute.
     :param vi: Parent VI.
 
-    Attributes
-    ----------
-    _name: str
-    _vi: VariablesInfo
+    :attr _name: str:
+    :attr _vi: VariablesInfo:
     """
     def __init__(self, name: str, vi: 'VariablesInfo', kwargs: Any):
         self._name = name
@@ -46,10 +44,8 @@ class VariableAttributes(dict):
     :param name: Name of the variable.
     :param vi: Parent VI.
 
-    Attributes
-    ----------
-    _name: str
-    _vi: VariablesInfo
+    :attr _name: str:
+    :attr _vi: VariablesInfo:
     """
     def __init__(self, name: str, vi: 'VariablesInfo', kwargs: Any):
         super().__setattr__('_name', name)
@@ -77,12 +73,10 @@ class VariablesInfo():
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
     :param infos: Any additional information to be stored as attributes.
 
-    Attributes
-    ----------
-    variables: Set[var]
-        Variables names
-    _attrs: Dict[attribute: str, Dict[variable: str, Any]]
-    _infos: Dict[info: str, Any]
+    :attr variables: Set[str]: Variables names.
+    :attr _attrs: Dict[str, Dict[str, Any]]: Variables specific
+        attributes. Stored by attribute name then variable name.
+    :attr _infos: Dict[str, Any]: General attributes.
     """
 
     def __init__(self, attributes: Dict[str, Dict[str, Any]] = None,
