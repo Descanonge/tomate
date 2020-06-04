@@ -71,6 +71,7 @@ class DataBase():
                  vi: VariablesInfo):
 
         self.dims = [c.name for c in coords]
+        # TODO: Change to property ?
         self.coords = [name for name in self.dims if name != 'var']
 
         self.avail = Scope(coords=coords, copy=False)

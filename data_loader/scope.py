@@ -34,23 +34,20 @@ class Scope():
 
     :param copy: Copy coordinates objects. Default: yes.
 
-    Attributes
-    ----------
-    name: str
-    dims: Dict[Coord]
-        Dimensions present in the scope.
-    parent_scope: Scope
-        The parent scope if this object is a subpart of it.
-    parent_keyring: Keyring
-        The keyring used to get this scope.
+    :attr name: str:
+    :attr dims: Dict[str, Coords]: Dimensions present in the scope.
+    :attr parent_scope: Scope: The parent scope eventually used
+        to create this scope.
+    :attr parent_keyring: Keyring: The keyring used to create
+        this scope from a parent.
     """
 
-    def __init__(self, coords: List[Coord],
+    def __init__(self, dims: List[Coord],
                  name: str = None,
                  copy: bool = True):
         if copy:
-            coords = [c.copy() for c in coords]
-        self.dims = {c.name: c for c in coords}
+            dims = [c.copy() for c in dims]
+        self.dims = {c.name: c for c in dims}
 
         self.parent_scope = None
         self.parent_keyring = Keyring()
