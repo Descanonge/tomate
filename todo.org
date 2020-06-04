@@ -1,10 +1,4 @@
 * General
-** TODO Refactor, align on get_index_by_day
-:PROPERTIES:
-:Release:  0.4
-:END:
-[[file:data_loader/coordinates/time.py::def subset_day]]
-
 ** TODO Keys always sorted in increasing order
 [[file:data_loader/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
 

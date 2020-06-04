@@ -477,7 +477,7 @@ class KeyValue():
         if self.type == 'list':
             return coord.get_indices_by_day(self.value)
         if self.type == 'slice':
-            return coord.subset_day(self.value.start, self.value.stop)
+            return coord.subset_by_day(self.value.start, self.value.stop)
         raise TypeError("Not applicable (key type '%s')" % self.type)
 
 
