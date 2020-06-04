@@ -70,6 +70,7 @@ class Constructor():
         self.vi = VariablesInfo()
         self.filegroups = []
 
+        # TODO: Do we need two != variables ?
         self.selection = []
         self.selection_by_value = []
 

@@ -33,11 +33,6 @@
 ** TODO Simplify
 [[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
 
-** TODO Maybe not change __repr__ ?
-:PROPERTIES:
-:Release:  0.4
-:END:
-
 ** TODO check error when shared cs has no scanning
 
 * WIP
@@ -58,9 +53,3 @@ in a subclass of database ?
 ** TODO Write: add to file
 use existing filegroup information to open some files and add variables
 
-** TODO Use cftime module rather than netCDF4
-:PROPERTIES:
-:Release:  0.4
-:END:
-it is included in netCDF4 and work similarly
-it has some nice function like num2pydate
