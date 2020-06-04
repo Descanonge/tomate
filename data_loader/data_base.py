@@ -52,8 +52,6 @@ class DataBase():
         in the order the data should be kept.
         This includes variables.
 
-    :attr coords: List[str]: Coordinates names,
-        in the order the data is kept in the array.
     :attr dims: List[str]: Dimensions names,
         in the order the data is kept in the array.
 
@@ -66,14 +64,12 @@ class DataBase():
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
-    def __init__(self, coords: List[Coord],
+    def __init__(self, dims: List[Coord],
                  vi: VariablesInfo):
 
-        self.dims = [c.name for c in coords]
-        # TODO: Change to property ?
-        self.coords = [name for name in self.dims if name != 'var']
+        self.dims = [c.name for c in dims]
 
-        self.avail = Scope(coords=coords, copy=False)
+        self.avail = Scope(dims=dims, copy=False)
         self.loaded = self.avail.copy()
         self.selected = self.avail.copy()
         self.loaded.empty()
@@ -85,6 +81,11 @@ class DataBase():
         self.vi = vi
 
         self.data = None
+
+    @property
+    def coords(self) -> List[str]:
+        """Coordinates names. """
+        return [d for d in self.dims if d != 'var']
 
     def __repr__(self):
         s = ["Data object"]
