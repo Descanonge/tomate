@@ -96,8 +96,8 @@ class CoordScan(Coord):
         self.force_idx_descending = False
 
 
-    def __str__(self):
-        s = [super().__str__()]
+    def __repr__(self):
+        s = [super().__repr__()]
         s.append(["In", "Shared"][self.shared])
         s.append("To scan: %s" % ', '.join(self.scan.keys()))
         if self.scanned:
@@ -383,8 +383,8 @@ class CoordScanShared(CoordScan):
         self.matchers = []
         self.matches = []
 
-    def __str__(self):
-        s = [super().__str__()]
+    def __repr__(self):
+        s = [super().__repr__()]
         s.append('Matchers:')
         s += ['\t%s' % str(m) for m in self.matchers]
         return '\n'.join(s)

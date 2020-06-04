@@ -98,7 +98,7 @@ class Coord():
             raise AttributeError("Coordinate '%s' data was not set." % self.name)
         return self._array.__getitem__(y)
 
-    def __str__(self):
+    def __repr__(self):
         s = []
         s.append(str(type(self)))
         s.append("Name: %s" % self.name)
@@ -111,9 +111,6 @@ class Coord():
         if self.units:
             s.append("Units: %s" % self.units)
         return '\n'.join(s)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     def set_attr(self, name: str, attr: Any):
         """Set attribute.

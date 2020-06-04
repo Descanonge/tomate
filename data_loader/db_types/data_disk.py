@@ -50,8 +50,8 @@ class DataDisk(DataBase):
 
         self.post_loading_funcs = []
 
-    def __str__(self):
-        s = [super().__str__()]
+    def __repr__(self):
+        s = [super().__repr__()]
         s.append("%d Filegroups:" % len(self.filegroups))
         s += ['\t%s' % ', '.join(fg.variables) for fg in self.filegroups]
         return '\n'.join(s)

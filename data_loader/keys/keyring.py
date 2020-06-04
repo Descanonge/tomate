@@ -142,14 +142,11 @@ class Keyring():
         """Pop a key."""
         return self._keys.pop(dim)
 
-    def __str__(self):
+    def __repr__(self):
         s = []
         for c, key in self.items():
             s.append('%s: %s' % (c, str(key)))
         return str(', '.join(s))
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     def copy(self) -> 'Keyring':
         """Return copy of self."""

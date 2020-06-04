@@ -40,8 +40,10 @@ class CmdKeyrings():
             memory = Keyring()
         self.set(infile, memory)
 
-    def __str__(self):
-        return 'in-file: ' + str(self.infile) + ' | memory: ' + str(self.memory)
+    def __repr__(self):
+        s = 'in-file: {} | memory: {}'.format(str(self.infile),
+                                              str(self.memory))
+        return s
 
     def __iter__(self) -> Iterator[Keyring]:
         """Returns both infile and memory keyrings."""
@@ -96,7 +98,7 @@ class Command():
         """Iter on keyrings duos."""
         return iter(self.keyrings)
 
-    def __str__(self):
+    def __repr__(self):
         s = []
         s.append("file: %s" % self.filename)
         s.append("keyrings: %s" % '\n      '.join([str(k) for k in self]))

@@ -107,15 +107,12 @@ class VariablesInfo():
         """List of infos names."""
         return list(self._infos.keys())
 
-    def __str__(self):
+    def __repr__(self):
         s = []
         s.append("Variables: %s" % ', '.join(self.variables))
         s.append("Attributes: %s" % ', '.join(self.attrs))
         s.append("Infos: %s" % ', '.join(self.infos))
         return '\n'.join(s)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     def __getattribute__(self, item: str):
         """Render attributes and infos accessible as attributes."""

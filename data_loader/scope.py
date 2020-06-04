@@ -64,7 +64,7 @@ class Scope():
         self.parent_keyring.set_shape({name: c for name, c in self.dims.items()
                                        if c.size is not None and c.size > 0})
 
-    def __str__(self):
+    def __repr__(self):
         s = []
         if self.name is not None:
             s.append('name: %s' % self.name)
@@ -74,9 +74,6 @@ class Scope():
             else:
                 s += ['%s: Empty' % d.name]
         return '\n'.join(s)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     def __getattribute__(self, name):
         if name in super().__getattribute__('dims'):

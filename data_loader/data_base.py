@@ -86,7 +86,7 @@ class DataBase():
 
         self.data = None
 
-    def __str__(self):
+    def __repr__(self):
         s = ["Data object"]
 
         s1 = "Class: %s, Bases: " % self.__class__.__name__
@@ -110,9 +110,6 @@ class DataBase():
         s.append('')
 
         return '\n'.join(s)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     @property
     def bases(self) -> Dict[str, str]:

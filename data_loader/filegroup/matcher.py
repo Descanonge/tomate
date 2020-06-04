@@ -85,7 +85,7 @@ class Matcher():
         rgx_new = re.sub("%([a-zA-Z%])", replace, rgx)
         return rgx_new
 
-    def __str__(self):
+    def __repr__(self):
         s = '{0}:{1}, idx={2}'.format(self.coord, self.elt, self.idx)
         if self.dummy:
             s += ', dummy'

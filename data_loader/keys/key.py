@@ -79,11 +79,8 @@ class Key():
     def __eq__(self, other: 'Key') -> bool:
         return self.value == other.value
 
-    def __str__(self):
-        return str(self.value)
-
     def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
+        return str(self.value)
 
     def __iter__(self) -> Iterator[KeyLikeInt]:
         """Iter through values."""

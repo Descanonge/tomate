@@ -119,7 +119,7 @@ class FilegroupScan():
         out = {name: c.contains for name, c in self.cs.items()}
         return out
 
-    def __str__(self):
+    def __repr__(self):
         s = [self.__class__.__name__]
         s.append("Name: %s" % self.name)
         s.append("Root Directory: %s" % self.root)
@@ -135,9 +135,6 @@ class FilegroupScan():
                 s1.append(': %s, %s' % (cs.get_extent_str(), cs.size))
             s.append(''.join(s1))
         return '\n'.join(s)
-
-    def __repr__(self):
-        return '\n'.join([super().__repr__(), str(self)])
 
     def make_coord_scan(self, coords: List[Tuple[Coord, bool, str]]):
         """Add CoordScan objects.

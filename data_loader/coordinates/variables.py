@@ -49,7 +49,7 @@ class Variables(Coord):
         self._array = np.array(values, dtype=dtype)
         self._size = self._array.size
 
-    def __str__(self) -> str:
+    def __repr__(self):
         if self.has_data():
             s = "Variables: " + ', '.join(self[:])
         else:
