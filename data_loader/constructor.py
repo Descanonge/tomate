@@ -41,11 +41,6 @@ class Constructor():
     :attr filegroups: List[Filegroup]: Filegroups added so far.
     :attr vi: VariablesInfo:
 
-    :attr selection: List[Dict[str, KeyLike]]:
-        Keys for selecting parts of the CoordScan.
-    :attr selection_by_value: List[Dict[str, KeyLikeValue]]:
-        Keys for selecting parts of the CoordScan by value.
-
     :attr post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar,
                                    bool, Dict[str, Any]]:
         Functions applied after loading data at the database level.
@@ -69,10 +64,6 @@ class Constructor():
 
         self.vi = VariablesInfo()
         self.filegroups = []
-
-        # TODO: Do we need two != variables ?
-        self.selection = []
-        self.selection_by_value = []
 
         self.post_loading_funcs = []
         self.db_types = [DataBase]
@@ -158,9 +149,6 @@ class Constructor():
             coords_fg.insert(0, [self.var, variables_shared, 'var'])
         fg = fg_type(root, None, coords_fg, self.vi, name, **kwargs)
         self.filegroups.append(fg)
-
-        self.selection.append({})
-        self.selection_by_value.append({})
 
     def set_fg_regex(self, pregex: str, **replacements: str):
         """Set the pre-regex of the current filegroup.
