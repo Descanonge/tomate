@@ -68,7 +68,7 @@ class FilegroupLoad(FilegroupScan):
             file = self.open_file(cmd.filename, mode='r', log_lvl='info')
             try:
                 self.load_cmd(file, cmd)
-            except:
+            except Exception:
                 self.close_file(file)
                 raise
             else:
@@ -386,11 +386,14 @@ class FilegroupLoad(FilegroupScan):
                         for attr in already_present:
                             values.pop(attr)
                         self.vi.set_attrs(name, **values)
-                except:
+                except Exception:
                     self.close_file(file)
                     raise
                 else:
                     self.close_file(file)
+
+    def write_variable(self, file, cmd, var, inf_name):
+        pass
 
     def write_add_variable(self, var: str, sibling: str,
                            inf_name: str, scope: Scope):
@@ -409,7 +412,7 @@ class FilegroupLoad(FilegroupScan):
                 cks.memory['var'] = self.db.idx(var)
             try:
                 self.write_variable(file, cmd, var, inf_name)
-            except:
+            except Exception:
                 self.close_file(file)
                 raise
             else:

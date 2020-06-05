@@ -175,7 +175,7 @@ class CoordScan(Coord):
                 indices = self.in_idx[key.value]
 
             key_data = key.__class__(indices)
-        except:
+        except Exception:
             log.error("Error in retrieving in-file indices of '%s' for values %s.",
                       self.name, key)
             raise

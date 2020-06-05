@@ -306,7 +306,7 @@ class FilegroupScan():
             for cs in self.cs.values():
                 cs.scan_attributes(file)
                 cs.scan_file(m, file)
-        except:
+        except Exception:
             if file is not None:
                 self.close_file(file)
             log.error("Error in scanning filegroup %s", self.name)
