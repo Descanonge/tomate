@@ -13,9 +13,6 @@ import locale
 import logging
 from typing import List, Sequence, Union
 
-from datetime import datetime, timedelta
-
-
 try:
     import cftime
 except ImportError:
@@ -68,44 +65,6 @@ class Time(Coord):
         dates = cftime.num2date(self[indices], self.units, calendar='standard')
 
         return dates
-
-    def date2index(self, dates) -> Union[int, List[int]]:
-        """Return indices corresponding to dates.
-
-        Nearest index before date is chosen
-
-        :param dates: Date or dates to find the index for.
-            Dates are defined with datetime objects, or
-            using a list of ints corresponding to
-            ['year', 'month', 'day', 'hour', 'minute', 'second',
-            'microsecond'].
-        :type dates: datetime.datetime, List[datetime], List[int]
-
-        :returns: Return a list if the input was a list.
-
-        .. deprecated: 0.4.0
-            Is replaced by Time.get_indices().
-        """
-        log.warning("date2index() is deprecated. Use get_indices().")
-
-        # If the user has asked a single date
-        single = False
-        if isinstance(dates, datetime):
-            single = True
-            dates = [dates]
-
-        elif all(isinstance(d, (int, float)) for d in dates):
-            single = True
-            dates = [datetime(*dates)]
-
-        indices = []
-        for date in dates:
-            num = cftime.date2num(date, self.units)
-            indices.append(self.get_index(num))
-
-        if single:
-            indices = indices[0]
-        return indices
 
     @staticmethod
     def change_units_other(values: Sequence[float], old: str, new: str):
