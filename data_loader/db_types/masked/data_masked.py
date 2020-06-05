@@ -151,44 +151,6 @@ class DataMasked(DataBase):
         cover = np.sum(~self[variable].mask, axis=tuple(axis))
         return cover / size * 100
 
-    def mask_nan(self, missing=True, inland=True, coast=5, chla=True):
-        """Replace sst and chla-OC5 fill values by nan.
-
-        Parameters
-        ----------
-        missing: bool, optional
-            Mask not valid.
-        inland: bool, optional
-            Mask in land.
-        coast: int, optional
-            If inland, mask `coast` neighbooring pixels.
-        chla: bool, optional
-            Clip Chlorophyll above 3mg.m-3 and under 0.
-
-        Raises
-        ------
-        RuntimeError
-            If data was not previously loaded.
-        """
-        if self.data is None:
-            raise RuntimeError("Data has not been previously loaded.")
-
-        if missing:
-            m = ~np.isfinite(self.data)
-            self.data.mask |= m
-
-        if inland:
-            m = self.get_land_mask()
-            if coast > 0:
-                m = data_loader.db_types.masked.mask.enlarge_mask(m, coast)
-            self.data.mask |= m
-
-        if chla:
-            A = self.data[self.idx('Chla_OC5')]
-            A = np.clip(A, 0, 3)
-            self.data[self.idx('Chla_OC5')] = A
-            # A[A > 3] = np.nan
-
     def set_compute_land_mask(self, func):
         """Set function to compute land mask.
 
