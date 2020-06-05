@@ -420,6 +420,8 @@ class FilegroupScan():
             cs = self.cs[dim]
             if isinstance(key, KeyValue):
                 key = Key(key.apply(cs))
+            log.debug("Slicing '%s' in filegroup '%s' with indices %s",
+                      dim, self.name, key.no_int())
             cs.slice(key.no_int())
 
 def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,

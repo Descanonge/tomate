@@ -14,7 +14,7 @@ def get_logger():
     return logging.getLogger('data_loader')
 
 
-def set_logging_level(level: str= 'INFO'):
+def set_logging_level(level: str = 'INFO'):
     """Set package-wide logging level.
 
     :param level: {'debug', 'info', 'warn', 'error', 'critical'}
