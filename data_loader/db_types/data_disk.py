@@ -230,6 +230,7 @@ class DataDisk(DataBase):
         """
         if not self.filegroups:
             raise RuntimeError("No filegroups in database.")
+        self.check_regex()
         self.check_scanning_functions()
         for fg in self.filegroups:
             fg.scan_files()
@@ -343,7 +344,8 @@ class DataDisk(DataBase):
     def check_regex(self):
         """Check if a pregex has been added where needed.
 
-        :raises RuntimeError: If regex is empty and there is at least a out coordinate.
+        :raises RuntimeError: If regex is empty and there is at
+            least one shared coordinate.
         """
         for fg in self.filegroups:
             coords = list(fg.iter_shared(True))
