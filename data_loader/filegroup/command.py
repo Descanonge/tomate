@@ -175,10 +175,7 @@ class Command():
         integers of length one.
         The keys are varying in the order of coords_shared.
 
-        Raises
-        ------
-        TypeError:
-            If the one of the in-file key is not an integer.
+        :raises TypeError: If the one of the in-file key is not an integer.
         """
         coords = list(self[0].infile.dims)
         cks = self.keyrings

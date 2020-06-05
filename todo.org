@@ -13,8 +13,6 @@
 
 ** TODO Compute min / max value
 
-** TODO Type hinting
-
 ** TODO Log into debug the coord slicing after scanning
 
 ** TODO Use self.kwargs if there
@@ -25,6 +23,9 @@
 [[file:data_loader/filegroup/command.py::def merge_keys(self):]]
 
 ** TODO Simplify
+:PROPERTIES:
+:Release:  0.4.1
+:END:
 [[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
 
 ** TODO check error when shared cs has no scanning
@@ -33,7 +34,7 @@
 
 ** TODO Save metadata to file
 :PROPERTIES:
-:Release:  0.4
+:Release:  0.4.1
 :END:
 To not need to scan files each time
 - [ ] Make it user friendly

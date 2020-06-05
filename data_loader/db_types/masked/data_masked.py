@@ -5,11 +5,14 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-
+from typing import Callable, List, Union
 import logging
+import os.path
 
 import numpy as np
 
+from data_loader.coordinates.coord import Coord
+from data_loader.custom_types import Array, KeyLike
 from data_loader.data_base import DataBase
 from data_loader.accessor import Accessor
 from data_loader.keys.keyring import Keyring
@@ -24,26 +27,20 @@ class AccessorMask(Accessor):
     """Accessor for masked numpy array."""
 
     @staticmethod
-    def allocate(shape):
+    def allocate(shape: List[int]) -> Array:
         array = np.ma.zeros(shape)
         array.mask = np.ma.make_mask_none(shape)
         return array
 
     @staticmethod
-    def concatenate(arrays, axis=0):
+    def concatenate(arrays: List[Array], axis: int = 0, out=None) -> Array:
         """Concatenate arrays.
 
-        Parameters
-        ----------
-        array: List[Array]
-        axis: int, optional
-            The axis along which the arrays will be joined.
+        :param axis: [opt] The axis along which the arrays will be joined.
             If None, the arrays are flattened.
-
-        Returns
-        -------
-        Array
         """
+        if out is not None:
+            raise TypeError("np.ma.concatenate does not support 'out' argument")
         return np.ma.concatenate(arrays, axis=axis)
 
 
@@ -57,29 +54,22 @@ class DataMasked(DataBase):
     :attr compute_land_mask_func: Callable: Function to compute land mask.
     """
 
-    acs = AccessorMask
+    acs = AccessorMask  #: Accessor class to use to access the data.
 
     def __init__(self, *args, **kwargs):
         self.compute_land_mask_func = None
         super().__init__(*args, **kwargs)
 
-    def set_mask(self, variable, mask):
+    def set_mask(self, variable: str, mask: Union[Array, bool, int]):
         """Set mask to variable data.
 
-        Parameters
-        ----------
-        variable: str
-        mask: Array, bool, int
-            Potential mask.
+        :param mask: Potential mask.
             If bool or int, a mask array is filled with this value.
             Array like (ndarray, tuple, list) with shape of the data
             without the variable dimension.
             0's are interpreted as False, everything else as True.
 
-        Raises
-        ------
-        IndexError:
-            Mask does not have the shape of the data.
+        :raises IndexError: Mask does not have the shape of the data.
         """
         self.check_loaded()
 
@@ -95,18 +85,19 @@ class DataMasked(DataBase):
                                                     self.shape[1:]))
         self[variable].mask = mask_array
 
-    def filled(self, fill, variables=None, axes=None, **kw_coords):
+    def filled(self, fill: Union[str, float] = 'fill_value',
+               axes: List[int] = None,
+               **keys: KeyLike) -> np.ndarray:
         """Return data with filled masked values.
 
-        Parameters
-        ----------
-        fill: Any
-            If float, that value is used as fill.
+        :param fill: If float, that value is used as fill.
             If 'nan', numpy.nan is used.
-            If 'fill_value', the array fill value is used.
+            If 'fill_value', the array fill value is used (default).
             If 'edge', the closest pixel value is used.
+        :param axes: If `fill` is 'edge', the axes that should be
+            used to fill values.
         """
-        data = self.view(variables, **kw_coords)
+        data = self.view(**keys)
         if fill == 'edge':
             filled = data_loader.db_types.masked.mask.fill_edge(data, axes)
         else:
@@ -119,20 +110,16 @@ class DataMasked(DataBase):
             filled = data.filled(fill_value)
         return filled
 
-    def get_coverage(self, variable, *coords):
+    def get_coverage(self, variable: str, *coords: str) -> Union[Array, float]:
         """Return percentage of not masked values for a variable.
 
-        Parameters
-        ----------
-        variable: str
-        coords: str, optional
-            Coordinates to compute the coverage along.
+        :param coords: Coordinates to compute the coverage along.
             If None, all coordinates are taken.
 
         Examples
         --------
         >>> print(dt.get_coverage('SST'))
-        70%
+        70.
 
         If there is a time variable, we can have the coverage
         for each time step.
@@ -151,41 +138,46 @@ class DataMasked(DataBase):
         cover = np.sum(~self[variable].mask, axis=tuple(axis))
         return cover / size * 100
 
-    def set_compute_land_mask(self, func):
+    def set_compute_land_mask(self, func: Callable[[Coord, Coord], [Array]]):
         """Set function to compute land mask.
 
         Parameters
         ----------
-        func: Callable[[lat: Coord, lon: Coord],
-                       [mask: 2D numpy bool array]]
-             Returns a land mask as a boolean array.
+        func: Function that receives latitude and longitude
+             coordinates and returns a land mask as a boolean array.
         """
         self.compute_land_mask_func = func
 
-    def compute_land_mask(self):
-        """Compute land mask and save to disk."""
+    def compute_land_mask(self, file: str = None):
+        """Compute land mask and save to disk.
+        :param file: File to save the mask in. Absolute path.
+            If None, is 'land_mask.npy' in the database root directory.
+        """
+        if file is None:
+            file = os.path.join(self.root + 'land_mask.npy')
         lat = self.avail.lat
         lon = self.avail.lon
         mask = self.compute_land_mask_func(lat, lon)
-        np.save(self.root + 'land_mask.npy', mask)
+        np.save(file, mask)
 
-    def get_land_mask(self, keyring=None, **keys):
+    def get_land_mask(self, file: str = None,
+                      keyring: Keyring = None,
+                      **keys: KeyLike) -> Array:
         """Return land mask.
 
-        Parameters
-        ----------
-        keyring: Keyring
-        keys: Key-like
+        If not already on-disk at `file`, compute it.
 
-        Returns
-        -------
-        mask: np.array(dtype=bool)
+        :param file: Numpy binary file containing the land mask.
+            Filename is absolute.
+            If None, is 'land_mask.npy' in the database root directory.
         """
+        if file is None:
+            file = os.path.join(self.root + 'land_mask.npy')
+
         keyring = Keyring.get_default(keyring, **keys)
         # TODO: subset of land mask default to loaded or selected
         try:
-            file = np.load(self.root + 'land_mask.npy',
-                           mmap_mode='r')
+            file = np.load(file, mmap_mode='r')
         except FileNotFoundError:
             self.compute_land_mask()
             self.get_land_mask()

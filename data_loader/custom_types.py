@@ -30,4 +30,3 @@ KeyLikeValue = TypeVar('KeyLikeValue', KeyLikeFloat, KeyLikeStr)
 KeyLike = TypeVar('KeyLike', KeyLikeInt, KeyLikeVar)
 
 File = Any
-

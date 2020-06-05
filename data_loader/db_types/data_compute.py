@@ -5,11 +5,12 @@
 # and subject to the MIT License as defined in file 'LICENSE',
 # in the root of this project. © 2020 Clément HAËCK
 
-
+from typing import Any, Callable, Dict, List
 import logging
 
 import numpy as np
 
+from data_loader.custom_types import Array, KeyLike
 from data_loader.data_base import DataBase
 from data_loader.keys.keyring import Keyring
 
@@ -28,14 +29,11 @@ class DataCompute(DataBase):
         return np.histogram(data, bins=bins, range=bounds,
                             density=density)
 
-    def gradient(self, variable, coords, fill=None):
+    def gradient(self, variable: str,
+                 coords: List[str], fill=None) -> Array:
         """Compute a n-dimensional gradient.
 
-        Parameters
-        ----------
-        variable: str
-        coords: List[str]
-            Coordinates to compute the gradient along.
+        :param coords: Coordinates to compute the gradient along.
         """
         self.check_loaded()
         axis = [self.coords.index(c) for c in coords]
@@ -48,7 +46,8 @@ class DataCompute(DataBase):
         grad = np.gradient(data, *values, axis=axis)
         return grad
 
-    def gradient_magn(self, variable, coords=None):
+    def gradient_magn(self, variable: str,
+                      coords: List[str] = None) -> Array:
         """Compute the gradient magnitude.
 
         See also
@@ -63,20 +62,19 @@ class DataCompute(DataBase):
             magn = np.ma.array(magn, mask=mask)
         return magn
 
-    def derivative(self, variable, coord):
+    def derivative(self, variable: str, coord: str) -> Array:
         """Compute derivative along a coordinate.
 
         Other coordinates are looped over.
-
-        Parameters
-        ----------
-        variable: str
-        coord: str
         """
         der = self.gradient_nd(variable, [coord])
         return der
 
-    def apply_on_subpart(self, func, args=None, kwargs=None, keyring=None, **keys):
+    def apply_on_subpart(self, func: Callable,
+                         args: List[Any] = None,
+                         kwargs: Dict[str, Any] = None,
+                         keyring: Keyring = None,
+                         **keys: KeyLike):
         """Apply function on data subset.
         """
         self.check_loaded()
@@ -90,18 +88,15 @@ class DataCompute(DataBase):
         res = func(data, *args, **kwargs)
         return res
 
-    def mean(self, dims=None, kwargs=None, **keys):
+    def mean(self, dims: List[str]=None,
+             kwargs: Dict[str, Any] = None,
+             **keys: KeyLike) -> Array:
         """Compute average on a given window.
 
-        Parameters
-        ----------
-        variables: str or List[str]
-        dims: List[str]
-            Coordinates to compute the mean along.
-        kwargs: Dict
-            Argument passed to numpy.nanmean
-        keys: Key-like, optional
-            Part of the data to consider for averaging (by index).
+
+        :param dims: Coordinates to compute the mean along.
+        :param kwargs: [opt] Argument passed to numpy.nanmean
+        :param keys: Part of the data to consider for averaging (by index).
 
         Examples
         --------
@@ -128,10 +123,13 @@ class DataCompute(DataBase):
         if kwargs is None:
             kwargs = {}
 
-        mean = self.apply_on_subpart(np.nanmean, args=[axes], kwargs=kwargs, keyring=keyring)
+        mean = self.apply_on_subpart(np.nanmean, args=[axes],
+                                     kwargs=kwargs, keyring=keyring)
         return mean
 
-    def std_dev(self, dims=None, kwargs=None, **keys):
+    def std_dev(self, dims: str = None,
+                kwargs: Dict[str, Any] = None,
+                **keys: KeyLike):
         """Compute standard deviation on a given window."""
         if dims is None:
             dims = self.dims_name
@@ -160,24 +158,21 @@ class DataCompute(DataBase):
         raise NotImplementedError
 
 
-def do_stack(func, ndim, array, *args, axes=None, output=None, **kwargs):
+def do_stack(func: Callable, ndim: int,
+             array: Array, *args: Any,
+             axes: List[int] = None,
+             output=None, **kwargs: Any):
     """Apply func over certain axes of array. Loop over remaining axes.
 
     Parameters
     ----------
-    func: Callable
-        Function which takes a slice of array.
+    :param func: Function which takes a slice of array.
         Dimension of slice is dictated by `ndim`.
-    ndim: int
-        The number of dimensions func works on. The remaining dimension
+    :param ndim: The number of dimensions func works on. The remaining dimension
         in input array will be treated as stacked and looped over.
-    array: Array
-    axes: List[int]
-        Axes that func should work over, default is the last ndim axes.
-    output:
-        Result passed to output. default to np.zeros.
+    :param axes: Axes that func should work over, default is the last ndim axes.
+    :param output: Result passed to output. default to np.zeros.
     """
-
     if axes is None:
         axes = list(range(-ndim, 0))
     lastaxes = list(range(-ndim, 0))
