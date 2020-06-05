@@ -52,7 +52,6 @@ class Constructor():
         to use for database object.
 
     :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
-    :attr float_comparison: float: Threshold for float comparison.
     """
 
     def __init__(self, root: str, coords: List[Coord]):
@@ -70,8 +69,6 @@ class Constructor():
         self.acs = None
 
         self.allow_advanced = False
-
-        self.float_comparison = 1e-5
 
     @property
     def var(self) -> Variables:

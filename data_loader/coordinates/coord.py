@@ -306,9 +306,7 @@ class Coord():
         return indices
 
     def get_index_exact(self, value: float,
-                        threshold: float = 1e-5,
-                        **kwargs) -> Optional[int]:
-        # FIXME: why **kwargs ?
+                        threshold: float = 1e-5) -> Optional[int]:
         """Return index of value if present.
 
         None if value is not present.
@@ -402,24 +400,3 @@ def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
         out = pos
 
     return out
-
-
-def select_overlap(*coords: Coord) -> List[slice]:
-    # REVIEW
-    """Return list of slices overlapping.
-
-    :returns:
-        Slice for each coordinate so that the selected
-        values have the same extent.
-    """
-
-    limits = [c.get_limits() for c in coords]
-    mins = [z[0] for z in limits]
-    maxs = [z[1] for z in limits]
-
-    mn = max(mins)
-    mx = min(maxs)
-
-    slices = [c.subset(mn, mx) for c in coords]
-
-    return slices

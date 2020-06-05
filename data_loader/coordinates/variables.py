@@ -77,7 +77,8 @@ class Variables(Coord):
         i = int(i)
         return i
 
-    def get_index_exact(self, value: str, **kwargs) -> Optional[int]:
+    def get_index_exact(self, value: str,
+                        threshold: float) -> Optional[int]:
         try:
             return self.get_index(value)
         except KeyError:
