@@ -372,13 +372,13 @@ def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
         'left' -> take closest to the left,
         'right' -> take closest to the right,
 
-    :raises ValueError: If loc is invalid.
+    :raises TypeError: If loc is invalid.
     """
 
     loc_opt = ['left', 'right', 'closest']
     if loc not in loc_opt:
-        raise ValueError(
-            "Invalid loc type. Expected one of: %s" % loc_opt)
+        raise TypeError("Invalid loc type."
+                        " Expected one of: 'left', 'right', 'closest'")
 
     pos = bisect.bisect_left(L, elt)
     if pos == 0:
