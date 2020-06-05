@@ -12,8 +12,14 @@
 [[file:data_loader/coordinates/coord.py:: Untested]]
 
 ** TODO Compute min / max value
+:PROPERTIES:
+:Release:  0.4.1
+:END:
 
 ** TODO Log into debug the coord slicing after scanning
+:PROPERTIES:
+:Release:  0.4
+:END:
 
 ** TODO Use self.kwargs if there
 [[file:data_loader/db_types/plotting/plot_object.py::def set_limits]]
@@ -24,11 +30,14 @@
 
 ** TODO Simplify
 :PROPERTIES:
-:Release:  0.4.1
+:Release:  0.4
 :END:
 [[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
 
 ** TODO check error when shared cs has no scanning
+:PROPERTIES:
+:Release:  0.4
+:END:
 
 * WIP
 
@@ -46,5 +55,8 @@ To not need to scan files each time
 in a subclass of database ?
 
 ** TODO Write: add to file
+:PROPERTIES:
+:Release:  0.4.1
+:END:
 use existing filegroup information to open some files and add variables
 

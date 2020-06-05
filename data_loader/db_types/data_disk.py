@@ -230,6 +230,7 @@ class DataDisk(DataBase):
         """
         if not self.filegroups:
             raise RuntimeError("No filegroups in database.")
+        self.check_scanning_functions()
         for fg in self.filegroups:
             fg.scan_files()
 
@@ -348,3 +349,15 @@ class DataDisk(DataBase):
             coords = list(fg.iter_shared(True))
             if len(coords) > 0 and fg.regex == '':
                 raise RuntimeError(f"Filegroup '{fg.name}' is missing a regex.")
+
+    def check_scanning_functions(self):
+        """Check if CoordScan have scanning functions set."""
+        for fg in self.filegroups:
+            for name, cs in fg.cs.items():
+                if cs.shared and not cs.is_to_scan():
+                    raise KeyError(f"'{name}' (in filegroup '{fg.name}') is shared"
+                                   " but has not scanning function set.")
+                if not cs.shared and not cs.scan:
+                    log.warning("'%s' (in filegroup '%s') has no scanning function set"
+                                " and was not given values manually",
+                                name, fg.name)

@@ -433,8 +433,6 @@ class CoordScanShared(CoordScan):
         # If multiple coords, this match could have been found
         if matches not in self.matches:
             values = self.scan_values(file)
-            if values is None:
-                raise RuntimeError(f"'{self.name}' has no scanning functions set.")
             if 'manual' in self.scan:
                 for v in values:
                     i = self.get_index(v)
