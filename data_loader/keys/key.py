@@ -70,8 +70,7 @@ class Key():
         else:
             reject = True
         if reject:
-            raise TypeError("Key is not int, List[int], or slice"
-                            " (is %s)" % type(key))
+            raise TypeError(f"Key is not int, List[int], or slice (is {type(key)})")
         self.value = key
         self.type = tp
         self.set_shape()
@@ -121,7 +120,7 @@ class Key():
         elif self.type == 'slice':
             self.shape = guess_slice_shape(self.value)
             if self.shape == 0:
-                raise IndexError("Invalid slice (%s) of shape 0." % self.value)
+                raise IndexError(f"Invalid slice ({self.value}) of shape 0.")
 
     def set_shape_coord(self, coord: 'Coord'):
         """Set shape using a coordinate.
@@ -133,7 +132,7 @@ class Key():
         if self.type == 'slice':
             self.shape = len(coord[self.value])
             if self.shape == 0:
-                raise IndexError("Invalid slice (%s) of shape 0." % self.value)
+                raise IndexError(f"Invalid slice ({self.value}) of shape 0.")
 
     def no_int(self) -> Union[List[int], slice, None]:
         """Return value, replaces int with list."""
@@ -191,7 +190,7 @@ class Key():
             return [seq[i] for i in self.value]
         if self.type == 'slice':
             return seq[self.value]
-        raise TypeError("Not applicable (key type '%s')." % self.type)
+        raise TypeError(f"Not applicable (key type '{self.type}').")
 
     def __mul__(self, other: 'Key') -> 'Key':
         """Subset key by another.
@@ -267,7 +266,6 @@ class Key():
             self.type = 'list'
             self.value = [self.value]
             self.shape = 1
-
 
 
 class KeyVar(Key):
@@ -351,7 +349,7 @@ class KeyVar(Key):
 
         if reject:
             raise TypeError("Key is not int, str, List[int], List[str] or slice"
-                            " (is %s)" % type(key))
+                            f" (is {type(key)})")
         self.value = key
         self.type = tp
         self.var = var
@@ -468,7 +466,7 @@ class KeyValue():
             return coord.get_indices(self.value)
         if self.type == 'slice':
             return coord.subset(self.value.start, self.value.stop)
-        raise TypeError("Not applicable (key type '%s')." % self.type)
+        raise TypeError(f"Not applicable (key type '{self.type}').")
 
     def apply_by_day(self, coord: 'Time') -> KeyLikeInt:
         """Find corresponding index on same day."""
@@ -478,7 +476,7 @@ class KeyValue():
             return coord.get_indices_by_day(self.value)
         if self.type == 'slice':
             return coord.subset_by_day(self.value.start, self.value.stop)
-        raise TypeError("Not applicable (key type '%s')" % self.type)
+        raise TypeError(f"Not applicable (key type '{self.type}')")
 
 
 def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
@@ -490,6 +488,7 @@ def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
     if isinstance(key, (list, tuple, np.ndarray)):
         key = list2slice_simple(list(key))
     return key
+
 
 def list2slice_simple(L: List[int]) -> Union[slice, List[int]]:
     """Transform a list into a slice when possible.
@@ -603,6 +602,7 @@ def guess_slice_shape(slc: slice) -> Optional[int]:
 
     return None
 
+
 def guess_tolist(slc: slice) -> List[int]:
     """Guess a list of indices without the size.
 
@@ -638,7 +638,7 @@ def guess_tolist(slc: slice) -> List[int]:
         if start is None and stop is not None and stop < 0:
             return list(range(-1, stop, step))
 
-    raise ValueError("Slice (%s) cannot be turned into list by guessing." % slc)
+    raise ValueError(f"Slice ({slc}) cannot be turned into list by guessing.")
 
 
 def reverse_slice_order(slc: slice) -> slice:

@@ -95,21 +95,21 @@ class Coord():
     def __getitem__(self, y: KeyLike) -> np.ndarray:
         """Use numpy getitem for the array."""
         if not self.has_data():
-            raise AttributeError("Coordinate '%s' data was not set." % self.name)
+            raise AttributeError(f"Coordinate '{self.name}' data was not set.")
         return self._array.__getitem__(y)
 
     def __repr__(self):
         s = []
         s.append(str(type(self)))
-        s.append("Name: %s" % self.name)
+        s.append(f"Name: {self.name}")
         if self.fullname:
-            s.append("Fullname: %s" % self.fullname)
+            s.append(f"Fullname: {self.fullname}")
         if self.has_data():
-            s.append("Size: %d" % self.size)
-            s.append("Extent: %s" % self.get_extent_str())
-            s.append("Descending: %s" % ['no', 'yes'][self.is_descending()])
+            s.append(f"Size: {self.size}")
+            s.append(f"Extent: {self.get_extent_str()}")
+            s.append(f"Descending: {'yes' if self.is_descending() else 'no'}")
         if self.units:
-            s.append("Units: %s" % self.units)
+            s.append(f"Units: {self.units}")
         return '\n'.join(s)
 
     def set_attr(self, name: str, attr: Any):
@@ -120,7 +120,7 @@ class Coord():
         :param attr: Value of the attribute.
         """
         if name not in ('units', 'fullname'):
-            raise AttributeError("'%s' attribute cannot be set" % name)
+            raise AttributeError(f"'{name}' attribute cannot be set")
         if name == 'units':
             self.units = attr
         elif name == 'fullname':
@@ -133,7 +133,9 @@ class Coord():
         """
         if self.size == 1:
             return self.format(self._array[0])
-        return "%s - %s" % tuple(self.format(v) for v in self.get_extent(slc))
+        s = "{} - {}".format(*[self.format(v)
+                               for v in self.get_extent(slc)])
+        return s
 
     def copy(self) -> "Coord":
         """Return a copy of itself."""
@@ -245,7 +247,7 @@ class Coord():
         Check if the coordinate is regular up to threshold.
         """
         if not self.is_regular(threshold):
-            log.warning("Coordinate '%s' not regular (at precision %s)",
+            log.warning("Coordinate '{}' not regular (at precision %s)",
                         self.name, threshold)
         return np.mean(np.diff(self[:]))
 
@@ -306,6 +308,7 @@ class Coord():
     def get_index_exact(self, value: float,
                         threshold: float = 1e-5,
                         **kwargs) -> Optional[int]:
+        # FIXME: why **kwargs ?
         """Return index of value if present.
 
         None if value is not present.
@@ -393,7 +396,7 @@ def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
         if elt == L[pos]:
             out = pos
         else:
-            out = pos-1
+            pos = out-1
 
     elif loc == 'right':
         out = pos

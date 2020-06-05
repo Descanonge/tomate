@@ -167,6 +167,6 @@ class FilegroupNetCDF(FilegroupLoad):
 
             if not krg_inf.is_shape_equivalent(ncvar.shape):
                 raise ValueError("Mismatch between selected data "
-                                 "and keyring shape (array: %s, keyring: %s)"
-                                 % (ncvar.shape, krg_inf.shape))
+                                 "and keyring shape (array: {}, keyring: {})"
+                                 .format(ncvar.shape, krg_inf.shape))
             ncvar[:] = chunk

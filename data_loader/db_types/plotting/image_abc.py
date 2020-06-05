@@ -21,7 +21,7 @@ class PlotObjectImageABC(PlotObjectABC):
             axes_ = axes
             if len(axes_) not in [2, 3]:
                 raise ValueError("Number of axes supplied not 2 or 3"
-                                 " (supplied %s)" % axes_)
+                                 f" (supplied {axes_})")
         else:
             axes_ = self.keyring.get_high_dim()[::-1]
 

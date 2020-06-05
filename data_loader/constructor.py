@@ -138,15 +138,15 @@ class Constructor():
                 try:
                     c_fg[0] = self.dims[c_name]
                 except KeyError:
-                    raise KeyError("'%s' is not in constructor dimensions." % c_name)
+                    raise KeyError("'{}' is not in constructor dimensions.".format(c_name))
             if len(c_fg) < 3:
                 c_fg.append(c_fg[0].name)
             shared = c_fg[1]
             if not isinstance(shared, bool):
                 if shared not in shared_corres:
-                    raise ValueError("Shared must be bool or %s\n(%s, %s)"
-                                     % (list(shared_corres.keys()),
-                                        name, c_fg[0].name))
+                    raise ValueError("Shared must be bool or {}\n({}, {})"
+                                     .format(list(shared_corres.keys()),
+                                             name, c_fg[0].name))
                 shared = shared_corres[shared]
             coords_fg[i][1] = shared
 
@@ -527,13 +527,11 @@ def create_data_class(db_types: List[Type[DataBase]],
     methods = set()
     for tp in db_types:
         for name, func in inspect.getmembers(tp, predicate=inspect.isfunction):
-            if (func.__module__ != 'data_loader.data_base'
-                    and name != '__init__'):
+            if (func.__module__ != 'data_loader.data_base' and name != '__init__'):
                 if name in methods:
-                    log.warning("%s modified by multiple DataBase "
-                                "subclasses", name)
+                    log.warning("%s modified by multiple DataBase subclasses",
+                                name)
                 methods.add(name)
-
 
     if accessor is None:
         d = {}

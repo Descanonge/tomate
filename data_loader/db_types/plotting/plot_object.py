@@ -122,7 +122,7 @@ class PlotObjectABC():
         dim = len(self.keyring.get_high_dim())
         if dim != self.DIM:
             raise IndexError("Data to plot does not have right dimension"
-                             " (is %d, expected %d)" % (dim, self.DIM))
+                             f" (is {dim}, expected {self.DIM})")
 
     def find_axes(self, axes: List[str] = None) -> List[str]:
         """Get list of axes.
@@ -286,7 +286,7 @@ class PlotObjectABC():
                 name = self.axes[-1]
                 f = self.colorbar.set_label
             else:
-                raise KeyError("Axis name not recognized (%s)." % ax)
+                raise KeyError(f"Axis name not recognized ({ax}).")
 
             label = self._get_label(name, fullname, units)
             if label is not None:

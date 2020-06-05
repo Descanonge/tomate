@@ -40,7 +40,7 @@ class PlotObjectScatter(PlotObjectABC):
             raise TypeError("No axes supplied.")
 
         if len(axes_) != 2:
-            raise IndexError("Number of not 2 (%s)" % axes_)
+            raise IndexError(f"Number of not 2 (axes_)")
 
         return axes_
 

@@ -46,8 +46,8 @@ class AccessorABC():
         """
         if cls.ndim(array) != len(keyring):
             raise IndexError("Mismatch between selected data "
-                             "and keyring length (shape: %s, keyring length: %s)"
-                             % (cls.shape(array), len(keyring)))
+                             "and keyring length (shape: {}, keyring length: {})"
+                             .format(cls.shape(array), len(keyring)))
 
     @classmethod
     def check_shape(cls, keyring: Keyring, array: Array):
@@ -59,8 +59,8 @@ class AccessorABC():
         """
         if not keyring.is_shape_equivalent(cls.shape(array)):
             raise ValueError("Mismatch between selected data "
-                             "and keyring shape (array: %s, keyring: %s)"
-                             % (cls.shape(array), keyring.shape))
+                             "and keyring shape (array: {}, keyring: {})"
+                             .format(cls.shape(array), keyring.shape))
 
     @staticmethod
     def allocate(shape: List[int]) -> Array:
@@ -145,6 +145,7 @@ class AccessorABC():
         :param out: Array to place the result in.
         """
         raise NotImplementedError
+
 
 class Accessor(AccessorABC):
     """Manages access to arrays.

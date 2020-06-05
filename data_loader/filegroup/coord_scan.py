@@ -99,14 +99,14 @@ class CoordScan(Coord):
     def __repr__(self):
         s = [super().__repr__()]
         s.append(["In", "Shared"][self.shared])
-        s.append("To scan: %s" % ', '.join(self.scan.keys()))
+        s.append("To scan: {}".format(', '.join(self.scan.keys())))
         if self.scanned:
             s.append("Scanned")
         else:
             s.append("Not scanned")
         if len(self.in_idx) > 0:
             if all([c == self.in_idx[0] for c in self.in_idx]):
-                s.append("In-file index is %s" % str(self.in_idx[0]))
+                s.append("In-file index is {}".format(str(self.in_idx[0])))
         return '\n'.join(s)
 
     def set_values(self):
@@ -296,7 +296,7 @@ class CoordScan(Coord):
                           n_values, values[0], values[-1])
 
             if n_values != len(in_idx):
-                raise IndexError("Not as much values as infile indices. (%s)" % self.name)
+                raise IndexError(f"Not as much values as infile indices. (self.name)")
 
             if 'manual' not in self.scan:
                 self.values += values
@@ -434,7 +434,7 @@ class CoordScanShared(CoordScan):
         if matches not in self.matches:
             values = self.scan_values(file)
             if values is None:
-                raise RuntimeError("'%s' has no scanning functions set." % self.name)
+                raise RuntimeError(f"'{self.name}' has no scanning functions set.")
             if 'manual' in self.scan:
                 for v in values:
                     i = self.get_index(v)

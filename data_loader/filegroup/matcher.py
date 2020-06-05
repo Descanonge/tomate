@@ -81,7 +81,7 @@ class Matcher():
                 if '%' in replacement:
                     return cls.process_regex(replacement)
                 return replacement
-            raise KeyError("Unknown replacement '%s'." % match.group(0))
+            raise KeyError("Unknown replacement '{}'.".format(match.group(0)))
         rgx_new = re.sub("%([a-zA-Z%])", replace, rgx)
         return rgx_new
 

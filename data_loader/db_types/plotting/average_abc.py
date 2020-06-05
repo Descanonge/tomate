@@ -30,7 +30,7 @@ class PlotObjectAvgABC(PlotObjectABC):
                    if d not in self.avg_dims])
         if dim != self.DIM:
             raise IndexError("Data to plot does not have right dimension"
-                             " (is %d, expected %d)" % (dim, self.DIM))
+                             f" (is {dim}, expected {self.DIM})")
 
     def _get_data(self):
         if 'DataCompute' not in self.db.bases:

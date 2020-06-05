@@ -67,12 +67,12 @@ class Scope():
     def __repr__(self):
         s = []
         if self.name is not None:
-            s.append('name: %s' % self.name)
+            s.append(f'name: {self.name}')
         for d in self.dims.values():
             if d.has_data() and d.size > 0:
-                s += ['%s: %s, %s' % (d.name, d.get_extent_str(), d.size)]
+                s += ['{}: {}, {}'.format(d.name, d.get_extent_str(), d.size)]
             else:
-                s += ['%s: Empty' % d.name]
+                s += [f'{d.name}: Empty']
         return '\n'.join(s)
 
     def __getattribute__(self, name):
@@ -91,7 +91,7 @@ class Scope():
         if item == 'var':
             return self.var
         if item not in self.coords:
-            raise KeyError("'%s' not in scope coordinates" % item)
+            raise KeyError(f"'{item}' not in scope coordinates")
         return self.coords[item]
 
     def __iter__(self) -> Iterator[str]:
@@ -209,7 +209,7 @@ class Scope():
                     log.warning("'%s' specified more than once", dim)
                     continue
             else:
-                raise KeyError("'%s' not in dimensions" % dim)
+                raise KeyError(f"'{dim}' not in dimensions")
             keyring[dim] = key
         return keyring
 
@@ -297,8 +297,8 @@ class Scope():
         key.set_shape_coord(c)
 
         if not issubclass(type(c), Time):
-            raise TypeError("'%s' is not a subclass of Time (is %s)"
-                            % (coord, type(coord)))
+            raise TypeError("'{}' is not a subclass of Time (is {})"
+                            .format(coord, type(coord)))
 
         dates = c.index2date(key.value)
         slices = []

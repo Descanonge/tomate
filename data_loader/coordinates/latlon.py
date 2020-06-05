@@ -25,7 +25,7 @@ class Lat(Coord):
     @staticmethod
     def format(value: float, fmt: str = '.2f') -> str:
         end = ['S', 'N'][value > 0]
-        fmt = '{:%s}%s' % (fmt, end)
+        fmt = f'{{:{fmt}}}{end}'
         return fmt.format(abs(value))
 
 
@@ -46,5 +46,5 @@ class Lon(Coord):
     @staticmethod
     def format(value: float, fmt: str = '.2f') -> str:
         end = ['W', 'E'][value > 0]
-        fmt = '{:%s}%s' % (fmt, end)
+        fmt = f'{{:{fmt}}}{end}'
         return fmt.format(abs(value))

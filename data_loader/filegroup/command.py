@@ -100,8 +100,8 @@ class Command():
 
     def __repr__(self):
         s = []
-        s.append("file: %s" % self.filename)
-        s.append("keyrings: %s" % '\n      '.join([str(k) for k in self]))
+        s.append(f"file: {self.filename}")
+        s.append("keyrings: {}".format('\n      '.join([str(k) for k in self])))
         return "\n".join(s)
 
     def __len__(self) -> int:

@@ -149,7 +149,7 @@ class FilegroupLoad(FilegroupScan):
 
                 if not krg_inf.is_shape_equivalent(krg_mem):
                     raise IndexError("Infile and memory keyrings have different"
-                                     " shapes (%s)" % str(cmd))
+                                     f" shapes ({cmd})")
 
             cmd.order_keys(keyring.dims)
 

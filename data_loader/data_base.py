@@ -90,24 +90,22 @@ class DataBase():
     def __repr__(self):
         s = ["Data object"]
 
-        s1 = "Class: %s, Bases: " % self.__class__.__name__
-        s2 = ', '.join(self.bases.values())
-        s.append(s1 + s2)
+        s.append("Class: {}, Bases: {} ".format(self.__class__.__name__,
+                                                ', '.join(self.bases.values())))
         s.append('')
-
-        s.append("Data available: \n%s" % str(self.avail))
+        s.append("Data available: \n{}".format(str(self.avail)))
         s.append('')
 
         if self.data is None:
             s.append('Data not loaded')
         else:
-            s.append('Data loaded: \n%s' % str(self.loaded))
+            s.append('Data loaded: \n{}'.format(str(self.loaded)))
         s.append('')
 
         if self.selected.is_empty():
             s.append('No data selected')
         else:
-            s.append('Data selected: \n%s' % str(self.selected))
+            s.append('Data selected: \n{}'.format(str(self.selected)))
         s.append('')
 
         return '\n'.join(s)
@@ -122,7 +120,7 @@ class DataBase():
         :returns: {class name: full name with module}
         """
         bases = self.__class__.__bases__
-        out = {c.__name__: '%s.%s' % (c.__module__, c.__name__)
+        out = {c.__name__: '{}.{}'.format(c.__module__, c.__name__)
                for c in bases}
         return out
 
@@ -147,7 +145,7 @@ class DataBase():
             if key in self.loaded:
                 key = self.idx(key)
                 return self.data[key]
-            raise KeyError("Variable '%s' is not loaded." % key)
+            raise KeyError(f"Variable '{key}' is not loaded.")
         raise TypeError("Key must be a str.")
 
     def __setitem__(self, key: str, value: np.ndarray):
@@ -232,12 +230,13 @@ class DataBase():
         Keys act on loaded scope.
 
         :param keys: [opt] Values to select for a coordinate.
-            If is slice, use start and stop as boundaries. Step has no effect.
-            If is float, int, or a list of, closest index for each value is taken.
-        :param by_day: Use `subset_by_day` for Time dimension rather than `subset`
-            if True. Default to False.
-        :param kw_keys: [opt] Argument name is dimension name, argument value is
-            similar to `keys`.
+            If is slice, use start and stop as boundaries.
+            Step has no effect. If is float, int, or a list of,
+            closest index for each value is taken.
+        :param by_day: Use `subset_by_day` for Time dimension rather
+            than `subset` if True. Default to False.
+        :param kw_keys: [opt] Argument name is dimension name,
+            argument value is similar to `keys`.
             Argument name can also be a dimension name appended with `_idx`, in
             which case the selection is made by index instead. Value selection
             has priority.
@@ -284,10 +283,10 @@ class DataBase():
         """
         scope = self.get_scope(scope)
         if scope.is_empty():
-            raise KeyError("Selection scope is empty ('%s')." % scope.name)
+            raise KeyError(f"Selection scope is empty ('{scope.name}').")
         if scope.parent_scope != self.loaded:
             raise ValueError("The parent scope is not the loaded data scope."
-                             " (is '%s')" % scope.parent_scope.name)
+                             f" (is '{scope.parent_scope.name}')")
 
         scope_ = scope.copy()
         scope_.slice(keyring, int2list=False, **keys)
@@ -585,10 +584,6 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-
-
-
-
     def allocate(self, shape: List[int]) -> np.ndarray:
         """Allocate data array.
 
@@ -616,13 +611,13 @@ class DataBase():
         :raises ValueError: If the data is not of the shape of loaded scope.
         """
         if variable not in self.avail:
-            raise KeyError("%s is not in avail scope. Use add_variable." % variable)
+            raise KeyError(f"{variable} is not in avail scope. Use add_variable.")
         if self.acs.ndim(data) != self.ncoord:
-            raise IndexError("data of wrong dimension (%s, expected %s)" %
-                             (data.ndim, self.ncoord))
+            raise IndexError("data of wrong dimension ({}, expected {})"
+                             .format(data.ndim, self.ncoord))
         if self.acs.shape(data) != self.shape[1:]:
-            raise ValueError("data of wrong shape (%s, expected %s)" %
-                             (self.acs.shape(data), self.shape[1:]))
+            raise ValueError("data of wrong shape ({}, expected {})"
+                             .format(self.acs.shape(data), self.shape[1:]))
 
         data = np.expand_dims(data, 0)
 

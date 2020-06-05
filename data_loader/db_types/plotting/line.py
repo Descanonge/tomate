@@ -37,7 +37,7 @@ class PlotObjectLine(PlotObjectABC):
             axes_ = [self.keyring.get_high_dim()[0], self.scope.var[0]]
 
         if len(axes_) != 2:
-            raise IndexError("Number of axes not 2 (%s)" % axes_)
+            raise IndexError(f"Number of axes not 2 ({axes_})")
 
         if axes_[0] in self.scope.coords:
             self.axis_var = 1

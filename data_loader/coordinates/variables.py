@@ -72,7 +72,7 @@ class Variables(Coord):
 
     def get_index(self, value: str, loc: str = None) -> int:
         if value not in self._array:
-            raise KeyError("'%s' not in variables." % value)
+            raise KeyError(f"'{value}' not in variables.")
         i = np.where(self._array == value)[0][0]
         i = int(i)
         return i

@@ -20,6 +20,6 @@ class PlotObjectImageAvg(PlotObjectAvgABC, PlotObjectImage):
             axes_.append(self.scope.var[0])
 
         if len(axes_) != 3:
-            raise IndexError("Number of axes not 3 (%s)" % axes_)
+            raise IndexError(f"Number of axes not 3 ({axes_})")
 
         return axes_

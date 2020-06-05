@@ -109,9 +109,9 @@ class VariablesInfo():
 
     def __repr__(self):
         s = []
-        s.append("Variables: %s" % ', '.join(self.variables))
-        s.append("Attributes: %s" % ', '.join(self.attrs))
-        s.append("Infos: %s" % ', '.join(self.infos))
+        s.append("Variables: {}".format(', '.join(self.variables)))
+        s.append("Attributes: {}".format(', '.join(self.attrs)))
+        s.append("Infos: {}".format(', '.join(self.infos)))
         return '\n'.join(s)
 
     def __getattribute__(self, item: str):
@@ -143,7 +143,7 @@ class VariablesInfo():
             d = {attr: values[item] for attr, values in self._attrs.items()
                  if item in values}
             return VariableAttributes(item, self, d)
-        raise IndexError("'%s' not in variables." % item)
+        raise IndexError(f"'{item}' not in variables.")
 
     def get_attr(self, attr: str, var: str) -> Any:
         """Get attribute.
@@ -153,8 +153,8 @@ class VariablesInfo():
         try:
             out = self._attrs[attr][var]
         except KeyError:
-            raise KeyError("'%s' attribute for variable '%s'"
-                           " combinaison does not exists." % (attr, var))
+            raise KeyError("'{}' attribute for variable '{}'"
+                           " combinaison does not exists.".format(attr, var))
         return out
 
     def get_attr_safe(self, attr: str, var: str, default: Any = None) -> Any:

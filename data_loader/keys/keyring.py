@@ -12,14 +12,13 @@ from typing import (Any, Dict, Iterator, Iterable, List,
 
 from data_loader.keys.key import Key, KeyVar
 
-from data_loader.custom_types import KeyLike, KeyLikeVar
+from data_loader.custom_types import KeyLike
 
 if TYPE_CHECKING:
     from data_loader.coordinates.coord import Coord
     from data_loader.coordinates.variables import Variables
 
 log = logging.getLogger(__name__)
-
 
 
 class Keyring():
@@ -190,7 +189,7 @@ class Keyring():
         """
         for c in self:
             if c not in dims:
-                raise KeyError("'%s' dimension is unwanted in keyring." % c)
+                raise KeyError(f"'{c}' dimension is unwanted in keyring.")
 
     def make_full(self, dims: List[str], fill: Any = None):
         """Add dimensions.
@@ -347,7 +346,7 @@ class Keyring():
                 if len(k.value) <= 5:
                     s.append(str(k.value))
                 else:
-                    z = '[%s, %s, ..., %s, %s]' % (*k.value[:2], *k.value[-2:])
+                    z = '[{}, {}, ..., {}, {}]'.format(*k.value[:2], *k.value[-2:])
                     s.append(z)
             elif k.type == 'slice':
                 z = []
@@ -363,4 +362,4 @@ class Keyring():
                 if step is not None and step != 1:
                     z.append(str(step))
                 s.append(':'.join(z))
-        return '[%s]' % ', '.join(s)
+        return f"[{', '.join(s)}]"

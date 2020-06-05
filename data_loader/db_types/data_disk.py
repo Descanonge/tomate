@@ -52,8 +52,8 @@ class DataDisk(DataBase):
 
     def __repr__(self):
         s = [super().__repr__()]
-        s.append("%d Filegroups:" % len(self.filegroups))
-        s += ['\t%s' % ', '.join(fg.variables) for fg in self.filegroups]
+        s.append("{} Filegroups:".format(len(self.filegroups)))
+        s += ['\t{}'.format(', '.join(fg.variables)) for fg in self.filegroups]
         return '\n'.join(s)
 
     def link_filegroups(self):
@@ -155,10 +155,10 @@ class DataDisk(DataBase):
         """
         scope = self.get_scope(scope)
         if scope.is_empty():
-            raise KeyError("Selection scope is empty ('%s')." % scope.name)
+            raise KeyError(f"Selection scope is empty ('{scope.name}').")
         if scope.parent_scope != self.avail:
             raise ValueError("The parent scope is not the available data scope."
-                             " (is '%s')" % scope.parent_scope.name)
+                             " (is '{}')".format(scope.parent_scope.name))
 
         scope_ = scope.copy()
         scope_.slice(int2list=False, keyring=keyring, **keys)
@@ -275,7 +275,7 @@ class DataDisk(DataBase):
             values = np.array(values)
 
             if values.size == 0:
-                raise ValueError("No values found for %s in any filegroup." % c)
+                raise ValueError(f"No values found for {c} in any filegroup.")
 
             if c != 'var':
                 values.sort()
@@ -310,7 +310,7 @@ class DataDisk(DataBase):
                         log.warning("'%s' in '%s' will be cut: found %d values ranging %s",
                                     dim, fg.name, size, extent)
                         if cs.size == 0:
-                            raise IndexError("No common values for '%s'" % dim)
+                            raise IndexError(f"No common values for '{dim}'")
 
                 cs = self.filegroups[0].cs[dim]
                 log.warning("Common values taken for '%s', %d values ranging %s.",
@@ -336,8 +336,8 @@ class DataDisk(DataBase):
                 w2 = np.where(~np.equal(c2, None))[0]
                 intersect.append(np.intersect1d(w1, w2).size)
             if all(s > 0 for s in intersect):
-                raise ValueError("Duplicate values in filegroups %s and %s"
-                                 % (fg1.name, fg2.name))
+                raise ValueError("Duplicate values in filegroups {} and {}"
+                                 .format(fg1.name, fg2.name))
 
     def check_regex(self):
         """Check if a pregex has been added where needed.
@@ -347,7 +347,4 @@ class DataDisk(DataBase):
         for fg in self.filegroups:
             coords = list(fg.iter_shared(True))
             if len(coords) > 0 and fg.regex == '':
-                mess = ("Filegroup is missing a regex.\n"
-                        "Contains: {0}\nCoordinates: {1}").format(
-                            fg.name, coords)
-                raise RuntimeError(mess)
+                raise RuntimeError(f"Filegroup '{fg.name}' is missing a regex.")

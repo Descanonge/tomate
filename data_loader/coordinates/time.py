@@ -50,8 +50,8 @@ class Time(Coord):
     def get_extent_str(self, slc: KeyLike = None) -> str:
         if self.size == 1:
             return self.format(self.index2date(0))
-        return "%s - %s" % tuple(self.format(v)
-                                 for v in self.index2date(slc)[[0, -1]])
+        return "{} - {}".format(*[self.format(v)
+                                  for v in self.index2date(slc)[[0, -1]]])
 
     def index2date(self, indices: KeyLike = None) \
         -> Union[cftime.datetime,
@@ -121,8 +121,8 @@ class Time(Coord):
         values = cftime.date2num(dates, new)
         return values
 
-    def get_index(self, value: Union[datetime, List[Union[int, float]],
-                                     float, int],
+    def get_index(self, value: Union[cftime.datetime,
+                                     List[Union[int, float]], float, int],
                   loc: str = 'closest') -> int:
         """Return index of value.
 
@@ -180,8 +180,8 @@ class Time(Coord):
                 return hi
             raise IndexError("No timestamp on same day.")
 
-        raise TypeError("'%s' loc not recognized, should be one of"
-                        " 'below', 'above', 'closest'." % loc)
+        raise TypeError("Invalid loc type."
+                         " Expected one of: 'left', 'right', 'closest'")
 
     def get_indices_by_day(self, values: Sequence[float],
                            loc: str = 'closest') -> List[int]:

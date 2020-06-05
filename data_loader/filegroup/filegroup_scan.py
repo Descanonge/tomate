@@ -121,18 +121,18 @@ class FilegroupScan():
 
     def __repr__(self):
         s = [self.__class__.__name__]
-        s.append("Name: %s" % self.name)
-        s.append("Root Directory: %s" % self.root)
-        s.append("Pre-regex: %s" % self.pregex)
-        s.append("Regex: %s" % self.regex)
+        s.append(f"Name: {self.name}")
+        s.append(f"Root Directory: {self.root}")
+        s.append(f"Pre-regex: {self.pregex}")
+        s.append(f"Regex: {self.regex}")
         s.append('')
 
         s.append("Coordinates for scan:")
         for name, cs in self.cs.items():
-            s1 = ['%s (%s)' % (name, cs.name)]
-            s1.append(', %s' % ['in', 'shared'][cs.shared])
+            s1 = ['{} ({})'.format(name, cs.name)]
+            s1.append(', {}'.format(['in', 'shared'][cs.shared]))
             if cs.has_data():
-                s1.append(': %s, %s' % (cs.get_extent_str(), cs.size))
+                s1.append(': {}, {}'.format(cs.get_extent_str(), cs.size))
             s.append(''.join(s1))
         return '\n'.join(s)
 
@@ -203,7 +203,7 @@ class FilegroupScan():
 
         for name, cs in self.iter_shared(True).items():
             if len(cs.matchers) == 0:
-                raise RuntimeError("'%s' has no matcher in the pre-regex." % name)
+                raise RuntimeError(f"'{name}' has no matcher in the pre-regex.")
 
         self.n_matcher = idx + 1
         self.regex = regex
@@ -331,7 +331,7 @@ class FilegroupScan():
         files.sort()
 
         if len(files) == 0:
-            raise RuntimeError("No files were found in %s" % self.root)
+            raise RuntimeError(f"No files were found in {self.root}")
 
         log.debug("Found %s files in %s", len(files), self.root)
 
@@ -366,8 +366,8 @@ class FilegroupScan():
             self.scan_file(file)
 
         if not self.found_file:
-            raise NameError("No file matching the regex found ({0}, regex={1})".format(
-                self.name, self.regex))
+            raise NameError("No file matching the regex found ({}, regex={})"
+                            .format(self.name, self.regex))
 
         for cs in self.cs.values():
             cs.set_values()

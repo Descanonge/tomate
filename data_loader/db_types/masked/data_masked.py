@@ -80,9 +80,8 @@ class DataMasked(DataBase):
             mask_array = np.ma.make_mask(mask, shrink=None)
 
         if list(mask_array.shape) != self.shape[1:]:
-            raise IndexError("Mask has incompatible shape"
-                             "(%s, expected %s)" % (list(mask_array.shape),
-                                                    self.shape[1:]))
+            raise IndexError("Mask has incompatible shape ({}, expected {})"
+                             .format(self.acs.shape(mask_array), self.shape[1:]))
         self[variable].mask = mask_array
 
     def filled(self, fill: Union[str, float] = 'fill_value',
@@ -138,7 +137,7 @@ class DataMasked(DataBase):
         cover = np.sum(~self[variable].mask, axis=tuple(axis))
         return cover / size * 100
 
-    def set_compute_land_mask(self, func: Callable[[Coord, Coord], [Array]]):
+    def set_compute_land_mask(self, func: Callable[[Coord, Coord], Array]):
         """Set function to compute land mask.
 
         Parameters
