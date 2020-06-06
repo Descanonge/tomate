@@ -291,7 +291,8 @@ class CoordScan(Coord):
                           n_values, values[0], values[-1])
 
             if n_values != len(in_idx):
-                raise IndexError(f"Not as much values as infile indices. (self.name)")
+                raise IndexError("Not as much values as infile indices."
+                                 f"({self.name})")
 
             if 'manual' not in self.scan:
                 self.values += values
