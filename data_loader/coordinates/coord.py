@@ -32,6 +32,7 @@ class Coord():
     :attr name: str: Name of coordinate.
     :attr units: str: Coordinate units.
     :attr fullname: str: Print name.
+    :attr float_comparison: float: Threshold for float comparison.
     """
 
     def __init__(self, name: str,
@@ -46,6 +47,8 @@ class Coord():
         if units is None:
             units = ''
         self.units = units
+
+        self.float_comparison = 1e-9
 
         self._array = None
         self._descending = None
@@ -305,13 +308,12 @@ class Coord():
         indices = [self.get_index(v, loc) for v in values]
         return indices
 
-    def get_index_exact(self, value: float,
-                        threshold: float = 1e-5) -> Optional[int]:
+    def get_index_exact(self, value: float) -> Optional[int]:
         """Return index of value if present.
 
         None if value is not present.
         """
-        idx = np.where(np.abs(self._array - value) < threshold)[0]
+        idx = np.where(np.abs(self._array - value) < self.float_comparison)[0]
         if len(idx) == 0:
             return None
         return idx[0]

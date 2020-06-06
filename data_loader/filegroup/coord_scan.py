@@ -65,11 +65,6 @@ class CoordScan(Coord):
 
     :attr scan_attr: bool: If attributes are to be scanned.
     :attr scan_attributes_func: Callable: Function to scan for attributes.
-
-    :attr float_comparison_threshold: float: Threshold to
-        compare float values.
-        If not None, overrides default values in
-        `Coord.get_index_exact`.
     """
     def __init__(self, filegroup: 'FilegroupLoad',
                  coord: Coord, *,
@@ -89,7 +84,6 @@ class CoordScan(Coord):
         self.scan_attributes_func = None
 
         self.change_units_custom = None
-        self.float_comparison_threshold = None
 
         self.values = []
         self.in_idx = []
@@ -319,7 +313,7 @@ class CoordScan(Coord):
             contains = []
             for value in outer:
                 contains.append(
-                    self.get_index_exact(value, self.float_comparison_threshold))
+                    self.get_index_exact(value))
             contains = np.array(contains)
         self.contains = contains
 
