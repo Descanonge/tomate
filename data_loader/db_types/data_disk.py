@@ -281,7 +281,12 @@ class DataDisk(DataBase):
 
             if c != 'var':
                 values.sort()
-                duplicates = np.abs(np.diff(values)) < 1e-5
+                threshold = max([fg.cs[c].float_comparison
+                                 for fg in self.filegroups])
+                duplicates = np.abs(np.diff(values)) < threshold
+                if np.any(duplicates):
+                    log.debug("Removing duplicates in available '%s' values"
+                              " using float threshold %s", c, threshold)
                 values = np.delete(values, np.where(duplicates))
 
             values_c[c] = values
