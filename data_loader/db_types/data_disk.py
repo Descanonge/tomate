@@ -244,17 +244,25 @@ class DataDisk(DataBase):
         intersection.
         -Apply coordinates values to available scope.
         """
-        for fg in self.filegroups:
+        if len(self.filegroups) == 1:
+            fg = self.filegroups[0]
             fg.apply_coord_selection()
-        values = self._get_coord_values()
-        self._find_contained(values)
-
-        if not self.allow_advanced:
-            self._get_intersection(values)
+            values = {d: fg.cs[d][:] for d in self.dims}
+            self._apply_coord_values(values)
+            for d in self.dims:
+                fg.cs[d].contains = np.arange(fg.cs[d].size)
+        else:
+            for fg in self.filegroups:
+                fg.apply_coord_selection()
+            values = self._get_coord_values()
             self._find_contained(values)
 
-        self.check_duplicates()
-        self._apply_coord_values(values)
+            if not self.allow_advanced:
+                self._get_intersection(values)
+                self._find_contained(values)
+
+            self.check_duplicates()
+            self._apply_coord_values(values)
 
     def _find_contained(self, values):
         for fg in self.filegroups:
