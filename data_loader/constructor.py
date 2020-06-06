@@ -204,7 +204,7 @@ class Constructor():
         The argument name will be added to the variables scanning
         coordinate values, and the value to its in-file indices.
 
-        This is similar to using Constructor.set_scan_manual()
+        This is similar to using Constructor.set_values_manually()
         for the 'Variables' coordinate.
 
         Examples
@@ -270,9 +270,9 @@ class Constructor():
             cs = fg.cs[name]
             cs.set_scan_filename_func(func, elts, **kwargs)
 
-    def set_scan_manual(self, dim: str,
-                        values: List[float],
-                        in_idx: List[Union[int, None]] = None):
+    def set_values_manually(self, dim: str,
+                            values: List[float],
+                            in_idx: List[Union[int, None]] = None):
         """Set coordinate values manually.
 
         Values will still be checked for consistency with
