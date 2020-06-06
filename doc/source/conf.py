@@ -46,6 +46,9 @@ extensions = [
 napoleon_use_param = True
 autosummary_generate = False
 always_document_param_types = True
+html_theme_options = {
+    'navigation_depth': 3
+}
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -209,4 +212,4 @@ def debug(app, what, name, obj, options, lines):
 def setup(app):
     app.connect('autodoc-process-docstring', move_opt)
     app.connect('autodoc-process-docstring', sort_sections)
-    app.connect('autodoc-process-docstring', debug)
+    # app.connect('autodoc-process-docstring', debug)

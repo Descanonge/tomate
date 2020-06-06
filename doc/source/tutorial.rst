@@ -125,7 +125,7 @@ the correspond regex (8 digits in this case, YYYYMMDD), and the string found in 
 filename will be used to find the date.
 The elements available are defined in the
 :class:`Matcher<filegroup.matcher.Matcher>` class.
-(see :ref:`Scanning filename: the pre-regex` for a list of defaults elements)
+(see :ref:`Scanning filename` for a list of defaults elements)
 For more complicated and longer filenames, we can specify some replacements.
 We obtain::
 

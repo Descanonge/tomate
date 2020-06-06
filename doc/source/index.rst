@@ -7,18 +7,16 @@ Welcome to the Data Loader package documentation !
 Check out the :doc:`general` if you're lost !
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :includehidden:
+   :maxdepth: 4
 
    general
    tutorial
 
    data
-   coord
-   filegroup
 
    scanning
-   variables_info
+   loading
    log
    plotting
 

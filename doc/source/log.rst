@@ -9,18 +9,26 @@ Those logs are data-loader efforts to be accountable so that the user
 can check it is doing everything right, but also to warn the user of
 any potential error or mistake. Either way, they should not be ignored.
 
-Most of that information comes at the 'INFO' level,
-Warnings indicating something might not be well setup, log at the 'WARNING'
-level.
-Additional information, especially during the scanning process is output
-at 'DEBUG'.
+Logs comes at various levels:
 
+INFO
+  Normal use feedback
+DEBUG
+  Less useful information, except if you are debugging
+  your scripts. Used notably to feedback scanning.
+WARNING
+  Something might not be correctly setup and could cause
+  issues down the line.
+ERROR
+  Something was gone wrong. It happens to everyone.
 
 All logging related function are in :mod:`data_loader.log`.
 
 Basic configuration
 -------------------
 
+
+to the stderr stream.
 Logging is activated whenever data_loader is first imported.
 A top-level logger named 'data_loader' is setup by
 :func:`set_logging_defaults`.

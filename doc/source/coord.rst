@@ -1,9 +1,12 @@
 
+.. toctree::
+   :hidden:
+
 .. currentmodule :: data_loader.coordinates
 
 
 Coordinates
-===========
+-----------
 
 Each dimension of the data is associated with a coordinate, stored as a
 :class:`Coord<coord.Coord>` object.
@@ -28,7 +31,7 @@ a min and max value. For instance::
 
 
 Variables
----------
+^^^^^^^^^
 
 The list of variables available constitute a dimension of the data.
 In the inner workings of the package, variables are just a specific
@@ -80,10 +83,10 @@ supply one of these !
 
 
 Some examples of coordinates subclasses
----------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Time
-++++
+""""
 
 The :class:`Time<time.Time>` class has a few additional
 functionnalities to treat date values more easily.
@@ -97,7 +100,7 @@ netCDF4.num2date and netCDF4.date2num functions.
 
 
 Latitude and Longitude
-++++++++++++++++++++++
+""""""""""""""""""""""
 
 Two classes :class:`Lat<latlon.Lat>` and :class:`Lon<latlon.Lon>` have specific
 methods, mainly for formatting purposes.

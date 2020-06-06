@@ -4,7 +4,7 @@
 :ref:
 
 Variables Info
-==============
+--------------
 
 All data objects contains a
 :class:`VariablesInfo`, abreviated as `vi`.

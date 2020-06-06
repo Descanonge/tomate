@@ -164,8 +164,6 @@ def do_stack(func: Callable, ndim: int,
              output=None, **kwargs: Any):
     """Apply func over certain axes of array. Loop over remaining axes.
 
-    Parameters
-    ----------
     :param func: Function which takes a slice of array.
         Dimension of slice is dictated by `ndim`.
     :param ndim: The number of dimensions func works on. The remaining dimension

@@ -29,6 +29,15 @@
 :END:
 [[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
 
+** TODO Add doc section on CS compiling
+
+** TODO Add submodules to scan_library
+:PROPERTIES:
+:Release:  0.4
+:END:
+
+** TODO None is displayed as variable in API
+
 * WIP
 
 ** TODO Save metadata to file

@@ -358,7 +358,8 @@ class FilegroupLoad(FilegroupScan):
     def scan_variables_attributes(self):
         """Scan for variables specific attributes.
 
-        Find files for all variables.
+        Issues load commands to find for each variable
+        a file in which it lies.
         For each command, use user defined function to
         scan attributes.
         Store them in VI.
