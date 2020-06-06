@@ -24,10 +24,12 @@ data\_loader.accessor
    .. autoclass:: Accessor
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: AccessorABC
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__

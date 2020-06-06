@@ -26,15 +26,18 @@ data\_loader.variables\_info
    .. autoclass:: Attribute
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: VariableAttributes
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: VariablesInfo
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__

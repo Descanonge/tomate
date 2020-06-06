@@ -13,6 +13,11 @@ data\_loader.coordinates.time
        Time
    
 
+.. rubric:: Functions
+.. autosummary::
+   
+       to_date
+   
 
 
 
@@ -22,5 +27,7 @@ data\_loader.coordinates.time
    .. autoclass:: Time
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
+   .. autofunction:: to_date

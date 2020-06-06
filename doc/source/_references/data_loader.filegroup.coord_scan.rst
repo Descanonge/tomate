@@ -41,23 +41,27 @@ data\_loader.filegroup.coord\_scan
    .. autoclass:: CoordScan
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: CoordScanIn
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: CoordScanShared
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: CoordScanVar
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: get_coordscan
    .. autofunction:: mirror_key
    .. autofunction:: scan_attributes_default

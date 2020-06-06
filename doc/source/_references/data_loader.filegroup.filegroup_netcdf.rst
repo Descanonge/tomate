@@ -22,5 +22,6 @@ data\_loader.filegroup.filegroup\_netcdf
    .. autoclass:: FilegroupNetCDF
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__

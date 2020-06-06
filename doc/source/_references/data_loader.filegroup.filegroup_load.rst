@@ -27,6 +27,7 @@ data\_loader.filegroup.filegroup\_load
    .. autoclass:: FilegroupLoad
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: do_post_loading

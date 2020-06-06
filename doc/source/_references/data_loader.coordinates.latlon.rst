@@ -24,10 +24,12 @@ data\_loader.coordinates.latlon
    .. autoclass:: Lat
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: Lon
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__

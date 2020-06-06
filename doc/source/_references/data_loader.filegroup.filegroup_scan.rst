@@ -29,7 +29,8 @@ data\_loader.filegroup.filegroup\_scan
    .. autoclass:: FilegroupScan
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: scan_general_attributes_default
    .. autofunction:: scan_variables_attributes_default

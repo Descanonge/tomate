@@ -27,6 +27,7 @@ data\_loader.constructor
    .. autoclass:: Constructor
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: create_data_class

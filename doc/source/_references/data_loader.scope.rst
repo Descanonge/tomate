@@ -22,5 +22,6 @@ data\_loader.scope
    .. autoclass:: Scope
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__

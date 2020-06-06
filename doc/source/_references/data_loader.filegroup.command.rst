@@ -33,13 +33,15 @@ data\_loader.filegroup.command
    .. autoclass:: CmdKeyrings
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autoclass:: Command
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: merge_cmd_per_file
    .. autofunction:: separate_variables
    .. autofunction:: simplify_keys

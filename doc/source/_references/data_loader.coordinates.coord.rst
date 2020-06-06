@@ -18,8 +18,6 @@ data\_loader.coordinates.coord
    
        get_closest
    
-       select_overlap
-   
 
 
 
@@ -29,7 +27,7 @@ data\_loader.coordinates.coord
    .. autoclass:: Coord
       :show-inheritance:
       :members:
-      :undoc-members:
       :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __weakref__
    .. autofunction:: get_closest
-   .. autofunction:: select_overlap
