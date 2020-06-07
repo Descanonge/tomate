@@ -35,6 +35,8 @@ API Reference
    
       keys
    
+      scan_library
+   
 .. rubric:: Submodules
 .. autosummary::
    :toctree:

@@ -55,8 +55,7 @@ def add_ssh(cstr):
     cstr.set_fg_regex(pregex, **replacements)
 
     cstr.set_variables_infile(SSH='sea surface height')
-    cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+    cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
 
-    cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'time')
-    cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
-    cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
+    cstr.set_scan_coords_attributes(scanlib.nc.scan_units, 'time')
+    cstr.set_scan_general_attributes(scanlib.nc.scan_infos)

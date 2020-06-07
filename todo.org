@@ -31,11 +31,6 @@
 
 ** TODO Add doc section on CS compiling
 
-** TODO Add submodules to scan_library
-:PROPERTIES:
-:Release:  0.4
-:END:
-
 * WIP
 
 ** TODO Save metadata to file

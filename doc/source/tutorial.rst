@@ -151,7 +151,7 @@ Here, all coordinates values are found in the netCDF files, we use an existing
 function::
 
     import data_loader.scan_library as scanlib
-    cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon', 'time')
+    cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
 
 We must also tell how the variable are organized in the files::
 
@@ -192,7 +192,7 @@ We must again tell how the coordinate will be scanned. This time the
 date information will be retrieved from the filename::
 
     cstr.set_variables_infile(SST='sst')
-    cstr.set_scan_in_file(scanlib.scan_in_file_nc, 'lat', 'lon')
+    cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon')
     cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
 
 Only the time value will be fetch from the filename, so as we specify nothing for
@@ -207,7 +207,7 @@ The filegroup can look for coordinate specific attributes. This will only affect
 the scanning coordinate object.
 For instance::
 
-    cstr.set_scan_coords_attributes(scanlib.scan_units_nc, 'time')
+    cstr.set_scan_coords_attributes(scanlib.nc.scan_units, 'time')
 
 will get the time units in file.
 For more details on scanning coordinate units, look at :ref:`Units conversion`.
@@ -215,11 +215,11 @@ For more details on scanning coordinate units, look at :ref:`Units conversion`.
 We can also scan for general attributes that will be placed in the VI
 as 'infos'::
 
-    cstr.set_scan_general_attributes(scanlib.scan_infos_nc)
+    cstr.set_scan_general_attributes(scanlib.nc.scan_infos)
 
 and variables specific attributes that will be placed in the VI as attributes::
 
-    cstr.set_scan_variables_attributes(scanlib.scan_variables_attributes_nc)
+    cstr.set_scan_variables_attributes(scanlib.nc.scan_variables_attributes)
 
 Conversely, we can also manually add information to the VI::
 
