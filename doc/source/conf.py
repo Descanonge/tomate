@@ -46,9 +46,6 @@ extensions = [
 napoleon_use_param = True
 autosummary_generate = False
 always_document_param_types = True
-html_theme_options = {
-    'navigation_depth': 3
-}
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,7 +55,7 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', '_ext', 'Thumbs.db', '.DS_Store',
-                    'data_loader.rst']
+                    '_ref_combine', '_ref_override']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -68,6 +65,9 @@ exclude_patterns = ['_build', '_ext', 'Thumbs.db', '.DS_Store',
 
 # html_theme_path = [sphinx_readable_theme.get_html_theme_path()]
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'navigation_depth': 3
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

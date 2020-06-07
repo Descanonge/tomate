@@ -4,6 +4,8 @@
 source="source"
 tmp="$source/_tmp"
 
+override="$source/_ref_override"
+combine="$source/_ref_combine"
 ref_folder="_references"
 ref="$tmp/$ref_folder"
 ref_final="$source/$ref_folder"
@@ -74,9 +76,25 @@ for f in "${files[@]}"; do
     fi
 done
 
-sta=$(cat "$source/$package.rst")
-end=$(tail -n +2 "$ref/$package.rst")
-printf "%s\n\n%s" "$sta" "$end" > "$ref/$package.rst"
+if files=("$combine"/*.rst); then
+    echo "Found reference file to combine:"
+    for f in "${files[@]}"; do
+        # fname="$(echo "$f" | )"
+        fname=${f##*/}
+        echo "$fname"
+        sta=$(cat "$f")
+        end=$(tail -n +2 "$ref/$fname")
+        printf "%s\n\n%s" "$sta" "$end" > "$ref/$fname"
+    done
+fi
+
+if files=("$override"/*.rst); then
+    echo "Found reference file to override:"
+    for f in "${files[@]}"; do
+        fname=${f##*/}
+        cp "$f" "$ref/$fname"
+    done
+fi
 
 echo "Removing $ref/modules.rst"
 rm "$ref/modules.rst"
