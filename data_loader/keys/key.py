@@ -40,7 +40,7 @@ class Key():
 
     INT_TYPES = (int, np.integer)  #: Types that are considered integer.
 
-    def __init__(self, key: Union[int, List[int], slice, None]):
+    def __init__(self, key: KeyLikeInt):
         self.value = None
         self.type = ''
         self.shape = None
@@ -289,7 +289,7 @@ class KeyVar(Key):
     >>> 0, [0, 1], 'sst', ['sst'], slice('sst', 'chl', 1)
     """
 
-    def __init__(self, key: Union[str, int, List[str], List[int], slice]):
+    def __init__(self, key: KeyLikeVar):
         self.var = False
         super().__init__(key)
 
