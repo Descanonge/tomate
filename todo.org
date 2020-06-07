@@ -36,8 +36,6 @@
 :Release:  0.4
 :END:
 
-** TODO None is displayed as variable in API
-
 * WIP
 
 ** TODO Save metadata to file
