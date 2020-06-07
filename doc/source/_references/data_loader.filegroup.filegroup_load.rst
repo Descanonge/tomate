@@ -29,5 +29,5 @@ data\_loader.filegroup.filegroup\_load
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: do_post_loading

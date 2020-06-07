@@ -43,19 +43,19 @@ data\_loader.keys.key
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: KeyValue
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: KeyVar
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: guess_slice_shape
    .. autofunction:: guess_tolist
    .. autofunction:: list2slice_complex

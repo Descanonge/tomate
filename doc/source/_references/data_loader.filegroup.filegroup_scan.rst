@@ -31,6 +31,6 @@ data\_loader.filegroup.filegroup\_scan
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: scan_general_attributes_default
    .. autofunction:: scan_variables_attributes_default

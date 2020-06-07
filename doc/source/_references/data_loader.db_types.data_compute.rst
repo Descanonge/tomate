@@ -29,5 +29,5 @@ data\_loader.db\_types.data\_compute
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: do_stack

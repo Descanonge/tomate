@@ -26,10 +26,10 @@ data\_loader.accessor
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: AccessorABC
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__

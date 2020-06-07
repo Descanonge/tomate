@@ -43,25 +43,25 @@ data\_loader.filegroup.coord\_scan
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: CoordScanIn
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: CoordScanShared
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autoclass:: CoordScanVar
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
-      :exclude-members: __repr__, __str__, __weakref__
+      :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: get_coordscan
    .. autofunction:: mirror_key
    .. autofunction:: scan_attributes_default
