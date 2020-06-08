@@ -126,12 +126,11 @@ class FilegroupLoad(FilegroupScan):
         :param keyring: Data to load. Acting on this filegroup CS.
         :param memory: Corresponding memory keyring.
         """
-        commands = self._get_commands_shared(keyring, memory)
-        commands = command.merge_cmd_per_file(commands)
-
-        # When there is no shared coordinate.
-        if len(commands) == 0:
+        if len(self.iter_shared(True)) == 0:
             commands = self._get_commands_no_shared()
+        else:
+            commands = self._get_commands_shared(keyring, memory)
+            commands = command.merge_cmd_per_file(commands)
 
         key_in_inf = self._get_key_infile(keyring)
         key_in_mem = memory.subset(self.iter_shared(False))
@@ -139,7 +138,11 @@ class FilegroupLoad(FilegroupScan):
         for cmd in commands:
             cmd.join_filename(self.root)
 
-            cmd.merge_keys()
+            if len(cmd) > 0:
+                cmd.merge_keys()
+            else:
+                cmd.append(Keyring(), Keyring())
+
             for key in cmd:
                 key.modify(key_in_inf, key_in_mem)
 
