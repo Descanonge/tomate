@@ -1,15 +1,12 @@
 * General
-** TODO Keys always sorted in increasing order
-[[file:data_loader/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
-
+** TODO Add shape check
+slices could be wrong and resulting array of size smaller than expected
+[[file:data_loader/filegroup/filegroup_netcdf.py::def _load_slice_single_var(self, file: nc.Dataset,]]
 ** TODO Log reorder
 [[file:data_loader/data_base.py::def view_ordered(self, order: List\[str\],]]
 
 ** TODO Convert to km
 [[file:data_loader/coordinates/latlon.py::class Lat(Coord):]]
-
-** TODO Subset untested for reverse coordinate
-[[file:data_loader/coordinates/coord.py:: Untested]]
 
 ** TODO Compute min / max value
 :PROPERTIES:
@@ -42,6 +39,15 @@ To not need to scan files each time
 - [ ] Check for consistency
   maybe set up a test
 - [ ] Check for user input arguments types
+
+** TODO Descending coordinates
+Possible, but no support currently. Stuff could break.
+
+*** TODO Subset untested for reverse coordinate
+[[file:data_loader/coordinates/coord.py:: Untested]]
+
+*** TODO Keys always sorted in increasing order
+[[file:data_loader/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
 
 ** TODO Multiple selections
 in a subclass of database ?

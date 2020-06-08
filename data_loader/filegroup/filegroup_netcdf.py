@@ -80,6 +80,8 @@ class FilegroupNetCDF(FilegroupLoad):
         log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take_normal(int_krg, file[ncname])
 
+        # TODO Add shape check
+
         chunk = self.reorder_chunk(chunk, keyring, int_krg)
         return chunk
 

@@ -290,10 +290,11 @@ class FilegroupScan():
         # Discard completely non matching files
         if m is None:
             return
-        self.found_file = True
-
-        if len(self.segments) == 0:
+       
+        if not self.found_file:
             self.find_segments(m)
+
+        self.found_file = True
 
         file = None
         if self.is_to_open():
@@ -360,6 +361,7 @@ class FilegroupScan():
                     cs.reset()
                 elif cs.shared:
                     cs.matches = [[] for _ in range(len(cs.values))]
+        self.found_file = False
 
         files = self.find_files()
         for file in files:
