@@ -1,5 +1,11 @@
 """Plot objects for contours."""
 
+# This file is part of the 'tomate' project
+# (http://github.com/Descanonge/tomate) and subject
+# to the MIT License as defined in the file 'LICENSE',
+# at the root of this project. © 2020 Clément HAËCK
+
+
 import matplotlib.contour
 
 from data_loader.db_types.plotting.image_abc import PlotObjectImageABC

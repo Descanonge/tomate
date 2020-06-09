@@ -3,10 +3,11 @@
 Handles matches in the pre-regex.
 """
 
-# This file is part of the 'data-loader' project
-# (http://github.com/Descanonges/data-loader)
-# and subject to the MIT License as defined in file 'LICENSE',
-# in the root of this project. © 2020 Clément HAËCK
+# This file is part of the 'tomate' project
+# (http://github.com/Descanonge/tomate) and subject
+# to the MIT License as defined in the file 'LICENSE',
+# at the root of this project. © 2020 Clément HAËCK
+
 
 import re
 

@@ -1,5 +1,11 @@
 """Plot 2D average of data."""
 
+# This file is part of the 'tomate' project
+# (http://github.com/Descanonge/tomate) and subject
+# to the MIT License as defined in the file 'LICENSE',
+# at the root of this project. © 2020 Clément HAËCK
+
+
 from typing import List
 
 from data_loader.db_types.plotting.average_abc import PlotObjectAvgABC

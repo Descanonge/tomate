@@ -1,5 +1,11 @@
 """Abstract object containing information about plots."""
 
+# This file is part of the 'tomate' project
+# (http://github.com/Descanonge/tomate) and subject
+# to the MIT License as defined in the file 'LICENSE',
+# at the root of this project. © 2020 Clément HAËCK
+
+
 from typing import Any, Dict, List, Union, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
