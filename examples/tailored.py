@@ -11,11 +11,11 @@ function similar to `add_ssh`.
 This can be used to combine multiple data.
 """
 
-from data_loader import Lat, Lon, Time, Constructor
-from data_loader.filegroup import FilegroupNetCDF
+from tomate import Lat, Lon, Time, Constructor
+from tomate.filegroup import FilegroupNetCDF
 
-import data_loader.db_types as dt
-import data_loader.scan_library as scanlib
+import tomate.db_types as dt
+import tomate.scan_library as scanlib
 
 root = '/Data/'
 

@@ -10,12 +10,12 @@ from typing import Iterator, List, Optional, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
 
-from data_loader.custom_types import KeyLikeInt, KeyLikeVar, KeyLikeValue
+from tomate.custom_types import KeyLikeInt, KeyLikeVar, KeyLikeValue
 
 if TYPE_CHECKING:
-    from data_loader.coordinates.coord import Coord
-    from data_loader.coordinates.time import Time
-    from data_loader.coordinates.variables import Variables
+    from tomate.coordinates.coord import Coord
+    from tomate.coordinates.time import Time
+    from tomate.coordinates.variables import Variables
 
 
 class Key():

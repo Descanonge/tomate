@@ -11,12 +11,12 @@ from typing import Any, Dict, List, Union
 
 import numpy as np
 
-from data_loader.accessor import Accessor
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
-from data_loader.keys.keyring import Keyring
-from data_loader.scope import Scope
-from data_loader.variables_info import VariablesInfo
+from tomate.accessor import Accessor
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
+from tomate.keys.keyring import Keyring
+from tomate.scope import Scope
+from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)

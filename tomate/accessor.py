@@ -12,8 +12,8 @@ from typing import List, Iterable
 import numpy as np
 
 
-from data_loader.custom_types import Array
-from data_loader.keys.keyring import Keyring
+from tomate.custom_types import Array
+from tomate.keys.keyring import Keyring
 
 log = logging.getLogger(__name__)
 

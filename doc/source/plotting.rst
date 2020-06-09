@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader.db_types.plotting
+.. currentmodule :: tomate.db_types.plotting
 
 Plotting
 ========
@@ -9,7 +9,7 @@ The plot object
 
 The package provides various ways to plot your data.
 It does so by relying on 'plot objects', from the
-:mod:`data_loader.db_types.plotting` module, and matplotlib.
+:mod:`tomate.db_types.plotting` module, and matplotlib.
 Plot objects are custom objects containing information on what data is plotted
 and how it is plotted, and ways to modify the plot once created.
 Each type of plot is represented by a subclass of
@@ -17,7 +17,7 @@ Each type of plot is represented by a subclass of
 To easily create those objects, one can use the additional methods provided by
 :class:`DataPlot<data_plot.DataPlot>`.
 
-.. currentmodule :: data_loader.db_types.plotting.plot_object.PlotObjectABC
+.. currentmodule :: tomate.db_types.plotting.plot_object.PlotObjectABC
 
 The plot object contains a database object, and a scope corresponding to the
 plotted data.

@@ -8,7 +8,7 @@
 
 from typing import List
 
-from data_loader.db_types.plotting.plot_object import PlotObjectABC
+from tomate.db_types.plotting.plot_object import PlotObjectABC
 
 
 class PlotObjectAvgABC(PlotObjectABC):
@@ -21,7 +21,7 @@ class PlotObjectAvgABC(PlotObjectABC):
 
     See also
     --------
-    data_loader.db_types.data_compute.DataCompute.mean: Function used.
+    tomate.db_types.data_compute.DataCompute.mean: Function used.
     """
 
     def __init__(self, *args, avg_dims: List[str] = None,

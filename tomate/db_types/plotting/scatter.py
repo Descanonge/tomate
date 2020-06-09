@@ -7,12 +7,11 @@
 
 
 import numpy as np
-import numpy.ma
 
 from typing import List, Optional
 
-from data_loader.custom_types import Array
-from data_loader.db_types.plotting.plot_object import PlotObjectABC
+from tomate.custom_types import Array
+from tomate.db_types.plotting.plot_object import PlotObjectABC
 
 
 class PlotObjectScatter(PlotObjectABC):

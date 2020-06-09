@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from data_loader.coordinates.coord import Coord
+from tomate.coordinates.coord import Coord
 
 
 class Lat(Coord):

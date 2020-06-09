@@ -14,16 +14,16 @@ import re
 
 import numpy as np
 
-import data_loader.filegroup.coord_scan as dlcs
+import tomate.filegroup.coord_scan as dlcs
 
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import File
-from data_loader.filegroup.coord_scan import CoordScan
-from data_loader.keys.key import Key, KeyValue
-from data_loader.variables_info import VariablesInfo
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import File
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.keys.key import Key, KeyValue
+from tomate.variables_info import VariablesInfo
 if TYPE_CHECKING:
-    from data_loader.filegroup.filegroup_load import FilegroupLoad
-    from data_loader.data_base import DataBase
+    from tomate.filegroup.filegroup_load import FilegroupLoad
+    from tomate.data_base import DataBase
 
 log = logging.getLogger(__name__)
 

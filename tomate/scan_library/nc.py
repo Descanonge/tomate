@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import netCDF4 as nc
 
-from data_loader.filegroup.coord_scan import CoordScan
-from data_loader.filegroup.filegroup_netcdf import FilegroupNetCDF
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 
 
 def scan_in_file(cs: CoordScan, file: nc.Dataset,

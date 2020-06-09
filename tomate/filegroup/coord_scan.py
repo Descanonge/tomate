@@ -18,14 +18,14 @@ import re
 
 import numpy as np
 
-from data_loader.coordinates.coord import Coord
+from tomate.coordinates.coord import Coord
 
-from data_loader.custom_types import File, KeyLike, KeyLikeInt
-from data_loader.filegroup.matcher import Matcher
-from data_loader.keys.key import Key
+from tomate.custom_types import File, KeyLike, KeyLikeInt
+from tomate.filegroup.matcher import Matcher
+from tomate.keys.key import Key
 
 if TYPE_CHECKING:
-    from data_loader.filegroup.filegroup_load import FilegroupLoad
+    from tomate.filegroup.filegroup_load import FilegroupLoad
 
 
 log = logging.getLogger(__name__)

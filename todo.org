@@ -1,12 +1,9 @@
 * General
-** TODO Add shape check
-slices could be wrong and resulting array of size smaller than expected
-[[file:data_loader/filegroup/filegroup_netcdf.py::def _load_slice_single_var(self, file: nc.Dataset,]]
 ** TODO Log reorder
-[[file:data_loader/data_base.py::def view_ordered(self, order: List\[str\],]]
+[[file:tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
 
 ** TODO Convert to km
-[[file:data_loader/coordinates/latlon.py::class Lat(Coord):]]
+[[file:tomate/coordinates/latlon.py::class Lat(Coord):]]
 
 ** TODO Compute min / max value
 :PROPERTIES:
@@ -14,19 +11,13 @@ slices could be wrong and resulting array of size smaller than expected
 :END:
 
 ** TODO Use self.kwargs if there
-[[file:data_loader/db_types/plotting/plot_object.py::def set_limits]]
-[[file:data_loader/db_types/plotting/plot_object.py::def set_labels]]
+[[file:tomate/db_types/plotting/plot_object.py::def set_limits]]
+[[file:tomate/db_types/plotting/plot_object.py::def set_labels]]
 
 ** TODO Test for multiple shared keys
-[[file:data_loader/filegroup/command.py::def merge_keys(self):]]
+[[file:tomate/filegroup/command.py::def merge_keys(self):]]
 
-** TODO Simplify
-:PROPERTIES:
-:Release:  0.4
-:END:
-[[file:data_loader/filegroup/filegroup_load.py::def _get_commands_shared__get_info(self,]]
-
-** TODO Add doc section on CS compiling
+** TODO Add iter_axes back
 
 * WIP
 
@@ -44,10 +35,10 @@ To not need to scan files each time
 Possible, but no support currently. Stuff could break.
 
 *** TODO Subset untested for reverse coordinate
-[[file:data_loader/coordinates/coord.py:: Untested]]
+[[file:tomate/coordinates/coord.py:: Untested]]
 
 *** TODO Keys always sorted in increasing order
-[[file:data_loader/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
+[[file:tomate/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
 
 ** TODO Multiple selections
 in a subclass of database ?
@@ -58,3 +49,5 @@ in a subclass of database ?
 :END:
 use existing filegroup information to open some files and add variables
 
+
+** TODO Review load command creation

@@ -1,8 +1,8 @@
 
-Data Loader Documentation
-=========================
+Tomate Documentation
+====================
 
-Welcome to the Data Loader package documentation !
+Welcome to the Tomate package documentation !
 
 Check out the :doc:`general` if you're lost !
 
@@ -23,7 +23,7 @@ Check out the :doc:`general` if you're lost !
    accessor
    expanding
 
-   API Reference <_references/data_loader.rst>
+   API Reference <_references/tomate.rst>
 
 
 Indices and tables

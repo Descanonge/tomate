@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader
+.. currentmodule :: tomate
 
 
 Constructing a database
@@ -25,7 +25,7 @@ We could use any kind of subclass of the Coord class, eventually a user made one
 
 ::
 
-    from data_loader import Coord, Time
+    from tomate import Coord, Time
     lat = Coord('lat', None, fullname='Latitude')
     lon = Coord('lon', None, fullname='Longitude')
     time = Time('time', None, fullname='Time',
@@ -79,7 +79,7 @@ so we will use FilegroupNetCDF.
 
 ::
 
-    from data_loader.filegroup import FilegroupNetCDF
+    from tomate.filegroup import FilegroupNetCDF
 
 
 We add the first filegroup for the SSH::
@@ -146,11 +146,11 @@ First, we must specify how to retrieve the coordinates values,
 and in-file indices by looking at the filename, and/or inside the file.
 This is done by standardized user functions. There are a number of
 pre-existing functions that can be found in
-:mod:`scan_library<data_loader.scan_library>`.
+:mod:`scan_library<tomate.scan_library>`.
 Here, all coordinates values are found in the netCDF files, we use an existing
 function::
 
-    import data_loader.scan_library as scanlib
+    import tomate.scan_library as scanlib
     cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
 
 We must also tell how the variable are organized in the files::
@@ -240,12 +240,12 @@ the database.
 
 We can add more functionalities by specifying additional child classes of
 DataBase. All of those provided by the package are present in the
-:mod:`data_loader.db_types`.
+:mod:`tomate.db_types`.
 Here let's use :class:`DataMasked<db_types.data_masked.DataMasked>` that add support
 for masked data, and :class:`DataPlot<db_types.data_plot.DataPlot>` which provides
 convenience plotting functions::
 
-  import data_loader.db_types as dt
+  import tomate.db_types as dt
   cstr.set_data_types([dt.DataMasked, dt.DataPlot])
 
 More details on adding functionalities: :ref:`Additional methods`.

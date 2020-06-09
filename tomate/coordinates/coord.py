@@ -12,8 +12,8 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from data_loader.keys.key import reverse_slice_order
-from data_loader.custom_types import KeyLike
+from tomate.keys.key import reverse_slice_order
+from tomate.custom_types import KeyLike
 
 
 log = logging.getLogger(__name__)

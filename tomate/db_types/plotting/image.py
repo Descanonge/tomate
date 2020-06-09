@@ -8,8 +8,8 @@
 
 import matplotlib.image
 
-from data_loader.custom_types import KeyLikeInt
-from data_loader.db_types.plotting.image_abc import PlotObjectImageABC
+from tomate.custom_types import KeyLikeInt
+from tomate.db_types.plotting.image_abc import PlotObjectImageABC
 
 
 class PlotObjectImage(PlotObjectImageABC):

@@ -1,5 +1,5 @@
 
-.. currentmodule:: data_loader.filegroup
+.. currentmodule:: tomate.filegroup
 
 
 Loading
@@ -111,4 +111,4 @@ during data loading. The function can be overwritten for different file formats.
 It defaults to the order of scanning coordinates in the filegroup.
 
 For more information on subclassing for a new file format: :ref:`File formats`
-For a working example: :mod:`data_loader.filegroup.filegroup_netcdf`
+For a working example: :mod:`tomate.filegroup.filegroup_netcdf`

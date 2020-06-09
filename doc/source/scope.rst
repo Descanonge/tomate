@@ -1,5 +1,5 @@
 
-.. currentmodule:: data_loader
+.. currentmodule:: tomate
 
 Scopes
 ------

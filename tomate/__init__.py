@@ -1,6 +1,6 @@
 """Manages sets of data on disk.
 
-Data Loader provides ways to manipulate data under the form of a
+Tomate provides ways to manipulate data under the form of a
 multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
@@ -21,7 +21,7 @@ or coordinates values can be retrieved automatically.
 
 import sys
 
-import data_loader.log
+import tomate.log
 
 from .coordinates.coord import Coord
 from .coordinates.time import Time
@@ -55,4 +55,4 @@ if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or above is required.")
 
 
-data_loader.log.set_logging_defaults()
+tomate.log.set_logging_defaults()

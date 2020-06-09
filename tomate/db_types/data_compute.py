@@ -11,9 +11,9 @@ import logging
 
 import numpy as np
 
-from data_loader.custom_types import Array, KeyLike
-from data_loader.data_base import DataBase
-from data_loader.keys.keyring import Keyring
+from tomate.custom_types import Array, KeyLike
+from tomate.data_base import DataBase
+from tomate.keys.keyring import Keyring
 
 log = logging.getLogger(__name__)
 

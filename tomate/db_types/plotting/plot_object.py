@@ -12,13 +12,13 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from data_loader.custom_types import Array, KeyLikeInt, KeyLikeValue
-from data_loader.keys.key import KeyValue
-from data_loader.keys.keyring import Keyring
-from data_loader.scope import Scope
+from tomate.custom_types import Array, KeyLikeInt, KeyLikeValue
+from tomate.keys.key import KeyValue
+from tomate.keys.keyring import Keyring
+from tomate.scope import Scope
 
 if TYPE_CHECKING:
-    from data_loader.db_types.plotting.data_plot import DataPlot
+    from tomate.db_types.plotting.data_plot import DataPlot
 
 
 class PlotObjectABC():

@@ -18,9 +18,9 @@ try:
 except ImportError:
     raise ImportError("cftime package necessary for using Time coordinate.")
 
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import KeyLike
-from data_loader.keys.key import reverse_slice_order
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import KeyLike
+from tomate.keys.key import reverse_slice_order
 
 
 log = logging.getLogger(__name__)

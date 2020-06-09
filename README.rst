@@ -1,7 +1,9 @@
-Data Loader
-===========
+Tomate
+======
 
-Data Loader provides ways to manipulate data under the form of a
+TOol for Manipulate and AggregaTE data
+
+Tomate provides ways to manipulate data under the form of a
 multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
@@ -64,19 +66,19 @@ See the documentation on logging for more information.
 Documentation
 -------------
 
-Documentation is available at `<http://data-loader.readthedocs.io>`__.
+Documentation is available at `<http://tomate.readthedocs.io>`__.
 
 
 Requirements
 ------------
 
-Data-loader requires python **>=3.7**. From this version, dictionaries
+Tomate requires python **>=3.7**. From this version, dictionaries
 preserve the order in which keys are added.
 The code heavily relies on this feature.
 This could be avoided, but would require a fair bit of
 refactoring.
 
-Data-loader requires the following python packages::
+Tomate requires the following python packages::
 
   numpy
 
@@ -92,7 +94,7 @@ Install
 
 To install, run::
 
-  git clone https://github.com/Descanonges/data-loader.git & cd data-loader/
+  git clone https://github.com/Descanonge/tomate.git & cd tomate/
   pip install .
 
 To add optional dependencies::
@@ -102,7 +104,7 @@ To add optional dependencies::
 
 To remove::
 
-  pip uninstall data-loader
+  pip uninstall tomate-data
 
 The code is quickly evolving, it is recommended to upgrade it regurlarly::
 

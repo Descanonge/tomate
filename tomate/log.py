@@ -12,7 +12,7 @@ import logging
 
 def get_logger():
     """Return top-level package logger."""
-    return logging.getLogger('data_loader')
+    return logging.getLogger('tomate')
 
 
 def set_logging_level(level: str = 'INFO'):
@@ -62,7 +62,7 @@ def add_stream_handler(stream=None, level: str = None):
     elif stream == 'stderr':
         stream = sys.stderr
     handler = logging.StreamHandler(stream)
-    formatter = logging.Formatter(fmt='%(levelname)s:data_loader:%(message)s')
+    formatter = logging.Formatter(fmt='%(levelname)s:tomate:%(message)s')
     handler.setFormatter(formatter)
 
     if level is not None:
@@ -80,7 +80,7 @@ def add_file_handler(filename: str, mode: str = 'w', level: str = None):
     """
     log = get_logger()
     handler = logging.FileHandler(filename, mode=mode)
-    formatter = logging.Formatter(fmt='%(levelname)s:data_loader:%(message)s')
+    formatter = logging.Formatter(fmt='%(levelname)s:tomate:%(message)s')
     handler.setFormatter(formatter)
 
     if level is not None:

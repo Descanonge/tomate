@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 
-import data_loader
+import tomate
 
 
 with open('README.rst') as file:
@@ -13,18 +13,37 @@ required = ['numpy']
 extras = {
     "Mask": ["scipy"],
     "NetCDF": ["netCDF4"],
+    "Time": ["cftime>=1.3.3"],
+    "Plot": ["matplotlib"]
 }
 
 
-setup(name='data_loader',
-      version=data_loader.__version__,
-      description='Load data from a multitude of files.',
+setup(name='tomate-data',
+      version=tomate.__version__,
+      description='Tool to manipulate and aggregate data',
+
       long_description=long_description,
-      keywords='data file netcdf load',
-      url='http://github.com/Descanonges/data-loader',
+      long_description_content_type='text/x-rst',
+      keywords='data manipulate coordinate file netcdf load',
+
+      classifiers=[
+          'Development Status :: 5 - Production/Stable',
+          'Intended Audience :: Science/Research,'
+          'License :: OSI Approved :: MIT License',
+          'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
+      ],
+
+      url='http://github.com/Descanonge/tomate',
+      project_urls={
+          'Documentation': 'http'
+      },
+
       author='Clément HAËCK',
       author_email='clement.haeck@posteo.net',
-      license='MIT License',
+
+      python_requires='>=3.7',
       install_requires=required,
       extras_require=extras,
-      packages=find_packages())
+      packages=find_packages(),
+      )

@@ -12,18 +12,18 @@ from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
-from data_loader.accessor import Accessor
-from data_loader.custom_types import File
-from data_loader.coordinates.variables import Variables
-from data_loader.filegroup import command
-from data_loader.filegroup.command import CmdKeyrings, Command
-from data_loader.filegroup.filegroup_scan import FilegroupScan
-from data_loader.keys.key import KeyVar
-from data_loader.keys.keyring import Keyring
-from data_loader.scope import Scope
+from tomate.accessor import Accessor
+from tomate.custom_types import File
+from tomate.coordinates.variables import Variables
+from tomate.filegroup import command
+from tomate.filegroup.command import CmdKeyrings, Command
+from tomate.filegroup.filegroup_scan import FilegroupScan
+from tomate.keys.key import KeyVar
+from tomate.keys.keyring import Keyring
+from tomate.scope import Scope
 
 if TYPE_CHECKING:
-    from data_loader.data_base import DataBase
+    from tomate.data_base import DataBase
 
 log = logging.getLogger(__name__)
 

@@ -8,8 +8,8 @@
 
 from typing import List
 
-from data_loader.db_types.plotting.average_abc import PlotObjectAvgABC
-from data_loader.db_types.plotting.image import PlotObjectImage
+from tomate.db_types.plotting.average_abc import PlotObjectAvgABC
+from tomate.db_types.plotting.image import PlotObjectImage
 
 
 class PlotObjectImageAvg(PlotObjectAvgABC, PlotObjectImage):

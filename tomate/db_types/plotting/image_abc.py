@@ -8,8 +8,8 @@
 
 from typing import List
 
-from data_loader.custom_types import Array
-from data_loader.db_types.plotting.plot_object import PlotObjectABC
+from tomate.custom_types import Array
+from tomate.db_types.plotting.plot_object import PlotObjectABC
 
 
 class PlotObjectImageABC(PlotObjectABC):

@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader
+.. currentmodule :: tomate
 
 Scanning
 ========
@@ -121,7 +121,7 @@ Also, note the in-file index or values do not need be integers, it can be
 a string refering to the variable name.
 
 
-.. currentmodule:: data_loader.constructor
+.. currentmodule:: tomate.constructor
 
 Multiple filegroups
 -------------------
@@ -160,7 +160,7 @@ at this location, parts of the data array would be allocated but left
 untouched, without warnings being emitted.
 To use with some caution.
 
-.. currentmodule:: data_loader.coordinates.coord
+.. currentmodule:: tomate.coordinates.coord
 
 Float comparison
 ^^^^^^^^^^^^^^^^
@@ -175,7 +175,7 @@ When aggregating values from all filegroups, we need to remove duplicates.
 For that comparison, the maximum of all :attr:`Coord.float_comparison` for
 that dimension is used. The value used is logged as debug.
 
-.. currentmodule:: data_loader
+.. currentmodule:: tomate
 
 
 Finding values
@@ -218,7 +218,7 @@ by the package.
 
 One should look into :func:`filegroup.coord_scan.scan_in_file_default` for
 a better description of the function signature.
-:mod:`data_loader.scan_library` contains some examples.
+:mod:`tomate.scan_library` contains some examples.
 
 
 Scanning filename
@@ -320,7 +320,7 @@ It must returns one or more values and in-file indices.
 
 One should look into :func:`filegroup.coord_scan.scan_filename_default` for
 a better description of the function signature.
-:mod:`data_loader.scan_library` contains some examples.
+:mod:`tomate.scan_library` contains some examples.
 
 
 Setting values manually
@@ -334,7 +334,7 @@ In that case, the value found by scanning is expected to be present in
 the values set manually.
 
 
-.. currentmodule:: data_loader.constructor
+.. currentmodule:: tomate.constructor
 
 Attributes scanning
 -------------------
@@ -361,4 +361,4 @@ Variable specific information is scanned last. It is assumed metadata for each
 variable is stored with its data (so possibly in different files for different variables).
 After the scanning, a load command is ensued to find in which files each variable
 lies. The user function is then used.
-See :func:`FilegroupLoad.scan_variables_attributes<data_loader.filegroup.filegroup_load.FilegroupLoad.scan_variables_attributes>`.
+See :func:`FilegroupLoad.scan_variables_attributes<tomate.filegroup.filegroup_load.FilegroupLoad.scan_variables_attributes>`.

@@ -11,11 +11,11 @@ import logging
 
 import numpy as np
 
-from data_loader.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
-from data_loader.keys.key import KeyValue
-from data_loader.keys.keyring import Keyring, Key
-from data_loader.coordinates.coord import Coord
-from data_loader.coordinates.time import Time
+from tomate.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
+from tomate.keys.key import KeyValue
+from tomate.keys.keyring import Keyring, Key
+from tomate.coordinates.coord import Coord
+from tomate.coordinates.time import Time
 
 
 log = logging.getLogger(__name__)
@@ -191,8 +191,8 @@ class Scope():
 
         See also
         --------
-        data_loader.coordinates.time.Time.get_index_by_date
-        data_loader.coordinates.time.Time.subset_by_date
+        tomate.coordinates.time.Time.get_index_by_date
+        tomate.coordinates.time.Time.subset_by_date
         """
         keyring = Keyring()
         for dim, key in keys.items():

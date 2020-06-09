@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import cftime
 
-from data_loader.filegroup.coord_scan import CoordScan
+from tomate.filegroup.coord_scan import CoordScan
 
 
 __all__ = [

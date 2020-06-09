@@ -1,8 +1,8 @@
 
-Introduction to Data Loader
-===========================
+Introduction to Tomate
+======================
 
-Data Loader provides ways to manipulate data under the form of a
+Tomate provides ways to manipulate data under the form of a
 multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
@@ -45,8 +45,8 @@ in :ref:`Accessing data`.
 Information on the files scanning process is put in
 :ref:`Scanning`.
 
-And of course, the :doc:`API reference<_references/data_loader>` contains all
+And of course, the :doc:`API reference<_references/tomate>` contains all
 the doc strings for all modules, classes, and functions.
 
 
-Github page: `<https://github.com/Descanonges/data-loader>`__
+Github page: `<https://github.com/Descanonge/tomate>`__

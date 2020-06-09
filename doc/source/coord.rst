@@ -2,7 +2,7 @@
 .. toctree::
    :hidden:
 
-.. currentmodule :: data_loader.coordinates
+.. currentmodule :: tomate.coordinates
 
 
 Coordinates
@@ -58,7 +58,7 @@ One can easily retrieve the index of one or more variables using the
 methods.
 
 
-.. currentmodule :: data_loader
+.. currentmodule :: tomate
 
 Note to developpers: they are some things to consider when using
 keys and keyring for variables. Additional methods are provided to go
@@ -79,7 +79,7 @@ the coordinate size (and we do not even need it in most cases, see
 So these should be used with care, and one should not forget the user can
 supply one of these !
 
-.. currentmodule :: data_loader.coordinates
+.. currentmodule :: tomate.coordinates
 
 
 Some examples of coordinates subclasses

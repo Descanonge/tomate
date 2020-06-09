@@ -10,8 +10,8 @@ from typing import Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import KeyLike, KeyLikeVar
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import KeyLike, KeyLikeVar
 
 
 class Variables(Coord):

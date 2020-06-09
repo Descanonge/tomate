@@ -10,8 +10,8 @@ from typing import List
 
 import matplotlib.lines
 
-from data_loader.custom_types import Array, KeyLikeInt
-from data_loader.db_types.plotting.plot_object import PlotObjectABC
+from tomate.custom_types import Array, KeyLikeInt
+from tomate.db_types.plotting.plot_object import PlotObjectABC
 
 
 class PlotObjectLine(PlotObjectABC):

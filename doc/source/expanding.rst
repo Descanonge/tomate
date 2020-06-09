@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader
+.. currentmodule :: tomate
 
 
 Expanding the package
@@ -36,7 +36,7 @@ It is advised to look at
 for a practical example of a file format expansion.
 
 A new file format will recquire new scanning function. One can take example
-at the :mod:`data_loader.scan_library`.
+at the :mod:`tomate.scan_library`.
 
 
 Data base type

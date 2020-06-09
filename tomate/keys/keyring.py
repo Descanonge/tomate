@@ -10,13 +10,13 @@ import logging
 from typing import (Any, Dict, Iterator, Iterable, List,
                     Optional, Tuple, Union, TYPE_CHECKING)
 
-from data_loader.keys.key import Key, KeyVar
+from tomate.keys.key import Key, KeyVar
 
-from data_loader.custom_types import KeyLike
+from tomate.custom_types import KeyLike
 
 if TYPE_CHECKING:
-    from data_loader.coordinates.coord import Coord
-    from data_loader.coordinates.variables import Variables
+    from tomate.coordinates.coord import Coord
+    from tomate.coordinates.variables import Variables
 
 log = logging.getLogger(__name__)
 

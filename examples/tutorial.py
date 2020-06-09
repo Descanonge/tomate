@@ -1,10 +1,10 @@
 """Example from tutorial."""
 
-from data_loader import Coord, Time, Constructor
-from data_loader.filegroup import FilegroupNetCDF
+from tomate import Coord, Time, Constructor
+from tomate.filegroup import FilegroupNetCDF
 
-import data_loader.db_types as dt
-import data_loader.scan_library as scanlib
+import tomate.db_types as dt
+import tomate.scan_library as scanlib
 
 
 # Coordinates

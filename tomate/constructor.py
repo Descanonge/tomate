@@ -11,16 +11,16 @@ import os
 import inspect
 from typing import Any, Callable, Dict, List, Tuple, Sequence, Type, Union
 
-from data_loader.accessor import Accessor
-from data_loader.coordinates.coord import Coord
-from data_loader.coordinates.variables import Variables
-from data_loader.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
-from data_loader.data_base import DataBase
-from data_loader.db_types.data_disk import DataDisk
-from data_loader.filegroup.coord_scan import CoordScan
-from data_loader.filegroup.filegroup_load import FilegroupLoad
-from data_loader.keys.key import Key, KeyVar, KeyValue
-from data_loader.variables_info import VariablesInfo
+from tomate.accessor import Accessor
+from tomate.coordinates.coord import Coord
+from tomate.coordinates.variables import Variables
+from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
+from tomate.data_base import DataBase
+from tomate.db_types.data_disk import DataDisk
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.filegroup_load import FilegroupLoad
+from tomate.keys.key import Key, KeyVar, KeyValue
+from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)
@@ -229,7 +229,7 @@ class Constructor():
 
         See also
         --------
-        data_loader.filegroup.coord_scan.scan_in_file_default:
+        tomate.filegroup.coord_scan.scan_in_file_default:
             for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
@@ -257,7 +257,7 @@ class Constructor():
 
         See also
         --------
-        data_loader.filegroup.coord_scan.scan_filename_default:
+        tomate.filegroup.coord_scan.scan_filename_default:
             for a better description of the function interface.
         """
         elts = ['values', 'in_idx']
@@ -302,7 +302,7 @@ class Constructor():
 
         See also
         --------
-        data_loader.filegroup.coord_scan.scan_attributes_default:
+        tomate.filegroup.coord_scan.scan_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -322,7 +322,7 @@ class Constructor():
 
         See also
         --------
-        data_loader.filegroup.filegroup_scan.scan_attributes_default:
+        tomate.filegroup.filegroup_scan.scan_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -342,7 +342,7 @@ class Constructor():
 
         See also
         --------
-        data_loader.filegroup.filegroup_scan.scan_variables_attributes_default:
+        tomate.filegroup.filegroup_scan.scan_variables_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -357,9 +357,9 @@ class Constructor():
 
         See also
         --------
-        data_loader.coordinates.coord.change_units_other: `func` should behave similarly
+        tomate.coordinates.coord.change_units_other: `func` should behave similarly
             and have the same signature.
-        data_loader.coordinates.time.change_units_other: For a working example.
+        tomate.coordinates.time.change_units_other: For a working example.
         """
         self.current_fg.cs[coord].change_units_custom = func
 
@@ -512,7 +512,7 @@ def create_data_class(db_types: List[Type[DataBase]],
     methods = set()
     for tp in db_types:
         for name, func in inspect.getmembers(tp, predicate=inspect.isfunction):
-            if (func.__module__ != 'data_loader.data_base' and name != '__init__'):
+            if (func.__module__ != 'tomate.data_base' and name != '__init__'):
                 if name in methods:
                     log.warning("%s modified by multiple DataBase subclasses",
                                 name)

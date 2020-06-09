@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader.variables_info
+.. currentmodule :: tomate.variables_info
 
 :ref:
 

@@ -8,7 +8,7 @@
 
 import matplotlib.contour
 
-from data_loader.db_types.plotting.image_abc import PlotObjectImageABC
+from tomate.db_types.plotting.image_abc import PlotObjectImageABC
 
 
 class PlotObjectContour(PlotObjectImageABC):

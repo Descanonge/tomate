@@ -19,7 +19,7 @@ fi
 
 sphinx-apidoc -fMe \
     -t "$source/_templates/apidoc" \
-    -o "$ref" ../data_loader
+    -o "$ref" ../tomate
 
 files=("$ref"/*.rst)
 file="${files[0]}"

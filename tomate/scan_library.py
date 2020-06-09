@@ -11,9 +11,9 @@ from datetime import datetime, timedelta
 
 import netCDF4 as nc
 
-from data_loader.coordinates.time import Time
-from data_loader.filegroup.coord_scan import CoordScan
-from data_loader.filegroup.filegroup_netcdf import FilegroupNetCDF
+from tomate.coordinates.time import Time
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 
 
 def get_date_from_matches(cs: CoordScan,

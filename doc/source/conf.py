@@ -16,16 +16,16 @@ import sys
 import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.append(os.path.abspath("./_ext/sphinx-autodoc-typehints"))
-import data_loader
+import tomate
 
 # -- Project information -----------------------------------------------------
 
-project = 'Data Loader'
-copyright = '2019, Clément Haëck'
+project = 'Tomate'
+copyright = '2020, Clément Haëck'
 author = 'Clément Haëck'
 
 # The full version, including alpha/beta/rc tags
-release = data_loader.__version__
+release = tomate.__version__
 
 master_doc = 'index'
 

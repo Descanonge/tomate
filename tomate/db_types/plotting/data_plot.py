@@ -12,15 +12,15 @@ import logging
 import numpy as np
 from matplotlib.axes import Axes
 
-from data_loader.custom_types import Array, KeyLikeInt, KeyLikeVar
-from data_loader.data_base import DataBase
+from tomate.custom_types import Array, KeyLikeInt, KeyLikeVar
+from tomate.data_base import DataBase
 
-from data_loader.db_types.plotting.contour import PlotObjectContour
-from data_loader.db_types.plotting.image import PlotObjectImage
-from data_loader.db_types.plotting.image_average import PlotObjectImageAvg
-from data_loader.db_types.plotting.line import PlotObjectLine
-from data_loader.db_types.plotting.line_average import PlotObjectLineAvg
-from data_loader.db_types.plotting.scatter import PlotObjectScatter
+from tomate.db_types.plotting.contour import PlotObjectContour
+from tomate.db_types.plotting.image import PlotObjectImage
+from tomate.db_types.plotting.image_average import PlotObjectImageAvg
+from tomate.db_types.plotting.line import PlotObjectLine
+from tomate.db_types.plotting.line_average import PlotObjectLineAvg
+from tomate.db_types.plotting.scatter import PlotObjectScatter
 
 
 log = logging.getLogger(__name__)
@@ -165,7 +165,7 @@ class DataPlot(DataBase):
         --------
         DataPlot.plot: For more details on arguments.
         matplotlib.axes.Axes.plot: Function used.
-        data_loader.db_types.data_compute.DataCompute.mean: Function used for averaging.
+        tomate.db_types.data_compute.DataCompute.mean: Function used for averaging.
         """
         self.check_loaded()
         if kwargs is None:
@@ -198,7 +198,7 @@ class DataPlot(DataBase):
         --------
         DataPlot.plot: For more details on arguments.
         matplotlib.axes.Axes.imshow: Function used.
-        data_loader.db_types.data_compute.DataCompute.mean: Function used for averaging.
+        tomate.db_types.data_compute.DataCompute.mean: Function used for averaging.
         """
         self.check_loaded()
         if kwargs is None:

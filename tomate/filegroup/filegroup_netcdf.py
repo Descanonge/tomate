@@ -19,11 +19,11 @@ else:
 
 import numpy as np
 
-from data_loader.accessor import Accessor
-from data_loader.custom_types import File
-from data_loader.keys.keyring import Keyring
-from data_loader.filegroup.filegroup_load import FilegroupLoad
-from data_loader.filegroup.command import separate_variables, Command
+from tomate.accessor import Accessor
+from tomate.custom_types import File
+from tomate.keys.keyring import Keyring
+from tomate.filegroup.filegroup_load import FilegroupLoad
+from tomate.filegroup.command import separate_variables, Command
 
 
 log = logging.getLogger(__name__)

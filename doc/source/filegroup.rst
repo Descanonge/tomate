@@ -1,5 +1,5 @@
 
-.. currentmodule:: data_loader.filegroup
+.. currentmodule:: tomate.filegroup
 
 Filegroups
 ----------

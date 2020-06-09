@@ -1,5 +1,5 @@
 
-.. currentmodule :: data_loader.keys
+.. currentmodule :: tomate.keys
 
 Accessing data
 ==============
@@ -81,7 +81,7 @@ Nearly all functions work as well for normal keys as for variable keys,
 though slices of strings can miss some functionalites, and are to be avoided.
 
 
-.. currentmodule :: data_loader
+.. currentmodule :: tomate
 
 Accessors
 ---------

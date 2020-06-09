@@ -12,13 +12,13 @@ from typing import Dict, List, Union
 
 import numpy as np
 
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
-from data_loader.data_base import DataBase
-from data_loader.filegroup.filegroup_load import FilegroupLoad, do_post_loading
-from data_loader.keys.keyring import Keyring
-from data_loader.scope import Scope
-from data_loader.variables_info import VariablesInfo
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
+from tomate.data_base import DataBase
+from tomate.filegroup.filegroup_load import FilegroupLoad, do_post_loading
+from tomate.keys.keyring import Keyring
+from tomate.scope import Scope
+from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)

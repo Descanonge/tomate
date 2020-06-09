@@ -12,13 +12,13 @@ import os.path
 
 import numpy as np
 
-from data_loader.coordinates.coord import Coord
-from data_loader.custom_types import Array, KeyLike
-from data_loader.data_base import DataBase
-from data_loader.accessor import Accessor
-from data_loader.keys.keyring import Keyring
+from tomate.coordinates.coord import Coord
+from tomate.custom_types import Array, KeyLike
+from tomate.data_base import DataBase
+from tomate.accessor import Accessor
+from tomate.keys.keyring import Keyring
 
-import data_loader.db_types.masked.mask
+import tomate.db_types.masked.mask
 
 
 log = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ class DataMasked(DataBase):
         """
         data = self.view(**keys)
         if fill == 'edge':
-            filled = data_loader.db_types.masked.mask.fill_edge(data, axes)
+            filled = tomate.db_types.masked.mask.fill_edge(data, axes)
         else:
             if fill == 'nan':
                 fill_value = np.nan
