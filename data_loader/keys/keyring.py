@@ -333,10 +333,10 @@ class Keyring():
         if len(self.shape) == len(other) == 0:
             out = True
         else:
-            out = any(a is None
-                      or b is None
-                      or a == b
-                      for a, b in zip(self.shape, other))
+            out = all([a is None
+                       or b is None
+                       or a == b
+                       for a, b in zip(self.shape, other)])
         return out
 
     def print(self) -> str:
