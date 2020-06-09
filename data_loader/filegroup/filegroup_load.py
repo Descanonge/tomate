@@ -322,7 +322,9 @@ class FilegroupLoad(FilegroupScan):
             int_krg[dim] = key
 
             if int_krg[dim].type == 'none':
-                int_krg.pop(dim)
+                raise KeyError(f"A None key was issued for '{dim}' dimension"
+                               " which is present in file.")
+
         int_krg = int_krg.subset(order)
         return int_krg
 
