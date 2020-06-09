@@ -63,7 +63,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
                 log.info("Placing it in %s",
                          krg_mem.print())
-                self.acs.place(krg_mem, self.db.data, chunk)
+                self.db.acs.place(krg_mem, self.db.data, chunk)
 
     def _load_slice_single_var(self, file: nc.Dataset,
                                keyring: Keyring, ncname: str) -> np.ndarray:
