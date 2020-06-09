@@ -80,7 +80,11 @@ class FilegroupNetCDF(FilegroupLoad):
         log.info("Taking keys %s", int_krg.print())
         chunk = self.acs.take_normal(int_krg, file[ncname])
 
-        # TODO Add shape check
+        chunk_shape = self.db.acs.shape(chunk)
+        if not int_krg.is_shape_equivalent(self.db.acs.shape(chunk)):
+            raise ValueError("Data taken from file has not expected shape"
+                             " (is {}, excepted {})"
+                             .format(chunk_shape, int_krg.shape))
 
         chunk = self.reorder_chunk(chunk, keyring, int_krg)
         return chunk
