@@ -65,7 +65,10 @@ class Keyring():
 
         :param item: Dimension name.
         """
-        return self._keys[item]
+        try:
+            return self._keys[item]
+        except KeyError:
+            raise KeyError(f"'{item}' not in keyring.")
 
     def __setitem__(self, item: str, value: Union[Key, KeyLike]):
         """Set key value to dimension.
