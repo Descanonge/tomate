@@ -26,11 +26,13 @@ def serialize_type(tp):
            "__name__": tp.__name__}
     return top
 
+
 def read_type(j_tp):
     # TODO: add try except. We cannot except to be able to import anything
     module = import_module(j_tp['__module__'])
     tp = getattr(module, j_tp['__name__'])
     return tp
+
 
 def default(obj):
     try:
@@ -60,11 +62,13 @@ def write(filename, db):
         json.dump({'db': j_db},
                   f, indent=4, default=default)
 
+
 def recreate_cstr(filename):
     with open(filename, 'r') as f:
         d = json.load(f)
     cstr = read_cstr(d['db'])
     return cstr
+
 
 def serialize_db(db):
     j_bases = [serialize_type(cls) for cls in db.__class__.__bases__]
@@ -81,6 +85,7 @@ def serialize_db(db):
             "filegroups": j_filegroups}
     return j_db
 
+
 def read_cstr(j_db):
     root = j_db["root"]
     dims = [read_coord(j_c) for j_c in j_db["dims"].values()]
@@ -96,6 +101,7 @@ def read_cstr(j_db):
         add_filegroup(cstr, j_fg)
 
     return cstr
+
 
 def add_filegroup(cstr, j_fg):
     tp = read_type(j_fg["class"])
@@ -183,14 +189,14 @@ def serialize_coord_scan(cs):
     if cs.shared:
         top["matches"] = cs.matches.tolist()
 
-
     return top
 
 
 def serialize_vi(vi):
-    top = {"attrs" : vi._attrs,
+    top = {"attrs": vi._attrs,
            "infos": vi._infos}
     return top
+
 
 def read_vi(j_vi):
     infos = j_vi['infos']
@@ -211,6 +217,7 @@ def serialize_coord(coord, values=False):
     else:
         top["values"] = None
     return top
+
 
 def read_coord(j_c):
     cls = read_type(j_c['class'])

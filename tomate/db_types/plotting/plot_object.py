@@ -297,5 +297,3 @@ class PlotObjectABC():
             label = self._get_label(name, fullname, units)
             if label is not None:
                 f(label)
-
-

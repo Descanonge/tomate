@@ -42,7 +42,6 @@ class Lon(Coord):
                  units='degree_east', fullname='Longitude'):
         super().__init__(name, array, units, fullname)
 
-
     @staticmethod
     def format(value: float, fmt: str = '.2f') -> str:
         end = ['W', 'E'][value > 0]

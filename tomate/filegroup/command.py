@@ -14,7 +14,6 @@ from tomate.keys.key import Key
 from tomate.keys.keyring import Keyring
 
 
-
 log = logging.getLogger(__name__)
 
 

@@ -91,4 +91,3 @@ class Matcher():
         if self.dummy:
             s += ', dummy'
         return s
-

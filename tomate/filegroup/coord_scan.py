@@ -90,7 +90,6 @@ class CoordScan(Coord):
 
         self.force_idx_descending = False
 
-
     def __repr__(self):
         s = [super().__repr__()]
         s.append(["In", "Shared"][self.shared])
@@ -358,7 +357,7 @@ class CoordScanIn(CoordScan):
 
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
-        to_open = ((not self.scanned and 'in' in  self.scan)
+        to_open = ((not self.scanned and 'in' in self.scan)
                    or self.scan_attr)
         return to_open
 

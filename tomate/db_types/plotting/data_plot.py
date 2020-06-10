@@ -214,6 +214,7 @@ class DataPlot(DataBase):
 
         return po
 
+
 class _DataPlot_(DataBase):
     """Added functionalities for plotting data."""
 

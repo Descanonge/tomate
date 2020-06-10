@@ -1,7 +1,7 @@
 Tomate
 ======
 
-TOol for Manipulate and AggregaTE data
+TOol to Manipulate and AggregaTE data
 
 Tomate provides ways to manipulate data under the form of a
 multi-dimensional array.

@@ -140,7 +140,7 @@ class Time(Coord):
             raise IndexError("No timestamp on same day.")
 
         raise TypeError("Invalid loc type."
-                         " Expected one of: 'left', 'right', 'closest'")
+                        " Expected one of: 'left', 'right', 'closest'")
 
     def get_indices_by_day(self, values: Sequence[float],
                            loc: str = 'closest') -> List[int]:

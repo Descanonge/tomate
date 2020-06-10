@@ -2,7 +2,7 @@
 
 from . import nc
 
-from .general import *
+from .general import *  # noqa: F401, F403
 from . import general
 
 __all__ = [

@@ -14,7 +14,6 @@ from typing import Any, Dict, Iterator, List, Union
 log = logging.getLogger(__name__)
 
 
-
 class Attribute(dict):
     """View into the VI for one attribute.
 

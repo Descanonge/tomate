@@ -290,7 +290,7 @@ class FilegroupScan():
         # Discard completely non matching files
         if m is None:
             return
-       
+
         if not self.found_file:
             self.find_segments(m)
 
@@ -425,6 +425,7 @@ class FilegroupScan():
             log.debug("Slicing '%s' in filegroup '%s' with indices %s",
                       dim, self.name, key.no_int())
             cs.slice(key.no_int())
+
 
 def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
                                     **kwargs: Any) -> Dict[str, Any]:

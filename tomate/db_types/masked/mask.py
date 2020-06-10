@@ -18,7 +18,6 @@ else:
 from tomate.db_types.data_compute import do_stack
 
 
-
 def get_circle_kernel(n):
     """Return circular kernel for convolution of size nxn.
 

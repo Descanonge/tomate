@@ -89,7 +89,7 @@ class DataCompute(DataBase):
         res = func(data, *args, **kwargs)
         return res
 
-    def mean(self, dims: List[str]=None,
+    def mean(self, dims: List[str] = None,
              kwargs: Dict[str, Any] = None,
              **keys: KeyLike) -> Array:
         """Compute average on a given window.
