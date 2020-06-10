@@ -34,7 +34,9 @@ from .variables_info import VariablesInfo
 from .data_base import DataBase
 from .constructor import Constructor
 
-__version__ = "0.3"
+
+__version__ = "1.0.0"
+
 
 __all__ = [
     'Coord',
