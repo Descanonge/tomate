@@ -11,10 +11,10 @@ with open('README.md') as file:
 required = ['numpy']
 
 extras = {
-    "Mask": ["scipy"],
+    "Time": ["cftime>=1.1.3"],
     "NetCDF": ["netCDF4"],
-    "Time": ["cftime>=1.3.3"],
-    "Plot": ["matplotlib"]
+    "Plot": ["matplotlib"],
+    "Compute": ["scipy"],
 }
 
 
@@ -28,7 +28,7 @@ setup(name='tomate-data',
 
       classifiers=[
           'Development Status :: 5 - Production/Stable',
-          'Intended Audience :: Science/Research,'
+          'Intended Audience :: Science/Research',
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: 3.8',
@@ -36,7 +36,8 @@ setup(name='tomate-data',
 
       url='http://github.com/Descanonge/tomate',
       project_urls={
-          'Documentation': 'http'
+          'Documentation': 'https://tomate.readthedocs.org',
+          'Source': 'https://github.com/Descanonge/tomate'
       },
 
       author='Clément HAËCK',
