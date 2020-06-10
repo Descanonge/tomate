@@ -3,6 +3,13 @@
 
 > **To**ol to **M**anipulate and **A**ggrega**te** data
 
+<div align="left">
+
+[![PyPI version](https://badge.fury.io/py/tomate-data.svg)](https://pypi.org/project/tomate-data)
+[![Release status](https://img.shields.io/github/v/release/Descanonge/tomate)](https://github.com/Descanonge/tomate/releases)
+
+</div>
+
 Tomate is a Python package that provides ways to manipulate data
 under the form of a multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
@@ -93,7 +100,7 @@ pip install tomate-data
 To add optional dependencies:
 
 ``` sh
-pip install [feature name]
+pip install tomate-data [feature name]
 ```
 Feature name can be Time, NetCDF, Plot, Computate. 
 
