@@ -1,10 +1,10 @@
-Tomate
-======
 
-TOol to Manipulate and AggregaTE data
+# Tomate
 
-Tomate provides ways to manipulate data under the form of a
-multi-dimensional array.
+> **To**ol to **M**anipulate and **A**ggrega**te** data
+
+Tomate is a Python package that provides ways to manipulate data
+under the form of a multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
 It also provides multiple convenience functions to retrieve
@@ -15,105 +15,89 @@ in multiple ways and formats.
 Information on the data, such as variable attributes,
 or coordinates values can be retrieved automatically.
 
-**This is still in alpha, use at your own risk !**
 
-
-Features
---------
+## Features
 
 For data in memory:
-
 - Keep information about the data, the variables, the coordinates.
   All this information is in sync with the data.
 - Select subparts of data easily.
 - Use and create convenience function for analysis, plotting,...
 
 For data on disk:
-
 - Load data that spans multiple files and comes from different sources easily.
   Different file format ? different structure: rows or columns first ? indexing
   origin lower or upper ? a varying number of time steps for each file ?
-  This is now all a breeze.
+  This is now all a breeze !
 - Scan the files automatically to find values of coordinates, variables
   attributes, data indexing,...
 - Load only subparts of data.
 - Logs will ensure you are loading what you want to load.
 
 And in general:
-
 - Highly modulable, can be tailored to your needs.
 - Fully documented.
 
 As of now, this only supports NetCDF files out of the box. But the package can be
-easily extended for other file formats. See the section 'Expanding the package'
+easily extended for other file formats. See the section
+['Expanding the package'](https://tomate.readthedocs.io/en/latest/expanding.html)
 of the documentation.
 
 Only tested for linux, should work on other OS.
 
-See examples/ for use cases.
+See [examples][examples/] for use cases.
 
 
-Warning
--------
+## Warning
 
 The code has not been extensively tested for all the possible use cases it
 supports, and is evolving quickly.
 I recommend you check thorougly in the logs that the correct files are opened,
 and that the correct slices of data are taken from thoses files.
-See the documentation on logging for more information.
+See the [documentation on logging](https://tomate.readthedocs.io/en/latest/log.html)
+for more information.
 
 
-Documentation
--------------
+## Documentation
 
-Documentation is available at `<http://tomate.readthedocs.io>`__.
+Documentation is available online at [ReadTheDocs](https://tomate.readthedocs.io)
 
 
-Requirements
-------------
+## Requirements
 
 Tomate requires python **>=3.7**. From this version, dictionaries
-preserve the order in which keys are added.
-The code heavily relies on this feature.
-This could be avoided, but would require a fair bit of
-refactoring.
+preserve the order in which keys are added. The code heavily relies on this feature.
+This could be avoided, but would require a fair bit of refactoring.
 
-Tomate requires the following python packages::
+Tomate requires the following python packages:
+  - numpy
 
-  numpy
+Optional dependencies:
+  - [Time] [cftime>=1.1.3](https://github.com/Unidata/cftime) -
+    To manage dates in time coordinates
+  - [NetCDF] [netcdf4-python](https://github.com/Unidata/netcdf4-python) -
+    To open netCDF4 files
+  - [Plot] matplotlib - To create plots easily
+  - [Compute] scipy - To various computation on the data
 
-Optional dependencies::
 
-  [NetCDF] NetCDF4 (for netcdf files, and time coordinate)
-  [Mask] scipy (for some features of masked data)
-  [Plots] matplotlib (for some of the plotting features)
+## Install
 
+The package is distributed through PyPI.
+To install, run:
 
-Install
--------
+``` sh
+pip install tomate-data
+```
 
-To install, run::
+To add optional dependencies:
 
-  git clone https://github.com/Descanonge/tomate.git & cd tomate/
-  pip install .
-
-To add optional dependencies::
-
-  pip install .[Feature name]
-  # Feature name can be Mask, NetCDF, Plots
-
-To remove::
-
-  pip uninstall tomate-data
+``` sh
+pip install [feature name]
+```
+Feature name can be Time, NetCDF, Plot, Computate. 
 
 The code is quickly evolving, it is recommended to upgrade it regurlarly::
-
-  git pull
-  pip install --upgrade .
-
-Alternatively, the installation can be made with a symlink, so that any change
-in the code is immediate, and only the git pull is necessary for upgrade.
-I would recomment this for a fork::
-
-  pip install -e .
-
+``` sh
+pip install --upgrade tomate-data
+```

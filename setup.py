@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 import tomate
 
 
-with open('README.rst') as file:
+with open('README.md') as file:
     long_description = file.read()
 
 
@@ -23,7 +23,7 @@ setup(name='tomate-data',
       description='Tool to manipulate and aggregate data',
 
       long_description=long_description,
-      long_description_content_type='text/x-rst',
+      long_description_content_type='text/markdown',
       keywords='data manipulate coordinate file netcdf load',
 
       classifiers=[
