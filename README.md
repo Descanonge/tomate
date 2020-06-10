@@ -45,7 +45,7 @@ of the documentation.
 
 Only tested for linux, should work on other OS.
 
-See [examples][examples/] for use cases.
+See [examples] for use cases.
 
 
 ## Warning
@@ -101,3 +101,6 @@ The code is quickly evolving, it is recommended to upgrade it regurlarly::
 ``` sh
 pip install --upgrade tomate-data
 ```
+
+
+[examples]: examples
