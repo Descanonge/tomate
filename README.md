@@ -64,6 +64,11 @@ and that the correct slices of data are taken from thoses files.
 See the [documentation on logging](https://tomate.readthedocs.io/en/latest/log.html)
 for more information.
 
+Features supplied in 'data_write', that allow to save a database information in
+json file to avoid re-scanning it each time, is to be considered very experimental.
+
+All writing features are currently out of date.
+
 
 ## Documentation
 
@@ -104,9 +109,14 @@ pip install tomate-data [feature name]
 ```
 Feature name can be Time, NetCDF, Plot, Computate. 
 
-The code is quickly evolving, it is recommended to upgrade it regurlarly::
+The code is quickly evolving, it is recommended to upgrade it regurlarly:
 ``` sh
 pip install --upgrade tomate-data
+```
+
+Or better yet, install it directly from the development branch (this will place the package files in `./src`):
+``` sh
+pip install -e git+https://github.com/Descanonge/tomate.git#egg=tomate-data
 ```
 
 
