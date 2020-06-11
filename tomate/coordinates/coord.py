@@ -396,7 +396,7 @@ def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
         if elt == L[pos]:
             out = pos
         else:
-            pos = out-1
+            out = pos-1
 
     elif loc == 'right':
         out = pos
