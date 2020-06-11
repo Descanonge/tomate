@@ -1,0 +1,5 @@
+numpy
+scipy
+matplotlib
+netCDF4
+cftime>=1.1.3
