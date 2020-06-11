@@ -1,8 +1,4 @@
 * General
-** TODO Harmonize select and select_by_value
-[[file:tomate/data_base.py::def select_by_value]]
-Their arguments are all over the place
-
 ** TODO Log reorder
 [[file:tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
 

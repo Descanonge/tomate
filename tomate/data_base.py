@@ -206,8 +206,7 @@ class DataBase():
 
         :param keyring: [opt] Keyring specifying parts of dimensions to take.
         :param keys: [opt] Keys specifying parts of dimensions to take, in
-            the order of stored dimensions.
-            Take precedence over `keyring`.
+            the order dimensions are stored. Take precedence over `keyring`.
         :param kw_keys: [opt] Argument name is dimension name. Takes precedence
             over `keys`.
 
@@ -229,33 +228,9 @@ class DataBase():
                       **kw_keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
-        Keys act on loaded scope.
-
-        :param keys: [opt] Values to select for a coordinate.
-            If is slice, use start and stop as boundaries.
-            Step has no effect. If is float, int, or a list of,
-            closest index for each value is taken.
-        :param by_day: Use `subset_by_day` for Time dimension rather
-            than `subset` if True. Default to False.
-        :param kw_keys: [opt] Argument name is dimension name,
-            argument value is similar to `keys`.
-            Argument name can also be a dimension name appended with `_idx`, in
-            which case the selection is made by index instead. Value selection
-            has priority.
-
-        Examples
-        --------
-        Load latitudes from 10N to 30N.
-        >>> db.load_by_value('SST', lat=slice(10., 30.))
-
-        Load latitudes from 5N to maximum available.
-        >>> db.load_by_value('SST', lat=slice(5, None))
-
-        Load depth closest to 500 and first time index.
-        >>> db.load_by_value(depth=500., time_idx=0)
-
-        Load depths closest to 0, 10, 50
-        >>> db.load_by_value(depth=[0, 10, 50])
+        Arguments work similarly as
+        :func:`DataDisk.load_by_value
+        <tomate.db_types.data_disk.DataDisk.load_by_value>`.
 
         See also
         --------
@@ -270,10 +245,12 @@ class DataBase():
                       keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
-        Subset is specified by a scope.
-        One can further slice the selection using keys.
+        Subset to view is specified by a scope.
+        The selection can be sliced further by specifying keys.
 
         :param scope: Scope indicating the selection to take.
+            If str, can be {'avail', 'loaded', 'selected', 'current'},
+            corresponding scope will then be taken.
             It must have been created from the loaded scope.
             Defaults to current selection.
         :param keyring: [opt] Keyring specifying further slicing of selection.
@@ -298,9 +275,9 @@ class DataBase():
                      keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a reordered subset of data.
 
+        Keys act on loaded scope.
         The ranks of the array are rearranged to follow
         the specified coordinates order.
-        Keys act on loaded scope.
 
         :param order: List of dimensions names in required order.
             Either two dimensions (for swapping them)
@@ -468,7 +445,7 @@ class DataBase():
         """Return subset of scope.
 
         :param scope: [opt] Scope to subset.
-            If str, can be {'avail', 'loaded', 'selected'},
+            If str, can be {'avail', 'loaded', 'selected', 'current'},
             corresponding scope of data will then be taken.
         :param keyring: [opt]
         :param keys: [opt]
@@ -502,15 +479,16 @@ class DataBase():
 
     def select(self, scope: Union[str, Scope] = 'current',
                keyring: Keyring = None, **keys: KeyLike):
-        """Set selected scope from another scope.
+        """Set selection scope.
 
-        Wrapper around :func:`get_subscope`.
-
-        :param scope: [opt] Scope to subset.
-            If str, can be {'avail', 'loaded', 'selected'},
-            corresponding scope of data will then be taken.
-        :param keyring: [opt]
-        :param keys: [opt]
+        :param scope: [opt] Scope to select from.
+            If str, can be {'avail', 'loaded', 'selected', 'current'},
+            corresponding scope will then be taken.
+            Default to current scope (loaded if data has been loaded,
+            avail otherwise).
+        :param keyring: [opt] Keyring specifying parts of dimensions to take.
+        :param keys: [opt] Keys specifying parts of dimensions to take.
+            Act on the specified scope. Take precedence over `keyring`.
 
         Examples
         --------
@@ -519,24 +497,33 @@ class DataBase():
 
         See also
         --------
-        get_subscope
+        get_subscope: select() is a wrapper around get_subscope().
         """
-        self.selected = self.get_subscope(scope, keyring,
-                                          int2list=False,
-                                          name='selected',
-                                          **keys)
+        self.selected = self.get_subscope(scope, keyring, int2list=False,
+                                          name='selected', **keys)
 
     def select_by_value(self, scope: Union[str, Scope] = 'current',
                         by_day: bool = False, **keys: KeyLike):
-        """Set selected scope from another scope, by value.
+        """Set selection scope by value.
 
-        :param scope: Scope to select from. Defaults to current
-            (loaded if data has been loaded, available otherwise).
+        :param scope: [opt] Scope to select from. See `select()`.
+        :param by_day: If True, find indices prioritising dates.
+            See :ref:`Some examples of coordinates subclasses` for details.
+        :param keys: [opt] Keys specifying parts of dimensions to take
+            by value. Take precedence over `keyring`. Act on specified scope.
+            See 'kw_keys' argument of :func:`DataDisk.load_by_value
+            <tomate.db_types.data_disk.DataDisk.load_by_value>` for details.
+
+        Examples
+        --------
+        >>> db.select_by_value(var='sst', time=[[2007, 4, 21]])
+        >>> db.select_by_value('loaded', lat=slice(10, 30), time_idx=0)
 
         See also
         --------
         select
-        view_by_value: Arguments function similarly.
+        get_subscope_by_value: select_by_value() is a wrapper around
+            get_subscope_by_value().
         """
         self.selected = self.get_subscope_by_value(scope, int2list=True,
                                                    by_day=by_day,
@@ -546,7 +533,7 @@ class DataBase():
                          keyring: Keyring = None, **keys: KeyLike):
         """Add to selection.
 
-        Keys act upon the parent scope of selection.
+        Keys act on the parent scope of selection.
         Keys are always sorted in increasing order
 
         :param Scope: [opt] If nothing was selected before, select keys from this scope.
@@ -568,9 +555,6 @@ class DataBase():
         """Slice loaded data.
 
         Keys act on loaded scope.
-
-        :param keyring: [opt]
-        :param keys: [opt]
         """
         self.check_loaded()
         keyring = Keyring.get_default(keyring, **keys)

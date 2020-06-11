@@ -71,17 +71,15 @@ class DataDisk(DataBase):
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.
 
-        What variables, and what part of the data
-        corresponding to coordinates indices can be specified.
+        What variables, and what coordinates indices to load can be specified.
         Keys specified to subset data act on the available scope.
-        If a parameter is None, all available is taken for that
-        parameter.
+        If a dimensions is omitted or None, all available values are loaded.
 
-        :param keys: [opt] What subset of coordinate to load.
-            The order is that of self.coords.
-        :param kw_keys: [opt] What subset of coordinate to load. Takes precedence
-            over positional `coords`.
-            Variables key argument should be named 'var'.
+        :param keys: [opt] What part of each dimension to load, in the
+            order dimensions are stored. Can be integers, list of integers,
+            slices, or None.
+        :param kw_keys: [opt] What part of each dimension to load. Takes precedence
+            over positional `keys`. Key for variables should be named 'var'.
 
         Examples
         --------
@@ -134,9 +132,40 @@ class DataDisk(DataBase):
 
         Part of the data to load is specified by values or index.
 
+        :param keys: [opt] Values to load for each dimension,
+            in the order dimensions are stored.
+            If is slice, use start and stop as boundaries.
+            Step has no effect. If is float, int, or a list of,
+            closest index for each value is taken. Act on loaded scope.
+        :param by_day: If True, find indices prioritising dates.
+            See :ref:`Some examples of coordinates subclasses` for details.
+        :param kw_keys: [opt] Values to load for each dimension.
+            Argument name is dimension name, argument value is similar to `keys`.
+            Take precedence over `keys`. Argument name can also be a dimension
+            name appended with `_idx`, in which case the selection is made by
+            index instead. Value selection has priority.
+
+        Examples
+        --------
+        Load latitudes from 10N to 30N.
+
+        >>> db.load_by_value('SST', lat=slice(10., 30.))
+
+        Load latitudes from 5N to maximum available.
+
+        >>> db.load_by_value('SST', lat=slice(5, None))
+
+        Load depth closest to 500 and first time index.
+
+        >>> db.load_by_value(depth=500., time_idx=0)
+
+        Load depths closest to 0, 10, 50
+
+        >>> db.load_by_value(depth=[0, 10, 50])
+
         See also
         --------
-        view_by_value: Arguments function similarly.
+        load
         """
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)
