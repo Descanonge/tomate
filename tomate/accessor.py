@@ -294,9 +294,8 @@ class Accessor(AccessorABC):
         :param keyring: Part of array to assign.
         :param array: Array to assign.
         :param chunk: Array to be assigned.
-
-        raise NotImplementedError
         """
+        raise NotImplementedError()
 
     @staticmethod
     def moveaxis(array: np.ndarray,

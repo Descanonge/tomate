@@ -1,4 +1,8 @@
 * General
+** TODO Harmonize select and select_by_value
+[[file:tomate/data_base.py::def select_by_value]]
+Their arguments are all over the place
+
 ** TODO Log reorder
 [[file:tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
 
@@ -18,6 +22,9 @@
 [[file:tomate/filegroup/command.py::def merge_keys(self):]]
 
 ** TODO Add iter_axes back
+
+** TODO Add place_complex
+[[file:tomate/accessor.py]]
 
 * WIP
 
@@ -43,11 +50,13 @@ Possible, but no support currently. Stuff could break.
 ** TODO Multiple selections
 in a subclass of database ?
 
-** TODO Write: add to file
+** TODO Write to disk
+*** add variable to file
 :PROPERTIES:
 :Release:  0.4.1
 :END:
 use existing filegroup information to open some files and add variables
 
+*** write is really out of date
 
 ** TODO Review load command creation

@@ -186,6 +186,7 @@ class DataDisk(DataBase):
         :param wd: [opt] Force to write `filename` in this directory.
         :param variables: [opt] Variables to write. If None, all are written.
         """
+        raise NotImplementedError("Out of date.")
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
