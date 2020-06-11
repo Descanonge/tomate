@@ -107,16 +107,20 @@ To add optional dependencies:
 ``` sh
 pip install tomate-data [feature name]
 ```
+
 Feature name can be Time, NetCDF, Plot, Computate. 
 
 The code is quickly evolving, it is recommended to upgrade it regurlarly:
+
 ``` sh
 pip install --upgrade tomate-data
 ```
 
-Or better yet, install it directly from the development branch (this will place the package files in `./src`):
+Or better yet, install it directly from the development branch
+(this will place the package files in `./src`):
+
 ``` sh
-pip install -e git+https://github.com/Descanonge/tomate.git#egg=tomate-data
+pip install -e git+https://github.com/Descanonge/tomate.git@develop#egg=tomate-data
 ```
 
 

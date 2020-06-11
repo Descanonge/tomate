@@ -85,22 +85,47 @@ supply one of these !
 Some examples of coordinates subclasses
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. currentmodule:: tomate.coordinates.time
+
 Time
 """"
 
-The :class:`Time<time.Time>` class has a few additional
+The :class:`Time` class has a few additional
 functionnalities to treat date values more easily.
-Most notably one can obtain dates from index, or vice-versa using
-Time.index2date() and Time.date2index().
 
-The units is here mandatory, and must comply to CF metadata conventions, and
-be of the form `<time units> since <reference time>`.
-This functionality uses the intern datetime.datetime objects and third party
-netCDF4.num2date and netCDF4.date2num functions.
+.. currentmodule:: tomate.coordinates.time.Time
 
+One can obtain dates from indices using :func:`index2date()`.
+:func:`get_index` and others can receive a tuple of numbers that will
+be interpreted as a date.
+
+The Time class also has additional methods :func:`get_index_by_day`,
+:func:`get_indices_by_day`, and :func:`subset_by_day`.
+They are used in stead of their 'normal' counterparts when the argument
+`'by_day'` is set to True in various function of the package.
+They allow to prioritize the date when finding indices.
+
+- `get_index_by_day` and `get_indices_by_day` will restrict
+  their search of indices to the same day as the target.
+  If there is no timestamp in the coordinate for the same day, it will
+  complain and raise an error.
+
+- `subset_by_day` works similarly as her sister `subset` but will completely
+  include (or exclude if the keyword argument is specified) the days at the
+  boundaries of the selection. If the day of one of the selection bounds is
+  not present in the coordinate, the next (or previous) whole day is taken.
+
+The units is here mandatory, and must comply to CF metadata conventions
+(*ie* be of the form `<time units> since <reference time>`).
+This class relies on the `cftime <https://github.com/Unidata/cftime>`__ package.
+`cftime.datetime` objects are always used in favor of python built-in 'datetime'.
+This will allow to implement different calendars if needed.
+
+
+.. currentmodule:: tomate.coordinates.latlon
 
 Latitude and Longitude
 """"""""""""""""""""""
 
-Two classes :class:`Lat<latlon.Lat>` and :class:`Lon<latlon.Lon>` have specific
+Two classes :class:`Lat` and :class:`Lon` have specific
 methods, mainly for formatting purposes.

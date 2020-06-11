@@ -160,10 +160,9 @@ class Time(Coord):
         """Return slice between dmin and dmax.
 
         Select whole days. Only date part of `dmin` and `dmax` is
-        considered.
-        This avoids some surprises when time is not 12:00:00,
-        or allow to work by day when they are multiple timestamp
-        per day.
+        considered. This avoids some surprises when time is not 00:00:00
+        on timestamps, or allow to work by day when they are multiple
+        timestamp per day.
 
         :param: Exclude `dmin` and `dmax` of the selection if True.
             Selection still only consists of whole days.

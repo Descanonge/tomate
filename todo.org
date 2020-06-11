@@ -6,9 +6,6 @@
 [[file:tomate/coordinates/latlon.py::class Lat(Coord):]]
 
 ** TODO Compute min / max value
-:PROPERTIES:
-:Release:  0.4.1
-:END:
 
 ** TODO Use self.kwargs if there
 [[file:tomate/db_types/plotting/plot_object.py::def set_limits]]
@@ -25,9 +22,6 @@
 * WIP
 
 ** TODO Save metadata to file
-:PROPERTIES:
-:Release:  0.4.1
-:END:
 To not need to scan files each time
 - [ ] Make it user friendly
 - [ ] Check for consistency
@@ -48,9 +42,6 @@ in a subclass of database ?
 
 ** TODO Write to disk
 *** add variable to file
-:PROPERTIES:
-:Release:  0.4.1
-:END:
 use existing filegroup information to open some files and add variables
 
 *** write is really out of date
