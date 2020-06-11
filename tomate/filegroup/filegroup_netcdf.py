@@ -8,7 +8,7 @@
 
 import logging
 import os
-from typing import List
+from typing import Any, List
 
 try:
     import netCDF4 as nc
@@ -40,8 +40,11 @@ class FilegroupNetCDF(FilegroupLoad):
         super().__init__(*args, **kwargs)
 
     def open_file(self, filename: str,
-                  mode: str = 'r', log_lvl: str = 'info') -> nc.Dataset:
-        file = nc.Dataset(filename, mode)
+                  mode: str = 'r',
+                  log_lvl: str = 'info',
+                  **kwargs: Any) -> nc.Dataset:
+        file = nc.Dataset(filename, mode, **kwargs)
+
         log_lvl = getattr(logging, log_lvl.upper())
         log.log(log_lvl, "Opening %s", filename)
         return file

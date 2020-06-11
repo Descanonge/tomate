@@ -237,7 +237,9 @@ class FilegroupScan():
                          for i, j in zip(sep, sep[1:]+[None])]
 
     def open_file(self, filename: str,
-                  mode: str = 'r', log_lvl: str = 'info') -> File:
+                  mode: str = 'r',
+                  log_lvl: str = 'info',
+                  **kwargs: Any) -> File:
         """Open a file.
 
         :param filename: File to open.
