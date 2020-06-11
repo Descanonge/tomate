@@ -42,7 +42,7 @@ class FilegroupNetCDF(FilegroupLoad):
     def open_file(self, filename: str,
                   mode: str = 'r',
                   log_lvl: str = 'info',
-                  **kwargs: Any) -> nc.Dataset:
+                  **kwargs: Any) -> 'nc.Dataset':
         kwargs.setdefault(clobber=False)
         file = nc.Dataset(filename, mode, **kwargs)
 
@@ -69,7 +69,7 @@ class FilegroupNetCDF(FilegroupLoad):
                          krg_mem.print())
                 self.db.acs.place(krg_mem, self.db.data, chunk)
 
-    def _load_slice_single_var(self, file: nc.Dataset,
+    def _load_slice_single_var(self, file: 'nc.Dataset',
                                keyring: Keyring, ncname: str) -> np.ndarray:
         """Load data for a single variable.
 
@@ -94,7 +94,7 @@ class FilegroupNetCDF(FilegroupLoad):
         return chunk
 
     @staticmethod
-    def _get_order_in_file(file: nc.Dataset, ncname: str) -> List[str]:
+    def _get_order_in_file(file: 'nc.Dataset', ncname: str) -> List[str]:
         """Get order from netcdf file, reorder keys.
 
         :param file: File object.
@@ -152,7 +152,7 @@ class FilegroupNetCDF(FilegroupLoad):
                         if not attr.startswith('_'):
                             file[name].setncattr(attr, self.db.vi.get_attr(attr, var))
 
-    def write_variable(self, file: nc.Dataset, cmd: Command,
+    def write_variable(self, file: 'nc.Dataset', cmd: Command,
                        var: str, inf_name: str):
         """Add variable to file."""
 

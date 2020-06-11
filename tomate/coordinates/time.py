@@ -16,7 +16,9 @@ from typing import List, Sequence, Union
 try:
     import cftime
 except ImportError:
-    raise ImportError("cftime package necessary for using Time coordinate.")
+    _has_cftime = False
+else:
+    _has_cftime = True
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import KeyLike
@@ -39,6 +41,8 @@ class Time(Coord):
     :attr units: str: CF-compliant time units.
     """
     def __init__(self, *args, **kwargs):
+        if not _has_cftime:
+            raise ImportError("cftime package necessary for using Time coordinate.")
         super().__init__(*args, **kwargs)
         if self.units == '':
             raise ValueError("Time coordinate must be supplied"
@@ -51,8 +55,8 @@ class Time(Coord):
                                   for v in self.index2date(slc)[[0, -1]]])
 
     def index2date(self, indices: KeyLike = None) \
-        -> Union[cftime.datetime,
-                 List[cftime.datetime]]:
+        -> Union['cftime.datetime',
+                 List['cftime.datetime']]:
         """Return datetimes objects corresponding to indices.
 
         :param indices: [opt] If None, all available are used.
@@ -80,7 +84,7 @@ class Time(Coord):
         values = cftime.date2num(dates, new)
         return values
 
-    def get_index(self, value: Union[cftime.datetime,
+    def get_index(self, value: Union['cftime.datetime',
                                      List[Union[int, float]], float, int],
                   loc: str = 'closest') -> int:
         """Return index of value.
@@ -98,7 +102,7 @@ class Time(Coord):
             value = cftime.date2num(value, self.units)
         return super().get_index(value, loc)
 
-    def get_index_by_day(self, value: Union[cftime.datetime,
+    def get_index_by_day(self, value: Union['cftime.datetime',
                                             List[Union[int, float]],
                                             float, int],
                          loc: str = 'closest') -> int:
@@ -152,9 +156,9 @@ class Time(Coord):
         return indices
 
     def subset_by_day(self,
-                      dmin: Union[cftime.datetime, List[int],
+                      dmin: Union['cftime.datetime', List[int],
                                   float, int] = None,
-                      dmax: Union[cftime.datetime, List[int],
+                      dmax: Union['cftime.datetime', List[int],
                                   float, int] = None,
                       exclude: bool = False) -> slice:
         """Return slice between dmin and dmax.
@@ -213,7 +217,7 @@ class Time(Coord):
         return fmt.format(value)
 
 
-def to_date(date: cftime.datetime):
+def to_date(date: 'cftime.datetime'):
     """Remove time part."""
     return cftime.datetime(date.year, date.month, date.day,
                            calendar=date.calendar)

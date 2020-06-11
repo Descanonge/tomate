@@ -9,7 +9,12 @@
 from typing import Dict, List, Optional, Tuple
 
 from datetime import datetime, timedelta
-import cftime
+try:
+    import cftime
+except ImportError:
+    _has_cftime = False
+else:
+    _has_cftime = True
 
 from tomate.filegroup.coord_scan import CoordScan
 
@@ -37,6 +42,9 @@ def get_date_from_matches(cs: CoordScan,
     :param default_date: Default date element.
         Defaults to 1970-01-01 12:00:00
     """
+    if not _has_cftime:
+        raise ImportError("cftime package necessary for datetime handling.")
+
     date = {"year": 1970, "month": 1, "day": 1,
             "hour": 12, "minute": 0, "second": 0}
 
