@@ -51,6 +51,8 @@ class DataBase():
     :param dims: Dimensions, (ie subclasses of Coord)
         in the order the data should be kept.
         This includes variables.
+        They are linked (not copied) to the available
+        scope.
 
     :attr dims: List[str]: Dimensions names,
         in the order the data is kept in the array.
