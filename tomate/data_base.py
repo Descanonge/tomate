@@ -526,11 +526,9 @@ class DataBase():
                                           name='selected',
                                           **keys)
 
-    def select_by_value(self, *keys: KeyLikeInt,
-                        scope: Union[str, Scope] = 'current',
-                        by_day: bool = False,
-                        **kw_keys: KeyLike):
-        """Select by value.
+    def select_by_value(self, scope: Union[str, Scope] = 'current',
+                        by_day: bool = False, **keys: KeyLike):
+        """Set selected scope from another scope, by value.
 
         :param scope: Scope to select from. Defaults to current
             (loaded if data has been loaded, available otherwise).
@@ -540,10 +538,9 @@ class DataBase():
         select
         view_by_value: Arguments function similarly.
         """
-        kw_keys = self.get_kw_keys(*keys, **kw_keys)
         self.selected = self.get_subscope_by_value(scope, int2list=True,
                                                    by_day=by_day,
-                                                   name='selected', **kw_keys)
+                                                   name='selected', **keys)
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
