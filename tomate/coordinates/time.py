@@ -173,17 +173,21 @@ class Time(Coord):
             if date is None:
                 idx = [0, self.size-1][i]
             else:
-                inv = [-1, 1][i]
+                locs = ['below', 'above']
+                if i == 1:
+                    locs.reverse()
+                loc = locs[exclude]
                 try:
                     idx = self.get_index_by_day(date, loc='closest')
-                    if exclude:
-                        idx -= inv
                 except IndexError:
-                    loc = exclude if i == 0 else not exclude
-                    idx = self.get_index(date, loc=['below', 'above'][loc])
-                while (0 < idx < self.size-1
-                        and to_date(self.index2date(idx))
-                        == to_date(self.index2date(idx+inv))):
+                    idx = self.get_index(date, loc=loc)
+
+                inv = {'above': 1, 'below': -1}[loc]
+                while ((idx < self.size-1 if inv == 1 else idx > 0)
+                       and to_date(self.index2date(idx))
+                       == to_date(self.index2date(idx+inv))):
+                    idx += inv
+                if exclude:
                     idx += inv
             indices.append(idx)
         indices[1] += 1
