@@ -15,7 +15,7 @@ under the form of a multi-dimensional array.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
 It also provides multiple convenience functions to retrieve
-subpart of the data, do computations, or plot the data.
+subparts of the data, do computations, or plot the data.
 
 The data can be retrieved from disk, where it can be arranged
 in multiple ways and formats.
@@ -65,9 +65,9 @@ See the [documentation on logging](https://tomate.readthedocs.io/en/latest/log.h
 for more information.
 
 Features supplied in 'data_write', that allow to save a database information in
-json file to avoid re-scanning it each time, is to be considered very experimental.
+a json file to avoid re-scanning it each time, is to be considered very experimental.
 
-All writing features are currently out of date.
+All writing to disk features are currently out of date.
 
 
 ## Documentation
@@ -90,7 +90,7 @@ Optional dependencies:
   - [NetCDF] [netcdf4-python](https://github.com/Unidata/netcdf4-python) -
     To open netCDF4 files
   - [Plot] matplotlib - To create plots easily
-  - [Compute] scipy - To various computation on the data
+  - [Compute] scipy - To do various computation on the data
 
 
 ## Install
@@ -108,16 +108,17 @@ To add optional dependencies:
 pip install tomate-data [feature name]
 ```
 
-Feature name can be Time, NetCDF, Plot, Computate. 
+Feature name can be Time, NetCDF, Plot, Compute. 
 
-The code is quickly evolving, it is recommended to upgrade it regurlarly:
+The code is evolving quickly, it is recommended to upgrade it regurlarly:
 
 ``` sh
 pip install --upgrade tomate-data
 ```
 
-Or better yet, install it directly from the development branch
-(this will place the package files in `./src`):
+Or to even install it directly from the development branch.
+This will place the package files in `./src`, from where you just have to do a `git pull`
+to update from the latest commit:
 
 ``` sh
 pip install -e git+https://github.com/Descanonge/tomate.git@develop#egg=tomate-data
