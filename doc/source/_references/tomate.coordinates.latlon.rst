@@ -4,9 +4,9 @@
 tomate.coordinates.latlon
 =========================
 
-
-
 .. automodule:: tomate.coordinates.latlon
+
+
 .. rubric:: Classes
 .. autosummary::
    

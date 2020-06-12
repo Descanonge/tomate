@@ -4,9 +4,9 @@
 tomate.filegroup.filegroup\_scan
 ================================
 
-
-
 .. automodule:: tomate.filegroup.filegroup_scan
+
+
 .. rubric:: Classes
 .. autosummary::
    

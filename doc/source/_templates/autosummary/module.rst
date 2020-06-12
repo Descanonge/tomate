@@ -15,13 +15,11 @@
 
 {{ fullname | escape | underline }}
 
+.. automodule:: {{ fullname }}
+
 {% if all %}
-.. automodule:: {{ fullname }}
-
 {{ autosummary(all, "Content") }}
-{% else %}
-
-.. automodule:: {{ fullname }}
+{% endif %}
 
 
 {%- block classes %}
@@ -59,6 +57,4 @@
 {%- for item in exceptions %}
    .. autoexception:: {{ item }}
 {%- endfor %}
-{%- endif %}
-
 {%- endif %}

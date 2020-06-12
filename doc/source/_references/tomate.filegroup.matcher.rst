@@ -4,9 +4,9 @@
 tomate.filegroup.matcher
 ========================
 
-
-
 .. automodule:: tomate.filegroup.matcher
+
+
 .. rubric:: Classes
 .. autosummary::
    

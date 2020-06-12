@@ -4,9 +4,9 @@
 tomate.variables\_info
 ======================
 
-
-
 .. automodule:: tomate.variables_info
+
+
 .. rubric:: Classes
 .. autosummary::
    

@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.contour
 =================================
 
-
-
 .. automodule:: tomate.db_types.plotting.contour
+
+
 .. rubric:: Classes
 .. autosummary::
    

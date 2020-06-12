@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.line\_average
 =======================================
 
-
-
 .. automodule:: tomate.db_types.plotting.line_average
+
+
 .. rubric:: Classes
 .. autosummary::
    

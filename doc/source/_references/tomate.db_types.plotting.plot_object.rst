@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.plot\_object
 ======================================
 
-
-
 .. automodule:: tomate.db_types.plotting.plot_object
+
+
 .. rubric:: Classes
 .. autosummary::
    

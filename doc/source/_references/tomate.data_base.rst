@@ -4,9 +4,9 @@
 tomate.data\_base
 =================
 
-
-
 .. automodule:: tomate.data_base
+
+
 .. rubric:: Classes
 .. autosummary::
    

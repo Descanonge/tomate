@@ -4,9 +4,9 @@
 tomate.scope
 ============
 
-
-
 .. automodule:: tomate.scope
+
+
 .. rubric:: Classes
 .. autosummary::
    

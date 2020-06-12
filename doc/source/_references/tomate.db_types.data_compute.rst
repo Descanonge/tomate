@@ -4,9 +4,9 @@
 tomate.db\_types.data\_compute
 ==============================
 
-
-
 .. automodule:: tomate.db_types.data_compute
+
+
 .. rubric:: Classes
 .. autosummary::
    

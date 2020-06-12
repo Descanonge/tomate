@@ -4,9 +4,9 @@
 tomate.db\_types.data\_disk
 ===========================
 
-
-
 .. automodule:: tomate.db_types.data_disk
+
+
 .. rubric:: Classes
 .. autosummary::
    

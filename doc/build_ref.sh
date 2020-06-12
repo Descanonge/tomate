@@ -79,7 +79,6 @@ done
 if files=("$combine"/*.rst); then
     echo "Found reference file to combine:"
     for f in "${files[@]}"; do
-        # fname="$(echo "$f" | )"
         fname=${f##*/}
         echo "$fname"
         sta=$(cat "$f")

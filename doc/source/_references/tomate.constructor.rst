@@ -4,9 +4,9 @@
 tomate.constructor
 ==================
 
-
-
 .. automodule:: tomate.constructor
+
+
 .. rubric:: Classes
 .. autosummary::
    

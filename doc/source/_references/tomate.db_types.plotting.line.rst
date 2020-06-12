@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.line
 ==============================
 
-
-
 .. automodule:: tomate.db_types.plotting.line
+
+
 .. rubric:: Classes
 .. autosummary::
    

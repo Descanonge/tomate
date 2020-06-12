@@ -4,9 +4,9 @@
 tomate.filegroup.filegroup\_netcdf
 ==================================
 
-
-
 .. automodule:: tomate.filegroup.filegroup_netcdf
+
+
 .. rubric:: Classes
 .. autosummary::
    

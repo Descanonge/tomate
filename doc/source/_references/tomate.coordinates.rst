@@ -4,9 +4,9 @@
 tomate.coordinates
 ==================
 
-
-
 .. automodule:: tomate.coordinates
+
+
 
 
 

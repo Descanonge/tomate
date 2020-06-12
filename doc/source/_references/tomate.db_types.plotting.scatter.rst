@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.scatter
 =================================
 
-
-
 .. automodule:: tomate.db_types.plotting.scatter
+
+
 .. rubric:: Classes
 .. autosummary::
    

@@ -4,9 +4,9 @@
 tomate.coordinates.time
 =======================
 
-
-
 .. automodule:: tomate.coordinates.time
+
+
 .. rubric:: Classes
 .. autosummary::
    

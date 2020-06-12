@@ -4,9 +4,9 @@
 tomate.db\_types.plotting
 =========================
 
-
-
 .. automodule:: tomate.db_types.plotting
+
+
 
 
 

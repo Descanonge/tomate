@@ -4,9 +4,9 @@
 tomate.keys.keyring
 ===================
 
-
-
 .. automodule:: tomate.keys.keyring
+
+
 .. rubric:: Classes
 .. autosummary::
    

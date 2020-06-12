@@ -4,9 +4,9 @@
 tomate.keys.key
 ===============
 
-
-
 .. automodule:: tomate.keys.key
+
+
 .. rubric:: Classes
 .. autosummary::
    

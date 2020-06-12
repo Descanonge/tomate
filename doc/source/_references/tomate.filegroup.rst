@@ -4,9 +4,20 @@
 tomate.filegroup
 ================
 
-
-
 .. automodule:: tomate.filegroup
+
+
+
+.. rubric:: Content
+.. autosummary::
+       :nosignatures:
+   
+       filegroup_load.FilegroupLoad
+   
+       filegroup_netcdf.FilegroupNetCDF
+   
+
+
 
 
 

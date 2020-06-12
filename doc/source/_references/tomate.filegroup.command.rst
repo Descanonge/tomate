@@ -4,9 +4,9 @@
 tomate.filegroup.command
 ========================
 
-
-
 .. automodule:: tomate.filegroup.command
+
+
 .. rubric:: Classes
 .. autosummary::
    

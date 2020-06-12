@@ -4,9 +4,9 @@
 tomate.log
 ==========
 
-
-
 .. automodule:: tomate.log
+
+
 
 .. rubric:: Functions
 .. autosummary::

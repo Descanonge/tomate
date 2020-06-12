@@ -4,9 +4,9 @@
 tomate.filegroup.filegroup\_load
 ================================
 
-
-
 .. automodule:: tomate.filegroup.filegroup_load
+
+
 .. rubric:: Classes
 .. autosummary::
    

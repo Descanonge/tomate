@@ -4,9 +4,24 @@
 tomate.db\_types
 ================
 
-
-
 .. automodule:: tomate.db_types
+
+
+
+.. rubric:: Content
+.. autosummary::
+       :nosignatures:
+   
+       data_compute.DataCompute
+   
+       masked.data_masked.DataMasked
+   
+       data_disk.DataDisk
+   
+       plotting.data_plot.DataPlot
+   
+
+
 
 
 

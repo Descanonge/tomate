@@ -4,9 +4,9 @@
 tomate.accessor
 ===============
 
-
-
 .. automodule:: tomate.accessor
+
+
 .. rubric:: Classes
 .. autosummary::
    

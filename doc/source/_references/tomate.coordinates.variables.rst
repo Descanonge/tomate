@@ -4,9 +4,9 @@
 tomate.coordinates.variables
 ============================
 
-
-
 .. automodule:: tomate.coordinates.variables
+
+
 .. rubric:: Classes
 .. autosummary::
    

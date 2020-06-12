@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.average\_abc
 ======================================
 
-
-
 .. automodule:: tomate.db_types.plotting.average_abc
+
+
 .. rubric:: Classes
 .. autosummary::
    

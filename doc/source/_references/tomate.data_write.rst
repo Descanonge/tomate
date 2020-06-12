@@ -4,9 +4,9 @@
 tomate.data\_write
 ==================
 
-
-
 .. automodule:: tomate.data_write
+
+
 
 .. rubric:: Functions
 .. autosummary::

@@ -4,9 +4,9 @@
 tomate.db\_types.plotting.image
 ===============================
 
-
-
 .. automodule:: tomate.db_types.plotting.image
+
+
 .. rubric:: Classes
 .. autosummary::
    

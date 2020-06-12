@@ -55,8 +55,6 @@ API Reference
    
       log
    
-      scan_library
-   
       scope
    
       variables_info

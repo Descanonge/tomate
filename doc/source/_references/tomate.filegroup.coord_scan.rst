@@ -4,9 +4,9 @@
 tomate.filegroup.coord\_scan
 ============================
 
-
-
 .. automodule:: tomate.filegroup.coord_scan
+
+
 .. rubric:: Classes
 .. autosummary::
    

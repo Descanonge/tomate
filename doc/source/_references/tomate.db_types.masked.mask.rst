@@ -4,9 +4,9 @@
 tomate.db\_types.masked.mask
 ============================
 
-
-
 .. automodule:: tomate.db_types.masked.mask
+
+
 
 .. rubric:: Functions
 .. autosummary::
