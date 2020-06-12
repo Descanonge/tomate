@@ -403,13 +403,6 @@ class FilegroupLoad(FilegroupScan):
               keyring: Keyring = None, **keys: KeyLike):
         """Write data to disk.
 
-        The filegroups should have their variable scanning
-        coordinate setup correctly. For instance:
-
-        >>> cs = db.filegroup[0].cs['var']
-            cs.update_values(['SST'])
-            cs.in_idx = np.array(['SST'])
-
         :param wd: Directory to place the file. If None, the
             filegroup root is used instead.
         :param file_kw: Keywords argument to pass to `open_file`.

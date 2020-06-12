@@ -137,6 +137,9 @@ class FilegroupNetCDF(FilegroupLoad):
         filename = os.path.join(wd, filename)
 
         keyring = Keyring.get_default(keyring=keyring, **keys)
+        keyring.make_full(self.db.dims)
+        keyring.make_total()
+        keyring.sort_by(self.db.dims)
 
         if file_kw is None:
             file_kw = {}
@@ -167,7 +170,8 @@ class FilegroupNetCDF(FilegroupLoad):
                     name = var
 
                 dimensions = keyring.get_non_zeros()
-                dimensions.remove('var')
+                if 'var' in dimensions:
+                    dimensions.remove('var')
 
                 kwargs = var_kw.get(var, {})
 
