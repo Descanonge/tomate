@@ -49,8 +49,9 @@ class DataDisk(DataBase):
         super().__init__(coords, vi)
         self.root = root
 
-        self.filegroups = filegroups
-        self.link_filegroups()
+        self.filegroups = []
+        for fg in filegroups:
+            self.add_filegroup(fg)
 
         self.allow_advanced = False
 
@@ -62,11 +63,10 @@ class DataDisk(DataBase):
         s += ['\t{}'.format(', '.join(fg.variables)) for fg in self.filegroups]
         return '\n'.join(s)
 
-    def link_filegroups(self):
-        """Link filegroups and data."""
-        for fg in self.filegroups:
-            fg.db = self
-            fg.acs = self.acs
+    def add_filegroup(self, filegroup: FilegroupLoad):
+        """Add filegroup to database."""
+        filegroup.db = self
+        self.filegroups.append(filegroup)
 
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.

@@ -1,5 +1,7 @@
+- [2020-06-12] Use `add_filegroup` instead of `link_filegroups`
 - [2020-06-12] Implement `take_complex`. Add debug messages.
 - [2020-06-12] Fix netCDF `open_file`
+
 ## v1.0.1
 
 - [2020-06-12] Make optional dependencies really optional
