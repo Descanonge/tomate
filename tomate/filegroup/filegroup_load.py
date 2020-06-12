@@ -13,7 +13,7 @@ from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 import numpy as np
 
 from tomate.accessor import Accessor
-from tomate.custom_types import File
+from tomate.custom_types import File, KeyLike
 from tomate.coordinates.variables import Variables
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command
@@ -397,6 +397,25 @@ class FilegroupLoad(FilegroupScan):
                     raise
                 else:
                     self.close_file(file)
+
+    def write(filename: str, wd: str = None,
+              file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
+              keyring: Keyring = None, **keys: KeyLike):
+        """Write data to disk.
+
+        The filegroups should have their variable scanning
+        coordinate setup correctly. For instance:
+
+        >>> cs = db.filegroup[0].cs['var']
+            cs.update_values(['SST'])
+            cs.in_idx = np.array(['SST'])
+
+        :param wd: Directory to place the file. If None, the
+            filegroup root is used instead.
+        :param file_kw: Keywords argument to pass to `open_file`.
+        :param var_kw: Variables specific arguments.
+        """
+        raise NotImplementedError()
 
     def write_variable(self, file, cmd, var, inf_name):
         pass

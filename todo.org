@@ -1,4 +1,11 @@
 * General
+** TODO Add remove_combination
+file:tomate/variables_info.py
+
+** TODO Coords in VI
+- FG write metada
+- Scanning
+
 ** TODO Log reorder
 [[file:tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
 
@@ -40,7 +47,5 @@ in a subclass of database ?
 ** TODO Write to disk
 *** add variable to file
 use existing filegroup information to open some files and add variables
-
-*** write is really out of date
 
 ** TODO Review load command creation

@@ -204,30 +204,36 @@ class DataDisk(DataBase):
         do_post_loading(keyring['var'], self, self.avail.var,
                         self.post_loading_funcs)
 
-    def write(self, filename: str, wd: str = None, **keys: KeyLike):
-        """Write variables to disk.
+    def write(self, filename: str, wd: str = None,
+              file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
+              **keys: KeyLike):
+        """Write data and metadata to disk.
 
-        Write to a netcdf file.
-        Coordinates are written too.
+        If a variable to write is contained in multiple filegroups,
+        only the first filegroup will be used to write this variable.
 
         :param filename: File to write in. Relative to each filegroup root
             directory, or from `wd` if specified.
-        :param wd: [opt] Force to write `filename` in this directory.
-        :param variables: [opt] Variables to write. If None, all are written.
+        :param wd: [opt] Force to write `filename` in this directory instead
+            of each filegroups root.
         """
-        raise NotImplementedError("Out of date.")
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring['var'] = self.loaded.var.get_var_names(keyring['var'])
+        variables = self.loaded.var.get_var_names(keyring['var'].value)
+        if isinstance(variables, str):
+            variables = [variables]
 
         for fg in self.filegroups:
-            variables = [v for v in keyring['var']
-                         if v in fg.variables]
-            if variables:
+            variables_fg = [v for v in variables
+                            if v in fg.variables]
+            for v in variables_fg:
+                variables.remove(v)
+            if variables_fg:
                 keyring_fg = keyring.copy()
-                keyring_fg['var'] = variables
-                fg.write(filename, wd, keyring=keyring_fg)
+                keyring_fg['var'] = variables_fg
+                fg.write(filename, wd, keyring=keyring_fg,
+                         file_kw=file_kw, var_kw=var_kw)
 
     def write_add_variable(self, var: str, sibling: str,
                            inf_name: KeyLikeVar = None, **keys: KeyLike):

@@ -1,3 +1,4 @@
+- [2020-06-12] Update writing method. Add keyword arguments to better control writing.
 - [2020-06-12] Use `add_filegroup` instead of `link_filegroups`
 - [2020-06-12] Implement `take_complex`. Add debug messages.
 - [2020-06-12] Fix netCDF `open_file`
