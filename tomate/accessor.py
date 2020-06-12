@@ -37,29 +37,33 @@ class AccessorABC():
         raise NotImplementedError
 
     @classmethod
-    def check_dim(cls, keyring: Iterable, array: Array):
-        """Check if keyring match array rank.
+    def check_applicable(cls, keyring: Iterable, array: Array):
+        """Check if `keyring` can be applied to `array`.
 
-        :param keyring: Keys used for creating the array.
-
-        :raises IndexError: If mismatch between dimensions.
+        :raises IndexError: If dimensions do not match.
         """
         if cls.ndim(array) != len(keyring):
-            raise IndexError("Mismatch between selected data "
-                             "and keyring length (shape: {}, keyring length: {})"
+            raise IndexError("Keyring not applicable to array,"
+                             " difference in dimensions."
+                             " (array shape: {}, keyring length: {})"
                              .format(cls.shape(array), len(keyring)))
 
     @classmethod
-    def check_shape(cls, keyring: Keyring, array: Array):
-        """Check if keyring match array shape.
+    def check_parent(cls, keyring: Keyring, array: Array):
+        """Check if `array` could have been obtained with `keyring`.
 
-        :param keyring: Keys used for creating the array.
-
-        :raises ValueError: If mismatch between shapes.
+        :raises IndexError: If dimensions do not match.
+        :raises ValueError: If shapes do not match.
         """
-        if not keyring.is_shape_equivalent(cls.shape(array)):
-            raise ValueError("Mismatch between selected data "
-                             "and keyring shape (array: {}, keyring: {})"
+        if cls.ndim(array) != len(keyring.get_non_zeros()):
+            raise IndexError("Array could not have been obtained with"
+                             " keyring. Mismatch in dimensions."
+                             " (array shape: {}, keyring shape: {})"
+                             .format(cls.shape(array), keyring.shape))
+        if cls.shape(array) != keyring.shape:
+            raise ValueError("Array could not have been obtained with"
+                             " keyring. Mismatch in shape."
+                             " (array shape: {}, keyring shape: {})"
                              .format(cls.shape(array), keyring.shape))
 
     @staticmethod
@@ -222,7 +226,7 @@ class Accessor(AccessorABC):
 
         :param keyring: Part of the array to take.
         """
-        cls.check_dim(keyring, array)
+        cls.check_applicable(keyring, array)
         return array[tuple(keyring.keys_values)]
 
     @classmethod
@@ -234,7 +238,7 @@ class Accessor(AccessorABC):
 
         :param keyring: Part of the array to take.
         """
-        cls.check_dim(keyring, array)
+        cls.check_applicable(keyring, array)
 
         out = array
         keys = []
@@ -279,7 +283,7 @@ class Accessor(AccessorABC):
         :param array: Array to assign.
         :param chunk: Array to be assigned.
        """
-        cls.check_shape(keyring, chunk)
+        cls.check_parent(keyring, chunk)
         array[tuple(keyring.keys_values)] = chunk
 
     @classmethod
