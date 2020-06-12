@@ -2,6 +2,6 @@ numpy
 scipy
 matplotlib
 netCDF4
-cftime
+cftime>=1.1.3
 Sphinx>=3.0
 sphinx-rtd-theme
