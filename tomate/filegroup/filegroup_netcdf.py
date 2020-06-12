@@ -43,7 +43,7 @@ class FilegroupNetCDF(FilegroupLoad):
                   mode: str = 'r',
                   log_lvl: str = 'info',
                   **kwargs: Any) -> 'nc.Dataset':
-        kwargs.setdefault(clobber=False)
+        kwargs.setdefault('clobber', False)
         file = nc.Dataset(filename, mode, **kwargs)
 
         log_lvl = getattr(logging, log_lvl.upper())

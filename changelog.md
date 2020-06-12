@@ -1,3 +1,4 @@
+- [2020-06-12] Fix netCDF `open_file`
 ## v1.0.1
 
 - [2020-06-12] Make optional dependencies really optional
