@@ -147,13 +147,13 @@ class VariablesInfo():
     def get_attr(self, attr: str, var: str) -> Any:
         """Get attribute.
 
-        :raises KeyError: Variable / attribute combinaison does not exists.
+        :raises KeyError: Variable / attribute combination does not exists.
         """
         try:
             out = self._attrs[attr][var]
         except KeyError:
             raise KeyError("'{}' attribute for variable '{}'"
-                           " combinaison does not exists.".format(attr, var))
+                           " combination does not exists.".format(attr, var))
         return out
 
     def get_attr_safe(self, attr: str, var: str, default: Any = None) -> Any:

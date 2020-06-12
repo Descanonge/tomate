@@ -16,9 +16,6 @@
 
 ** TODO Add iter_axes back
 
-** TODO Add place_complex
-[[file:tomate/accessor.py]]
-
 * WIP
 
 ** TODO Save metadata to file
