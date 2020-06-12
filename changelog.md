@@ -1,3 +1,4 @@
+- [2020-06-12] Implement `take_complex`. Add debug messages.
 - [2020-06-12] Fix netCDF `open_file`
 ## v1.0.1
 

@@ -8,6 +8,7 @@
 
 import logging
 from typing import List, Iterable
+import itertools
 
 import numpy as np
 
@@ -293,15 +294,24 @@ class Accessor(AccessorABC):
         """Assign part of an array without normal indexing.
 
         Amounts to `array[keyring] = chunk`.
-
-        Uses numpy normal indexing when possible.
-        If not, uses more complex method to access array.
+        List keys are transformed in combination of integers.
 
         :param keyring: Part of array to assign.
         :param array: Array to assign.
         :param chunk: Array to be assigned.
         """
-        raise NotImplementedError()
+        cls.check_parent(keyring, chunk)
+
+        list_keys = [n for n, k in keyring.items() if k.type == 'list']
+        krg = keyring.copy()
+        for m in itertools.product(*[range(keyring[d].shape) for d in list_keys]):
+            krg_chunk = [0] * len(list_keys)
+            for i_d, d in enumerate(list_keys):
+                krg[d] = keyring[d].value[m[i_d]]
+                krg_chunk[i_d] = m[i_d]
+            log.debug('place_complex executing array%s = chunk%s',
+                      krg.print(), krg_chunk)
+            array[tuple(krg.keys_values)] = chunk[tuple(krg_chunk)]
 
     @staticmethod
     def moveaxis(array: np.ndarray,
