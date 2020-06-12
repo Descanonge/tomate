@@ -110,9 +110,8 @@ class FilegroupNetCDF(FilegroupLoad):
               keyring: Keyring = None, **keys: KeyLike):
         """Write data to disk.
 
-        The filegroups should have their variable scanning
-        coordinate setup correctly. See :func:`FilegroupLoad.write
-        <tomate.filegroup.filegroup_load.FilegroupLoad.write>`.
+        The in-file variable name is the one specified in
+        filegroup.cs['var'].in_idx if set, or the variable name passed as key.
 
         Variable specific arguments are passed to `netCDF.Dataset.createVariable
         <https://unidata.github.io/netcdf4-python/netCDF4/index.html
@@ -162,7 +161,10 @@ class FilegroupNetCDF(FilegroupLoad):
 
             for var in keyring['var']:
                 cs = self.cs['var']
-                name = cs.in_idx[cs.idx(var)]
+                if var in cs:
+                    name = cs.in_idx[cs.idx(var)]
+                else:
+                    name = var
 
                 dimensions = keyring.get_non_zeros()
                 dimensions.remove('var')
@@ -195,7 +197,11 @@ class FilegroupNetCDF(FilegroupLoad):
 
         for var in keyring['var']:
             cs = self.cs['var']
-            name = cs.in_idx[cs.idx(var)]
+            if var in cs:
+                name = cs.in_idx[cs.idx(var)]
+            else:
+                name = var
+
             if var in self.db.vi.variables:
                 attrs = self.db.vi[var]
                 for attr in attrs:
