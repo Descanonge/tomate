@@ -242,8 +242,10 @@ class Accessor(AccessorABC):
 
         out = array
         keys = []
-        for k in keyring.keys:
+        for i, k in enumerate(keyring.keys):
             keys_ = tuple(keys + [k.value])
+            log.debug('take_complex executing out = %s%s',
+                      'array' if i == 0 else 'out', list(keys_))
             out = out[keys_]
             if k.shape != 0:
                 keys.append(slice(None, None))
