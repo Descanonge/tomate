@@ -115,6 +115,15 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
+    def update_values(self, values):
+        """Update values.
+
+        Make sure in_idx has same dimensions.
+        """
+        if len(values) != len(self.in_idx):
+            raise IndexError("Not as much values as in-file indices.")
+        super().update_values(values)
+
     def sort_values(self) -> np.ndarray:
         """Sort by values.
 
@@ -396,6 +405,15 @@ class CoordScanShared(CoordScan):
     def set_values(self):
         self.matches = np.array(self.matches)
         super().set_values()
+
+    def update_values(self, values):
+        """Update values.
+
+        Make sure matcher has same dimensions.
+        """
+        if len(values) != len(self.matches):
+            raise IndexError("Not as much values as matches.")
+        super().update_values(values)
 
     def sort_values(self) -> np.ndarray:
         order = super().sort_values()
