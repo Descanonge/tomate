@@ -67,8 +67,6 @@ for more information.
 Features supplied in 'data_write', that allow to save a database information in
 a json file to avoid re-scanning it each time, is to be considered very experimental.
 
-All writing to disk features are currently out of date.
-
 
 ## Documentation
 
