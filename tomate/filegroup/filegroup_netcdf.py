@@ -60,14 +60,14 @@ class FilegroupNetCDF(FilegroupLoad):
 
     def load_cmd(self, file: File, cmd: Command):
         for krg_inf, krg_mem in cmd:
-            for ncname in krg_inf['var']:
-                log.info("Looking at variable %s", ncname)
+            ncname = krg_inf['var'].value
+            log.info("Looking at variable %s", ncname)
 
-                chunk = self._load_slice_single_var(file, krg_inf, ncname)
+            chunk = self._load_slice_single_var(file, krg_inf, ncname)
 
-                log.info("Placing it in %s",
-                         krg_mem.print())
-                self.db.acs.place(krg_mem, self.db.data, chunk)
+            log.info("Placing it in %s",
+                     krg_mem.print())
+            self.db.acs.place(krg_mem, self.db.data, chunk)
 
     def _load_slice_single_var(self, file: 'nc.Dataset',
                                keyring: Keyring, ncname: str) -> np.ndarray:
