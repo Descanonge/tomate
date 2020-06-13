@@ -61,7 +61,7 @@ class AccessorABC():
                              " keyring. Mismatch in dimensions."
                              " (array shape: {}, keyring shape: {})"
                              .format(cls.shape(array), keyring.shape))
-        if cls.shape(array) != keyring.shape:
+        if not keyring.is_shape_equivalent(cls.shape(array)):
             raise ValueError("Array could not have been obtained with"
                              " keyring. Mismatch in shape."
                              " (array shape: {}, keyring shape: {})"
