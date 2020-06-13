@@ -416,22 +416,37 @@ class FilegroupLoad(FilegroupScan):
         return var
 
     def write_add_variable(self, var: str, sibling: str,
-                           inf_name: str, scope: Scope):
-        """Add variable to files."""
-        keyring = scope.parent_keyring.copy()
-        keyring['var'] = sibling
-        keyring.make_var_idx(self.variables)
+                           keyring: Keyring, kwargs: Dict = None) -> bool:
+        """Add variable to files.
 
-        # FIXME: memory keyring is wrong
-        commands = self.get_commands(keyring, None)
+        Create load command to add variable to file.
+
+        :param scope: Scope to write.
+        :param kwargs: Keyword arguments to pass for variable creation.
+        """
+        if kwargs is None:
+            kwargs = {}
+
+        cmd = self.get_fg_keyrings(keyring)
+        if cmd is None:
+            return False
+
+        commands = self.get_commands(*cmd)
 
         for cmd in commands:
-            log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
-            file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
             for cks in cmd:
                 cks.memory['var'] = self.db.idx(var)
+                cks.infile['var'] = self._get_infile_name(var)
+            log.debug('Command: %s', cmd)
+
+            cs = self.cs['var']
+            sibling_inf = cs.in_idx[cs.idx(sibling)]
+
+            file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
             try:
-                self.write_variable(file, cmd, var, inf_name)
+                sibling_dim = self._get_order_in_file(file=file, inf_name=sibling_inf)
+                kwargs.setdefault('dimensions', sibling_dim)
+                self.add_variables_to_file(file, cmd, **{var: kwargs})
             except Exception:
                 self.close_file(file)
                 raise

@@ -241,25 +241,22 @@ class DataDisk(DataBase):
                          file_kw=file_kw, var_kw=var_kw)
 
     def write_add_variable(self, var: str, sibling: str,
-                           inf_name: KeyLikeVar = None, **keys: KeyLike):
+                           kwargs: Dict = None, **keys: KeyLike):
         """Add variables to files.
 
         :param var: Variable to add. Must be in loaded scope.
         :param sibling: Variable along which to add the data.
             New variable will be added to the same files
             and in same order.
-        :param inf_name: [opt] Variable in-file name. Default to the variables name.
         :param keys: [opt] If a subpart of data is to be written.
             The selected data must match in shape that of the
             sibling data on disk.
         """
-        if inf_name is None:
-            inf_name = var
-        scope = self.get_subscope('loaded', var=var, **keys)
+        scope = self.loaded.copy()
+        scope.slice(var=sibling, **keys)
         for fg in self.filegroups:
-            if sibling in fg.variables:
-                fg.write_add_variable(var, sibling, inf_name, scope)
-                break
+            fg.write_add_variable(var, sibling, scope.parent_keyring,
+                                  kwargs=kwargs)
 
     def scan_variables_attributes(self):
         """Scan variables specific attributes.
