@@ -11,10 +11,10 @@ with open('README.md') as file:
 required = ['numpy']
 
 extras = {
-    "Time": ["cftime>=1.1.3"],
-    "NetCDF": ["netCDF4"],
-    "Plot": ["matplotlib"],
-    "Compute": ["scipy"],
+    "time": ["cftime>=1.1.3"],
+    "netcdf": ["netCDF4"],
+    "plot": ["matplotlib"],
+    "compute": ["scipy"],
 }
 
 

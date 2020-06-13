@@ -85,12 +85,12 @@ Tomate requires the following python packages:
   - numpy
 
 Optional dependencies:
-  - [Time] [cftime>=1.1.3](https://github.com/Unidata/cftime) -
+  - [time] [cftime>=1.1.3](https://github.com/Unidata/cftime) -
     To manage dates in time coordinates
-  - [NetCDF] [netcdf4-python](https://github.com/Unidata/netcdf4-python) -
+  - [netcdf] [netcdf4-python](https://github.com/Unidata/netcdf4-python) -
     To open netCDF4 files
-  - [Plot] matplotlib - To create plots easily
-  - [Compute] scipy - To do various computation on the data
+  - [plot] matplotlib - To create plots easily
+  - [compute] scipy - To do various computation on the data
 
 
 ## Install

@@ -1,3 +1,7 @@
+
+## v1.0.2
+
+- [2020-06-12] Lowercase optional dependencies
 - [2020-06-12] Update writing methods. Add keyword arguments to better control writing.
   Use load command to standardize writing.
   `write_add_variable` now support multiple filegroups.
