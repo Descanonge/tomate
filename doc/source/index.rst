@@ -8,7 +8,7 @@ Check out the :doc:`general` if you're lost !
 
 .. toctree::
    :includehidden:
-   :maxdepth: 4
+   :maxdepth: 3
 
    general
    tutorial
@@ -23,7 +23,11 @@ Check out the :doc:`general` if you're lost !
    accessor
    expanding
 
-   API Reference <_references/tomate.rst>
+.. toctree::
+   :maxdepth: 1
+
+   _references/tomate.rst
+
 
 
 Indices and tables
