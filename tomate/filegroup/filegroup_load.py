@@ -20,7 +20,6 @@ from tomate.filegroup.command import CmdKeyrings, Command
 from tomate.filegroup.filegroup_scan import FilegroupScan
 from tomate.keys.key import KeyVar
 from tomate.keys.keyring import Keyring
-from tomate.scope import Scope
 
 if TYPE_CHECKING:
     from tomate.data_base import DataBase
@@ -339,9 +338,7 @@ class FilegroupLoad(FilegroupScan):
         :param keyring: Keyring asked. It contains the dimensions as
             they should be stored in the database.
         :param int_keyring: Keyring used to fetch chunk array from file.
-            It contains the dimensions in the order of
-            array.
-
+            It contains the dimensions in the order of array.
         :returns: Re-ordered data.
         """
         in_file = int_keyring.get_non_zeros()
@@ -410,8 +407,6 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError()
 
-    def write_variable(self, file, cmd, var, inf_name):
-        pass
 
     def write_add_variable(self, var: str, sibling: str,
                            inf_name: str, scope: Scope):
@@ -435,6 +430,10 @@ class FilegroupLoad(FilegroupScan):
                 raise
             else:
                 self.close_file(file)
+
+    def add_variable_to_file(self, file: File, cmd: Command, **kwargs):
+        """Add variable to files."""
+        raise NotImplementedError()
 
 
 def do_post_loading(key_loaded: KeyVar,

@@ -212,13 +212,15 @@ class DataDisk(DataBase):
         If a variable to write is contained in multiple filegroups,
         only the first filegroup will be used to write this variable.
 
-        Filegroups variables CoordScan must be correctly setup for this to
-        work. Otherwise one can use filegroup.write() directly.
+        Filegroups variables CoordScan should contain the variables to write,
+        otherwise one can use filegroup.write() directly.
 
         :param filename: File to write in. Relative to each filegroup root
             directory, or from `wd` if specified.
         :param wd: [opt] Force to write `filename` in this directory instead
             of each filegroups root.
+        :param file_kw: Keywords argument to pass to `open_file`.
+        :param var_kw: Variables specific arguments.
         """
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)

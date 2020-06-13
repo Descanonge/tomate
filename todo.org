@@ -44,8 +44,4 @@ Possible, but no support currently. Stuff could break.
 ** TODO Multiple selections
 in a subclass of database ?
 
-** TODO Write to disk
-*** add variable to file
-use existing filegroup information to open some files and add variables
-
 ** TODO Review load command creation
