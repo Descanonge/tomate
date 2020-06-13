@@ -407,6 +407,12 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError()
 
+    def _get_infile_name(self, var: str) -> str:
+        """Get infile name."""
+        cs = self.cs['var']
+        if var in cs:
+            return cs.in_idx[cs.idx(var)]
+        return var
 
     def write_add_variable(self, var: str, sibling: str,
                            inf_name: str, scope: Scope):
