@@ -13,7 +13,7 @@ from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 import numpy as np
 
 from tomate.accessor import Accessor
-from tomate.custom_types import File, KeyLike
+from tomate.custom_types import File, KeyLike, KeyLikeVar
 from tomate.coordinates.variables import Variables
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command
@@ -269,7 +269,8 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def _get_order_in_file(self) -> List[str]:
+    def _get_order_in_file(self, file: File = None,
+                           var_name: KeyLikeVar = None) -> List[str]:
         """Get order of dimensions in file.
 
         Default to the order of coordinates in the filegroup.

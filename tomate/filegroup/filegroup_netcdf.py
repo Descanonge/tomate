@@ -94,15 +94,15 @@ class FilegroupNetCDF(FilegroupLoad):
         return chunk
 
     @staticmethod
-    def _get_order_in_file(file: 'nc.Dataset', ncname: str) -> List[str]:
+    def _get_order_in_file(file: 'nc.Dataset' = None,
+                           var_name: str = None) -> List[str]:
         """Get order from netcdf file, reorder keys.
 
         :param file: File object.
-        :param ncname: Name of the variable in file.
-
+        :param inf_name: Name of the variable in file.
         :returns: Coordinate names in order.
         """
-        order = list(file[ncname].dimensions)
+        order = list(file[var_name].dimensions)
         return order
 
     def write(self, filename: str, wd: str = None,
