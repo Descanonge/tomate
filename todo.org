@@ -21,7 +21,7 @@ file:tomate/variables_info.py
 ** TODO Test for multiple shared keys
 [[file:tomate/filegroup/command.py::def merge_keys(self):]]
 
-** TODO Add iter_axes back
+** TODO Plot histogram
 
 * WIP
 

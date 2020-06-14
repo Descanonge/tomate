@@ -6,13 +6,14 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple
 import logging
 
 import numpy as np
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
-from tomate.custom_types import Array, KeyLikeInt, KeyLikeVar
+from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeVar
 from tomate.data_base import DataBase
 
 from tomate.db_types.plotting.contour import PlotObjectContour
@@ -214,125 +215,79 @@ class DataPlot(DataBase):
 
         return po
 
+    def iter_axes(self, axes: Iterable[Axes], func: Callable,
+                  iterables: Dict[str, Iterable] = None,
+                  kwargs: Any = None) -> np.ndarray:
+        r"""Apply function over multiple axes.
 
-class _DataPlot_(DataBase):
-    """Added functionalities for plotting data."""
-
-    def imshow_all(self, axes, variables=None, coords=None, limits=None, kwargs=None, **kw_coords):
-        """Plot all variables.
-
-        Parameters
-        ----------
-        axes: Array of Matplotlib axis
-        variables: List[str]
-            List of variable to plot.
-            None elements will be skipped, and the
-            corresponding axe deleted.
-        coords: List[str], optional
-            Coordinate to plot along.
-            If None, selected coordinates with size higher
-            than 1 will be used.
-        limits: bool, optional
-            Set axis limits.
-        kwargs: Dict[Any]
-            Passed to imshow.
-        kw_coords: Keys
-            Subset of data to plot.
-
-        Returns
-        -------
-        Array of Matplotlib images.
+        :param axes: Axes to iterate on.
+        func: Function to call for every axe.
+            func(ax, DataPlot, args, kwargs, \*\*iterables)
+        iterables: Keyword arguments passed to `func`,
+            changing for every axis. Each iterable should be
+            as least as long as the axes.
+        kwargs: Passed to func.
+        :returns: Array of objects returned from func.
+            Same shape as `axes`.
         """
-        def plot(ax, dt, var, **kwargs):
-            im_kw = {'vmin': dt.vi.get_attr_safe('vmin', var),
-                     'vmax': dt.vi.get_attr_safe('vmax', var)}
+        if iterables is None:
+            iterables = []
+        if kwargs is None:
+            kwargs = {}
 
-            if kwargs['kwargs'] is None:
-                kwargs['kwargs'] = {}
-            im_kw.update(kwargs.pop('kwargs'))
+        output = []
+        axes = np.array(axes)
+        for i, ax in enumerate(axes.flat):
+            iter_i = {k: z[i] for k, z in iterables.items()}
+            output.append(func(ax, self, **kwargs, **iter_i))
 
-            im = dt.imshow(ax, var, kwargs=im_kw, **kwargs)
-            title = dt.vi.get_attr_safe('fullname', var, default=var)
-            ax.set_title(title)
+        output = np.array(output).reshape(axes.shape)
+        return output
 
-            # if _has_matplotlib:
-            #     divider = make_axes_locatable(ax)
-            #     cax = divider.append_axes("right", "2%", 0)
-            #     label = dt.vi.get_attr_safe('units', var, default='')
-            #     ax.get_figure().colorbar(im, cax=cax, label=label)
+    def imshow_all(self, axes: Iterable[Axes], variables: List[str] = None,
+                   imshow_axes: List[str] = None, limits: bool = True,
+                   kwargs: Dict = None, **keys: KeyLike):
+        """Plot all variables."""
+        def plot(ax, db, **kwargs):
+            var = kwargs.pop('var')
+            if var is not None:
+                po = db.imshow(ax, var, **kwargs)
+                ax.set_title(db.vi.get_attr_safe('fullname', var, var))
+                return po
+            return None
 
-            return im
+        self.check_loaded()
 
         if variables is None:
             variables = self.loaded.var[:]
-        images = self.iter_axes(axes, plot, variables,
-                                limits=limits, kwargs=kwargs, coords=coords,
-                                **kw_coords)
-        self.plotted = self.get_subscope('loaded', var=variables, **kw_coords)
+        axes = np.array(axes)
+        for i in range(axes.size - len(variables)):
+            variables.append(None)
+        if kwargs is None:
+            kwargs = {}
+        plot_kw = {'axes': imshow_axes, 'limits': limits, 'kwargs': kwargs}
+        plot_kw.update(keys)
+        images = self.iter_axes(axes, plot, {'var': variables}, plot_kw)
+
         return images
 
-    def del_axes_none(self, fig, axes, variables=None):
+
+    def del_axes_none(self, fig: Figure, axes: Iterable[Axes],
+                      variables=None):
         """Delete axes for which variables is None.
 
-        Parameters
-        ----------
-        fig: Matplotlib figure
-        axes: Array of Matplotlib axes
-        variables: List[str]
-            List of variables. If element is None,
+        variables: List of variables. If element is None,
             axis will be removed from figure.
         """
         if variables is None:
             variables = self.loaded.var[:]
+
         variables = list(variables)
+        axes = np.array(axes)
+
         for i in range(axes.size - len(variables)):
             variables.append(None)
         for i, var in enumerate(variables):
             if var is None:
                 ax = axes.flat[i]
                 fig.delaxes(ax)
-
-    def iter_axes(self, axes, func, variables=None, iterables=None, *args, **kwargs):
-        r"""Apply function over multiple axes.
-
-        Parameters
-        ----------
-        axes: Array of Matplotlib axis
-            Axes to iterate on.
-        func: Callable
-            Function to call for every axe.
-            func(ax, DataPlot, variable, \*iterable, \*\*kwargs)
-        variables: List[str]
-            None elements will be skipped.
-        iterables: List[List[Any]]
-            Argument passed to `func`, changing
-            for every axis.
-        kwargs: Any
-            Passed to func.
-        """
-        if variables is None:
-            variables = self.loaded.var[:]
-        if iterables is None:
-            iterables = []
-        iterables = [np.array(c) for c in iterables]
-
-        output = [None for _ in range(axes.size)]
-        for i, var in enumerate(variables):
-            ax = axes.flat[i]
-            iterable = [c.flat[i] for c in iterables]
-
-            if var is not None:
-                output[i] = func(ax, self, var, *iterable, *args, **kwargs)
-
-        output = np.array(output)
-        output = np.reshape(output, axes.shape)
-        return output
-
-    def plot_histogram(self, ax, variable, kwargs=None, **keys):
-        if kwargs is None:
-            kwargs = {}
-
-        kw = {'density': True}
-        kw.update(kwargs)
-        data = self.view(variable, **keys).compressed()
-        ax.hist(data, **kw)
