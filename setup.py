@@ -1,11 +1,25 @@
 
 from setuptools import setup, find_packages
+from os import path
 
-import tomate
+
+here = path.abspath(path.dirname(__file__))
 
 
-with open('README.md') as file:
-    long_description = file.read()
+def get_long_description(rel_path):
+    with open(path.join(here, rel_path)) as file:
+        return file.read()
+
+
+def get_version(rel_path):
+    with open(path.join(here, rel_path)) as file:
+        lines = file.read().splitlines()
+    for line in lines:
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
 
 
 required = ['numpy']
@@ -19,10 +33,10 @@ extras = {
 
 
 setup(name='tomate-data',
-      version=tomate.__version__,
+      version=get_version('src/tomate/__init__.py'),
       description='Tool to manipulate and aggregate data',
 
-      long_description=long_description,
+      long_description=get_long_description('README.md'),
       long_description_content_type='text/markdown',
       keywords='data manipulate coordinate file netcdf load',
 
@@ -46,5 +60,7 @@ setup(name='tomate-data',
       python_requires='>=3.7',
       install_requires=required,
       extras_require=extras,
-      packages=find_packages(),
+
+      package_dir={'': 'src'},
+      packages=find_packages(where='src'),
       )
