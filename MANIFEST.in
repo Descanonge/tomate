@@ -1,4 +1,5 @@
+recursive-include examples *.py
 include README.md
 include LICENSE
-
-recursive-include examples *.py
+include changelog.md
+graft src
