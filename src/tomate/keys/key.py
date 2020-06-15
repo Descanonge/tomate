@@ -205,15 +205,20 @@ class Key():
 
         :returns: self*other
         """
-        a = self.tolist()
-        key = other.value
-        if other.type == 'int':
-            key = [key]
-
-        if other.type == 'slice':
-            res = a[key]
+        if (self.type == 'slice' and self.value.start in [0, None]
+                and self.value.stop in [-1, None]
+                and self.value.step in [1, None]):
+            return other
         else:
-            res = [a[k] for k in key]
+            a = self.tolist()
+            key = other.value
+            if other.type == 'int':
+                key = [key]
+
+            if other.type == 'slice':
+                res = a[key]
+            else:
+                res = [a[k] for k in key]
 
         if self.type == 'int' or other.type == 'int':
             key = self.__class__(int(res[0]))

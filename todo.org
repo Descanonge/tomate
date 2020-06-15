@@ -7,24 +7,28 @@ file:tomate/variables_info.py
 - Scanning
 
 ** TODO Log reorder
-[[file:tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
+[[file:src/tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
 
 ** TODO Convert to km
-[[file:tomate/coordinates/latlon.py::class Lat(Coord):]]
+[[file:src/tomate/coordinates/latlon.py::class Lat(Coord):]]
 
 ** TODO Compute min / max value
 
 ** TODO Use self.kwargs if there
-[[file:tomate/db_types/plotting/plot_object.py::def set_limits]]
-[[file:tomate/db_types/plotting/plot_object.py::def set_labels]]
+[[file:src/tomate/db_types/plotting/plot_object.py::def set_limits]]
+[[file:src/tomate/db_types/plotting/plot_object.py::def set_labels]]
 
 ** TODO Test for multiple shared keys
-[[file:tomate/filegroup/command.py::def merge_keys(self):]]
+[[file:src/tomate/filegroup/command.py::def merge_keys(self):]]
 
 ** TODO Plot histogram
 
 ** TODO Variables with different dimensions
 check it works
+
+** TODO Plot Time axis with cftime
+
+** TODO Add coords to VI
 
 * WIP
 
@@ -39,10 +43,10 @@ To not need to scan files each time
 Possible, but no support currently. Stuff could break.
 
 *** TODO Subset untested for reverse coordinate
-[[file:tomate/coordinates/coord.py:: Untested]]
+[[file:src/tomate/coordinates/coord.py:: Untested]]
 
 *** TODO Keys always sorted in increasing order
-[[file:tomate/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
+[[file:src/tomate/data_base.py::def add_to_selection(self, scope: Union\[str, Scope\] = 'avail',]]
 
 ** TODO Multiple selections
 in a subclass of database ?
