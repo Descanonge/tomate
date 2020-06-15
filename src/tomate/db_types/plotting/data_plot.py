@@ -271,7 +271,6 @@ class DataPlot(DataBase):
 
         return images
 
-
     def del_axes_none(self, fig: Figure, axes: Iterable[Axes],
                       variables=None):
         """Delete axes for which variables is None.

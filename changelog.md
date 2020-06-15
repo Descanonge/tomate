@@ -1,4 +1,8 @@
 
+## v1.0.3
+
+- [2020-06-14] Add functions to plot on multiple axes at once.
+
 ## v1.0.2
 
 - [2020-06-12] Lowercase optional dependencies
