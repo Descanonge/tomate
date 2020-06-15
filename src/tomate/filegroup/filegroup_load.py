@@ -435,6 +435,15 @@ class FilegroupLoad(FilegroupScan):
 
         for cmd in commands:
             for cks in cmd:
+                # keyring argument dictates command shape
+                # help user to match `krg_inf` and `dimensions`
+                for name, input_key in keyring.items():
+                    if input_key.shape == 0:
+                        cks.infile[name].make_list_int()
+                        cks.memory[name].make_list_int()
+                    else:
+                        cks.infile[name].make_int_list()
+                        cks.memory[name].make_int_list()
                 cks.memory['var'] = self.db.idx(var)
                 cks.infile['var'] = self._get_infile_name(var)
             log.debug('Command: %s', cmd)

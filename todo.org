@@ -26,9 +26,6 @@ file:tomate/variables_info.py
 ** TODO Variables with different dimensions
 check it works
 
-** TODO Impose command dimensions
-option in FG.get_commands
-
 * WIP
 
 ** TODO Save metadata to file
