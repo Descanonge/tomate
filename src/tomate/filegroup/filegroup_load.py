@@ -92,7 +92,7 @@ class FilegroupLoad(FilegroupScan):
 
         for dim, key in keyring.items_values():
             infile = np.array(self.contains[dim][key])
-            memory = np.arange(len(infile))
+            memory = np.arange(infile.size)
 
             none = np.where(np.equal(infile, None))[0]
             infile = np.delete(infile, none)
