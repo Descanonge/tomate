@@ -130,7 +130,9 @@ class FilegroupNetCDF(FilegroupLoad):
         :param wd: Directory to place the file. If None, the
             filegroup root is used instead.
         :param file_kw: Keywords argument to pass to `open_file`.
-        :param var_kw: Variables specific arguments.
+        :param var_kw: Variables specific arguments. Keys are variables
+            names, values are dictionnary containing options.
+            Use '_all' to add an option for all variables.
         """
         if wd is None:
             wd = self.root
@@ -210,7 +212,8 @@ class FilegroupNetCDF(FilegroupLoad):
             ncname = krg_inf['var'].value
             log.info('Inserting variable %s', ncname)
 
-            kwargs = var_kw.get(name, {})
+            kwargs = var_kw.get('_all', {})
+            kwargs.update(var_kw.get(name, {}))
 
             if ncname not in file.variables:
                 datatype = kwargs.pop('datatype', None)
