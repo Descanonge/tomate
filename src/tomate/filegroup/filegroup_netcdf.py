@@ -214,6 +214,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
             kwargs = var_kw.get('_all', {})
             kwargs.update(var_kw.get(name, {}))
+            kwargs = kwargs.copy()
 
             if ncname not in file.variables:
                 datatype = kwargs.pop('datatype', None)
