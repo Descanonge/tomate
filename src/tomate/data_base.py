@@ -640,9 +640,9 @@ class DataBase():
             self.set_data(variable, data)
         self.vi.set_attrs(variable, **attrs)
 
-    def remove_loaded_variable(self, variable: str):
+    def remove_loaded_variable(self, variables: Union[str, List[str]]):
         """Remove variable from data."""
-        if variable in self.loaded:
-            keys = self.loaded.idx[variable]
-            self.data = np.delete(self.data, [keys], axis=0)
-            self.loaded.var.remove(variable)
+        if isinstance(variables, str):
+            variables = [variables]
+        keep = [v for v in self.loaded if v not in variables]
+        self.slice_data(var=keep)
