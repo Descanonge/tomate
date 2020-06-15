@@ -1,3 +1,4 @@
+- [2020-06-15] Fix writing of squeezed dimensions.
 
 ## v1.0.3
 

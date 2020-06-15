@@ -146,9 +146,9 @@ class FilegroupNetCDF(FilegroupLoad):
         cmd.filename = filename
         krg_inf = Keyring(var=[self._get_infile_name(v)
                                for v in krg_mem['var']])
-        krg_inf.make_full(self.db.dims)
+        krg_inf.make_full(krg_mem.get_non_zeros())
         krg_inf.make_total()
-        krg_inf.sort_by(self.db.dims)
+        krg_inf.sort_by(krg_mem.get_non_zeros())
         cmd.append(krg_inf, krg_mem)
         cmd, = separate_variables([cmd])
 
