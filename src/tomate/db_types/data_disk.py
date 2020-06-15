@@ -253,7 +253,7 @@ class DataDisk(DataBase):
             sibling data on disk.
         """
         scope = self.loaded.copy()
-        scope.slice(var=sibling, **keys)
+        scope.slice(var=sibling, **keys, int2list=False)
         for fg in self.filegroups:
             fg.write_add_variable(var, sibling, scope.parent_keyring,
                                   kwargs=kwargs)
