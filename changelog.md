@@ -1,3 +1,4 @@
+- [2020-06-15] Add option to select the loaded scope when adding new data.
 - [2020-06-15] Add kwargs for all variable when writing.
 - [2020-06-15] Fix writing of squeezed dimensions.
 
