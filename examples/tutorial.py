@@ -35,9 +35,7 @@ coords_fg = [[lon, 'in', 'longitude'],
              [time, 'shared']]
 cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
-pregex = ('%(prefix)_'
-          '%(time:x)%'
-          '%(suffix)')
+pregex = '%(prefix)_%(time:x)%(suffix)'
 replacements = {'prefix': 'SSH',
                 'suffix': r'\.nc'}
 cstr.set_fg_regex(pregex, **replacements)

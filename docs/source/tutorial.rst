@@ -18,18 +18,13 @@ Adding Coordinates
 ------------------
 
 First we will define the coordinates that we will encounter in our database.
-Here we use a simple :class:`Coord<coordinates.coord.Coord>` for the latitude and
-longitude, and :class:`Time<coordinates.time.Time>` for the time as this will provide
-useful functionalities for working with dates.
-We could use any kind of subclass of the Coord class, eventually a user made one.
+We use subclasses of :class:`Coord<coordinates.coord.Coord>` that add some
+specific functionalities for each coordinate::
 
-::
-
-    from tomate import Coord, Time
-    lat = Coord('lat', None, fullname='Latitude')
-    lon = Coord('lon', None, fullname='Longitude')
-    time = Time('time', None, fullname='Time',
-                units='hours since 1970-01-01 00:00:00')
+    from tomate import Time, Lat, Lon
+    lat = Lat()
+    lon = Lon()
+    time = Time('time', None, units='hours since 1970-01-01 00:00:00')
 
     coords = [lat, lon, time]
 
@@ -129,9 +124,7 @@ The elements available are defined in the
 For more complicated and longer filenames, we can specify some replacements.
 We obtain::
 
-    pregex = ('%(prefix)_'
-              '%(time:x)'
-              '%(suffix)')
+    pregex = '%(prefix)_%(time:x)%(suffix)'
     replacements = {'prefix': 'SSH',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, **replacements)
@@ -189,10 +182,11 @@ custom regex **must end with a colon**. It can still be followed by the
 `dummy` keyword.
 
 We must again tell how the coordinate will be scanned. This time the
-date information will be retrieved from the filename::
+date information will be retrieved from the filename, and we will automatically
+scan variables::
 
-    cstr.set_variables_infile(SST='sst')
     cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon')
+    cstr.set_scan_in_file(scanlib.nc.scan_variables, 'var')
     cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
 
 Only the time value will be fetch from the filename, so as we specify nothing for
@@ -241,8 +235,8 @@ the database.
 We can add more functionalities by specifying additional child classes of
 DataBase. All of those provided by the package are present in the
 :mod:`tomate.db_types`.
-Here let's use :class:`DataMasked<db_types.data_masked.DataMasked>` that add support
-for masked data, and :class:`DataPlot<db_types.data_plot.DataPlot>` which provides
+Here let's use :class:`DataMasked<db_types.masked.data_masked.DataMasked>` that add support
+for masked data, and :class:`DataPlot<db_types.plotting.data_plot.DataPlot>` which provides
 convenience plotting functions::
 
   import tomate.db_types as dt
@@ -316,5 +310,5 @@ To go further
 | More information on scanning: :doc:`scanning`
 | More information on logging: :doc:`log`
 
-Some examples of database creation and use cases are provided
-in /examples.
+Some examples of database creation and use cases are provided in
+at `<https://github.com/Descanonge/tomate/blob/develop/examples>`__.
