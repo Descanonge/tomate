@@ -67,7 +67,7 @@ class DataBase():
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
     def __init__(self, dims: List[Coord],
-                 vi: VariablesInfo):
+                 vi: VariablesInfo = None):
 
         self.dims = [c.name for c in dims]
 
@@ -80,6 +80,8 @@ class DataBase():
         self.loaded.name = 'loaded'
         self.selected.name = 'selected'
 
+        if vi is None:
+            vi = VariablesInfo()
         self.vi = vi
 
         self.data = None

@@ -18,6 +18,7 @@ from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLike
 from tomate.data_base import DataBase
 from tomate.db_types.data_disk import DataDisk
 from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.keys.key import Key, KeyVar, KeyValue
 from tomate.variables_info import VariablesInfo
@@ -92,8 +93,7 @@ class Constructor():
 
     def add_filegroup(self, fg_type: Type,
                       coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
-                      name: str = '',
-                      root: str = None,
+                      name: str = '', root: str = None,
                       variables_shared: bool = False,
                       **kwargs: Any):
         """Add filegroup.
@@ -119,32 +119,9 @@ class Constructor():
         ...                                 [lon, 'in'],
         ...                                 [time, 'shared']])
         """
-        shared_corres = {'in': False, 'shared': True}
-        for i, c_fg in enumerate(coords_fg):
-            if isinstance(c_fg[0], str):
-                c_name = c_fg[0]
-                try:
-                    c_fg[0] = self.dims[c_name]
-                except KeyError:
-                    raise KeyError("'{}' is not in constructor dimensions.".format(c_name))
-            if len(c_fg) < 3:
-                c_fg.append(c_fg[0].name)
-            shared = c_fg[1]
-            if not isinstance(shared, bool):
-                if shared not in shared_corres:
-                    raise ValueError("Shared must be bool or {}\n({}, {})"
-                                     .format(list(shared_corres.keys()),
-                                             name, c_fg[0].name))
-                shared = shared_corres[shared]
-            coords_fg[i][1] = shared
-
-        if root is None:
-            root = ''
-        root = os.path.join(self.root, root)
-
-        if all([c[0].name != 'var' for c in coords_fg]):
-            coords_fg.insert(0, [self.var, variables_shared, 'var'])
-        fg = fg_type(root, None, coords_fg, self.vi, name, **kwargs)
+        fg = make_filegroup(fg_type, self.root, self.dims,
+                            coords_fg, self.vi, root, name,
+                            variables_shared, **kwargs)
         self.filegroups.append(fg)
 
     def set_fg_regex(self, pregex: str, **replacements: str):
@@ -455,15 +432,17 @@ class Constructor():
 
         :returns: Data instance ready to use.
         """
-        args = [list(self.dims.values()), self.vi]
+        args = {'dims': list(self.dims.values()),
+                'vi': self.vi}
 
         if scan or self.filegroups:
             self.add_disk_features()
         if DataDisk in self.db_types:
-            args += [self.root, self.filegroups]
+            args.update({'root': self.root,
+                         'filegroups': self.filegroups})
 
         db_class = self.create_data_class()
-        db = db_class(*args)
+        db = db_class(**args)
         db.post_loading_funcs += self.post_loading_funcs
         db.allow_advanced = self.allow_advanced
 

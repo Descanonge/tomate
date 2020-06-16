@@ -7,7 +7,8 @@
 
 
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import (Any, Callable, Dict, Iterator, List, Optional,
+                    Tuple, Type, Union, TYPE_CHECKING)
 
 import os
 import re
@@ -455,3 +456,57 @@ def scan_variables_attributes_default(fg: 'FilegroupLoad', file: File,
         Attributes are added to the VI.
     """
     raise NotImplementedError()
+
+
+def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
+                   coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
+                   vi: VariablesInfo,
+                   root_fg: str = None, name: str = '',
+                   variables_shared: bool = False,
+                   **kwargs: Any):
+    """Convenience function to create filegroup.
+
+    :param fg_type: Class of filegroup to add. Dependant on the file-format.
+    :param root: Base root.
+    :param coords_fg: Coordinates used in this grouping of files.
+        Each element of the list is a tuple of length 2 or 3 with
+        the coordinate (or its name), a shared flag, and eventually
+        the name of the coordinate in the file.
+        The flag can be 'shared' or 'in', or a boolean (True = shared).
+        The name is optional, if not specified the name of the coordinate
+        object is used.
+        Variables dimension can be omitted.
+    :param name: Name of the filegroup.
+    :param root_fg: [opt] Subfolder from root.
+    :param variables_shared: [opt] If the Variables dimension is shared.
+        Default is False.
+    :param kwargs: [opt] Passed to the fg_type initializator.
+    """
+    shared_corres = {'in': False, 'shared': True}
+    for i, c_fg in enumerate(coords_fg):
+        if isinstance(c_fg[0], str):
+            c_name = c_fg[0]
+            try:
+                c_fg[0] = dims[c_name]
+            except KeyError:
+                raise KeyError("'{}' is not in constructor dimensions.".format(c_name))
+        if len(c_fg) < 3:
+            c_fg.append(c_fg[0].name)
+        shared = c_fg[1]
+        if not isinstance(shared, bool):
+            if shared not in shared_corres:
+                raise ValueError("Shared must be bool or {}\n({}, {})"
+                                 .format(list(shared_corres.keys()),
+                                         name, c_fg[0].name))
+            shared = shared_corres[shared]
+        coords_fg[i][1] = shared
+
+    if root_fg is None:
+        root_fg = ''
+    root_fg = os.path.join(root, root_fg)
+
+    if all([c[0].name != 'var' for c in coords_fg]):
+        coords_fg.insert(0, [dims['var'], variables_shared, 'var'])
+    fg = fg_type(root_fg, None, coords_fg, vi, name, **kwargs)
+
+    return fg
