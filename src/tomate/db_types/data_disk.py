@@ -8,14 +8,15 @@
 
 import logging
 import itertools
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union, Tuple, Type
 
 import numpy as np
 
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import KeyLike, KeyLikeValue, KeyLikeVar
+from tomate.custom_types import KeyLike, KeyLikeValue
 from tomate.data_base import DataBase
 from tomate.filegroup.filegroup_load import FilegroupLoad, do_post_loading
+from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
 from tomate.variables_info import VariablesInfo
@@ -42,16 +43,15 @@ class DataDisk(DataBase):
         the call, a boolean True if all said variables must present to trigger,
         False if any variable must be loaded, and kwargs to pass.
     """
-    def __init__(self, coords: List[Coord],
-                 vi: VariablesInfo,
-                 root: str,
-                 filegroups: List[FilegroupLoad]):
-        super().__init__(coords, vi)
+    def __init__(self, dims: List[Coord],
+                 root: str, filegroups: List[FilegroupLoad],
+                 vi: VariablesInfo = None):
+        super().__init__(dims, vi)
         self.root = root
 
-        self.filegroups = []
-        for fg in filegroups:
-            self.add_filegroup(fg)
+        self.filegroups = filegroups
+        for fg in self.filegroups:
+            fg.db = self
 
         self.allow_advanced = False
 
@@ -63,10 +63,21 @@ class DataDisk(DataBase):
         s += ['\t{}'.format(', '.join(fg.variables)) for fg in self.filegroups]
         return '\n'.join(s)
 
-    def add_filegroup(self, filegroup: FilegroupLoad):
-        """Add filegroup to database."""
-        filegroup.db = self
-        self.filegroups.append(filegroup)
+    def add_filegroup(self, fg_type: Type,
+                      coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
+                      name: str = '', root: str = None,
+                      variables_shared: bool = False,
+                      **kwargs: Any):
+        """Add filegroup to database.
+
+        See :func:`Constructor.add_filegroup
+        <tomate.constructor.Contructor.add_filegroup>` for details.
+        """
+        fg = make_filegroup(fg_type, self.root, self.avail.dims,
+                            coords_fg, self.vi, root, name,
+                            variables_shared, **kwargs)
+        fg.db = self
+        self.filegroups.append(fg)
 
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.
