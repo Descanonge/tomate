@@ -115,11 +115,13 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
-    def update_values(self, values):
+    def update_values(self, values, in_idx=None):
         """Update values.
 
         Make sure in_idx has same dimensions.
         """
+        if in_idx is not None:
+            self.in_idx = np.array(in_idx)
         if len(values) != len(self.in_idx):
             raise IndexError("Not as much values as in-file indices.")
         super().update_values(values)
@@ -406,14 +408,16 @@ class CoordScanShared(CoordScan):
         self.matches = np.array(self.matches)
         super().set_values()
 
-    def update_values(self, values):
+    def update_values(self, values, in_idx=None, matches=None):
         """Update values.
 
         Make sure matcher has same dimensions.
         """
+        if matches is not None:
+            self.matches = matches
         if len(values) != len(self.matches):
             raise IndexError("Not as much values as matches.")
-        super().update_values(values)
+        super().update_values(values, in_idx)
 
     def sort_values(self) -> np.ndarray:
         order = super().sort_values()
