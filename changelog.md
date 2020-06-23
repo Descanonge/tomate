@@ -1,3 +1,4 @@
+- [2020-06-23] Add option to return python datetime
 - [2020-06-16] Make filegroup and database creation easier, using db.add_filegroup.
 - [2020-06-15] Fix `write_add_variable` dimensions not matching.
 - [2020-06-15] Add option to select the loaded scope when adding new data.

@@ -10,6 +10,7 @@ from typing import List
 
 import matplotlib.lines
 
+from tomate.coordinates.time import Time
 from tomate.custom_types import Array, KeyLikeInt
 from tomate.db_types.plotting.plot_object import PlotObjectABC
 
@@ -57,8 +58,13 @@ class PlotObjectLine(PlotObjectABC):
 
     def create_plot(self):
         data = self.get_data()
+
         dim = self.scope[self.axes[1-self.axis_var]]
-        to_plot = [dim, data]
+        if issubclass(type(dim), Time):
+            data_dim = dim.index2date(pydate=True)
+        else:
+            data_dim = dim[:]
+        to_plot = [data_dim, data]
         if self.axis_var != 1:
             to_plot.reverse()
         self.object, = self.ax.plot(*to_plot, **self.kwargs)

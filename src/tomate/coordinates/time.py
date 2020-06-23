@@ -54,9 +54,9 @@ class Time(Coord):
         return "{} - {}".format(*[self.format(v)
                                   for v in self.index2date(slc)[[0, -1]]])
 
-    def index2date(self, indices: KeyLike = None) \
-        -> Union['cftime.datetime',
-                 List['cftime.datetime']]:
+    def index2date(self, indices: KeyLike = None,
+                   pydate: bool = False) -> Union['cftime.datetime',
+                                                  List['cftime.datetime']]:
         """Return datetimes objects corresponding to indices.
 
         :param indices: [opt] If None, all available are used.
@@ -66,8 +66,12 @@ class Time(Coord):
         if indices is None:
             indices = slice(None, None)
 
-        dates = cftime.num2date(self[indices], self.units, calendar='standard')
-
+        if pydate:
+            dates = cftime.num2pydate(self[indices], self.units,
+                                      calendar='standard')
+        else:
+            dates = cftime.num2date(self[indices], self.units,
+                                    calendar='standard')
         return dates
 
     @staticmethod
