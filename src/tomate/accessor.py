@@ -72,6 +72,11 @@ class AccessorABC():
         """Allocate array of given shape."""
         raise NotImplementedError
 
+    @staticmethod
+    def get_datatype(data: Array) -> str:
+        """Get array datatype as string."""
+        raise NotImplementedError
+
     @classmethod
     def take(cls, keyring: Keyring, array: Array) -> Array:
         """Retrieve part of an array.
@@ -172,6 +177,11 @@ class Accessor(AccessorABC):
     @staticmethod
     def allocate(shape: List[int]) -> np.ndarray:
         return np.zeros(shape)
+
+    @staticmethod
+    def get_datatype(data: Array) -> str:
+        """Get array datatype as string."""
+        return data.dtype.str
 
     @classmethod
     def has_normal_access(cls, keyring: Keyring) -> bool:
