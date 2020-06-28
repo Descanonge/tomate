@@ -22,4 +22,5 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
 
 ## Other
 
+- [ ] Move VI in Variable class
 - [ ] Access filegroups by name rather than index

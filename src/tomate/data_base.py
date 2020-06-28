@@ -13,9 +13,10 @@ import numpy as np
 
 from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
+from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeValue
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
+from tomate.variable import Variable
 from tomate.variables_info import VariablesInfo
 
 
@@ -84,7 +85,7 @@ class DataBase():
             vi = VariablesInfo()
         self.vi = vi
 
-        self.data = None
+        self.variables = {}
 
     @property
     def coords(self) -> List[str]:
@@ -217,13 +218,14 @@ class DataBase():
         self.check_loaded()
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        keyring = Keyring.get_default(keyring, **kw_keys, variables=self.loaded.var)
+        keyring = Keyring.get_default(keyring, **kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.simplify()
-        keyring.sort_by(self.dims)
-        log.debug('Taking keys in data: %s', keyring.print())
-        return self.acs.take(keyring, self.data)
+        keyring.make_idx_var(self.loaded.var)
+
+        out = tuple([self.variables[var].view(keyring)
+                     for var in keyring['var']])
+        return out
 
     def view_by_value(self, *keys: KeyLikeInt,
                       by_day: bool = False,

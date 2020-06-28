@@ -9,6 +9,7 @@ from typing import List, TYPE_CHECKING
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array
+from tomate.keys.keyring import Keyring
 
 if TYPE_CHECKING:
     from tomate import DataBase
@@ -47,3 +48,9 @@ class Variable():
 
     def __getitem__(self, key) -> Array:
         return self._data[key]
+
+    def view(self, keyring=None, **keys):
+        keyring = Keyring.get_default(keyring=keyring, **keys)
+        keyring = keyring.subset(self.dims)
+        out = self.acs.take(self._data, keyring)
+        return out
