@@ -615,30 +615,23 @@ class DataBase():
             check_shape(data)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable: str, data: np.ndarray = None,
-                     keyring: Keyring = None, **attrs: Any):
-        """Add new variable.
-
-        Add variable to available scope,
-        and its attributes to the VI.
-        If present, add data to loaded data.
-
-        :param variable: Variable to add.
-        :param data: [opt] Corresponding data to add.
-            Its shape must match that of the loaded scope.
-        :param keyring: [opt] If there is data to set and no data is loaded,
-            loaded scope is fetched from available scope with this keyring.
-            'var' key has no effect.
-        :param attrs: [opt] Variable attributes.
-            Passed to VariablesInfo.add_variable
-        """
-        if variable in self.avail:
-            log.warning('%s already in avail scope, it will be overwritten.', variable)
+    def add_variable(self, variable: str,
+                     coords: List[str] = None,
+                     data: Array = None,
+                     **attrs: Any):
+        if coords is None:
+            coords = self.coords
+        if variable in self.variables:
+            log.warning('%s already in variables, it will be overwritten',
+                        variable)
         else:
+            self.variables[variable] = Variable(variable, coords, self)
+
+        if variable not in self.avail:
             self.avail.var.append(variable)
+
         if data is not None:
-            self.set_data(variable, data, keyring=keyring)
-        self.vi.set_attrs(variable, **attrs)
+            self.variables[variable].set_data(data)
 
     def remove_loaded_variable(self, variables: Union[str, List[str]]):
         """Remove variable from data."""
