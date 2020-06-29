@@ -6,9 +6,11 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-import logging
 import inspect
-from typing import Any, Callable, Dict, List, Tuple, Sequence, Type, Union
+import logging
+from typing import (Any, Callable, Dict, Iterable, List, Tuple, Sequence,
+                    Type, Union)
+
 
 from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
@@ -16,7 +18,7 @@ from tomate.coordinates.variables import Variables
 from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
 from tomate.data_base import DataBase
 from tomate.db_types.data_disk import DataDisk
-from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.keys.key import Key, KeyVar, KeyValue
@@ -53,6 +55,9 @@ class Constructor():
 
     :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
     """
+
+    CoordScanSpec = CoordScanSpec
+    CSS = CoordScanSpec
 
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
@@ -91,7 +96,7 @@ class Constructor():
         return self.filegroups[-1]
 
     def add_filegroup(self, fg_type: Type,
-                      coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
+                      coords_fg: Iterable[CoordScanSpec],
                       name: str = '', root: str = None,
                       variables_shared: bool = False,
                       **kwargs: Any):

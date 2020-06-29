@@ -7,8 +7,8 @@
 
 
 import logging
-from typing import (Any, Callable, Dict, Iterator, List, Optional,
-                    Tuple, Type, Union, TYPE_CHECKING)
+from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
+                    Tuple, Type, TYPE_CHECKING)
 
 import os
 import re
@@ -19,7 +19,7 @@ import tomate.filegroup.coord_scan as dlcs
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import File
-from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo
 if TYPE_CHECKING:
@@ -77,7 +77,7 @@ class FilegroupScan():
 
     def __init__(self, root: str,
                  db: 'DataBase',
-                 coords_fg: List[Tuple[Coord, bool, str]],
+                 coords_fg: CoordScanSpec,
                  vi: VariablesInfo,
                  name: str = ''):
         self.root = root
@@ -137,7 +137,7 @@ class FilegroupScan():
             s.append(''.join(s1))
         return '\n'.join(s)
 
-    def make_coord_scan(self, coords: List[Tuple[Coord, bool, str]]):
+    def make_coord_scan(self, coords: CoordScanSpec):
         """Add CoordScan objects.
 
         Each CoordScan is dynamically rebased
@@ -459,7 +459,7 @@ def scan_variables_attributes_default(fg: 'FilegroupLoad', file: File,
 
 
 def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
-                   coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
+                   coords_fg: Iterable[CoordScanSpec],
                    vi: VariablesInfo,
                    root_fg: str = None, name: str = '',
                    variables_shared: bool = False,
@@ -482,31 +482,15 @@ def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
         Default is False.
     :param kwargs: [opt] Passed to the fg_type initializator.
     """
-    shared_corres = {'in': False, 'shared': True}
-    for i, c_fg in enumerate(coords_fg):
-        if isinstance(c_fg[0], str):
-            c_name = c_fg[0]
-            try:
-                c_fg[0] = dims[c_name]
-            except KeyError:
-                raise KeyError("'{}' is not in constructor dimensions.".format(c_name))
-        if len(c_fg) < 3:
-            c_fg.append(c_fg[0].name)
-        shared = c_fg[1]
-        if not isinstance(shared, bool):
-            if shared not in shared_corres:
-                raise ValueError("Shared must be bool or {}\n({}, {})"
-                                 .format(list(shared_corres.keys()),
-                                         name, c_fg[0].name))
-            shared = shared_corres[shared]
-        coords_fg[i][1] = shared
+    for css in coords_fg:
+        css.process(dims)
 
     if root_fg is None:
         root_fg = ''
     root_fg = os.path.join(root, root_fg)
 
-    if all([c[0].name != 'var' for c in coords_fg]):
-        coords_fg.insert(0, [dims['var'], variables_shared, 'var'])
+    if all([css.coord.name != 'var' for css in coords_fg]):
+        coords_fg.insert(0, CoordScanSpec(dims['var'], variables_shared, 'var'))
     fg = fg_type(root_fg, None, coords_fg, vi, name, **kwargs)
 
     return fg

@@ -25,3 +25,4 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
 - [ ] Move VI in Variable class
 - [ ] Store dimensions order in CoordScanVar
 - [ ] Access filegroups by name rather than index
+- [~] Replace tuples with classes

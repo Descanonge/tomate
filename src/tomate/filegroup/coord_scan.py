@@ -13,6 +13,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 import re
 
@@ -29,6 +30,28 @@ if TYPE_CHECKING:
 
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class CoordScanSpec:
+    coord: Union[str, Coord]
+    shared: Union[str, bool] = 'in'
+    name: str = None
+
+    def process(self, dims: Union[Coord] = None):
+        if isinstance(self.shared, str):
+            self.shared = {'in': False, 'shared': True}[self.shared]
+
+        if isinstance(self.coord, str):
+            try:
+                self.coord = dims[self.coord]
+            except KeyError:
+                raise KeyError("'{}' is not in dimensions.".format(self.coord))
+        if self.name is None:
+            self.name = self.coord.name
+
+    def __iter__(self):
+        return iter([self.coord, self.shared, self.name])
 
 
 class CoordScan(Coord):
