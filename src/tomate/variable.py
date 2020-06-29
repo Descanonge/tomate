@@ -5,7 +5,7 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
-from typing import List, TYPE_CHECKING
+from typing import Iterable, List, TYPE_CHECKING
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array
@@ -35,13 +35,13 @@ class Variable():
         self.name = name
         self._db = database
 
-        if len(self.acs.shape(data)) != len(dims):
-            raise IndexError("Data has incompatible shape for provided"
-                             " dimensions. (shape: {}, dimensions: {})"
-                             .format(self.acs.shape(data), dims))
         self.data = None
         self.dims = dims
-        self.datatype = self.acs.get_datatype(data)
+        self.datatype = None
+
+        if data is not None:
+            self.set_data(data)
+            self.datatype = self.acs.get_datatype(data)
 
     def __repr__(self):
         s = "Variable: {}".format(self.name)
