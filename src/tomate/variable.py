@@ -48,6 +48,8 @@ class Variable():
         return s
 
     def __getitem__(self, key) -> Array:
+        if self.data is None:
+            raise AttributeError(f"Data not loaded for {self.name}")
         return self.data[key]
 
     def allocate(self, shape: Iterable[int] = None):
