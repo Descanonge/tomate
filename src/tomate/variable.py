@@ -49,6 +49,12 @@ class Variable():
     def __getitem__(self, key) -> Array:
         return self._data[key]
 
+    def allocate(self, shape: Iterable[int] = None):
+        if shape is None:
+            shape = [self._db.loaded.dims[d].size
+                     for d in self.dims]
+        self.data = self.acs.allocate(shape)
+
     def view(self, keyring=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
         keyring = keyring.subset(self.dims)

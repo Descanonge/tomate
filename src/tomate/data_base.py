@@ -555,21 +555,6 @@ class DataBase():
         self.data = None
         self.loaded.empty()
 
-    def allocate(self, shape: List[int]) -> np.ndarray:
-        """Allocate data array.
-
-        :param shape: Shape of the array to allocate.
-        """
-        log.info("Allocating numpy array of shape %s", shape)
-        return self.acs.allocate(shape)
-
-    def self_allocate(self, shape: List[int]):
-        """Allocate data array for itself.
-
-        :param shape: Shape of the array to allocate.
-        """
-        self.data = self.allocate(shape)
-
     def set_data(self, variable: str, data: np.ndarray,
                  keyring: Keyring = None):
         """Set the data for a single variable.
@@ -588,7 +573,7 @@ class DataBase():
         def check_shape(data):
             if self.acs.shape(data)[1:] != self.shape[1:]:
                 raise ValueError("data of wrong shape ({}, expected {})"
-                                .format(self.acs.shape(data), self.shape[1:]))
+                                 .format(self.acs.shape(data), self.shape[1:]))
 
         if variable not in self.avail:
             raise KeyError(f"{variable} is not in avail scope. Use add_variable.")
