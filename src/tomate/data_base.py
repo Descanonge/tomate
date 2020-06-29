@@ -101,7 +101,7 @@ class DataBase():
         s.append("Data available: \n{}".format(str(self.avail)))
         s.append('')
 
-        if self.data is None:
+        if self.loaded.is_empty():
             s.append('Data not loaded')
         else:
             s.append('Data loaded: \n{}'.format(str(self.loaded)))
@@ -134,7 +134,7 @@ class DataBase():
 
         :raises RuntimeError: If the data is not loaded.
         """
-        if self.data is None:
+        if self.loaded.is_empty():
             raise RuntimeError("Data not loaded.")
 
     def __getitem__(self, key: str) -> Variable:
