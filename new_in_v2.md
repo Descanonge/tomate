@@ -14,13 +14,14 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
 
 ## Manipulating arrays
 
-- [ ] Add Variable class
-- [ ] Adapt data viewing
+- [x] Add Variable class
+- [~] Adapt data viewing
 - [ ] Adapt data setting
-- [ ] Adapt data loading
+- [~] Adapt data loading
 
 
 ## Other
 
 - [ ] Move VI in Variable class
+- [ ] Store dimensions order in CoordScanVar
 - [ ] Access filegroups by name rather than index
