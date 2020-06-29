@@ -54,3 +54,8 @@ class Variable():
         keyring = keyring.subset(self.dims)
         out = self.acs.take(self._data, keyring)
         return out
+
+    def set_data(self, chunk, keyring: Keyring = None):
+        keyring.make_full(self.dims)
+        keyring.make_total()
+        self.acs.place(keyring, self.data, chunk)
