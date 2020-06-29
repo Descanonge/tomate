@@ -183,13 +183,6 @@ class DataBase():
                      'current': self.scope}[scope]
         return scope
 
-    def idx(self, variable: Union[str, int]) -> int:
-        """Index of variables in the data array.
-
-        Wrapper around loaded Scope.idx()
-        """
-        return self.loaded.idx(variable)
-
     def view(self, *keys: KeyLike,
              keyring: Keyring = None, **kw_keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
