@@ -29,10 +29,11 @@ class Variable():
 
     def __init__(self, name: str,
                  dims: List[str],
-                 data: Array = None,
-                 database: 'DataBase' = None):
+                 database: 'DataBase',
+                 data: Array = None):
+
         self.name = name
-        self.db = database
+        self._db = database
 
         if len(self.acs.shape(data)) != len(dims):
             raise IndexError("Data has incompatible shape for provided"
