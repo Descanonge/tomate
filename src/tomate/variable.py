@@ -39,7 +39,7 @@ class Variable():
             raise IndexError("Data has incompatible shape for provided"
                              " dimensions. (shape: {}, dimensions: {})"
                              .format(self.acs.shape(data), dims))
-        self._data = data
+        self.data = None
         self.dims = dims
         self.datatype = self.acs.get_datatype(data)
 
@@ -48,7 +48,7 @@ class Variable():
         return s
 
     def __getitem__(self, key) -> Array:
-        return self._data[key]
+        return self.data[key]
 
     def allocate(self, shape: Iterable[int] = None):
         if shape is None:
@@ -59,7 +59,7 @@ class Variable():
     def view(self, keyring=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
         keyring = keyring.subset(self.dims)
-        out = self.acs.take(self._data, keyring)
+        out = self.acs.take(self.data, keyring)
         return out
 
     def set_data(self, chunk, keyring: Keyring = None):
