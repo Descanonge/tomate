@@ -65,8 +65,6 @@ class DataBase():
     :attr selected: Scope: Scope of selected data.
     """
 
-    acs = Accessor  #: Accessor class (or subclass) to use to access the data.
-
     def __init__(self, dims: List[Coord],
                  vi: VariablesInfo = None):
 
