@@ -60,6 +60,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
     def load_cmd(self, file: File, cmd: Command):
         for krg_inf, krg_mem in cmd:
+            name = krg_mem.pop('var').value
             ncname = krg_inf['var'].value
             log.info("Looking at variable %s", ncname)
 
@@ -67,7 +68,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
             log.info("Placing it in %s",
                      krg_mem.print())
-            self.db.acs.place(krg_mem, self.db.data, chunk)
+            self.db.variables[name].set_data(chunk, krg_mem)
 
     def _load_slice_single_var(self, file: 'nc.Dataset',
                                keyring: Keyring, ncname: str) -> np.ndarray:

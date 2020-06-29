@@ -128,7 +128,8 @@ class DataDisk(DataBase):
         self.loaded = self.get_subscope('avail', keyring)
         self.loaded.name = 'loaded'
 
-        self.self_allocate(self.loaded.shape)
+        for var in self.loaded.var:
+            self.variables[var].allocate()
 
         loaded = any([fg.load_from_available(keyring)
                       for fg in self.filegroups])
@@ -390,6 +391,8 @@ class DataDisk(DataBase):
         """Set found values to master coordinates."""
         for dim, val in values.items():
             self.avail.dims[dim].update_values(val)
+        for var in self.avail['var']:
+            self.add_variable(var)
 
     def check_duplicates(self):
         """Check for duplicate data points.

@@ -104,6 +104,7 @@ class FilegroupLoad(FilegroupScan):
             krg_infile[dim] = infile
             krg_memory[dim] = memory
 
+        krg_memory.make_idx_var(self.db.avail.var)
         krg_infile.simplify()
         krg_memory.simplify()
 
