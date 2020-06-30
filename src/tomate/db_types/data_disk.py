@@ -276,7 +276,7 @@ class DataDisk(DataBase):
         Filegroups should be functionnal for this.
         """
         for fg in self.filegroups:
-            if 'var' in fg.scan_attr:
+            if 'var' in fg.scanners:
                 fg.scan_variables_attributes()
 
     def scan_files(self):
@@ -430,7 +430,7 @@ class DataDisk(DataBase):
                 if cs.shared and not cs.is_to_scan():
                     raise KeyError(f"'{name}' (in filegroup '{fg.name}') is shared"
                                    " but has not scanning function set.")
-                if not cs.shared and not cs.scan:
+                if not cs.shared and not cs.scanners:
                     log.warning("'%s' (in filegroup '%s') has no scanning function set"
                                 " and was not given values manually",
                                 name, fg.name)

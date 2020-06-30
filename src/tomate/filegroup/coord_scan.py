@@ -54,6 +54,28 @@ class CoordScanSpec:
         return iter([self.coord, self.shared, self.name])
 
 
+class Scanner:
+    def __init__(self, func, **kwargs):
+        self.func = func
+        self.kwargs = kwargs
+        self.to_scan = True
+
+    def scan(self, *args):
+        self.to_scan = False
+        return self.func(*args, **self.kwargs)
+
+    def __bool__(self):
+        return self.to_scan
+
+
+class ScannerCS(Scanner):
+    def __init__(self, func, elts, **kwargs):
+        self.func = func
+        self.elts = elts
+        self.kwargs = kwargs
+        self.to_scan = True
+
+
 class CoordScan(Coord):
     """Abstract Coord used for scanning of one variable.
 
@@ -100,11 +122,8 @@ class CoordScan(Coord):
         self.contains = None
 
         self.shared = shared
-        self.scan = {}
+        self.scanners = {}
         self.scanned = False
-
-        self.scan_attr = False
-        self.scan_attributes_func = None
 
         self.change_units_custom = None
 
@@ -212,14 +231,14 @@ class CoordScan(Coord):
 
     def is_to_scan(self) -> bool:
         """If the coord needs any kind of scanning."""
-        out = ('in' in self.scan
-               or 'filename' in self.scan)
+        out = ('in' in self.scanners
+               or 'filename' in self.scanners)
         return out
 
     def is_to_check(self) -> bool:
         """If the coord values need to be checked."""
         out = (self.is_to_scan()
-               or 'manual' in self.scan)
+               or 'manual' in self.scanners)
         return out
 
     def set_scan_filename_func(self, func: Callable, elts: List[str], **kwargs: Any):
@@ -232,8 +251,8 @@ class CoordScan(Coord):
         --------
         scan_filename_default: for the function signature.
         """
-        self.scan.pop('filename', None)
-        self.scan['filename'] = [func, elts, kwargs]
+        self.scanners.pop('filename', None)
+        self.scanners['filename'] = ScannerCS(func, elts, **kwargs)
 
     def set_scan_in_file_func(self, func: Callable, elts: List[str], **kwargs: Any):
         """Set function for scanning values in file.
@@ -245,15 +264,15 @@ class CoordScan(Coord):
         --------
         scan_in_file_default: for the function signature.
         """
-        self.scan.pop('manual', None)
-        self.scan.pop('in', None)
-        self.scan['in'] = [func, elts, kwargs]
+        self.scanners.pop('manual', None)
+        self.scanners.pop('in', None)
+        self.scanners['in'] = ScannerCS(func, elts, **kwargs)
 
     def set_scan_manual(self, values: np.ndarray, in_idx: np.ndarray):
         """Set values manually."""
-        self.scan.pop('manual', None)
-        self.scan.pop('in', None)
-        self.scan['manual'] = [None, ['values', 'in_idx'], {}]
+        self.scanners.pop('manual', None)
+        self.scanners.pop('in', None)
+        self.scanners['manual'] = True
         self.values = values
         self.in_idx = in_idx
 
@@ -264,8 +283,8 @@ class CoordScan(Coord):
         --------
         scan_attributes_default: for the function signature
         """
-        self.scan_attr = True
-        self.scan_attributes_func = func
+        self.scanners.pop('attrs', None)
+        self.scanners['attrs'] = Scanner(func)
 
     def scan_attributes(self, file: File):
         """Scan coordinate attributes if necessary.
@@ -273,12 +292,12 @@ class CoordScan(Coord):
         Using the user defined function.
         Apply them.
         """
-        if self.scan_attr:
-            attrs = self.scan_attributes_func(self, file)
+        s = self.scanners.get('attrs', None)
+        if s:
+            attrs = s.scan(self, file)
             log.debug("Found coordinates attributes %s", list(attrs.keys()))
             for name, value in attrs.items():
                 self.set_attr(name, value)
-            self.scan_attr = False
 
     def scan_values(self, file: File):
         """Find values for a file.
@@ -293,21 +312,21 @@ class CoordScan(Coord):
         values = None
         in_idx = None
 
-        for to_scan, [func, elts, kwargs] in self.scan.items():
-            if to_scan == 'manual':
+        for scan_type, s in self.scanners.items():
+            if scan_type == 'manual':
                 continue
 
-            if to_scan == 'filename':
+            if scan_type == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
-                v, i = func(self, values, **kwargs)
+                v, i = s.scan(self, values)
 
-            if to_scan == 'in':
+            if scan_type == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
-                v, i = func(self, file, values, **kwargs)
+                v, i = s.scan(self, file, values)
 
-            if 'values' in elts:
+            if 'values' in s.elts:
                 values = v
-            if 'in_idx' in elts:
+            if 'in_idx' in s.elts:
                 in_idx = i
 
         if self.is_to_scan():
@@ -327,7 +346,7 @@ class CoordScan(Coord):
                 raise IndexError("Not as much values as infile indices."
                                  f"({self.name})")
 
-            if 'manual' not in self.scan:
+            if 'manual' not in self.scanners:
                 self.values += values
                 self.in_idx += in_idx
 
@@ -391,8 +410,8 @@ class CoordScanIn(CoordScan):
 
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
-        to_open = ((not self.scanned and 'in' in self.scan)
-                   or self.scan_attr)
+        to_open = (len(self.scanners.keys() & {'in', 'attrs'}) > 0
+                   and not self.scanned)
         return to_open
 
 
@@ -473,7 +492,7 @@ class CoordScanShared(CoordScan):
         # If multiple coords, this match could have been found
         if matches not in self.matches:
             values = self.scan_values(file)
-            if 'manual' in self.scan:
+            if 'manual' in self.scanners:
                 for v in values:
                     i = self.get_index(v)
                     self.matches[i] = matches
@@ -481,8 +500,8 @@ class CoordScanShared(CoordScan):
                 self.matches += [matches for _ in range(len(values))]
 
     def is_to_open(self) -> bool:
-        """If the file must be opened for scanning."""
-        to_open = ('in' in self.scan or self.scan_attr)
+        """If the file must be opened for scanning. """
+        to_open = len(self.scanners.keys() & {'in', 'attrs'}) > 0
         return to_open
 
 

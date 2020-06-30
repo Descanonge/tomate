@@ -368,6 +368,19 @@ class FilegroupLoad(FilegroupScan):
         scan attributes.
         Store them in VI.
         """
+        def scan_attr(fg, file, infile, memory):
+            attrs = fg.scanners['var'].scan(fg, file, infile['var'].tolist())
+
+            for name, [name_inf, values] in zip(memory['var'].tolist(),
+                                                attrs.items()):
+                log.debug("Found attributes (%s) for '%s' (%s infile)",
+                          values.keys(), name, name_inf)
+                already_present = [attr for attr in values
+                                   if (name, attr) in fg.vi]
+                for attr in already_present:
+                    values.pop(attr)
+                fg.vi.set_attrs(name, **values)
+
         keyring = Keyring(**{dim: 0 for dim in self.cs})
         keyring['var'] = list(range(self.cs['var'].size))
         cmds = self.get_commands(keyring, keyring.copy())
@@ -379,17 +392,8 @@ class FilegroupLoad(FilegroupScan):
 
                 try:
                     file = self.open_file(cmd.filename, 'r', 'debug')
-                    attrs = self.scanners['var'].scan(self, file,
-                                                      infile['var'].tolist())
-
-                    for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
-                        log.debug("Found attributes (%s) for '%s' (%s infile)",
-                                  values.keys(), name, name_inf)
-                        already_present = [attr for attr in values
-                                           if (name, attr) in self.vi]
-                        for attr in already_present:
-                            values.pop(attr)
-                        self.vi.set_attrs(name, **values)
+                    if 'var' in self.scanners:
+                        scan_attr(self, file, infile, memory)
                 except Exception:
                     self.close_file(file)
                     raise

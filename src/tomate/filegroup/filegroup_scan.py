@@ -8,18 +8,19 @@
 
 import logging
 from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
-                    Tuple, Type, TYPE_CHECKING)
+                    Type, TYPE_CHECKING)
 
 import os
 import re
 
 import numpy as np
 
-import tomate.filegroup.coord_scan as dlcs
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import File
-from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
+from tomate.filegroup.coord_scan import (CoordScan, CoordScanSpec,
+                                         Scanner, get_coordscan)
+from tomate.filegroup.matcher import Matcher
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo
 if TYPE_CHECKING:
@@ -27,17 +28,6 @@ if TYPE_CHECKING:
     from tomate.data_base import DataBase
 
 log = logging.getLogger(__name__)
-
-
-class FGScanner:
-    def __init__(self, func: Callable, **kwargs: Any):
-        self.func = func
-        self.kwargs = kwargs
-        self.to_scan = True
-
-    def scan(self, *args):
-        self.to_scan = False
-        return self.func(*args, **self.kwargs)
 
 
 class FilegroupScan():
@@ -88,7 +78,7 @@ class FilegroupScan():
 
     def __init__(self, root: str,
                  db: 'DataBase',
-                 coords_fg: CoordScanSpec,
+                 coords_fg: List[CoordScanSpec],
                  vi: VariablesInfo,
                  name: str = ''):
         self.root = root
@@ -158,9 +148,9 @@ class FilegroupScan():
             the shared flag, and the name of the coordinate infile.
         """
         self.cs = {}
-        for coord, shared, name in coords:
-            cs = dlcs.get_coordscan(self, coord, shared, name)
-            self.cs.update({coord.name: cs})
+        for c in coords:
+            cs = get_coordscan(self, c.coord, c.shared, c.name)
+            self.cs.update({c.coord.name: cs})
 
     def iter_shared(self, shared: bool = None) -> Dict[str, CoordScan]:
         """Iter through CoordScan objects.
@@ -209,7 +199,7 @@ class FilegroupScan():
         idx = 0
         regex = pregex
         for idx, match in enumerate(m):
-            matcher = dlcs.Matcher(match, idx)
+            matcher = Matcher(match, idx)
             self.cs[matcher.coord].add_matcher(matcher)
             regex = regex.replace(match.group(), '(' + matcher.rgx + ')')
 
@@ -364,12 +354,13 @@ class FilegroupScan():
         for s in self.scanners.values():
             s.to_scan = True
         # Reset CoordScan
+        # FIXME: What to reset isn't very clear
         for cs in self.cs.values():
             if cs.is_to_scan():
                 cs.scanned = False
-                if cs.scan_attributes_func is not None:
-                    cs.scan_attr = True
-                if 'manual' not in cs.scan:
+                if 'attrs' in cs.scanners:
+                    cs.scanners['attrs'].to_scan = True
+                if 'manual' not in cs.scanners:
                     cs.reset()
                 elif cs.shared:
                     cs.matches = [[] for _ in range(len(cs.values))]
@@ -411,12 +402,12 @@ class FilegroupScan():
     def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set function for scanning general attributes.
         """
-        self.scanners['gen'] = FGScanner(func, **kwargs)
+        self.scanners['gen'] = Scanner(func, **kwargs)
 
     def set_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set the function for scanning variables specific attributes.
         """
-        self.scanners['var'] = FGScanner(func, **kwargs)
+        self.scanners['var'] = Scanner(func, **kwargs)
 
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
