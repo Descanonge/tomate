@@ -375,15 +375,33 @@ class CoordScanVar(CoordScan):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = kwargs.pop('name', '')
+        self.dimensions = []
+
+    def update_values(self, values, in_idx=None, dimensions=None):
+        if dimensions is not None:
+            self.dimensions = np.array(dimensions)
+            if len(values) != len(self.dimensions):
+                raise IndexError("Not as much values as dimensions.")
+        super().update_values(values, in_idx)
 
     def set_values(self):
         self.values = np.array(self.values)
         self.in_idx = np.array(self.in_idx)
+        self.dimensions = np.array(self.dimensions)
 
     def sort_values(self) -> np.ndarray:
         order = range(list(self.size))
         return order
+
+    def slice(self, key):
+        self.dimensions = self.dimensions[key]
+        super().slice(key)
+
+    def set_scan_manual(self, values: np.ndarray, in_idx: np.ndarray,
+                        dimensions: np.ndarray):
+        # TODO Transmit elts from here ?
+        self.dimensions = dimensions
+        super().set_scan_manual(values, in_idx)
 
 
 class CoordScanIn(CoordScan):
