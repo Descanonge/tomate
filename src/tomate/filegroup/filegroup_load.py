@@ -379,9 +379,8 @@ class FilegroupLoad(FilegroupScan):
 
                 try:
                     file = self.open_file(cmd.filename, 'r', 'debug')
-                    func, _, kwargs = self.scan_attr['var']
-
-                    attrs = func(self, file, infile['var'].tolist(), **kwargs)
+                    attrs = self.scanners['var'].scan(self, file,
+                                                      infile['var'].tolist())
 
                     for name, [name_inf, values] in zip(memory['var'].tolist(), attrs.items()):
                         log.debug("Found attributes (%s) for '%s' (%s infile)",

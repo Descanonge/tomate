@@ -29,6 +29,17 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+class FGScanner:
+    def __init__(self, func: Callable, **kwargs: Any):
+        self.func = func
+        self.kwargs = kwargs
+        self.to_scan = True
+
+    def scan(self, *args):
+        self.to_scan = False
+        return self.func(*args, **self.kwargs)
+
+
 class FilegroupScan():
     """Manages set of files on disk.
 
@@ -92,7 +103,7 @@ class FilegroupScan():
         self.regex = ""
         self.pregex = ""
 
-        self.scan_attr = {}
+        self.scanners = {}
 
         self.cs = {}
         self.make_coord_scan(coords_fg)
@@ -256,22 +267,20 @@ class FilegroupScan():
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
         to_open = (any([cs.is_to_open() for cs in self.cs.values()])
-                   or ('gen' in self.scan_attr and not self.scan_attr['gen'][1]))
+                   or ('gen' in self.scanners and self.scanners['gen'].to_scan))
         return to_open
 
     def scan_general_attributes(self, file: File):
         """Scan for general attributes."""
-        func, scanned, kwargs = self.scan_attr['gen']
-        if not scanned:
+        s = self.scanners['gen']
+        if s.to_scan:
             log.debug('Scanning file for general attributes.')
-            infos = func(self, file, **kwargs)
+            infos = s.scan(self, file)
             log.debug("Found infos %s", list(infos.keys()))
             already_present = [info for info in infos if infos in self.vi.infos]
             for info in already_present:
                 infos.pop(info)
             self.vi.set_infos(**infos)
-
-            self.scan_attr['gen'][1] = True
 
     def scan_file(self, filename: str):
         """Scan a single file.
@@ -304,7 +313,7 @@ class FilegroupScan():
             file = self.open_file(filename, mode='r', log_lvl='debug')
 
         try:
-            if 'gen' in self.scan_attr and not self.scan_attr['gen'][1]:
+            if 'gen' in self.scanners and self.scanners['gen'].to_scan:
                 self.scan_general_attributes(file)
 
             for cs in self.cs.values():
@@ -352,8 +361,8 @@ class FilegroupScan():
         :raises NameError: If no files matching the regex were found.
         :raises ValueError: If no values were detected for a coordinate.
         """
-        for elt in self.scan_attr:
-            self.scan_attr[elt][1] = False
+        for s in self.scanners.values():
+            s.to_scan = True
         # Reset CoordScan
         for cs in self.cs.values():
             if cs.is_to_scan():
@@ -401,23 +410,13 @@ class FilegroupScan():
 
     def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set function for scanning general attributes.
-
-        :param func: Function that recovers variables attributes in file.
-            See scan_general_attributes_default() for a better
-            description of the function interface.
-        :param kwargs: [opt] Passed to the function.
         """
-        self.scan_attr['gen'] = [func, False, kwargs]
+        self.scanners['gen'] = FGScanner(func, **kwargs)
 
     def set_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set the function for scanning variables specific attributes.
-
-        :param func: Function that recovers variables attributes in file.
-            See scan_variables_attributes_default() for a better
-            description of the function interface.
-        :param kwargs: [opt] Passed to the function.
         """
-        self.scan_attr['var'] = [func, False, kwargs]
+        self.scanners['var'] = FGScanner(func, **kwargs)
 
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
