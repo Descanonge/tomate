@@ -22,6 +22,7 @@ from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.keys.key import Key, KeyVar, KeyValue
+from tomate.variable import VariableSpec
 from tomate.variables_info import VariablesInfo
 
 
@@ -58,6 +59,9 @@ class Constructor():
 
     CoordScanSpec = CoordScanSpec
     CSS = CoordScanSpec
+
+    VariableSpec = VariableSpec
+    VS = VariableSpec
 
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
@@ -177,7 +181,7 @@ class Constructor():
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
 
-    def set_variables_infile(self, **variables: KeyLikeVar):
+    def set_variables_infile(self, *variables: List[VariableSpec]):
         """Set variables index in the file.
 
         This information will be transmitted to the filegroup
@@ -193,7 +197,10 @@ class Constructor():
         >>> cstr.set_variables_infile(sst='SST', chl='CHL_mean')
         """
         cs = self.current_fg.cs['var']
-        cs.set_scan_manual(list(variables.keys()), list(variables.values()))
+        values = [v.name for v in variables]
+        in_idx = [v.in_idx for v in variables]
+        dims = [v.dims for v in variables if v.dims is not None]
+        cs.set_scan_manual(values, in_idx, dims)
 
     def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
                                               Tuple[List[float], List[int]]],
