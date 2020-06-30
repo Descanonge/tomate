@@ -123,7 +123,6 @@ class CoordScan(Coord):
 
         self.shared = shared
         self.scanners = {}
-        self.scanned = False
 
         self.change_units_custom = None
 
@@ -394,6 +393,7 @@ class CoordScanIn(CoordScan):
     All files are thus considered to have the same structure.
     """
     def __init__(self, *args, **kwargs):
+        self.scanned = False
         kwargs.pop('shared', None)
         super().__init__(*args, **kwargs, shared=False)
 
