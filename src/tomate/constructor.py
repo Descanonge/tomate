@@ -200,12 +200,12 @@ class Constructor():
         values = [v.name for v in variables]
         in_idx = [v.in_idx for v in variables]
         dims = [v.dims for v in variables if v.dims is not None]
-        cs.set_scan_manual(values, in_idx, dims)
+        cs.set_scan_manual(values=values, in_idx=in_idx, dimensions=dims)
 
     def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
                                               Tuple[List[float], List[int]]],
                          *coords: str,
-                         only_value: bool = False, only_index: bool = False,
+                         restrain: List[str] = None,
                          **kwargs: Any):
         """Set function for scanning coordinates values in file.
 
@@ -220,20 +220,15 @@ class Constructor():
         tomate.filegroup.coord_scan.scan_in_file_default:
             for a better description of the function interface.
         """
-        elts = ['values', 'in_idx']
-        if only_value and not only_index:
-            elts.remove('in_idx')
-        if only_index and not only_value:
-            elts.remove('values')
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_in_file_func(func, elts, **kwargs)
+            cs.set_scan_in_file_func(func, restrain, **kwargs)
 
     def set_scan_filename(self, func: Callable[[CoordScan, List[float]],
                                                Tuple[List[float], List[int]]],
                           *coords: str,
-                          only_value: bool = False, only_index: bool = False,
+                          restrain: List[str] = None,
                           **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
@@ -248,15 +243,10 @@ class Constructor():
         tomate.filegroup.coord_scan.scan_filename_default:
             for a better description of the function interface.
         """
-        elts = ['values', 'in_idx']
-        if only_value and not only_index:
-            elts.remove('in_idx')
-        if only_index and not only_value:
-            elts.remove('values')
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_filename_func(func, elts, **kwargs)
+            cs.set_scan_filename_func(func, restrain, **kwargs)
 
     def set_values_manually(self, dim: str,
                             values: List[float],
@@ -276,7 +266,7 @@ class Constructor():
 
         fg = self.current_fg
         cs = fg.cs[dim]
-        cs.set_scan_manual(values, in_idx)
+        cs.set_scan_manual(values=values, in_idx=in_idx)
 
     def set_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
                                    *coords: str):
