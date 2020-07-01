@@ -13,10 +13,11 @@ try:
 except ImportError:
     pass
 
-from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.coord_scan import CoordScan, make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 
 
+@make_scanner('in', ['values', 'in_idx'])
 def scan_in_file(cs: CoordScan, file: nc.Dataset,
                  values: Optional[List[float]]) -> Tuple[List[float], List[int]]:
     """Scan netCDF file for coordinates values and in-file index.
@@ -30,6 +31,7 @@ def scan_in_file(cs: CoordScan, file: nc.Dataset,
     return in_values, in_idx
 
 
+@make_scanner('in', ['values', 'in_idx', 'dimensions'])
 def scan_variables(cs: CoordScan, file: nc.Dataset,
                    values: List[float]) -> Tuple[List[str]]:
     """Scan netCDF file for variables names."""

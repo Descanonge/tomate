@@ -16,7 +16,7 @@ except ImportError:
 else:
     _has_cftime = True
 
-from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.coord_scan import CoordScan, make_scanner
 
 
 __all__ = [
@@ -27,6 +27,7 @@ __all__ = [
 ]
 
 
+@make_scanner('filename', ['values'])
 def get_date_from_matches(cs: CoordScan,
                           values: Optional[List[float]],
                           default_date: Dict = None) -> Tuple[Optional[float], None]:
@@ -103,9 +104,10 @@ def get_date_from_matches(cs: CoordScan,
     if elt is not None:
         date["second"] = int(elt)
 
-    return cftime.date2num(cftime.datetime(**date), cs.units), None
+    return cftime.date2num(cftime.datetime(**date), cs.units)
 
 
+@make_scanner('filename', [])
 def get_value_from_matches(cs: CoordScan,
                            values: Optional[List[float]]) -> Tuple[Optional[int], None]:
     """Retrieve value from matches."""
@@ -113,15 +115,16 @@ def get_value_from_matches(cs: CoordScan,
 
     value = elts.get("value")
     if value is not None:
-        return float(value), None
+        return float(value)
 
     idx = elts.get("idx")
     if idx is not None:
-        return int(idx), None
+        return int(idx)
 
-    return None, None
+    return None
 
 
+@make_scanner('filename', [])
 def get_string_from_match(cs: CoordScan,
                           values: Optional[List[float]]) -> Tuple[Optional[str]]:
     """Retrieve string from match.
@@ -130,8 +133,8 @@ def get_string_from_match(cs: CoordScan,
     """
     for m in cs.matchers:
         if not m.dummy and m.elt in ['text', 'char']:
-            return m.match, m.match
-    return None, None
+            return m.match
+    return None
 
 
 def _find_month_number(name: str) -> Optional[int]:

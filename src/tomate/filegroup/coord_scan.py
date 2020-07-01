@@ -98,6 +98,11 @@ class ScannerCS(Scanner):
         s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
         return s
 
+def make_scanner(kind, elts):
+    def decorator(func):
+        return ScannerCS(kind, func, elts)
+    return decorator
+
 
 class CoordScan(Coord):
     """Abstract Coord used for scanning of one variable.
