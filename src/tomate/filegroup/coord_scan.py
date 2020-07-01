@@ -75,6 +75,15 @@ class ScannerCS(Scanner):
         self.kwargs = kwargs
         self.to_scan = True
 
+    def scan(self, *args):
+        results = super().scan(*args)
+        if not isinstance(results, tuple):
+            results = tuple(results)
+        if len(results) != len(self.elts):
+            raise TypeError("Scan function did not return expected number"
+                            " of results.")
+        return dict(zip(self.elts, results))
+
 
 class CoordScan(Coord):
     """Abstract Coord used for scanning of one variable.
@@ -123,6 +132,7 @@ class CoordScan(Coord):
 
         self.shared = shared
         self.scanners = {}
+        self.elts = ['values', 'in_idx']
 
         self.change_units_custom = None
 
@@ -134,7 +144,7 @@ class CoordScan(Coord):
     def __repr__(self):
         s = [super().__repr__()]
         s.append(["In", "Shared"][self.shared])
-        s.append("To scan: {}".format(', '.join(self.scan.keys())))
+        s.append("To scan: {}".format(', '.join(self.scanners.keys())))
         if self.scanned:
             s.append("Scanned")
         else:
@@ -146,25 +156,29 @@ class CoordScan(Coord):
 
     def set_values(self):
         """Set values."""
-        self.values = np.array(self.values)
-        self.in_idx = np.array(self.in_idx)
+        for elt in self.elts:
+            setattr(self, elt, np.array(getattr(self, elt)))
         self.sort_values()
 
     def reset(self):
         """Remove values."""
         self.empty()
-        self.values = []
-        self.in_idx = []
+        for elt in self.elts:
+            setattr(self, elt, [])
 
-    def update_values(self, values, in_idx=None):
+    def update_values(self, values, **elts):
         """Update values.
 
         Make sure in_idx has same dimensions.
         """
-        if in_idx is not None:
-            self.in_idx = np.array(in_idx)
-        if len(values) != len(self.in_idx):
-            raise IndexError("Not as much values as in-file indices.")
+        if not all([len(v) == len(values) for v in elts.values()]):
+            raise IndexError("Lenght for '{}' (%d) different have different lengths.")
+        for name, elt_val in elts.items():
+            if len(values) != len(elt_val):
+                raise IndexError("Not as much '{}' ({}) as values ({})"
+                                 .format(name, len(elt_val), len(values)))
+            setattr(self, name, np.array(elt_val))
+        self.values = values
         super().update_values(values)
 
     def sort_values(self) -> np.ndarray:
@@ -173,14 +187,13 @@ class CoordScan(Coord):
         :returns: The order used to sort values.
         """
         order = np.argsort(self.values)
-        self.values = self.values[order]
-        self.in_idx = self.in_idx[order]
-
+        for elt in self.elts:
+            setattr(self, elt, getattr(self, elt)[order])
         return order
 
     def slice(self, key: KeyLikeInt):
-        self.in_idx = self.in_idx[key]
-        self.values = self.values[key]
+        for elt in self.elts:
+            setattr(self, elt, getattr(self, elt)[key])
         if self.size is not None:
             super().slice(key)
 
@@ -240,7 +253,8 @@ class CoordScan(Coord):
                or 'manual' in self.scanners)
         return out
 
-    def set_scan_filename_func(self, func: Callable, elts: List[str], **kwargs: Any):
+    def set_scan_filename_func(self, func: Callable, restrain: List[str],
+                               **kwargs: Any):
         """Set function for scanning values in filename.
 
         :param elts: Elements to scan ('values', 'in_idx')
@@ -251,9 +265,16 @@ class CoordScan(Coord):
         scan_filename_default: for the function signature.
         """
         self.scanners.pop('filename', None)
+        if not self.shared:
+            self.scanners.pop('manual', None)
+        if restrain is None:
+            elts = self.elts
+        else:
+            elts = [e for e in self.elts if e in restrain]
         self.scanners['filename'] = ScannerCS(func, elts, **kwargs)
 
-    def set_scan_in_file_func(self, func: Callable, elts: List[str], **kwargs: Any):
+    def set_scan_in_file_func(self, func: Callable, restrain: List[str] = None,
+                              **kwargs: Any):
         """Set function for scanning values in file.
 
         :param elts: Elements to scan ('values', 'in_idx')
@@ -265,15 +286,24 @@ class CoordScan(Coord):
         """
         self.scanners.pop('manual', None)
         self.scanners.pop('in', None)
+        if restrain is None:
+            elts = self.elts
+        else:
+            elts = [e for e in self.elts if e in restrain]
         self.scanners['in'] = ScannerCS(func, elts, **kwargs)
 
-    def set_scan_manual(self, values: np.ndarray, in_idx: np.ndarray):
+    def set_scan_manual(self, **elts):
         """Set values manually."""
         self.scanners.pop('manual', None)
         self.scanners.pop('in', None)
-        self.scanners['manual'] = True
-        self.values = values
-        self.in_idx = in_idx
+        if not self.shared:
+            self.scanners.pop('filename', None)
+        self.scanners['manual'] = ScannerCS(None, elts)
+
+        if set(self.elts) != elts.keys():
+            raise KeyError("Missing elements when manually setting them"
+                           f" in coordinate {self.name}")
+        self.update_values(elts.pop('values'), **elts)
 
     def set_scan_attributes_func(self, func: Callable):
         """Set function for scanning attributes in file.
@@ -298,58 +328,45 @@ class CoordScan(Coord):
             for name, value in attrs.items():
                 self.set_attr(name, value)
 
-    def scan_values(self, file: File):
-        """Find values for a file.
-
-        :param file: Object to access file.
-            The file is already opened by FilegroupScan.open_file().
-
-        :param Returns: List of values found.
-
-        :raises IndexError: If not as many values as in file indices were found
-        """
-        values = None
-        in_idx = None
+    def scan_elements(self, file: File):
+        elts = self.get_elements_default()
 
         for scan_type, s in self.scanners.items():
             if scan_type == 'manual':
                 continue
-
             if scan_type == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
-                v, i = s.scan(self, values)
-
-            if scan_type == 'in':
+                args = [elts['values']]
+            elif scan_type == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
-                v, i = s.scan(self, file, values)
+                args = [file, elts['values']]
 
-            if 'values' in s.elts:
-                values = v
-            if 'in_idx' in s.elts:
-                in_idx = i
+            elts.update(s.scan(self, *args))
 
-        if self.is_to_scan():
+        for name, values in elts.items():
             if not isinstance(values, (list, tuple)):
-                values = [values]
-            if not isinstance(in_idx, (list, tuple)):
-                in_idx = [in_idx]
+                elts[name] = [values]
 
-            n_values = len(values)
-            if n_values == 1:
-                log.debug("Found value %s", values[0])
-            else:
-                log.debug("Found %s values between %s and %s",
-                          n_values, values[0], values[-1])
+        if not all([len(values) for values in elts.values()]):
+            raise IndexError("Scan results do not all have the same lenght. "
+                             "({})".format({n: len(v) for n, v in elts.items()}))
+        return elts
 
-            if n_values != len(in_idx):
-                raise IndexError("Not as much values as infile indices."
-                                 f"({self.name})")
+    def get_elements_default(self):
+        elts = {'values': [], 'in_idx': []}
+        return elts
 
-            if 'manual' not in self.scanners:
-                self.values += values
-                self.in_idx += in_idx
-
-        return values
+    def append_elements(self, elts):
+        for name, values in elts.items():
+            if name == 'values':
+                n_values = len(values)
+                if n_values == 1:
+                    log.debug("Found value %s", values[0])
+                else:
+                    log.debug("Found %s values between %s and %s",
+                              n_values, values[0], values[-1])
+            current = getattr(self, name)
+            current += values
 
     def find_contained(self, outer: np.ndarray) -> List[Union[int, None]]:
         """Find values of inner contained in outer.
@@ -375,33 +392,22 @@ class CoordScanVar(CoordScan):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.elts.append('dimensions')
         self.dimensions = []
 
-    def update_values(self, values, in_idx=None, dimensions=None):
-        if dimensions is not None:
-            self.dimensions = np.array(dimensions)
-            if len(values) != len(self.dimensions):
-                raise IndexError("Not as much values as dimensions.")
-        super().update_values(values, in_idx)
-
     def set_values(self):
-        self.values = np.array(self.values)
-        self.in_idx = np.array(self.in_idx)
-        self.dimensions = np.array(self.dimensions)
+        """Set values."""
+        for elt in self.elts:
+            setattr(self, elt, np.array(getattr(self, elt)))
 
     def sort_values(self) -> np.ndarray:
         order = range(list(self.size))
         return order
 
-    def slice(self, key):
-        self.dimensions = self.dimensions[key]
-        super().slice(key)
-
-    def set_scan_manual(self, values: np.ndarray, in_idx: np.ndarray,
-                        dimensions: np.ndarray):
-        # TODO Transmit elts from here ?
-        self.dimensions = dimensions
-        super().set_scan_manual(values, in_idx)
+    def get_elements_default(self):
+        elts = super().get_elements_default()
+        elts['dimensions'] = []
+        return elts
 
 
 class CoordScanIn(CoordScan):
@@ -422,8 +428,9 @@ class CoordScanIn(CoordScan):
         :param file: Object to access file.
             The file is already opened by FilegroupScan.open_file().
         """
-        if not self.scanned:
-            self.scan_values(file)
+        if not self.scanned and self.is_to_scan():
+            elts = self.scan_elements(file)
+            self.append_elements(elts)
             self.scanned = True
 
     def is_to_open(self) -> bool:
@@ -468,16 +475,16 @@ class CoordScanShared(CoordScan):
         self.matches = np.array(self.matches)
         super().set_values()
 
-    def update_values(self, values, in_idx=None, matches=None):
+    def update_values(self, values, matches=None, **elts):
         """Update values.
 
         Make sure matcher has same dimensions.
         """
         if matches is not None:
+            if len(values) != len(self.matches):
+                raise IndexError("Not as much values as matches.")
             self.matches = matches
-        if len(values) != len(self.matches):
-            raise IndexError("Not as much values as matches.")
-        super().update_values(values, in_idx)
+        super().update_values(values, **elts)
 
     def sort_values(self) -> np.ndarray:
         order = super().sort_values()
@@ -509,12 +516,14 @@ class CoordScanShared(CoordScan):
 
         # If multiple coords, this match could have been found
         if matches not in self.matches:
-            values = self.scan_values(file)
+            elts = self.scan_elements(file)
+            values = elts['values']
             if 'manual' in self.scanners:
                 for v in values:
                     i = self.get_index(v)
                     self.matches[i] = matches
             else:
+                self.append_elements(elts)
                 self.matches += [matches for _ in range(len(values))]
 
     def is_to_open(self) -> bool:

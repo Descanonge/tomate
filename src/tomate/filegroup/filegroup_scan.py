@@ -356,14 +356,13 @@ class FilegroupScan():
         # Reset CoordScan
         # FIXME: What to reset isn't very clear
         for cs in self.cs.values():
-            if cs.is_to_scan():
-                cs.scanned = False
-                if 'attrs' in cs.scanners:
-                    cs.scanners['attrs'].to_scan = True
-                if 'manual' not in cs.scanners:
-                    cs.reset()
-                elif cs.shared:
-                    cs.matches = [[] for _ in range(len(cs.values))]
+            cs.scanned = False
+            for s in cs.scanners.values():
+                s.to_scan = True
+            if 'manual' not in cs.scanners:
+                cs.reset()
+            elif cs.shared:
+                cs.matches = [[] for _ in range(len(cs.values))]
         self.found_file = False
 
         files = self.find_files()
