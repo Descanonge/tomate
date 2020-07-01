@@ -55,21 +55,30 @@ class CoordScanSpec:
 
 
 class Scanner:
-    def __init__(self, func, **kwargs):
+    def __init__(self, kind, func, **kwargs):
+        self.kind = kind
         self.func = func
         self.kwargs = kwargs
         self.to_scan = True
 
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **self.kwargs)
+
     def scan(self, *args):
         self.to_scan = False
-        return self.func(*args, **self.kwargs)
+        return self(*args, **self.kwargs)
 
     def __bool__(self):
         return self.to_scan
 
+    def __repr__(self):
+        s = ' - '.join([self.kind, self.func.__name__])
+        return s
+
 
 class ScannerCS(Scanner):
-    def __init__(self, func, elts, **kwargs):
+    def __init__(self, kind, func, elts, **kwargs):
+        self.kind = kind
         self.func = func
         self.elts = elts
         self.kwargs = kwargs
@@ -78,11 +87,16 @@ class ScannerCS(Scanner):
     def scan(self, *args):
         results = super().scan(*args)
         if not isinstance(results, tuple):
-            results = tuple(results)
+            results = tuple([results])
         if len(results) != len(self.elts):
-            raise TypeError("Scan function did not return expected number"
-                            " of results.")
+            raise TypeError("Scan function '{}' did not return expected"
+                            " number of results. Expected {}, returned {}"
+                            .format(self.func.__name__, self.elts, len(results)))
         return dict(zip(self.elts, results))
+
+    def __repr__(self):
+        s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
+        return s
 
 
 class CoordScan(Coord):
@@ -131,7 +145,8 @@ class CoordScan(Coord):
         self.contains = None
 
         self.shared = shared
-        self.scanners = {}
+        self.scanners = []
+        self.manual = set()
         self.elts = ['values', 'in_idx']
 
         self.change_units_custom = None
@@ -144,7 +159,7 @@ class CoordScan(Coord):
     def __repr__(self):
         s = [super().__repr__()]
         s.append(["In", "Shared"][self.shared])
-        s.append("To scan: {}".format(', '.join(self.scanners.keys())))
+        s.append("To scan: {}".format(', '.join(self.scanners)))
         if self.scanned:
             s.append("Scanned")
         else:
@@ -243,18 +258,22 @@ class CoordScan(Coord):
 
     def is_to_scan(self) -> bool:
         """If the coord needs any kind of scanning."""
-        out = ('in' in self.scanners
-               or 'filename' in self.scanners)
+        out = any([s.kind in ['in', 'filename'] for s in self.scanners])
         return out
 
     def is_to_check(self) -> bool:
         """If the coord values need to be checked."""
-        out = (self.is_to_scan()
-               or 'manual' in self.scanners)
+        out = self.is_to_scan() or self.manual
         return out
 
-    def set_scan_filename_func(self, func: Callable, restrain: List[str],
-                               **kwargs: Any):
+    def remove_scanners(self, kind=None):
+        if kind is None:
+            kind = ['in', 'filename', 'manual']
+        for k in kind:
+            self.scanners[k].clear()
+
+    def add_scan_function(self, func: Union[Callable, ScannerCS],
+                          elts: List[str] = None, kind=None, **kwargs: Any):
         """Set function for scanning values in filename.
 
         :param elts: Elements to scan ('values', 'in_idx')
@@ -264,45 +283,27 @@ class CoordScan(Coord):
         --------
         scan_filename_default: for the function signature.
         """
-        self.scanners.pop('filename', None)
-        if not self.shared:
-            self.scanners.pop('manual', None)
-        if restrain is None:
-            elts = self.elts
+        if isinstance(func, ScannerCS):
+            if kind is not None and kind != func.kind:
+                raise ValueError("Scanner '{}' kind different from specified."
+                                 .format(func.func.__name__))
+            func.kwargs = kwargs
+            if elts is not None:
+                func.elts = elts
+            print(func)
         else:
-            elts = [e for e in self.elts if e in restrain]
-        self.scanners['filename'] = ScannerCS(func, elts, **kwargs)
+            if kind is None or elts is None:
+                raise TypeError("Scanner kind and elements must be indicated"
+                                " when supplying function '{}'"
+                                .format(func.__name__))
+            func = ScannerCS(kind, func, elts, **kwargs)
+        self.scanners.append(func)
 
-    def set_scan_in_file_func(self, func: Callable, restrain: List[str] = None,
-                              **kwargs: Any):
-        """Set function for scanning values in file.
-
-        :param elts: Elements to scan ('values', 'in_idx')
-        kwargs: [opt]
-
-        See also
-        --------
-        scan_in_file_default: for the function signature.
-        """
-        self.scanners.pop('manual', None)
-        self.scanners.pop('in', None)
-        if restrain is None:
-            elts = self.elts
-        else:
-            elts = [e for e in self.elts if e in restrain]
-        self.scanners['in'] = ScannerCS(func, elts, **kwargs)
-
-    def set_scan_manual(self, **elts):
+    def set_values_manual(self, **elts):
         """Set values manually."""
-        self.scanners.pop('manual', None)
-        self.scanners.pop('in', None)
-        if not self.shared:
-            self.scanners.pop('filename', None)
-        self.scanners['manual'] = ScannerCS(None, elts)
-
-        if set(self.elts) != elts.keys():
-            raise KeyError("Missing elements when manually setting them"
-                           f" in coordinate {self.name}")
+        self.manual += elts.keys()
+        if 'values' not in elts:
+            raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
 
     def set_scan_attributes_func(self, func: Callable):
@@ -312,8 +313,7 @@ class CoordScan(Coord):
         --------
         scan_attributes_default: for the function signature
         """
-        self.scanners.pop('attrs', None)
-        self.scanners['attrs'] = Scanner(func)
+        self.scanners.append(Scanner('attrs', func))
 
     def scan_attributes(self, file: File):
         """Scan coordinate attributes if necessary.
@@ -321,23 +321,21 @@ class CoordScan(Coord):
         Using the user defined function.
         Apply them.
         """
-        s = self.scanners.get('attrs', None)
-        if s:
-            attrs = s.scan(self, file)
-            log.debug("Found coordinates attributes %s", list(attrs.keys()))
-            for name, value in attrs.items():
-                self.set_attr(name, value)
+        for s in self.scanners:
+            if s.kind == 'attrs':
+                attrs = s.scan(self, file)
+                log.debug("Found coordinates attributes %s", list(attrs.keys()))
+                for name, value in attrs.items():
+                    self.set_attr(name, value)
 
     def scan_elements(self, file: File):
-        elts = self.get_elements_default()
+        elts = {e: [] for e in self.elts}
 
-        for scan_type, s in self.scanners.items():
-            if scan_type == 'manual':
-                continue
-            if scan_type == 'filename':
+        for s in self.scanners:
+            if s.kind == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
                 args = [elts['values']]
-            elif scan_type == 'in':
+            elif s.kind == 'in':
                 log.debug("Scanning in file for '%s'", self.name)
                 args = [file, elts['values']]
 
@@ -350,10 +348,6 @@ class CoordScan(Coord):
         if not all([len(values) for values in elts.values()]):
             raise IndexError("Scan results do not all have the same lenght. "
                              "({})".format({n: len(v) for n, v in elts.items()}))
-        return elts
-
-    def get_elements_default(self):
-        elts = {'values': [], 'in_idx': []}
         return elts
 
     def append_elements(self, elts):
@@ -404,11 +398,6 @@ class CoordScanVar(CoordScan):
         order = range(list(self.size))
         return order
 
-    def get_elements_default(self):
-        elts = super().get_elements_default()
-        elts['dimensions'] = []
-        return elts
-
 
 class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
@@ -435,9 +424,9 @@ class CoordScanIn(CoordScan):
 
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
-        to_open = (len(self.scanners.keys() & {'in', 'attrs'}) > 0
-                   and not self.scanned)
-        return to_open
+        out = (not self.scanned
+               and any([s.kind in ['in', 'attrs'] for s in self.scanners]))
+        return out
 
 
 class CoordScanShared(CoordScan):
@@ -480,11 +469,11 @@ class CoordScanShared(CoordScan):
 
         Make sure matcher has same dimensions.
         """
+        super().update_values(values, **elts)
         if matches is not None:
             if len(values) != len(self.matches):
                 raise IndexError("Not as much values as matches.")
             self.matches = matches
-        super().update_values(values, **elts)
 
     def sort_values(self) -> np.ndarray:
         order = super().sort_values()
@@ -518,7 +507,7 @@ class CoordScanShared(CoordScan):
         if matches not in self.matches:
             elts = self.scan_elements(file)
             values = elts['values']
-            if 'manual' in self.scanners:
+            if self.manual:
                 for v in values:
                     i = self.get_index(v)
                     self.matches[i] = matches
@@ -528,8 +517,8 @@ class CoordScanShared(CoordScan):
 
     def is_to_open(self) -> bool:
         """If the file must be opened for scanning. """
-        to_open = len(self.scanners.keys() & {'in', 'attrs'}) > 0
-        return to_open
+        out = any([s.kind in ['in', 'attrs'] for s in self.scanners])
+        return out
 
 
 def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,

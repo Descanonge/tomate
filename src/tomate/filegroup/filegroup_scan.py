@@ -357,9 +357,10 @@ class FilegroupScan():
         # FIXME: What to reset isn't very clear
         for cs in self.cs.values():
             cs.scanned = False
-            for s in cs.scanners.values():
+            for s in cs.scanners:
                 s.to_scan = True
-            if 'manual' not in cs.scanners:
+            # FIXME Should look at what elements are manual, reset those.
+            if not cs.manual:
                 cs.reset()
             elif cs.shared:
                 cs.matches = [[] for _ in range(len(cs.values))]
