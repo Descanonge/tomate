@@ -202,7 +202,11 @@ class Constructor():
         dims = [v.dims for v in variables if v.dims is not None]
         cs.set_scan_manual(values=values, in_idx=in_idx, dimensions=dims)
 
-    def set_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
+    def remove_scan_functions(self, kind: List[str] = None, *variables):
+        for var in variables:
+            self.current_fg.cs[var].remove_scanners(kind)
+
+    def add_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
                                               Tuple[List[float], List[int]]],
                          *coords: str,
                          restrain: List[str] = None,
@@ -223,12 +227,12 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_in_file_func(func, restrain, **kwargs)
+            cs.add_scan_function(func, restrain, kind='in', **kwargs)
 
-    def set_scan_filename(self, func: Callable[[CoordScan, List[float]],
+    def add_scan_filename(self, func: Callable[[CoordScan, List[float]],
                                                Tuple[List[float], List[int]]],
                           *coords: str,
-                          restrain: List[str] = None,
+                          elts: List[str] = None,
                           **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
@@ -246,7 +250,7 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_filename_func(func, restrain, **kwargs)
+            cs.add_scan_function(func, kind='filename', elts=elts, **kwargs)
 
     def set_values_manually(self, dim: str,
                             values: List[float],
