@@ -93,7 +93,7 @@ class FilegroupScan():
         self.regex = ""
         self.pregex = ""
 
-        self.scanners = {}
+        self.scanners = []
 
         self.cs = {}
         self.make_coord_scan(coords_fg)
@@ -257,20 +257,21 @@ class FilegroupScan():
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
         to_open = (any([cs.is_to_open() for cs in self.cs.values()])
-                   or ('gen' in self.scanners and self.scanners['gen'].to_scan))
+                   or any([s.kind == 'gen' for s in self.scanners]))
         return to_open
 
     def scan_general_attributes(self, file: File):
         """Scan for general attributes."""
-        s = self.scanners['gen']
-        if s.to_scan:
-            log.debug('Scanning file for general attributes.')
-            infos = s.scan(self, file)
-            log.debug("Found infos %s", list(infos.keys()))
-            already_present = [info for info in infos if infos in self.vi.infos]
-            for info in already_present:
-                infos.pop(info)
-            self.vi.set_infos(**infos)
+        for s in self.scanners:
+            if s.kind == 'gen' and s.to_scan:
+                log.debug('Scanning file for general attributes.')
+                infos = s.scan(self, file)
+                log.debug("Found infos %s", list(infos.keys()))
+                already_present = [info for info in infos
+                                   if infos in self.vi.infos]
+                for info in already_present:
+                    infos.pop(info)
+                self.vi.set_infos(**infos)
 
     def scan_file(self, filename: str):
         """Scan a single file.
@@ -303,8 +304,7 @@ class FilegroupScan():
             file = self.open_file(filename, mode='r', log_lvl='debug')
 
         try:
-            if 'gen' in self.scanners and self.scanners['gen'].to_scan:
-                self.scan_general_attributes(file)
+            self.scan_general_attributes(file)
 
             for cs in self.cs.values():
                 cs.scan_attributes(file)
@@ -351,7 +351,7 @@ class FilegroupScan():
         :raises NameError: If no files matching the regex were found.
         :raises ValueError: If no values were detected for a coordinate.
         """
-        for s in self.scanners.values():
+        for s in self.scanners:
             s.to_scan = True
         # Reset CoordScan
         # FIXME: What to reset isn't very clear
@@ -402,12 +402,12 @@ class FilegroupScan():
     def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set function for scanning general attributes.
         """
-        self.scanners['gen'] = Scanner(func, **kwargs)
+        self.scanners.append(Scanner('gen', func, **kwargs))
 
     def set_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
         """Set the function for scanning variables specific attributes.
         """
-        self.scanners['var'] = Scanner(func, **kwargs)
+        self.scanners.append(Scanner('var', func, **kwargs))
 
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
