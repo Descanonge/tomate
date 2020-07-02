@@ -14,6 +14,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 import logging
 from dataclasses import dataclass
+from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 import re
 
@@ -68,6 +69,17 @@ class Scanner:
         self.to_scan = False
         return self(*args, **self.kwargs)
 
+    def copy(self):
+        return self.__class__(self.kind, self.func, **self.kwargs.copy())
+
+    @property
+    def name(self) -> str:
+        try:
+            name = self.func.__name__
+        except AttributeError:
+            name = ''
+        return name
+
     def __bool__(self):
         return self.to_scan
 
@@ -83,6 +95,7 @@ class ScannerCS(Scanner):
         self.elts = elts
         self.kwargs = kwargs
         self.to_scan = True
+        self.restrain = None
 
     def scan(self, *args):
         results = super().scan(*args)
@@ -92,11 +105,21 @@ class ScannerCS(Scanner):
             raise TypeError("Scan function '{}' did not return expected"
                             " number of results. Expected {}, returned {}"
                             .format(self.func.__name__, self.elts, len(results)))
+        if self.restrain is not None:
+            results = self.restrain_results(results)
         return dict(zip(self.elts, results))
+
+    def copy(self):
+        return self.__class__(self.kind, self.func,
+                              self.elts.copy(), **self.kwargs.copy())
 
     def __repr__(self):
         s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
         return s
+
+    def restrain_results(self, results):
+        indices = [self.elts.index(r) for r in self.restrain]
+        return tuple([results[i] for i in indices])
 
 def make_scanner(kind, elts):
     def decorator(func):
@@ -153,6 +176,7 @@ class CoordScan(Coord):
         self.scanners = []
         self.manual = set()
         self.elts = ['values', 'in_idx']
+        self.fixed_elts = {}
 
         self.change_units_custom = None
 
@@ -278,7 +302,8 @@ class CoordScan(Coord):
             self.scanners[k].clear()
 
     def add_scan_function(self, func: Union[Callable, ScannerCS],
-                          elts: List[str] = None, kind=None, **kwargs: Any):
+                          elts: List[str] = None, kind=None,
+                          restrain: List[str] = None, **kwargs: Any):
         """Set function for scanning values in filename.
 
         :param elts: Elements to scan ('values', 'in_idx')
@@ -289,19 +314,29 @@ class CoordScan(Coord):
         scan_filename_default: for the function signature.
         """
         if isinstance(func, ScannerCS):
+            func = func.copy()
             if kind is not None and kind != func.kind:
                 raise ValueError("Scanner '{}' kind different from specified."
-                                 .format(func.func.__name__))
+                                 .format(func.name))
             func.kwargs = kwargs
             if elts is not None:
+                if len(func.elts) != len(elts):
+                    raise IndexError("Scanner '{}' returns {}, of incompatible"
+                                     " lenght with specified {}"
+                                     .format(func.name, func.elts, elts))
                 func.elts = elts
-            print(func)
         else:
             if kind is None or elts is None:
                 raise TypeError("Scanner kind and elements must be indicated"
                                 " when supplying function '{}'"
                                 .format(func.__name__))
             func = ScannerCS(kind, func, elts, **kwargs)
+        if restrain is not None:
+            out = set(restrain) - set(func.elts)
+            if out:
+                raise KeyError("Restrain elements {} are not in scanner '{}'"
+                               " elements".format(out, func.name))
+            func.restrain = restrain
         self.scanners.append(func)
 
     def set_values_manual(self, **elts):
@@ -310,6 +345,14 @@ class CoordScan(Coord):
         if 'values' not in elts:
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
+
+    def set_values_constant(self, **elts):
+        for elt, value in elts.items():
+            if elt not in self.elts:
+                raise KeyError(f"'{elt}' not in '{self.name}' CoordScan elements.")
+            elif elt == 'values':
+                raise TypeError("Values cannot set to be constant.")
+            self.fixed_elts[elt] = value
 
     def set_scan_attributes_func(self, func: Callable):
         """Set function for scanning attributes in file.
@@ -349,9 +392,12 @@ class CoordScan(Coord):
         for name, values in elts.items():
             if not isinstance(values, (list, tuple)):
                 elts[name] = [values]
+            if name in self.fixed_elts:
+                elts[name] = [self.fixed_elts[name]
+                              for _ in range(len(elts['values']))]
 
         if not all([len(values) for values in elts.values()]):
-            raise IndexError("Scan results do not all have the same lenght. "
+            raise IndexError("Scan results do not all have the same length. "
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
 
