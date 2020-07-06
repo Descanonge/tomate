@@ -1,3 +1,4 @@
+- [2020-07-06] Fix `get_index_by_day` failing if target is last index
 - [2020-06-23] Fix writing if variable is not in VI
 - [2020-06-23] Add option to return python datetime
 - [2020-06-16] Make filegroup and database creation easier, using db.add_filegroup.
