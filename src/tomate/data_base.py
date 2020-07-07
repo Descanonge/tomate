@@ -602,7 +602,7 @@ class DataBase():
         def check_shape(data):
             if self.acs.shape(data)[1:] != self.shape[1:]:
                 raise ValueError("data of wrong shape ({}, expected {})"
-                                .format(self.acs.shape(data), self.shape[1:]))
+                                 .format(self.acs.shape(data)[1:], self.shape[1:]))
 
         if variable not in self.avail:
             raise KeyError(f"{variable} is not in avail scope. Use add_variable.")
