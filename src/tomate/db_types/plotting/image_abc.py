@@ -40,4 +40,4 @@ class PlotObjectImageABC(PlotObjectABC):
         """Change axis limits to data."""
         self.ax.set_xlim(*self.get_limits(self.axes[0]))
         self.ax.set_ylim(*self.get_limits(self.axes[1]))
-        self.image.set_clim(*self.get_limits(self.axes[2]))
+        self.object.set_clim(*self.get_limits(self.axes[2]))
