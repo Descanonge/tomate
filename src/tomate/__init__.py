@@ -35,7 +35,7 @@ from .data_base import DataBase
 from .constructor import Constructor
 
 
-__version__ = "1.0.3"
+__version__ = "1.1.0"
 
 
 __all__ = [
