@@ -224,7 +224,7 @@ class PlotObjectABC():
         :param loc: {'left', 'right', 'bottom', 'top'}
         """
         self.add_colorbar_axis(loc, size, pad, **kwargs)
-        self.colorbar = plt.colorbar(self.object, cax=self.cax, ax=self.ax)
+        self.colorbar = self.ax.figure.colorbar(self.object, cax=self.cax, ax=self.ax)
 
     def _get_label(self, name: str,
                    fullname: Union[bool, str], units: Union[bool, str]):

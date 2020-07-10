@@ -134,7 +134,7 @@ class Time(Coord):
             return idx
         if loc == 'closest':
             lo = self.get_index(value, loc='below')
-            hi = lo + 1
+            hi = self.get_index(value, loc='above')
             same_day = [to_date(self.index2date(idx)) == date
                         for idx in [lo, hi]]
             if all(same_day):

@@ -99,6 +99,21 @@ class Constructor():
         """
         return self.filegroups[-1]
 
+    def get_filegroup(self, key: Union[int, str]):
+        """Get filegroup by index or name."""
+        if isinstance(key, int):
+            return self.filegroups[key]
+        if isinstance(key, str):
+            fgs = [fg for fg in self.filegroups
+                   if fg.name == key]
+            if len(fgs) == 0:
+                raise KeyError(f"No filegroup with name {key}")
+            if len(fgs) > 1:
+                raise IndexError(f"More than one filegroup with name {key}")
+            return fgs[0]
+        raise TypeError("Key must be filegroup index or name (is {})"
+                        .format(type(key)))
+
     def add_filegroup(self, fg_type: Type,
                       coords_fg: Iterable[CoordScanSpec],
                       name: str = '', root: str = None,

@@ -14,6 +14,7 @@ import numpy as np
 from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeValue
+from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
 from tomate.variable import Variable
@@ -126,6 +127,21 @@ class DataBase():
         out = {c.__name__: '{}.{}'.format(c.__module__, c.__name__)
                for c in bases}
         return out
+
+    def get_filegroup(self, key: Union[int, str]) -> FilegroupLoad:
+        """Get filegroup by index or name."""
+        if isinstance(key, int):
+            return self.filegroups[key]
+        if isinstance(key, str):
+            fgs = [fg for fg in self.filegroups
+                   if fg.name == key]
+            if len(fgs) == 0:
+                raise KeyError(f"No filegroup with name {key}")
+            if len(fgs) > 1:
+                raise IndexError(f"More than one filegroup with name {key}")
+            return fgs[0]
+        raise TypeError("Key must be filegroup index or name (is {})"
+                        .format(type(key)))
 
     def check_loaded(self):
         """Check if data is loaded.
@@ -571,7 +587,7 @@ class DataBase():
         def check_shape(data):
             if self.acs.shape(data)[1:] != self.shape[1:]:
                 raise ValueError("data of wrong shape ({}, expected {})"
-                                 .format(self.acs.shape(data), self.shape[1:]))
+                                 .format(self.acs.shape(data)[1:], self.shape[1:]))
 
         if variable not in self.avail:
             raise KeyError(f"{variable} is not in avail scope. Use add_variable.")
