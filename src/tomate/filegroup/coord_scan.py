@@ -345,11 +345,17 @@ class CoordScan(Coord):
                 raise KeyError("Restrain elements {} are not in scanner '{}'"
                                " elements".format(out, func.name))
             func.restrain = restrain
+
         self.scanners.append(func)
+        for elt in func.returns:
+            self.fixed_elts.pop('elt', None)
+        self.manual = set()
 
     def set_values_manual(self, **elts):
         """Set values manually."""
         self.manual |= elts.keys()
+        self.scanners = [s for s in self.scanners if s.kind in ['in', 'filename']]
+        self.fixed_elts = {}
         if 'values' not in elts:
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
@@ -359,8 +365,9 @@ class CoordScan(Coord):
             if elt not in self.elts:
                 raise KeyError(f"'{elt}' not in '{self.name}' CoordScan elements.")
             elif elt == 'values':
-                raise TypeError("Values cannot set to be constant.")
+                raise TypeError("Values cannot be set to a constant.")
             self.fixed_elts[elt] = value
+            self.manual -= {elt}
 
     def set_scan_attributes_func(self, func: Callable):
         """Set function for scanning attributes in file.
