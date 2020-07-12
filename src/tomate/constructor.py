@@ -274,7 +274,7 @@ class Constructor():
 
     def set_values_manually(self, dim: str,
                             values: List[float],
-                            in_idx: List[Union[int, None]] = None):
+                            in_idx: List = None):
         """Set coordinate values manually.
 
         Values will still be checked for consistency with
@@ -283,7 +283,7 @@ class Constructor():
         :param dim: Dimension to set the values for.
         :param values: Values for the coordinate.
         :param in_idx: [opt] Values of the in-file index.
-            If not specifile, defaults to None for all values.
+            If not specified, defaults to None for all values.
         """
         if in_idx is None:
             in_idx = [None for _ in range(len(values))]

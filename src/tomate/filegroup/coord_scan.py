@@ -97,6 +97,15 @@ class ScannerCS(Scanner):
         self.to_scan = True
         self.restrain = None
 
+    @property
+    def returns(self) -> List[str]:
+        """Elements returned by the scanner."""
+        if self.restrain is not None:
+            elts = [e for e in self.elts if e in self.restrain]
+        else:
+            elts = self.elts.copy()
+        return elts
+
     def scan(self, *args):
         results = super().scan(*args)
         if not isinstance(results, tuple):
@@ -107,7 +116,7 @@ class ScannerCS(Scanner):
                             .format(self.func.__name__, self.elts, len(results)))
         if self.restrain is not None:
             results = self.restrain_results(results)
-        return dict(zip(self.elts, results))
+        return dict(zip(self.returns, results))
 
     def copy(self):
         return self.__class__(self.kind, self.func,
@@ -115,11 +124,14 @@ class ScannerCS(Scanner):
 
     def __repr__(self):
         s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
+        if self.restrain is not None:
+            s += ' (restrained to {})'.format(self.restrain)
         return s
 
     def restrain_results(self, results):
         indices = [self.elts.index(r) for r in self.restrain]
         return tuple([results[i] for i in indices])
+
 
 def make_scanner(kind, elts):
     def decorator(func):

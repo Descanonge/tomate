@@ -430,7 +430,11 @@ class DataDisk(DataBase):
                 if cs.shared and not cs.is_to_scan():
                     raise KeyError(f"'{name}' (in filegroup '{fg.name}') is shared"
                                    " but has not scanning function set.")
-                if not cs.shared and not cs.scanners:
-                    log.warning("'%s' (in filegroup '%s') has no scanning function set"
-                                " and was not given values manually",
-                                name, fg.name)
+                for elt in cs.elts:
+                    if (elt not in cs.manual
+                            and not any([elt in s.returns for s in cs.scanners])
+                            and elt not in cs.fixed_elts):
+                        raise KeyError("Element '{}' of coordinate '{}' in"
+                                       " filegroup '{}' has no scanning function"
+                                       " set and was not given values manually"
+                                       .format(elt, name, fg.name))
