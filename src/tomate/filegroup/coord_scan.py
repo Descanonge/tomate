@@ -441,10 +441,6 @@ class CoordScanVar(CoordScan):
         self.elts.append('dimensions')
         self.dimensions = []
 
-    def sort_values(self) -> np.ndarray:
-        order = range(list(self.size))
-        return order
-
 
 class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
