@@ -349,7 +349,7 @@ class CoordScan(Coord):
 
     def set_values_manual(self, **elts):
         """Set values manually."""
-        self.manual += elts.keys()
+        self.manual |= elts.keys()
         if 'values' not in elts:
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
