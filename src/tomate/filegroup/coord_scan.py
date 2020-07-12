@@ -401,7 +401,7 @@ class CoordScan(Coord):
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
 
-    def append_elements(self, elts):
+    def append_elements(self, **elts):
         for name, values in elts.items():
             if name == 'values':
                 n_values = len(values)
@@ -470,7 +470,7 @@ class CoordScanIn(CoordScan):
         """
         if not self.scanned and self.is_to_scan():
             elts = self.scan_elements(file)
-            self.append_elements(elts)
+            self.append_elements(**elts)
             self.scanned = True
 
     def is_to_open(self) -> bool:
