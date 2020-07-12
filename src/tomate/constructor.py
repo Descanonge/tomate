@@ -215,7 +215,7 @@ class Constructor():
         values = [v.name for v in variables]
         in_idx = [v.in_idx for v in variables]
         dims = [v.dims for v in variables if v.dims is not None]
-        cs.set_scan_manual(values=values, in_idx=in_idx, dimensions=dims)
+        cs.set_values_manual(values=values, in_idx=in_idx, dimensions=dims)
 
     def remove_scan_functions(self, kind: List[str] = None, *variables):
         for var in variables:
