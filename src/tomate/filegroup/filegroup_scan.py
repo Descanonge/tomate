@@ -287,7 +287,6 @@ class FilegroupScan():
         Close file.
         """
         m = re.match(self.regex, filename)
-
         filename = os.path.join(self.root, filename)
 
         # Discard completely non matching files
@@ -354,16 +353,12 @@ class FilegroupScan():
         for s in self.scanners:
             s.to_scan = True
         # Reset CoordScan
-        # FIXME: What to reset isn't very clear
         for cs in self.cs.values():
             cs.scanned = False
             for s in cs.scanners:
                 s.to_scan = True
-            # FIXME Should look at what elements are manual, reset those.
             if not cs.manual:
                 cs.reset()
-            elif cs.shared:
-                cs.matches = [[] for _ in range(len(cs.values))]
         self.found_file = False
 
         files = self.find_files()

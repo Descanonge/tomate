@@ -551,20 +551,12 @@ class CoordScanShared(CoordScan):
         for mchr in self.matchers:
             mchr.match = m.group(mchr.idx + 1)
             matches.append(mchr.match)
-
         log.debug("Found matches %s for filename %s", matches, m.group())
 
-        # If multiple coords, this match could have been found
+        # If multiple shared coord, this match could already been found
         if matches not in self.matches:
             elts = self.scan_elements(file)
-            values = elts['values']
-            if self.manual:
-                for v in values:
-                    i = self.get_index(v)
-                    self.matches[i] = matches
-            else:
-                self.append_elements(elts)
-                self.matches += [matches for _ in range(len(values))]
+            self.append_elements(**elts, matches=matches)
 
     def is_to_open(self) -> bool:
         """If the file must be opened for scanning. """
