@@ -135,11 +135,12 @@ class Key():
             if self.shape == 0:
                 raise IndexError(f"Invalid slice ({self.value}) of shape 0.")
 
-    def no_int(self) -> Union[List[int], slice, None]:
+    def no_int(self) -> 'Key':
         """Return value, replaces int with list."""
+        new = self.copy()
         if self.type == 'int':
-            return [self.value]
-        return self.value
+            new.set([self.value])
+        return new
 
     def reverse(self):
         """Reverse key.
