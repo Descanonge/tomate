@@ -15,7 +15,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 import logging
 from dataclasses import dataclass
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, Union
 import re
 
 import numpy as np

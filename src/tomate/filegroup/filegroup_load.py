@@ -203,7 +203,7 @@ class FilegroupLoad(FilegroupScan):
         return commands
 
     def _get_commands_shared__get_info(self,
-                                       keyring: Keyring) -> Tuple[List[np.ndarray],
+                                       keyring: Keyring) -> Tuple[List[List[List[str]]],
                                                                   List[List[int]],
                                                                   Union[List[int], None]]:
         """For all asked values, retrieve matchers, regex index and in file index.
@@ -228,19 +228,9 @@ class FilegroupLoad(FilegroupScan):
         in_idxs = []
         for name, cs in self.iter_shared(True).items():
             key = keyring[name].no_int()
-            match = []
-            rgx_idx_matches = []
-            for i, rgx in enumerate(cs.matchers):
-                match.append(cs.matches[key, i])
-                rgx_idx_matches.append(rgx.idx)
-
-            # Matches are stored by regex index, we
-            # need to transpose to have a list by filename
-            match = np.array(match)
-            matches.append(match.T)
-            in_idxs.append(cs.in_idx[key])
-            rgx_idxs.append(rgx_idx_matches)
-
+            matches.append(key.apply(cs.matches))
+            in_idxs.append(key.apply(cs.in_idx))
+            rgx_idxs.append([rgx.idx for rgx in cs.matchers])
         return matches, rgx_idxs, in_idxs
 
     def _get_key_infile(self, keyring: Keyring) -> Keyring:
@@ -475,11 +465,11 @@ def do_post_loading(key_loaded: KeyVar,
                     database: 'DataBase', variables: Variables,
                     post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]):
     """Apply post loading functions."""
-    loaded = set(variables[key_loaded.no_int()])
+    loaded = set(variables[key_loaded.no_int().value])
     for func, key_var, all_var, kwargs in post_loading_funcs:
         if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
             raise TypeError("Variables must be specified by name (or by None).")
-        var = set(variables[key_var.no_int()])
+        var = set(variables[key_var.no_int().value])
 
         if all_var:
             if var <= loaded:

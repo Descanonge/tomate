@@ -200,6 +200,11 @@ class FilegroupScan():
         regex = pregex
         for idx, match in enumerate(m):
             matcher = Matcher(match, idx)
+            if matcher.coord not in self.cs:
+                raise KeyError("{} has no scanning coordinate '{}'."
+                               .format(self.name, matcher.coord))
+            if not self.cs[matcher.coord].shared:
+                raise TypeError(f"'{matcher.coord}' is not shared but has a matcher.")
             self.cs[matcher.coord].add_matcher(matcher)
             regex = regex.replace(match.group(), '(' + matcher.rgx + ')')
 
@@ -370,7 +375,7 @@ class FilegroupScan():
                             .format(self.name, self.regex))
 
         for cs in self.cs.values():
-            cs.set_values()
+            cs.sort_values()
 
             if (cs.coord.name != 'var'
                     and cs.units != '' and cs.coord.units != ''
@@ -411,8 +416,8 @@ class FilegroupScan():
             if isinstance(key, KeyValue):
                 key = Key(key.apply(cs))
             log.debug("Slicing '%s' in filegroup '%s' with indices %s",
-                      dim, self.name, key.no_int())
-            cs.slice(key.no_int())
+                      dim, self.name, key.no_int().value)
+            cs.slice(key.no_int().value)
 
 
 def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,

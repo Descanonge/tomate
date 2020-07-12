@@ -131,7 +131,6 @@ def add_filegroup(cstr, j_fg):
         cs.in_idx = j_cs["in_idx"]
         if cs.shared:
             cs.matches = j_cs["matches"]
-        cs.set_values()
         if cs.is_to_check() or cs.name == 'var':
             cs.update_values(cs.values)
 

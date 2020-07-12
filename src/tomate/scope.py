@@ -345,7 +345,7 @@ class Scope():
 
         limits = []
         for name, key in keyring.items():
-            limits += self[name].get_limits(key.no_int())
+            limits += self[name].get_limits(key.no_int().value)
         return limits
 
     def get_extent(self, *coords: str,
