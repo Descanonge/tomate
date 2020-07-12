@@ -198,12 +198,6 @@ class CoordScan(Coord):
                 s.append("In-file index is {}".format(str(self.in_idx[0])))
         return '\n'.join(s)
 
-    def set_values(self):
-        """Set values."""
-        for elt in self.elts:
-            setattr(self, elt, np.array(getattr(self, elt)))
-        self.sort_values()
-
     def reset(self):
         """Remove values."""
         self.empty()
@@ -230,14 +224,16 @@ class CoordScan(Coord):
 
         :returns: The order used to sort values.
         """
-        order = np.argsort(self.values)
+        order = np.argsort(self.values).tolist()
         for elt in self.elts:
-            setattr(self, elt, getattr(self, elt)[order])
+            new_elt = [getattr(self, elt)[i] for i in order]
+            setattr(self, elt, new_elt)
         return order
 
     def slice(self, key: KeyLikeInt):
+        k = Key(key)
         for elt in self.elts:
-            setattr(self, elt, getattr(self, elt)[key])
+            setattr(self, elt, k.apply(getattr(self, elt)))
         if self.size is not None:
             super().slice(key)
 
@@ -275,7 +271,7 @@ class CoordScan(Coord):
                 else:
                     indices = key.value
             else:
-                indices = self.in_idx[key.value]
+                indices = key.apply(self.in_idx)
 
             key_data = key.__class__(indices)
         except Exception:
@@ -390,7 +386,9 @@ class CoordScan(Coord):
             elts.update(s.scan(self, *args))
 
         for name, values in elts.items():
-            if not isinstance(values, (list, tuple)):
+            if isinstance(values, np.ndarray):
+                elts[name] = values.tolist()
+            if not isinstance(values, list):
                 elts[name] = [values]
             if name in self.fixed_elts:
                 elts[name] = [self.fixed_elts[name]
@@ -411,7 +409,10 @@ class CoordScan(Coord):
                     log.debug("Found %s values between %s and %s",
                               n_values, values[0], values[-1])
             current = getattr(self, name)
-            current += values
+            if isinstance(values, list):
+                current += values
+            else:
+                current.append(values)
 
     def find_contained(self, outer: np.ndarray) -> List[Union[int, None]]:
         """Find values of inner contained in outer.
@@ -439,11 +440,6 @@ class CoordScanVar(CoordScan):
         super().__init__(*args, **kwargs)
         self.elts.append('dimensions')
         self.dimensions = []
-
-    def set_values(self):
-        """Set values."""
-        for elt in self.elts:
-            setattr(self, elt, np.array(getattr(self, elt)))
 
     def sort_values(self) -> np.ndarray:
         order = range(list(self.size))
@@ -511,10 +507,6 @@ class CoordScanShared(CoordScan):
         """Add a matcher."""
         self.matchers.append(matcher)
 
-    def set_values(self):
-        self.matches = np.array(self.matches)
-        super().set_values()
-
     def update_values(self, values, matches=None, **elts):
         """Update values.
 
@@ -528,7 +520,7 @@ class CoordScanShared(CoordScan):
 
     def sort_values(self) -> np.ndarray:
         order = super().sort_values()
-        self.matches = self.matches[order]
+        self.matches = [self.matches[i] for i in order]
         return order
 
     def reset(self):
@@ -536,7 +528,8 @@ class CoordScanShared(CoordScan):
         self.matches = []
 
     def slice(self, key: Union[List[int], slice]):
-        self.matches = self.matches[key]
+        k = Key(k)
+        self.matches = k.apply(self.matches)
         super().slice(key)
 
     def scan_file(self, m: re.match, file: File):
@@ -551,6 +544,7 @@ class CoordScanShared(CoordScan):
         for mchr in self.matchers:
             mchr.match = m.group(mchr.idx + 1)
             matches.append(mchr.match)
+        matches = tuple(matches)
         log.debug("Found matches %s for filename %s", matches, m.group())
 
         # If multiple shared coord, this match could already been found
