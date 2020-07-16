@@ -432,7 +432,8 @@ class DataDisk(DataBase):
                                    " but has not scanning function set.")
                 for elt in cs.elts:
                     if (elt not in cs.manual
-                            and not any([elt in s.returns for s in cs.scanners])
+                            and not any([elt in s.returns for s in cs.scanners
+                                         if s.kind in ['in', 'filename']])
                             and elt not in cs.fixed_elts):
                         raise KeyError("Element '{}' of coordinate '{}' in"
                                        " filegroup '{}' has no scanning function"
