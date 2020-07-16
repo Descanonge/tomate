@@ -467,7 +467,7 @@ def do_post_loading(key_loaded: Key,
     """Apply post loading functions."""
     loaded = set(variables[key_loaded.no_int().value])
     for func, key_var, all_var, kwargs in post_loading_funcs:
-        if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
+        if not key_var.str and key_var.type != 'none' and key_var.value != slice(None):
             raise TypeError("Variables must be specified by name (or by None).")
         var = set(variables[key_var.no_int().value])
 
