@@ -156,6 +156,18 @@ class AccessorABC():
         """
         raise NotImplementedError
 
+    @staticmethod
+    def stack(arrays: List[Array],
+              axis: int = 0,
+              out: Array = None) -> Array:
+        """Stack arrays along a new axis.
+
+        :param arrays: Arrays to stack.
+        :param axis: The axis along which the arrays will be joined.
+        :param out: Array to place the result in.
+        """
+        raise NotImplementedError
+
 
 class Accessor(AccessorABC):
     """Manages access to arrays.
@@ -356,3 +368,19 @@ class Accessor(AccessorABC):
         numpy.concatenate: Function used.
         """
         return np.concatenate(arrays, axis=axis, out=out)
+
+    @staticmethod
+    def stack(arrays: List[Array],
+              axis: int = 0,
+              out: Array = None) -> Array:
+        """Stack arrays along a new axis.
+
+        :param arrays: Arrays to stack.
+        :param axis: The axis along which the arrays will be joined.
+        :param out: Array to place the result in.
+
+        See also
+        --------
+        numpy.stack: Function used.
+        """
+        return np.stack(arrays, axis=axis, out=out)

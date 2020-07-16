@@ -44,6 +44,22 @@ class AccessorMask(Accessor):
             raise TypeError("np.ma.concatenate does not support 'out' argument")
         return np.ma.concatenate(arrays, axis=axis)
 
+    @staticmethod
+    def stack(arrays: List[Array],
+              axis: int = 0,
+              out: Array = None) -> Array:
+        """Stack arrays along a new axis.
+
+        :param arrays: Arrays to stack.
+        :param axis: The axis along which the arrays will be joined.
+        :param out: Array to place the result in.
+
+        See also
+        --------
+        numpy.mastack: Function used.
+        """
+        return np.ma.stack(arrays, axis=axis, out=out)
+
 
 class DataMasked(DataBase):
     """Encapsulate data array and info about the variables.
