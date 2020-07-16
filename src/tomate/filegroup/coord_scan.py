@@ -398,6 +398,8 @@ class CoordScan(Coord):
         elts = {e: [] for e in self.elts}
 
         for s in self.scanners:
+            if s.kind == 'attrs':
+                continue
             if s.kind == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
                 args = [elts['values']]
