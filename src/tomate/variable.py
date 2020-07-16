@@ -8,7 +8,7 @@
 from typing import Iterable, List, TYPE_CHECKING
 
 from tomate.accessor import Accessor
-from tomate.custom_types import Array, KeyLikeVar
+from tomate.custom_types import Array, KeyLikeStr
 from tomate.keys.keyring import Keyring
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class VariableSpec:
     def __init__(self, name: str,
-                 in_idx: KeyLikeVar = '__equal_as_name__',
+                 in_idx: KeyLikeStr = '__equal_as_name__',
                  dims: List[str] = None):
         if in_idx == '__equal_as_name__':
             in_idx = name
@@ -72,7 +72,7 @@ class Variable():
     def view(self, keyring=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
         keyring = keyring.subset(self.dims)
-        out = self.acs.take(self.data, keyring)
+        out = self.acs.take(keyring, self.data)
         return out
 
     def set_data(self, chunk, keyring: Keyring = None):
