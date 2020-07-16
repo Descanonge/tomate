@@ -6,105 +6,103 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Iterator, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import (Any, Iterable, Iterator, List, Optional,
+                    Sequence, Union, TYPE_CHECKING)
 
 import numpy as np
 
-from tomate.custom_types import KeyLikeInt, KeyLikeVar, KeyLikeValue
+from tomate.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
 
 if TYPE_CHECKING:
     from tomate.coordinates.coord import Coord
+    from tomate.coordinates.coord_str import CoordStr
     from tomate.coordinates.time import Time
-    from tomate.coordinates.variables import Variables
 
 
 class Key():
     """Element for indexing a dimension of an array.
 
-    Can be None, int, List[int] or slice.
+    Can be None, int, str, List[int], List[str] or slice.
 
     See :doc:`../accessor` for more information.
 
     :param key: Key-like object.
 
-    INT_TYPES: List[Type]
-
     :attr type: str: {'none', 'int', 'list', 'slice'}
+    :attr str: bool: If the key is a string or a list of strings.
     :attr parent_size: int, None: Size of the sequence it would be applied to.
         Useful for reversing keys, or turning slices into lists.
-    :attr shape: int, None: Length of what the key would select.
-        Integer and None keys have shape 0 (they would get
-        a scalar).
+    :attr size: int, None: Length of what the key would select.
+        Integer and None keys have shape 0 (they would return a scalar).
         Is None if the shape is undecidable (for some slices
         for instance).
     """
 
     INT_TYPES = (int, np.integer)  #: Types that are considered integer.
 
-    def __init__(self, key: KeyLikeInt):
+    def __init__(self, key: KeyLike):
         self.value = None
-        self.type = ''
-        self.shape = None
+        self.type = 'none'
+        self.str = False
+
+        self.size = None
         self.parent_size = None
+
         self.set(key)
 
-    def set(self, key: KeyLikeInt):
+    def set(self, key: KeyLike):
         """Set key value.
 
-        :param key: Key-like:
-        :param TypeError: If key is not a valid type.
+        :param TypeError: If key is not valid.
         """
-        reject = False
-        if isinstance(key, (list, tuple, np.ndarray)):
-            reject = any(not isinstance(z, self.INT_TYPES) for z in key)
-            tp = 'list'
-            key = [int(k) for k in key]
-            if len(key) == 0:
-                raise IndexError("Key cannot be an empty list.")
-        elif isinstance(key, self.INT_TYPES):
+        reject = ''
+        s = False
+        tp = ''
+
+        if isinstance(key, self.INT_TYPES):
             tp = 'int'
             key = int(key)
+        elif isinstance(key, str):
+            tp = 'int'
+            s = True
+
+        elif isinstance(key, (list, tuple, np.ndarray)):
+            tp = 'list'
+            key = list(key)
+            if all([isinstance(z, self.INT_TYPES) for z in key]):
+                key = [int(z) for z in key]
+            elif all([isinstance(z, str) for z in key]):
+                s = True
+            else:
+                reject = 'List elements must be all integers or all strings'
+
         elif isinstance(key, slice):
             tp = 'slice'
+            slc = key.start, key.stop, key.step
+            if all([isinstance(z, (*self.INT_TYPES, type(None))) for z in slc]):
+                slc = [int(z) if z is not None else None for z in slc]
+            else:
+                reject = 'Slice elments must be all None or integers'
+            key = slice(*slc)
+
         elif key is None:
             tp = 'none'
         else:
-            reject = True
+            reject = 'Invalid type (must be int, str, iterable, or slice)'
+
         if reject:
-            raise TypeError(f"Key is not int, List[int], or slice (is {type(key)})")
+            raise TypeError(f"Key invalid: {reject}")
+
         self.value = key
         self.type = tp
-        self.set_shape()
+        self.str = s
 
-    def __eq__(self, other: 'Key') -> bool:
-        return self.value == other.value
+        self.set_size()
 
-    def __repr__(self):
-        return str(self.value)
+    def set_size(self):
+        """Set size if possible.
 
-    def __iter__(self) -> Iterator[KeyLikeInt]:
-        """Iter through values."""
-        try:
-            val = self.tolist()
-        except TypeError:
-            val = [self.value]
-        return iter(val)
-
-    def copy(self) -> 'Key':
-        """Return copy of self."""
-        if self.type == 'list':
-            value = self.value.copy()
-        else:
-            value = self.value
-        key = self.__class__(value)
-        key.shape = self.shape
-        key.parent_size = self.parent_size
-        return key
-
-    def set_shape(self):
-        """Set shape if possible.
-
-        Shape is the size an array would have
+        Size is the size an array would have
         if the key was applied.
 
         Is None if cannot be determined from
@@ -113,30 +111,61 @@ class Key():
         :raises IndexError: If slice of shape 0.
         """
         if self.type == 'int':
-            self.shape = 0
-        elif self.type == 'list':
-            self.shape = len(self.value)
+            self.size = 0
         elif self.type == 'none':
-            self.shape = 0
+            self.size = 0
+        elif self.type == 'list':
+            self.size = len(self.value)
         elif self.type == 'slice':
-            self.shape = guess_slice_shape(self.value)
-            if self.shape == 0:
-                raise IndexError(f"Invalid slice ({self.value}) of shape 0.")
+            self.size = guess_slice_size(self.value)
+            if self.size == 0:
+                raise IndexError(f"Invalid slice ({self.value}) of size 0")
 
-    def set_shape_coord(self, coord: 'Coord'):
-        """Set shape using a coordinate.
+    def __eq__(self, other: 'Key'):
+        return self.value == other.value
 
-        :param coord: The coordinate that would be used.
-        :raises IndexError: If slice of shape 0.
+    def __iter__(self) -> Iterator:
+        """Iterate on the key.
+
+        Iterate on list of indices (integers or strings)
+        if the key can be converted to one.
+        Otherwise iterate on a single slice.
         """
-        self.parent_size = coord.size
+        try:
+            val = self.as_list()
+        except TypeError:
+            val = [self.value]
+        return iter(val)
+
+    def copy(self) -> 'Key':
+        """Return a copy"""
+        if self.type == 'list':
+            value = self.value.copy()
+        else:
+            value = self.value
+        key = self.__class__(value)
+        key.size = self.size
+        key.parent_size = self.parent_size
+        return key
+
+    def __repr__(self):
+        return str(self.value)
+
+    def set_size_coord(self, coord: Iterable):
+        """Set size using a coordinate.
+
+        :param coord: The coordinate that would be used
+            (or any iterable of appropriate size).
+        :raises IndexError: If slice of size 0.
+        """
+        self.parent_size = len(coord)
         if self.type == 'slice':
-            self.shape = len(coord[self.value])
+            self.shape = len(self.apply(coord))
             if self.shape == 0:
-                raise IndexError(f"Invalid slice ({self.value}) of shape 0.")
+                raise IndexError(f"Invalid slice ({self.value}) of size 0")
 
     def no_int(self) -> 'Key':
-        """Return value, replaces int with list."""
+        """Return copy that replaces int with list."""
         new = self.copy()
         if self.type == 'int':
             new.set([self.value])
@@ -153,19 +182,27 @@ class Key():
             self.value = reverse_slice_order(self.value)
 
     def simplify(self):
-        """Simplify list into a slice.
+        """Simplify list into a slice if possible.
 
         Transform a list into a slice if the list is
         a serie of integers of fixed step.
         """
-        if self.type == 'list':
+        if self.type == 'list' and not self.str:
             key = list2slice_simple(self.value)
             if isinstance(key, slice):
                 self.type = 'slice'
             self.value = key
 
-    def tolist(self) -> List[int]:
-        """Return list of key."""
+    def as_list(self) -> Union[List[int], List[str]]:
+        """Return list of key.
+
+        If self is a slice and the parent size is not set,
+        try to guess a list if possible. Throw error if not possible.
+
+        See also
+        --------
+        guess_tolist
+        """
         a = self.value
         if self.type == 'int':
             a = [a]
@@ -176,23 +213,22 @@ class Key():
                 a = list(range(*self.value.indices(self.parent_size)))
             else:
                 a = guess_tolist(self.value)
-
-        elif self.type == 'none':
-            a = []
         return a
 
-    def apply(self, seq: Sequence) -> Sequence:
+    def apply(self, seq: Sequence) -> Union[List[Any], Any]:
         """Apply key to a sequence.
 
+        :returns: One element or a list of elements
+            from the sequence.
         :raises TypeError: Key type not applicable.
         """
         if self.type == 'int':
             return seq[self.value]
         if self.type == 'list':
-            return [seq[i] for i in self.value]
+            return [seq[z] for z in self.value]
         if self.type == 'slice':
             return seq[self.value]
-        raise TypeError(f"Not applicable (key type '{self.type}').")
+        raise TypeError("Key not applicable")
 
     def __mul__(self, other: 'Key') -> 'Key':
         """Subset key by another.
@@ -205,29 +241,32 @@ class Key():
         type of the two keys (int > list > slice).
 
         :returns: self*other
+        :raises TypeError: If other is a string key but not self.
         """
-        if (self.type == 'slice' and self.value.start in [0, None]
-                and self.value.stop in [-1, None]
-                and self.value.step in [1, None]):
+        if self.type == 'slice' and is_none_slice(self.value):
             return other
-        else:
-            a = self.tolist()
-            key = other.value
-            if other.type == 'int':
-                key = [key]
+        if other.type == 'slice' and is_none_slice(other.value):
+            return self
 
-            if other.type == 'slice':
-                res = a[key]
-            else:
-                res = [a[k] for k in key]
+        a = self.as_list()
+        b = other.copy()
+        b.make_int_list()
+        if other.str and not self.str:
+            raise TypeError("Cannot multiply an integer indices key"
+                            " by a string indices key")
+        elif self.str and other.str:
+            out = [z for z in a if z in b]
+        else:
+            out = b.apply(a)
 
         if self.type == 'int' or other.type == 'int':
-            key = self.__class__(int(res[0]))
+            key = self.__class__(out[0])
         elif self.type == 'list' or other.type == 'list':
-            key = self.__class__(list(res))
+            key = self.__class__(out)
         else:
-            key = self.__class__(list2slice_simple(res))
-            key.shape = len(res)
+            key = self.__class__(list2slice_simple(out))
+            key.size = len(out)
+
         return key
 
     def __add__(self, other: 'Key') -> 'Key':
@@ -242,19 +281,18 @@ class Key():
 
         :returns: self + other
         """
-        a = self.tolist()
-        b = other.tolist()
-        key = a + b
+        a = self.as_list()
+        b = other.as_list()
+        out = a + b
 
         if self.type == 'slice' or other.type == 'slice':
-            key = list2slice_simple(key)
+            out = list2slice_simple(out)
 
-        return self.__class__(key)
+        return self.__class__(out)
 
     def sort(self):
         """Sort indices."""
         if self.type == 'list':
-            self.value = list(set(self.value))
             self.value.sort()
         if self.type == 'slice':
             if self.value.step is not None and self.value.step < 0:
@@ -265,7 +303,7 @@ class Key():
         if self.type == 'list' and len(self.value) == 1:
             self.type = 'int'
             self.value = self.value[0]
-            self.shape = 0
+            self.size = 0
 
     def make_int_list(self):
         """Make integer a list of lenght one."""
@@ -274,160 +312,32 @@ class Key():
             self.value = [self.value]
             self.shape = 1
 
+    def make_list(self, coord: Sequence = None):
+        """Transform key into list.
 
-class KeyVar(Key):
-    """Key for indexing Variable dimension.
-
-    Add support for strings keys to Key.
-    Allows to go from variable name to index (and
-    vice-versa).
-
-    :param key: Key-like object.
-        Can also be variable name, list of variables names, or
-        a slice made from strings.
-
-    :attr var: bool: If the key-value can be used only for variables
-        (*ie* it is or contains a string). In which case
-        one can use `make_var_idx`.
-
-    Examples
-    --------
-    Examples of values:
-    >>> 0, [0, 1], 'sst', ['sst'], slice('sst', 'chl', 1)
-    """
-
-    def __init__(self, key: KeyLikeVar):
-        self.var = False
-        super().__init__(key)
-
-    def set(self, key: KeyLikeVar):
-        """Set value.
-
-        :param key: Can be integer or string.
-            Can be list of integers or strings (not a mix of both).
-            Can be a slice. Step must be None or integer. Start and
-            Stop can be integers or strings (not a mix of both).
-
-        :raises TypeError: Key is not of valid type.
-        :raises ValueError: Slice is not valid (step is not integer,
-            or start and stop are not of the same type).
+        :param coord: If not None, is used to create list.
         """
-        reject = False
-        var = False
-        if isinstance(key, str):
-            tp = 'int'
-            var = True
-        elif isinstance(key, self.INT_TYPES):
-            tp = 'int'
-            key = int(key)
-        elif isinstance(key, (list, tuple, np.ndarray)):
-            if all([isinstance(k, str) for k in key]):
-                tp = 'list'
-                var = True
-            elif all([isinstance(k, self.INT_TYPES) for k in key]):
-                tp = 'list'
-                key = [int(k) for k in key]
+        self.make_int_list()
+        if self.type == 'slice':
+            if coord is not None:
+                self.set(self.apply(coord))
+                self.parent_size = len(coord)
             else:
-                reject = True
-            if len(key) == 0:
-                raise IndexError("Key cannot be an empty list.")
-        elif isinstance(key, slice):
-            tp = 'slice'
-            slc = [key.start, key.stop, key.step]
-            for i, s in enumerate(slc):
-                if isinstance(s, self.INT_TYPES):
-                    slc[i] = int(s)
-            start, stop, step = slc
-            invalid = False
-            if step is not None and not isinstance(step, int):
-                invalid = True
-            types = {type(a) for a in [start, stop]
-                     if a is not None}
-            if types == set([str]):
-                var = True
-            if types not in (set([int]), set([str]), set()):
-                invalid = True
-            if invalid:
-                raise ValueError("Invalid slice.")
-        elif key is None:
-            tp = 'none'
-        else:
-            reject = True
+                self.set(guess_tolist(self.value))
 
-        if reject:
-            raise TypeError("Key is not int, str, List[int], List[str] or slice"
-                            f" (is {type(key)})")
-        self.value = key
-        self.type = tp
-        self.var = var
-        self.set_shape()
-
-    def set_shape(self):
-        if self.type == 'slice' and self.var:
-            self.shape = None
-        else:
-            super().set_shape()
-
-    def reverse(self):
-        if not (self.var and self.type == 'slice'):
-            super().reverse()
-
-    def simplify(self):
+    def make_idx_str(self, coord: 'CoordStr'):
+        """Transform indices into strings"""
         if not self.var:
-            super().simplify()
-
-    def tolist(self) -> List[int]:
-        """Return list of key.
-
-        :raises TypeError: If string slice cannot be transformed into list.
-        """
-        if self.type == 'slice' and self.var:
-            raise TypeError("Variable slice cannot be transformed into list.")
-        return super().tolist()
-
-    def __mul__(self, other: 'KeyVar') -> 'KeyVar':
-        """Subset key bd another.
-
-        See Key.__mul__ for details.
-
-        :raises TypeError: If `other` value is a KeyLikeStr, then
-            `self` must be too.
-        """
-        if not other.var:
-            return super().__mul__(other)
-        if not self.var:
-            raise TypeError("If other is var, self must be too.")
-
-        a = self.tolist()
-        key = other.value
-        if other.type == 'int':
-            key = [key]
-
-        if other.type == 'slice':
-            slc = slice(a.index(key.start), a.index(key.stop), key.step)
-            res = a[slc]
-        else:
-            res = [z for z in a if z in key]
-
-        if self.type == 'int' or other.type == 'int':
-            key = KeyVar(res[0])
-        elif self.type == 'list' or other.type == 'list':
-            key = self.__class__(list(res))
-        return key
-
-    def make_idx_var(self, variables: 'Variables'):
-        """Transform indices into variables names."""
-        if not self.var:
-            names = variables.get_var_names(self.value)
+            names = coord.get_var_names(self.value)
             self.set(names)
-        self.set_shape_coord(variables)
+        self.set_shape_coord(coord)
 
-    def make_var_idx(self, variables: 'Variables'):
-        """Transform variables names into indices."""
+    def make_str_idx(self, coord: 'CoordStr'):
+        """Transform strings into indices."""
         if self.var:
-            idx = variables.get_var_indices(self.value)
+            idx = coord.get_str_indices(self.value)
             self.set(idx)
-        self.set_shape_coord(variables)
+        self.set_shape_coord(coord)
 
 
 class KeyValue():
@@ -581,8 +491,8 @@ def list2slice_complex(L: List[int]) -> Union[slice, List[int]]:
     return slices
 
 
-def guess_slice_shape(slc: slice) -> Optional[int]:
-    """Guess the shape of a slice.
+def guess_slice_size(slc: slice) -> Optional[int]:
+    """Guess the size of a slice.
 
     :returns: None if it is not possible to guess.
         (for instance for slice(None, None))
@@ -645,7 +555,8 @@ def guess_tolist(slc: slice) -> List[int]:
         if start is None and stop is not None and stop < 0:
             return list(range(-1, stop, step))
 
-    raise ValueError(f"Slice ({slc}) cannot be turned into list by guessing.")
+    raise ValueError(f"Slice ({start}, {stop}, {step}) cannot"
+                     " be turned into list by guessing.")
 
 
 def reverse_slice_order(slc: slice) -> slice:
@@ -675,3 +586,10 @@ def reverse_slice_order(slc: slice) -> slice:
     step *= -1
     start, stop = stop, start
     return slice(start, stop, step)
+
+
+def is_none_slice(slc):
+    is_none = (slc.start in [0, None]
+               and slc.stop in [-1, None]
+               and slc.step in [1, None])
+    return is_none
