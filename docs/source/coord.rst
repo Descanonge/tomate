@@ -53,8 +53,8 @@ Most of the user API supports refering to variables
 by both their index in the coordinate object, and their name.
 One can easily retrieve the index of one or more variables using the
 :func:`idx<variables.Variables.idx>`,
-:func:`get_var_index<variables.Variables.get_var_index>`, or
-:func:`get_var_indices<variables.Variables.get_var_indices>`
+:func:`get_str_index<variables.Variables.get_str_index>`, or
+:func:`get_str_indices<variables.Variables.get_str_indices>`
 methods.
 
 

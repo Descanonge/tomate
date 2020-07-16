@@ -88,7 +88,8 @@ class Key():
         elif key is None:
             tp = 'none'
         else:
-            reject = 'Invalid type (must be int, str, iterable, or slice)'
+            reject = ('Invalid type (must be int, str, iterable, or slice),'
+                      f' is {type(key)}')
 
         if reject:
             raise TypeError(f"Key invalid: {reject}")
@@ -327,17 +328,17 @@ class Key():
 
     def make_idx_str(self, coord: 'CoordStr'):
         """Transform indices into strings"""
-        if not self.var:
-            names = coord.get_var_names(self.value)
+        if not self.str:
+            names = coord.get_str_names(self.value)
             self.set(names)
-        self.set_shape_coord(coord)
+        self.set_size_coord(coord)
 
     def make_str_idx(self, coord: 'CoordStr'):
         """Transform strings into indices."""
-        if self.var:
+        if self.str:
             idx = coord.get_str_indices(self.value)
             self.set(idx)
-        self.set_shape_coord(coord)
+        self.set_size_coord(coord)
 
 
 class KeyValue():

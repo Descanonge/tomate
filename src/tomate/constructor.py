@@ -15,13 +15,13 @@ from typing import (Any, Callable, Dict, Iterable, List, Tuple, Sequence,
 from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
 from tomate.coordinates.variables import Variables
-from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr, KeyLikeVar
+from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr
 from tomate.data_base import DataBase
 from tomate.db_types.data_disk import DataDisk
 from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
-from tomate.keys.key import Key, KeyVar, KeyValue
+from tomate.keys.key import Key, KeyValue
 from tomate.variable import VariableSpec
 from tomate.variables_info import VariablesInfo
 
@@ -44,7 +44,7 @@ class Constructor():
     :attr filegroups: List[Filegroup]: Filegroups added so far.
     :attr vi: VariablesInfo:
 
-    :attr post_loading_funcs: List[Tuple[Callable[DataBase]], KeyVar,
+    :attr post_loading_funcs: List[Tuple[Callable[DataBase]], Key,
                                    bool, Dict[str, Any]]:
         Functions applied after loading data at the database level.
 
@@ -404,14 +404,14 @@ class Constructor():
         >>> add_post_loading(func1, ['SST', 'SSH'])
         func1 will be launched if at least 'SST' and 'SSH' are loaded.
         """
-        key_var = KeyVar(variables)
+        key_var = Key(variables)
         if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
             raise TypeError("Variables must be specified by name (or by None).")
         if current_fg:
             for_append = self.current_fg
         else:
             for_append = self
-        for_append.post_loading_funcs.append((func, KeyVar(variables),
+        for_append.post_loading_funcs.append((func, Key(variables),
                                               all_variables, kwargs))
 
     def set_data_types(self, db_types: Union[Type[DataBase], List[Type[DataBase]]] = None,

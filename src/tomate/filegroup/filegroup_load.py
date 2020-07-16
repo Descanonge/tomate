@@ -13,12 +13,12 @@ from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
 import numpy as np
 
 from tomate.accessor import Accessor
-from tomate.custom_types import File, KeyLike, KeyLikeVar
+from tomate.custom_types import File, KeyLike, KeyLikeStr
 from tomate.coordinates.variables import Variables
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command
 from tomate.filegroup.filegroup_scan import FilegroupScan
-from tomate.keys.key import KeyVar
+from tomate.keys.key import Key
 from tomate.keys.keyring import Keyring
 
 if TYPE_CHECKING:
@@ -104,7 +104,7 @@ class FilegroupLoad(FilegroupScan):
             krg_infile[dim] = infile
             krg_memory[dim] = memory
 
-        krg_memory.make_idx_var(self.db.avail.var)
+        krg_memory.make_idx_str(var=self.db.avail.var)
         krg_infile.simplify()
         krg_memory.simplify()
 
@@ -195,7 +195,7 @@ class FilegroupLoad(FilegroupScan):
             krgs_mem = Keyring()
             for i_c, name in enumerate(self.iter_shared(True)):
                 krgs_inf[name] = in_idxs[i_c][m[i_c]]
-                krgs_mem[name] = memory[name].tolist()[m[i_c]]
+                krgs_mem[name] = memory[name].as_list()[m[i_c]]
 
             cmd.append(krgs_inf, krgs_mem)
             commands.append(cmd)
@@ -261,7 +261,7 @@ class FilegroupLoad(FilegroupScan):
         raise NotImplementedError
 
     def _get_order_in_file(self, file: File = None,
-                           var_name: KeyLikeVar = None) -> List[str]:
+                           var_name: KeyLikeStr = None) -> List[str]:
         """Get order of dimensions in file.
 
         Default to the order of coordinates in the filegroup.
@@ -359,9 +359,9 @@ class FilegroupLoad(FilegroupScan):
         Store them in VI.
         """
         def scan_attr(fg, file, infile, memory):
-            attrs = fg.scanners['var'].scan(fg, file, infile['var'].tolist())
+            attrs = fg.scanners['var'].scan(fg, file, infile['var'].as_list())
 
-            for name, [name_inf, values] in zip(memory['var'].tolist(),
+            for name, [name_inf, values] in zip(memory['var'].as_list(),
                                                 attrs.items()):
                 log.debug("Found attributes (%s) for '%s' (%s infile)",
                           values.keys(), name, name_inf)
@@ -377,7 +377,7 @@ class FilegroupLoad(FilegroupScan):
 
         for cmd in cmds:
             for infile, memory in cmd:
-                memory.make_idx_var(self.cs['var'])
+                memory.make_idx_str(var=self.cs['var'])
                 log.debug('Scanning %s for variables specific attributes.', cmd.filename)
 
                 try:
@@ -461,9 +461,9 @@ class FilegroupLoad(FilegroupScan):
         raise NotImplementedError()
 
 
-def do_post_loading(key_loaded: KeyVar,
+def do_post_loading(key_loaded: Key,
                     database: 'DataBase', variables: Variables,
-                    post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]):
+                    post_loading_funcs: List[Tuple[Callable, Key, bool, Dict]]):
     """Apply post loading functions."""
     loaded = set(variables[key_loaded.no_int().value])
     for func, key_var, all_var, kwargs in post_loading_funcs:

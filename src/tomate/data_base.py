@@ -219,7 +219,7 @@ class DataBase():
         keyring = Keyring.get_default(keyring, **kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.make_idx_var(self.loaded.var)
+        keyring.make_idx_str(var=self.loaded.var)
 
         out = tuple([self.variables[var].view(keyring)
                      for var in keyring['var']])
@@ -305,7 +305,7 @@ class DataBase():
         """
         self.check_loaded()
 
-        keyring = Keyring.get_default(keyring, **keys, variables=self.loaded.var)
+        keyring = Keyring.get_default(keyring, **keys, dims={'var': self.loaded.var})
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.sort_by(self.dims)
@@ -546,7 +546,7 @@ class DataBase():
         if scope.is_empty():
             self.select(scope, keyring=keyring, **keys)
         else:
-            keyring = Keyring.get_default(keyring, **keys, variables=self.avail.var)
+            keyring = Keyring.get_default(keyring, **keys, dims={'var': self.avail.var})
             keyring.set_shape(scope.parent_scope.dims)
             keyring = keyring + scope.parent_keyring
             keyring.sort_keys()

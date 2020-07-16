@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeVar
+from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeStr
 from tomate.data_base import DataBase
 
 from tomate.db_types.plotting.contour import PlotObjectContour
@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 class DataPlot(DataBase):
     """Added functionalities for plotting data."""
 
-    def plot(self, ax: Axes, variable: KeyLikeVar,
+    def plot(self, ax: Axes, variable: KeyLikeStr,
              data: Array = None, axes: List[str] = None,
              plot: bool = True, limits: bool = True,
              kwargs: Dict[str, Any] = None,
@@ -68,7 +68,7 @@ class DataPlot(DataBase):
 
         return po
 
-    def imshow(self, ax: Axes, variable: KeyLikeVar,
+    def imshow(self, ax: Axes, variable: KeyLikeStr,
                data: Array = None, axes: List[str] = None,
                plot: bool = True, limits: bool = True,
                kwargs: Dict[str, Any] = None,
@@ -90,7 +90,7 @@ class DataPlot(DataBase):
 
         return po
 
-    def contour(self, ax: Axes, variable: KeyLikeVar,
+    def contour(self, ax: Axes, variable: KeyLikeStr,
                 data: Array = None, axes: List[str] = None,
                 plot: bool = True, limits: bool = True,
                 kwargs: Dict[str, Any] = None,
@@ -182,7 +182,7 @@ class DataPlot(DataBase):
 
         return po
 
-    def imshow_avg(self, ax: Axes, variable: KeyLikeVar,
+    def imshow_avg(self, ax: Axes, variable: KeyLikeStr,
                    data: Array = None, axes: List[str] = None,
                    avg_dims: List[str] = None,
                    plot: bool = True, limits: bool = True,

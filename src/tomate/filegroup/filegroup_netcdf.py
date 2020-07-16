@@ -143,7 +143,7 @@ class FilegroupNetCDF(FilegroupLoad):
         krg_mem.make_full(self.db.dims)
         krg_mem.make_total()
         krg_mem.sort_by(self.db.dims)
-        krg_mem.make_idx_var(self.db.loaded.var)
+        krg_mem.make_idx_str(var=self.db.loaded.var)
 
         cmd = Command()
         cmd.filename = filename
@@ -209,7 +209,7 @@ class FilegroupNetCDF(FilegroupLoad):
             in-file dimensions list.
         """
         for krg_inf, krg_mem in cmd:
-            name = self.db.loaded.var.get_var_name(krg_mem['var'].value)
+            name = self.db.loaded.var.get_str_name(krg_mem['var'].value)
             ncname = krg_inf['var'].value
             log.info('Inserting variable %s', ncname)
 

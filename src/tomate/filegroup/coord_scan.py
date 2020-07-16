@@ -14,8 +14,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 import logging
 from dataclasses import dataclass
-from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
 import re
 
 import numpy as np
@@ -452,15 +451,6 @@ class CoordScan(Coord):
         self.contains = contains
 
 
-class CoordScanVar(CoordScan):
-    """Coord used for scanning variables."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.elts.append('dimensions')
-        self.dimensions = []
-
-
 class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
 
@@ -543,7 +533,7 @@ class CoordScanShared(CoordScan):
         self.matches = []
 
     def slice(self, key: Union[List[int], slice]):
-        k = Key(k)
+        k = Key(key)
         self.matches = k.apply(self.matches)
         super().slice(key)
 
@@ -586,12 +576,7 @@ def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,
     :param name: Name of the coordinate in file.
     """
     coord_type = type(coord)
-    if coord.name == 'var':
-        coordscan_type = CoordScanVar
-    else:
-        coordscan_type = CoordScan
-    CoordScanRB = type("CoordScanRB", (coordscan_type, coord_type), {})
-
+    CoordScanRB = type("CoordScanRB", (CoordScan, coord_type), {})
     if shared:
         CoordScanType = type("CoordScanSharedRB",
                              (CoordScanShared, CoordScanRB), {})
@@ -599,7 +584,11 @@ def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,
         CoordScanType = type("CoordScanInRB",
                              (CoordScanIn, CoordScanRB), {})
 
-    return CoordScanType(filegroup, coord, name=name)
+    cs = CoordScanType(filegroup, coord, name=name)
+    if coord.name == 'var':
+        cs.elts.append('dimensions')
+
+    return cs
 
 
 def mirror_key(key: Key, size: int) -> KeyLike:
@@ -608,7 +597,7 @@ def mirror_key(key: Key, size: int) -> KeyLike:
         value = size - key.value - 1
     elif key.type in ['list', 'slice']:
         key.parent_size = size
-        value = [size - z - 1 for z in key.tolist()]
+        value = [size - z - 1 for z in key.as_list()]
     return value
 
 

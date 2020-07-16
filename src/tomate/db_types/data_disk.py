@@ -37,7 +37,7 @@ class DataDisk(DataBase):
     :attr filegroups: List[FilegroupLoad]:
     :attr allow_advanced: bool: If allows advanced data arrangement.
     :attr post_loading_funcs: List[Tuple[Callable[DataBase]],
-                                   KeyVar, bool, Dict[str, Any]]:
+                                   Key, bool, Dict[str, Any]]:
         Functions applied after loading data.
         Each element is a tuple of the function, the variable that triggers
         the call, a boolean True if all said variables must present to trigger,
@@ -122,7 +122,7 @@ class DataDisk(DataBase):
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.make_int_list()
-        keyring.make_var_idx(self.avail.var)
+        keyring.make_str_idx(var=self.avail.var)
         keyring.sort_by(self.dims)
 
         self.loaded = self.get_subscope('avail', keyring)
@@ -237,7 +237,7 @@ class DataDisk(DataBase):
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        variables = self.loaded.var.get_var_names(keyring['var'].value)
+        variables = self.loaded.var.get_str_names(keyring['var'].value)
         if isinstance(variables, str):
             variables = [variables]
 

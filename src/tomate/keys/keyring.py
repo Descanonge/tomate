@@ -10,12 +10,13 @@ import logging
 from typing import (Any, Dict, Iterator, Iterable, List,
                     Optional, Tuple, Union, TYPE_CHECKING)
 
-from tomate.keys.key import Key, KeyVar
+from tomate.keys.key import Key
 
 from tomate.custom_types import KeyLike
 
 if TYPE_CHECKING:
     from tomate.coordinates.coord import Coord
+    from tomate.coordinates.coord_str import CoordStr
     from tomate.coordinates.variables import Variables
 
 log = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class Keyring():
 
     @classmethod
     def get_default(cls, keyring: 'Keyring' = None,
-                    variables: 'Variables' = None,
+                    dims: Dict[str, 'Coord'] = None,
                     **keys: KeyLike) -> 'Keyring':
         """Return a new keyring, eventually updated.
 
@@ -47,10 +48,9 @@ class Keyring():
             keyring = keyring.copy()
         keyring.update(keys)
 
-        if variables is not None:
-            if not variables.has_data():
-                raise ValueError("Variables dimension is empty.")
-            keyring.make_var_idx(variables)
+        if dims is not None:
+            keyring.set_shape(dims)
+            keyring.make_str_idx(**dims)
 
         return keyring
 
@@ -76,10 +76,7 @@ class Keyring():
         :param item: str: Dimension name
         """
         if not isinstance(value, Key):
-            if item == 'var':
-                value = KeyVar(value)
-            else:
-                value = Key(value)
+            value = Key(value)
         self._keys[item] = value
 
     def __iter__(self) -> Iterator[str]:
@@ -113,7 +110,7 @@ class Keyring():
     @property
     def shape(self) -> List[int]:
         """Return shape of all keys."""
-        return [k.shape for k in self.keys if k.shape != 0]
+        return [k.size for k in self.keys if k.size != 0]
 
     def __bool__(self):
         """If the keyring has keys."""
@@ -160,7 +157,7 @@ class Keyring():
         """Set shape of keys using coordinates."""
         for name, k in self.items():
             if name in coords:
-                k.set_shape_coord(coords[name])
+                k.set_size_coord(coords[name])
 
     def get_non_zeros(self) -> List[str]:
         """Return dimensions name with a non zero shape.
@@ -168,7 +165,7 @@ class Keyring():
         ie whose dimension would not be squeezed.
         """
         return [name for name, k in self.items()
-                if k.shape is None or k.shape > 0]
+                if k.size is None or k.size > 0]
 
     def sort_by(self, order: List[str]):
         """Sort keys by order.
@@ -260,20 +257,22 @@ class Keyring():
             if c in dims:
                 k.make_list_int()
 
-    def make_idx_var(self, variables: 'Variables'):
+    def make_idx_str(self, **coords: 'CoordStr'):
         """Transform indices into variables names."""
-        if 'var' in self:
-            self['var'].make_idx_var(variables)
+        for name, coord in coords.items():
+            if name in self:
+                self[name].make_idx_str(coord)
 
-    def make_var_idx(self, variables: 'Variables'):
+    def make_str_idx(self, **coords: 'CoordStr'):
         """Transform variables names into indices."""
-        if 'var' in self:
-            self['var'].make_var_idx(variables)
+        for name, coord in coords.items():
+            if name in self:
+                self[name].make_str_idx(coord)
 
     def get_high_dim(self) -> List[str]:
         """Returns coordinates of size higher than one."""
         out = [c for c, k in self.items()
-               if k.shape is None or k.shape > 1]
+               if k.size is None or k.size > 1]
         return out
 
     def simplify(self):

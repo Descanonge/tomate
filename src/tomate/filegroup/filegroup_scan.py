@@ -69,7 +69,7 @@ class FilegroupScan():
         Keys for selecting parts of the CoordScan, by index or value.
         Dict key is dimension name.
 
-    :attr post_loading_funcs: List[Tuple[Callable, KeyVar, bool, Dict]]:
+    :attr post_loading_funcs: List[Tuple[Callable, Key, bool, Dict]]:
         Functions applied after loading data.
         Each element is a tuple of the function, the variable that triggers
         the call, a boolean True if all said variables must present to trigger,

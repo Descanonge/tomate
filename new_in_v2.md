@@ -22,11 +22,11 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
 
 ## Other
 
-- [ ] Move VI in Variable class
 - [x] Store dimensions order in CoordScanVar
-- [ ] Access filegroups by name rather than index
 - [x] Replace tuples with classes
 - [x] Turbocharge CoordScan: element specific scanning, more than
   one function of each kind (in and filename), fix one element,
   customize scanners on the fly (change the elements it scans, or
   restrain what elements will be used)
+- [x] Add CoordStr: coordinate which values are strings. Works similarly
+  to variables

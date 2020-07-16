@@ -66,11 +66,11 @@ In most cases though, the user will be inputing variables names, and
 it is the methods job to convert it to an index if needed
 (whereas the user is expected to find the index for other coordinates).
 
-The subclass :class:`key.KeyVar` supports both as well, it can consists
+The subclass :class:`key.Key` supports both as well, it can consists
 of an integer, a string, a list of integers or strings, or a slice of
 integer or strings.
 One can go from variable name to index (or vice-versa) using
-:func:`key.KeyVar.make_var_idx` (:func:`key.KeyVar.make_idx_var`).
+:func:`key.Key.make_str_idx` (:func:`key.Key.make_idx_str`).
 Both need a Variables object to make the conversion.
 
 The keyring will automatically create a key with this class when it is
