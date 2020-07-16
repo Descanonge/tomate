@@ -7,11 +7,10 @@
 
 
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
-from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeValue
 from tomate.filegroup.filegroup_load import FilegroupLoad
@@ -197,8 +196,9 @@ class DataBase():
                      'current': self.scope}[scope]
         return scope
 
-    def view(self, *keys: KeyLike,
-             keyring: Keyring = None, **kw_keys: KeyLike) -> np.ndarray:
+    def view(self, *keys: KeyLike, keyring: Keyring = None,
+             stack: str = None,
+             **kw_keys: KeyLike) -> Union[Array, Tuple[Array]]:
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
@@ -210,6 +210,12 @@ class DataBase():
             the order dimensions are stored. Take precedence over `keyring`.
         :param kw_keys: [opt] Argument name is dimension name. Takes precedence
             over `keys`.
+        :param stack: [opt] Concatenate different variables into one array.
+            If is True, concatenate variables if they all have the same datatype
+            and dimensions. If equal to 'force', will concatenate even if
+            datatypes are different.
+            Order of concatenation is the one asked by the user.
+            The first variable accessor is used for concatenation.
 
         :returns: Subset of data.
         """
@@ -221,8 +227,17 @@ class DataBase():
         keyring.make_total()
         keyring.make_idx_str(var=self.loaded.var)
 
-        out = tuple([self.variables[var].view(keyring)
-                     for var in keyring['var']])
+        variables = [self.variables[var] for var in keyring['var']]
+
+        out = tuple([var.view(keyring) for var in variables])
+        if len(variables) == 1:
+            return out[0]
+
+        if (stack and all([v.dims == variables[0].dims for v in variables[1:]])
+            and (stack == 'force' or all([v.datatype == variables[0].datatype
+                                          for v in variables[1:]]))):
+            return variables[0].acs.stack(out, axis=self.dims.index('var'))
+
         return out
 
     def view_by_value(self, *keys: KeyLikeInt,
