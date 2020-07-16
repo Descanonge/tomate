@@ -305,7 +305,7 @@ class DataBase():
         """
         self.check_loaded()
 
-        keyring = Keyring.get_default(keyring, **keys, dims={'var': self.loaded.var})
+        keyring = Keyring.get_default(keyring, **keys, dims=self.loaded.dims)
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.sort_by(self.dims)
@@ -546,7 +546,7 @@ class DataBase():
         if scope.is_empty():
             self.select(scope, keyring=keyring, **keys)
         else:
-            keyring = Keyring.get_default(keyring, **keys, dims={'var': self.avail.var})
+            keyring = Keyring.get_default(keyring, **keys, dims=self.avail.dims)
             keyring.set_shape(scope.parent_scope.dims)
             keyring = keyring + scope.parent_keyring
             keyring.sort_keys()

@@ -162,7 +162,7 @@ class Scope():
             Default is True.
         :param keys: [opt]
         """
-        keyring = Keyring.get_default(keyring, **keys, dims={'var': self.var})
+        keyring = Keyring.get_default(keyring, **keys, dims=self.dims)
         keyring.make_total()
         if int2list:
             keyring.make_int_list()
