@@ -221,7 +221,11 @@ class CoordScan(Coord):
         Make sure in_idx has same dimensions.
         """
         if not all([len(v) == len(values) for v in elts.values()]):
-            raise IndexError("Lenght for '{}' (%d) different have different lengths.")
+            raise IndexError("Elements for dimension '{}'"
+                             " have different length (values: {}, {})"
+                             .format(self.name, len(values),
+                                     ', '.join([f'{k}: {len(v)}'
+                                                for k, v in elts.items()])))
         for name, elt_val in elts.items():
             if len(values) != len(elt_val):
                 raise IndexError("Not as much '{}' ({}) as values ({})"
