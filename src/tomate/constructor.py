@@ -214,7 +214,7 @@ class Constructor():
         cs = self.current_fg.cs['var']
         values = [v.name for v in variables]
         in_idx = [v.in_idx for v in variables]
-        dims = [v.dims for v in variables if v.dims is not None]
+        dims = [v.dims for v in variables]
         cs.set_values_manual(values=values, in_idx=in_idx, dimensions=dims)
 
     def remove_scan_functions(self, kind: List[str] = None, *variables):
@@ -405,7 +405,7 @@ class Constructor():
         func1 will be launched if at least 'SST' and 'SSH' are loaded.
         """
         key_var = Key(variables)
-        if not key_var.var and key_var.type != 'none' and key_var.value != slice(None):
+        if not key_var.str and key_var.type != 'none' and key_var.value != slice(None):
             raise TypeError("Variables must be specified by name (or by None).")
         if current_fg:
             for_append = self.current_fg
