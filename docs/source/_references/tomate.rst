@@ -57,5 +57,7 @@ API Reference
    
       scope
    
+      variable
+   
       variables_info
    

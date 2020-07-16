@@ -14,7 +14,7 @@ tomate.keys
    
        key.Key
    
-       key.KeyVar
+       key.KeyValue
    
        keyring.Keyring
    

@@ -8,23 +8,6 @@ tomate.scan\_library
 
 
 
-.. rubric:: Content
-.. autosummary::
-       :nosignatures:
-   
-       nc
-   
-       general.get_date_from_matches
-   
-       general.get_value_from_matches
-   
-       general.get_string_from_match
-   
-       general._find_month_number
-   
-
-
-
 
 
 

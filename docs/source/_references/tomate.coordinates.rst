@@ -21,6 +21,8 @@ tomate.coordinates
    
       coord
    
+      coord_str
+   
       latlon
    
       time

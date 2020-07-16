@@ -16,6 +16,8 @@ tomate.filegroup.filegroup\_scan
 .. rubric:: Functions
 .. autosummary::
    
+       make_filegroup
+   
        scan_general_attributes_default
    
        scan_variables_attributes_default
@@ -32,5 +34,6 @@ tomate.filegroup.filegroup\_scan
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
+   .. autofunction:: make_filegroup
    .. autofunction:: scan_general_attributes_default
    .. autofunction:: scan_variables_attributes_default

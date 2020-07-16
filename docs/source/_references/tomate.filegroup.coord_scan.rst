@@ -16,13 +16,19 @@ tomate.filegroup.coord\_scan
    
        CoordScanShared
    
-       CoordScanVar
+       CoordScanSpec
+   
+       Scanner
+   
+       ScannerCS
    
 
 .. rubric:: Functions
 .. autosummary::
    
        get_coordscan
+   
+       make_scanner
    
        mirror_key
    
@@ -56,13 +62,26 @@ tomate.filegroup.coord\_scan
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
-   .. autoclass:: CoordScanVar
+   .. autoclass:: CoordScanSpec
+      :show-inheritance:
+      :members:
+      :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __init__, __weakref__
+   .. autoclass:: Scanner
+      :show-inheritance:
+      :members:
+      :private-members:
+      :special-members:
+      :exclude-members: __repr__, __str__, __init__, __weakref__
+   .. autoclass:: ScannerCS
       :show-inheritance:
       :members:
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: get_coordscan
+   .. autofunction:: make_scanner
    .. autofunction:: mirror_key
    .. autofunction:: scan_attributes_default
    .. autofunction:: scan_filename_default
