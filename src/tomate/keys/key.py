@@ -223,6 +223,8 @@ class Key():
             from the sequence.
         :raises TypeError: Key type not applicable.
         """
+        if self.str and all([isinstance(z, str) for z in seq]):
+            return [z for z in seq if z in self]
         if self.type == 'int':
             return seq[self.value]
         if self.type == 'list':
