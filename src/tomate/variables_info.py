@@ -187,8 +187,9 @@ class VariablesInfo():
         """
         self.variables.add(var)
         for attr, value in attrs.items():
-            if attr in self.__class__.__dict__.keys():
-                log.warning("'%s' attribute is reserved.", attr)
+            if (attr in self.__class__.__dict__.keys()
+                    or attr in self.__dict__.keys()):
+                log.warning("Ignoring attribute '%s' (name is reserved)", attr)
             else:
                 if attr not in self._attrs:
                     self._attrs[attr] = {}
