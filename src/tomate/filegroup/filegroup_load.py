@@ -8,22 +8,17 @@
 
 import itertools
 import logging
-from typing import Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
 from tomate.accessor import Accessor
 from tomate.custom_types import File, KeyLike, KeyLikeStr
-from tomate.coordinates.variables import Variables
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command
 from tomate.filegroup.filegroup_scan import FilegroupScan
-from tomate.filegroup.scanner import PostLoadingFunc
-from tomate.keys.key import Key
 from tomate.keys.keyring import Keyring
 
-if TYPE_CHECKING:
-    from tomate.data_base import DataBase
 
 log = logging.getLogger(__name__)
 
@@ -365,7 +360,12 @@ class FilegroupLoad(FilegroupScan):
             attrs = {}
             for s in fg.scanners:
                 if s.kind == 'var':
-                    attrs.update(s.scan(fg, file, infile['var'].as_list()))
+                    new = s.scan(fg, file, infile['var'].as_list())
+                    for name, value in new.items():
+                        if name in attrs:
+                            attrs[name].update(value)
+                        else:
+                            attrs[name] = value
 
             for name, [name_inf, values] in zip(memory['var'].as_list(),
                                                 attrs.items()):
