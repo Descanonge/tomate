@@ -473,6 +473,7 @@ class Constructor():
             db.scan_files()
             db.compile_scanned()
             db.scan_variables_attributes()
+            db.add_variables()
         return db
 
     def create_data_class(self) -> Type[DataBase]:

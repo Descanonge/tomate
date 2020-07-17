@@ -393,6 +393,8 @@ class DataDisk(DataBase):
         """Set found values to master coordinates."""
         for dim, val in values.items():
             self.avail.dims[dim].update_values(val)
+
+    def add_variables(self):
         for var in self.avail['var']:
             self.add_variable(var)
 
