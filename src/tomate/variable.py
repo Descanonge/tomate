@@ -72,7 +72,7 @@ class Variable():
         if shape is None:
             shape = [self._db.loaded.dims[d].size
                      for d in self.dims]
-        self.data = self.acs.allocate(shape)
+        self.data = self.acs.allocate(shape, datatype=self.datatype)
 
     def view(self, keyring=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
