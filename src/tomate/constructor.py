@@ -21,6 +21,7 @@ from tomate.db_types.data_disk import DataDisk
 from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
+from tomate.filegroup.scanner import PostLoadingFunc
 from tomate.keys.key import Key, KeyValue
 from tomate.variable import VariableSpec
 from tomate.variables_info import VariablesInfo
@@ -396,7 +397,7 @@ class Constructor():
         :param all_variables: True if all of variables must be loaded to launch
             function. False if any of the variables must be loaded (default).
         :param current_fg: Will apply only for current filegroup, otherwise will apply
-            for any filegroup (default).
+            for any filegroup (default). Filegroup specific function are applied first.
         :param kwargs: [opt] Will be passed to the function.
 
         Examples
@@ -404,15 +405,12 @@ class Constructor():
         >>> add_post_loading(func1, ['SST', 'SSH'])
         func1 will be launched if at least 'SST' and 'SSH' are loaded.
         """
-        key_var = Key(variables)
-        if not key_var.str and key_var.type != 'none' and key_var.value != slice(None):
-            raise TypeError("Variables must be specified by name (or by None).")
+        plf = PostLoadingFunc(func, variables, all_variables, **kwargs)
         if current_fg:
             for_append = self.current_fg
         else:
             for_append = self
-        for_append.post_loading_funcs.append((func, Key(variables),
-                                              all_variables, kwargs))
+        for_append.post_loading_funcs.append(plf)
 
     def set_data_types(self, db_types: Union[Type[DataBase], List[Type[DataBase]]] = None,
                        accessor: Type[Accessor] = None):

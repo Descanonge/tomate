@@ -15,7 +15,7 @@ import numpy as np
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import KeyLike, KeyLikeValue
 from tomate.data_base import DataBase
-from tomate.filegroup.filegroup_load import FilegroupLoad, do_post_loading
+from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
@@ -136,7 +136,7 @@ class DataDisk(DataBase):
         if not loaded:
             log.warning("Nothing loaded.")
         else:
-            self.do_post_loading(keyring)
+            self.do_post_loading()
 
     def load_by_value(self, *keys: KeyLikeValue, by_day=False,
                       **kw_keys: KeyLikeValue):
@@ -211,10 +211,12 @@ class DataDisk(DataBase):
         scope_.slice(int2list=False, keyring=keyring, **keys)
         self.load(**scope_.parent_keyring.kw)
 
-    def do_post_loading(self, keyring: Keyring):
+    def do_post_loading(self):
         """Apply post loading functions."""
-        do_post_loading(keyring['var'], self, self.avail.var,
-                        self.post_loading_funcs)
+        var_loaded = self.loaded.var[:]
+        for po in self.post_loading_funcs:
+            if po.is_to_launch(var_loaded):
+                po.launch(self)
 
     def write(self, filename: str, wd: str = None,
               file_kw: Dict = None, var_kw: Dict[str, Dict] = None,

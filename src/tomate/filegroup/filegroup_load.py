@@ -8,7 +8,7 @@
 
 import itertools
 import logging
-from typing import Callable, Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -18,6 +18,7 @@ from tomate.coordinates.variables import Variables
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command
 from tomate.filegroup.filegroup_scan import FilegroupScan
+from tomate.filegroup.scanner import PostLoadingFunc
 from tomate.keys.key import Key
 from tomate.keys.keyring import Keyring
 
@@ -49,7 +50,6 @@ class FilegroupLoad(FilegroupScan):
         if cmd is None:
             return False
         self.load(*cmd)
-
         return True
 
     def load(self, keyring: Keyring, memory: Keyring):
@@ -346,8 +346,11 @@ class FilegroupLoad(FilegroupScan):
 
     def do_post_loading(self, keyring: Keyring):
         """Apply post loading functions."""
-        do_post_loading(keyring['var'], self.db, self.cs['var'],
-                        self.post_loading_funcs)
+        var_loaded = keyring['var'].apply(self.cs['var'][:])
+        print('fg: {}, varloaded: {}'.format(self.name, var_loaded))
+        for plf in self.post_loading_funcs:
+            if plf.is_to_launch(var_loaded):
+                plf.launch(self.db)
 
     def scan_variables_attributes(self):
         """Scan for variables specific attributes.
@@ -459,21 +462,3 @@ class FilegroupLoad(FilegroupScan):
     def add_variable_to_file(self, file: File, cmd: Command, **kwargs):
         """Add variable to files."""
         raise NotImplementedError()
-
-
-def do_post_loading(key_loaded: Key,
-                    database: 'DataBase', variables: Variables,
-                    post_loading_funcs: List[Tuple[Callable, Key, bool, Dict]]):
-    """Apply post loading functions."""
-    loaded = set(variables[key_loaded.no_int().value])
-    for func, key_var, all_var, kwargs in post_loading_funcs:
-        if not key_var.str and key_var.type != 'none' and key_var.value != slice(None):
-            raise TypeError("Variables must be specified by name (or by None).")
-        var = set(variables[key_var.no_int().value])
-
-        if all_var:
-            if var <= loaded:
-                func(database, **kwargs)
-        else:
-            if len(var & loaded) > 0:
-                func(database, **kwargs)
