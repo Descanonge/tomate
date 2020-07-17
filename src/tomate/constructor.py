@@ -18,10 +18,11 @@ from tomate.coordinates.variables import Variables
 from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr
 from tomate.data_base import DataBase
 from tomate.db_types.data_disk import DataDisk
-from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec
+from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.scanner import PostLoadingFunc
+from tomate.filegroup.spec import CoordScanSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables.base import VariableSpec
 from tomate.variables_info import VariablesInfo

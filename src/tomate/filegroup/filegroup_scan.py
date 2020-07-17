@@ -18,9 +18,10 @@ import numpy as np
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import File
-from tomate.filegroup.coord_scan import CoordScan, CoordScanSpec, get_coordscan
-from tomate.filegroup.scanner import Scanner
+from tomate.filegroup.coord_scan import CoordScan, get_coordscan
 from tomate.filegroup.matcher import Matcher
+from tomate.filegroup.scanner import Scanner
+from tomate.filegroup.spec import CoordScanSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo
 if TYPE_CHECKING:
