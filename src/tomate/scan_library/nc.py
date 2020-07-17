@@ -13,6 +13,8 @@ try:
 except ImportError:
     pass
 
+import numpy as np
+
 from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
@@ -61,11 +63,21 @@ def scan_variables_attributes(fg: FilegroupNetCDF, file: nc.Dataset,
 
 
 def scan_variables_datatype(fg: FilegroupNetCDF, file: nc.Dataset,
-                            variables: List[str]) -> Dict[str, Dict[str, str]]:
+                            variables: List[str],
+                            override=True) -> Dict[str, Dict[str, str]]:
     """Scan variables datatype in netCDF files."""
     attrs = {}
     for var in variables:
-        attrs[var] = {'datatype': file[var].dtype.str}
+        dtype = file[var].dtype
+
+        if override:
+            for attr in ['add_offset', 'scale_factor']:
+                if attr in file[var].ncattrs():
+                    new = np.dtype(type(file[var].getncattr(attr)))
+                    if new.kind == 'f':
+                        dtype = new
+
+        attrs[var] = {'datatype': dtype.str}
     return attrs
 
 
