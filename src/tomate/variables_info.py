@@ -60,6 +60,10 @@ class VariableAttributes(dict):
         self._vi.set_attrs(self._name, **{name: value})
         self[name] = value
 
+    def __setitem__(self, k: str, v: Any):
+        self._vi.set_attrs(self._name, **{k: v})
+        super().__setitem__(k, v)
+
 
 class VariablesInfo():
     """Gives various info about variables.
