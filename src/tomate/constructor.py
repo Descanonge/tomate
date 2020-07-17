@@ -22,9 +22,8 @@ from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.scanner import PostLoadingFunc
-from tomate.filegroup.spec import CoordScanSpec
+from tomate.filegroup.spec import CoordScanSpec, VariableSpec
 from tomate.keys.key import Key, KeyValue
-from tomate.variables.base import VariableSpec
 from tomate.variables_info import VariablesInfo
 
 
@@ -485,7 +484,6 @@ class Constructor():
         create_data_class: for implementation
         """
         db_class = create_data_class(self.db_types, self.acs)
-        self.acs = db_class.acs
         return db_class
 
 
