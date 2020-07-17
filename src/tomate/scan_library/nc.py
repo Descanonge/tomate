@@ -60,6 +60,15 @@ def scan_variables_attributes(fg: FilegroupNetCDF, file: nc.Dataset,
     return attrs
 
 
+def scan_variables_datatype(fg: FilegroupNetCDF, file: nc.Dataset,
+                            variables: List[str]) -> Dict[str, Dict[str, str]]:
+    """Scan variables datatype in netCDF files."""
+    attrs = {}
+    for var in variables:
+        attrs[var] = {'datatype': file[var].dtype.str}
+    return attrs
+
+
 def scan_infos(fg: FilegroupNetCDF, file: nc.Dataset) -> Dict[str, Any]:
     """Scan for general attributes in a netCDF file."""
     infos = {}
