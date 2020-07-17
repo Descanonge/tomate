@@ -242,6 +242,7 @@ class DataBase():
 
     def view_by_value(self, *keys: KeyLikeInt,
                       by_day: bool = False,
+                      stack: Union[str, bool] = None,
                       **kw_keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
@@ -256,9 +257,10 @@ class DataBase():
         self.check_loaded()
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
-        return self.view(keyring=keyring)
+        return self.view(keyring=keyring, stack=stack)
 
     def view_selected(self, scope: Union[str, Scope] = 'selected',
+                      stack: Union[str, bool] = None,
                       keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
@@ -286,7 +288,7 @@ class DataBase():
 
         scope_ = scope.copy()
         scope_.slice(keyring, int2list=False, **keys)
-        return self.view(keyring=scope_.parent_keyring)
+        return self.view(keyring=scope_.parent_keyring, stack=stack)
 
     def view_ordered(self, order: List[str],
                      keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:

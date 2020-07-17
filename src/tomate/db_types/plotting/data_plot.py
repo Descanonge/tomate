@@ -221,12 +221,12 @@ class DataPlot(DataBase):
         r"""Apply function over multiple axes.
 
         :param axes: Axes to iterate on.
-        func: Function to call for every axe.
+        :param func: Function to call for every axe.
             func(ax, DataPlot, args, kwargs, \*\*iterables)
-        iterables: Keyword arguments passed to `func`,
+        :param iterables: Keyword arguments passed to `func`,
             changing for every axis. Each iterable should be
             as least as long as the axes.
-        kwargs: Passed to func.
+        :param kwargs: Passed to func.
         :returns: Array of objects returned from func.
             Same shape as `axes`.
         """
