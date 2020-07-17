@@ -30,3 +30,8 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
   restrain what elements will be used)
 - [x] Add CoordStr: coordinate which values are strings. Works similarly
   to variables
+- [x] Better PostLoadingFunc (no new features but use custom classes,
+  way easier to maintain)
+- [x] Better KeyVar (which is no KeyVar), new attribute 'str' True if
+  the key is a string. No slice permitted in this case, this simplifies
+  a ton of stuff.
