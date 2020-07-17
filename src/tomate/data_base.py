@@ -649,6 +649,10 @@ class DataBase():
         if data is not None:
             self.variables[variable].set_data(data)
 
+        if self.vi.has('datatype', variable):
+            datatype = self.vi.get_attr('datatype', variable)
+            self.variables[variable].datatype = datatype
+
     def remove_loaded_variable(self, variables: Union[str, List[str]]):
         """Remove variable from data."""
         if isinstance(variables, str):
