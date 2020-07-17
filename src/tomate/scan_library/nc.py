@@ -13,7 +13,8 @@ try:
 except ImportError:
     pass
 
-from tomate.filegroup.coord_scan import CoordScan, make_scanner
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 
 

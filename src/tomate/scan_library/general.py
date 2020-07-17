@@ -16,7 +16,8 @@ except ImportError:
 else:
     _has_cftime = True
 
-from tomate.filegroup.coord_scan import CoordScan, make_scanner
+from tomate.filegroup.coord_scan import CoordScan
+from tomate.filegroup.scanner import make_scanner
 
 
 __all__ = [

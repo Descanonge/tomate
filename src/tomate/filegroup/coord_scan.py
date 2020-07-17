@@ -20,9 +20,9 @@ import re
 import numpy as np
 
 from tomate.coordinates.coord import Coord
-
 from tomate.custom_types import File, KeyLike, KeyLikeInt
 from tomate.filegroup.matcher import Matcher
+from tomate.filegroup.scanner import Scanner, ScannerCS
 from tomate.keys.key import Key
 
 if TYPE_CHECKING:
@@ -52,90 +52,6 @@ class CoordScanSpec:
 
     def __iter__(self):
         return iter([self.coord, self.shared, self.name])
-
-
-class Scanner:
-    def __init__(self, kind, func, **kwargs):
-        self.kind = kind
-        self.func = func
-        self.kwargs = kwargs
-        self.to_scan = True
-
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **self.kwargs)
-
-    def scan(self, *args):
-        self.to_scan = False
-        return self(*args, **self.kwargs)
-
-    def copy(self):
-        return self.__class__(self.kind, self.func, **self.kwargs.copy())
-
-    @property
-    def name(self) -> str:
-        try:
-            name = self.func.__name__
-        except AttributeError:
-            name = ''
-        return name
-
-    def __bool__(self):
-        return self.to_scan
-
-    def __repr__(self):
-        s = ' - '.join([self.kind, self.func.__name__])
-        return s
-
-
-class ScannerCS(Scanner):
-    def __init__(self, kind, func, elts, **kwargs):
-        self.kind = kind
-        self.func = func
-        self.elts = elts
-        self.kwargs = kwargs
-        self.to_scan = True
-        self.restrain = None
-
-    @property
-    def returns(self) -> List[str]:
-        """Elements returned by the scanner."""
-        if self.restrain is not None:
-            elts = [e for e in self.elts if e in self.restrain]
-        else:
-            elts = self.elts.copy()
-        return elts
-
-    def scan(self, *args):
-        results = super().scan(*args)
-        if not isinstance(results, tuple):
-            results = tuple([results])
-        if len(results) != len(self.elts):
-            raise TypeError("Scan function '{}' did not return expected"
-                            " number of results. Expected {}, returned {}"
-                            .format(self.func.__name__, self.elts, len(results)))
-        if self.restrain is not None:
-            results = self.restrain_results(results)
-        return dict(zip(self.returns, results))
-
-    def copy(self):
-        return self.__class__(self.kind, self.func,
-                              self.elts.copy(), **self.kwargs.copy())
-
-    def __repr__(self):
-        s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
-        if self.restrain is not None:
-            s += ' (restrained to {})'.format(self.restrain)
-        return s
-
-    def restrain_results(self, results):
-        indices = [self.elts.index(r) for r in self.restrain]
-        return tuple([results[i] for i in indices])
-
-
-def make_scanner(kind, elts):
-    def decorator(func):
-        return ScannerCS(kind, func, elts)
-    return decorator
 
 
 class CoordScan(Coord):
