@@ -63,6 +63,11 @@ class Variable():
             raise AttributeError(f"Data not loaded for {self.name}")
         return self.data[key]
 
+    @property
+    def attrs(self):
+        """Attributes for this variable."""
+        return self._db.vi[self.name]
+
     def allocate(self, shape: Iterable[int] = None):
         if shape is None:
             shape = [self._db.loaded.dims[d].size
@@ -79,3 +84,9 @@ class Variable():
         keyring.make_full(self.dims)
         keyring.make_total()
         self.acs.place(keyring, self.data, chunk)
+
+    def get_attr(self, key, default=None):
+        return self.attrs.get(key, default)
+
+    def set_attr(self, name, value):
+        self.attrs[name] = value

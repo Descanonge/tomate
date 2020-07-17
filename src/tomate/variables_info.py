@@ -138,11 +138,9 @@ class VariablesInfo():
         """
         if not isinstance(item, str):
             TypeError("Argument must be string.")
-        if item in self.variables:
-            d = {attr: values[item] for attr, values in self._attrs.items()
-                 if item in values}
-            return VariableAttributes(item, self, d)
-        raise IndexError(f"'{item}' not in variables.")
+        d = {attr: values[item] for attr, values in self._attrs.items()
+             if item in values}
+        return VariableAttributes(item, self, d)
 
     def get_attr(self, attr: str, var: str) -> Any:
         """Get attribute.
