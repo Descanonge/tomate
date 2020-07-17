@@ -641,7 +641,8 @@ class DataBase():
             log.warning('%s already in variables, it will be overwritten',
                         variable)
         else:
-            self.variables[variable] = Variable(variable, coords, self)
+            cls = self.vi.get_attr_safe('class', variable, Variable)
+            self.variables[variable] = cls(variable, coords, self)
 
         if variable not in self.avail:
             self.avail.var.append(variable)
