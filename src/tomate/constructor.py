@@ -521,20 +521,5 @@ def create_data_class(db_types: List[Type[DataBase]],
                                 name)
                 methods.add(name)
 
-    # if accessor is None:
-    #     d = {}
-    #     acs_types = set()
-    #     for tp in db_types:
-    #         acs_tp = tp.acs
-    #         if acs_tp != Accessor:
-    #             if acs_tp in acs_types:
-    #                 log.warning("Multiple subclasses of Accessor. "
-    #                             "%s will take precedence.", db_types[0])
-    #             acs_types.add(acs_tp)
-    # else:
-    #     d = {'acs': accessor}
-
-    d = {}
-    db_class = type(class_name, db_types, d)
-
+    db_class = type(class_name, db_types, {})
     return db_class
