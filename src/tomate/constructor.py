@@ -23,7 +23,7 @@ from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.scanner import PostLoadingFunc
 from tomate.keys.key import Key, KeyValue
-from tomate.variable import VariableSpec
+from tomate.variables.base import VariableSpec
 from tomate.variables_info import VariablesInfo
 
 
