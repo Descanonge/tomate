@@ -142,6 +142,11 @@ class VariablesInfo():
              if item in values}
         return VariableAttributes(item, self, d)
 
+    def has(self, attr: str, var: str) -> bool:
+        out = (attr in self._attrs
+               and var in self._attrs[attr])
+        return out
+
     def get_attr(self, attr: str, var: str) -> Any:
         """Get attribute.
 
