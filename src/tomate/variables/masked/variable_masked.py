@@ -1,4 +1,4 @@
-"""Masked data classes."""
+"""Variable class for masked data."""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -14,11 +14,11 @@ import numpy as np
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import Array, KeyLike
-from tomate.data_base import DataBase
 from tomate.accessor import Accessor
 from tomate.keys.keyring import Keyring
+from tomate.variables.base import Variable
 
-import tomate.db_types.masked.mask
+# import tomate.variables.masked.mask
 
 
 log = logging.getLogger(__name__)
@@ -61,15 +61,7 @@ class AccessorMask(Accessor):
         return np.ma.stack(arrays, axis=axis, out=out)
 
 
-class DataMasked(DataBase):
-    """Encapsulate data array and info about the variables.
-
-    For masked data.
-
-    See :class:`DataBase` for more information.
-
-    :attr compute_land_mask_func: Callable: Function to compute land mask.
-    """
+class VariableMasked(Variable):
 
     acs = AccessorMask  #: Accessor class to use to access the data.
 
@@ -115,7 +107,8 @@ class DataMasked(DataBase):
         """
         data = self.view(**keys)
         if fill == 'edge':
-            filled = tomate.db_types.masked.mask.fill_edge(data, axes)
+            pass
+            # filled = tomate.db_types.masked.mask.fill_edge(data, axes)
         else:
             if fill == 'nan':
                 fill_value = np.nan

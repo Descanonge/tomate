@@ -4,12 +4,10 @@
 import importlib.util
 
 from .data_compute import DataCompute
-from .masked.data_masked import DataMasked
 from .data_disk import DataDisk
 
 __all__ = [
     'DataCompute',
-    'DataMasked',
     'DataDisk'
 ]
 
