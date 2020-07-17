@@ -18,6 +18,7 @@ import numpy as np
 from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
+from tomate.variables.masked.variable_masked import VariableMasked
 
 
 @make_scanner('in', ['values', 'in_idx'])
@@ -78,6 +79,9 @@ def scan_variables_datatype(fg: FilegroupNetCDF, file: nc.Dataset,
                         dtype = new
 
         attrs[var] = {'datatype': dtype.str}
+
+        if ({'_FillValue', 'missing_value'} & set(list(file[var].ncattrs()))):
+            attrs[var]['class'] = VariableMasked
     return attrs
 
 
