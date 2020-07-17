@@ -288,8 +288,8 @@ class CoordScan(Coord):
             self.fixed_elts[elt] = value
             self.manual -= {elt}
 
-    def set_scan_attributes_func(self, func: Callable):
-        """Set function for scanning attributes in file.
+    def add_scan_attributes_func(self, func: Callable):
+        """Add function for scanning attributes in file.
 
         See also
         --------

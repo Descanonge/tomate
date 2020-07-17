@@ -75,10 +75,7 @@ Documentation is available online at [ReadTheDocs](https://tomate.readthedocs.io
 
 ## Requirements
 
-Tomate requires python **>=3.7**. From this version, dictionaries
-preserve the order in which keys are added. The code heavily relies on this feature.
-This could be avoided, but would require a fair bit of refactoring.
-
+Tomate requires python **>=3.7**. 
 Tomate requires the following python packages:
   - numpy
 

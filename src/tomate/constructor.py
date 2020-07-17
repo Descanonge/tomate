@@ -293,9 +293,9 @@ class Constructor():
         cs = fg.cs[dim]
         cs.set_scan_manual(values=values, in_idx=in_idx)
 
-    def set_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
+    def add_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
                                    *coords: str):
-        """Set a function for scanning coordinate attributes.
+        """Add a function for scanning coordinate attributes.
 
         The attribute is set using CoordScan.set_attr.
 
@@ -311,11 +311,11 @@ class Constructor():
         fg = self.current_fg
         for name in coords:
             cs = fg.cs[name]
-            cs.set_scan_attributes_func(func)
+            cs.add_scan_attributes_func(func)
 
-    def set_scan_general_attributes(self, func: Callable[[File], Dict[str, Any]],
+    def add_scan_general_attributes(self, func: Callable[[File], Dict[str, Any]],
                                     **kwargs: Any):
-        """Set a function for scanning general data attributes.
+        """Add a function for scanning general data attributes.
 
         The attributes are added to the VI.
 
@@ -329,13 +329,13 @@ class Constructor():
             for a better description of the function interface.
         """
         fg = self.current_fg
-        fg.set_scan_gen_attrs_func(func, **kwargs)
+        fg.add_scan_gen_attrs_func(func, **kwargs)
 
-    def set_scan_variables_attributes(self,
+    def add_scan_variables_attributes(self,
                                       func: Callable[[FilegroupLoad, File, List[str]],
                                                      Dict[str, Dict[str, Any]]],
                                       **kwargs: Any):
-        """Set function for scanning variables specific attributes.
+        """Add function for scanning variables specific attributes.
 
         The attributes are added to the VI.
 
@@ -349,7 +349,7 @@ class Constructor():
             for a better description of the function interface.
         """
         fg = self.current_fg
-        fg.set_scan_var_attrs_func(func, **kwargs)
+        fg.add_scan_var_attrs_func(func, **kwargs)
 
     def set_coords_units_conversion(self, coord: str,
                                     func: Callable[[Sequence, str, str], Sequence]):
