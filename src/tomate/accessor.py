@@ -68,7 +68,7 @@ class AccessorABC():
                              .format(cls.shape(array), keyring.shape))
 
     @staticmethod
-    def allocate(shape: List[int]) -> Array:
+    def allocate(shape: List[int], datatype=None) -> Array:
         """Allocate array of given shape."""
         raise NotImplementedError
 
@@ -187,8 +187,8 @@ class Accessor(AccessorABC):
         return list(array.shape)
 
     @staticmethod
-    def allocate(shape: List[int]) -> np.ndarray:
-        return np.zeros(shape)
+    def allocate(shape: List[int], datatype=None) -> np.ndarray:
+        return np.zeros(shape, dtype=datatype)
 
     @staticmethod
     def get_datatype(data: Array) -> str:

@@ -28,8 +28,8 @@ class AccessorMask(Accessor):
     """Accessor for masked numpy array."""
 
     @staticmethod
-    def allocate(shape: List[int]) -> Array:
-        array = np.ma.zeros(shape)
+    def allocate(shape: List[int], datatype=None) -> Array:
+        array = np.ma.zeros(shape, dtype=datatype)
         array.mask = np.ma.make_mask_none(shape)
         return array
 
