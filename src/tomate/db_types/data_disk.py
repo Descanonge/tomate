@@ -278,7 +278,7 @@ class DataDisk(DataBase):
         Filegroups should be functionnal for this.
         """
         for fg in self.filegroups:
-            if 'var' in fg.scanners:
+            if any([s.kind == 'var' for s in fg.scanners]):
                 fg.scan_variables_attributes()
 
     def scan_files(self):

@@ -400,13 +400,11 @@ class FilegroupScan():
                 cs.update_values(cs.values)
 
     def set_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
-        """Set function for scanning general attributes.
-        """
+        """Set function for scanning general attributes. """
         self.scanners.append(Scanner('gen', func, **kwargs))
 
     def set_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
-        """Set the function for scanning variables specific attributes.
-        """
+        """Set the function for scanning variables specific attributes. """
         self.scanners.append(Scanner('var', func, **kwargs))
 
     def apply_coord_selection(self):

@@ -362,7 +362,10 @@ class FilegroupLoad(FilegroupScan):
         Store them in VI.
         """
         def scan_attr(fg, file, infile, memory):
-            attrs = fg.scanners['var'].scan(fg, file, infile['var'].as_list())
+            attrs = {}
+            for s in fg.scanners:
+                if s.kind == 'var':
+                    attrs.update(s.scan(fg, file, infile['var'].as_list()))
 
             for name, [name_inf, values] in zip(memory['var'].as_list(),
                                                 attrs.items()):
@@ -385,8 +388,7 @@ class FilegroupLoad(FilegroupScan):
 
                 try:
                     file = self.open_file(cmd.filename, 'r', 'debug')
-                    if 'var' in self.scanners:
-                        scan_attr(self, file, infile, memory)
+                    scan_attr(self, file, infile, memory)
                 except Exception:
                     self.close_file(file)
                     raise
