@@ -197,13 +197,16 @@ class DataBase():
         return scope
 
     def view(self, *keys: KeyLike, keyring: Keyring = None,
-             stack: str = None,
+             stack: str = None, order: List[str] = None,
              **kw_keys: KeyLike) -> Union[Array, Tuple[Array]]:
         """Returns a subset of loaded data.
 
         Keys act on loaded scope.
         If a key is an integer, the corresponding dimension in the
         array will be squeezed.
+        If multiple variables are asked, a tuple containing each variable
+        data is returned. Multiple variables can also be stacked in the
+        same array. Data dimensions can be reordered
 
         :param keyring: [opt] Keyring specifying parts of dimensions to take.
         :param keys: [opt] Keys specifying parts of dimensions to take, in
@@ -213,11 +216,16 @@ class DataBase():
         :param stack: [opt] Concatenate different variables into one array.
             If is True, concatenate variables if they all have the same datatype
             and dimensions. If equal to 'force', will concatenate even if
-            datatypes are different.
-            Order of concatenation is the one asked by the user.
-            The first variable accessor is used for concatenation.
+            datatypes are different. Order of concatenation follow the variable
+            key. The first variable accessor is used for concatenation.
+        :param order: [opt] Reorder data dimensions. If of length 2,
+            the two dimensions will be swapped. Otherwise, '`order`'
+            must contain all the dimensions of the variable.
+            When stacking data, the order must contain all dimensions,
+            including 'var'. Squeezed dimensions are not taken into account.
 
         :returns: Subset of data.
+        :raises RuntimeError: If the user ask for an impossible stack
         """
         self.check_loaded()
 
@@ -228,21 +236,40 @@ class DataBase():
         keyring.make_idx_str(var=self.loaded.var)
 
         variables = [self.variables[var] for var in keyring['var']]
+        dims = [[d for d in self.variables[var].dims
+                 if d in keyring.get_non_zeros()]
+                for var in keyring['var']]
 
-        out = tuple([var.view(keyring) for var in variables])
-        if len(variables) == 1:
-            return out[0]
+        do_stack = (stack and len(variables) > 1
+                    and all([set(d) == set(dims[0]) for d in dims[1:]])
+                    and (stack == 'force'
+                         or all([v.datatype == variables[0].datatype
+                                 for v in variables[1:]])))
 
-        if (stack and all([v.dims == variables[0].dims for v in variables[1:]])
-            and (stack == 'force' or all([v.datatype == variables[0].datatype
-                                          for v in variables[1:]]))):
-            return variables[0].acs.stack(out, axis=self.dims.index('var'))
+        if stack and not do_stack:
+            raise RuntimeError("Cannot stack variables")
+
+        if order is not None:
+            order_novar = [d for d in order if d != 'var']
+        else:
+            order_novar = None
+
+        out = tuple([var.view(keyring, order=order_novar) for var in variables])
+        if do_stack:
+            if order is not None:
+                axis_stack = order.index('var')
+            else:
+                axis_stack = self.dims.index('var')
+            out = variables[0].acs.stack(out, axis=axis_stack)
+        elif keyring['var'].size == 0:
+            out = out[0]
 
         return out
 
     def view_by_value(self, *keys: KeyLikeInt,
                       by_day: bool = False,
                       stack: Union[str, bool] = None,
+                      order: List[str] = None,
                       **kw_keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
@@ -257,10 +284,10 @@ class DataBase():
         self.check_loaded()
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
-        return self.view(keyring=keyring, stack=stack)
+        return self.view(keyring=keyring, stack=stack, order=order)
 
     def view_selected(self, scope: Union[str, Scope] = 'selected',
-                      stack: Union[str, bool] = None,
+                      stack: Union[str, bool] = None, order: List[str] = None,
                       keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 
@@ -288,48 +315,7 @@ class DataBase():
 
         scope_ = scope.copy()
         scope_.slice(keyring, int2list=False, **keys)
-        return self.view(keyring=scope_.parent_keyring, stack=stack)
-
-    def view_ordered(self, order: List[str],
-                     keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
-        """Returns a reordered subset of data.
-
-        Keys act on loaded scope.
-        The ranks of the array are rearranged to follow
-        the specified coordinates order.
-
-        :param order: List of dimensions names in required order.
-            Either two dimensions (for swapping them)
-            or all of them should be specified.
-        :param keyring: [opt] Keyring specifying parts of dimensions to take.
-        :param keys: [opt] Keys specifying parts of dimensions to take.
-            Take precedence over keyring.
-
-        Examples
-        --------
-        >>> print(db.coords)
-        ['time', 'lat', 'lon']
-        >>> print(db.shape)
-        [12, 300, 500]
-        >>> a = db.view_orderd(['lon', 'lat'], time=[1])
-        ... print(a.shape)
-        [1, 500, 300]
-
-        See also
-        --------
-        Accessor.reorder: The underlying function.
-        view: For details on subsetting data (without reordering).
-        """
-        self.check_loaded()
-
-        keyring = Keyring.get_default(keyring, **keys, dims=self.loaded.dims)
-        keyring.make_full(self.dims)
-        keyring.make_total()
-        keyring.sort_by(self.dims)
-
-        log.debug('Taking keys in data: %s', keyring.print())
-        array = self.acs.take(keyring, self.data)
-        return self.acs.reorder(keyring, array, order)
+        return self.view(keyring=scope_.parent_keyring, stack=stack, order=order)
 
     def iter_slices(self, coord: str, size: int = 12,
                     key: KeyLike = None) -> List[KeyLike]:
@@ -368,14 +354,6 @@ class DataBase():
     def ncoord(self) -> int:
         """Number of coordinates."""
         return len(self.coords)
-
-    @property
-    def shape(self) -> List[int]:
-        """Shape of the data from current scope.
-
-        Scope is loaded if not empty, available otherwise.
-        """
-        return self.scope.shape
 
     def get_limits(self, *coords: str,
                    scope: Union[str, Scope] = 'current',
