@@ -44,8 +44,15 @@ class Variable():
             self.datatype = self.acs.get_datatype(data)
 
     def __repr__(self):
-        s = "Variable: {}".format(self.name)
-        return s
+        s = ["{}: {}".format(self.__class__.__name__, self.name),
+             "Dimensions: {}".format(self.dims),
+             "Type: {}".format(self.datatype)]
+        if self.is_loaded():
+            s.append("Loaded (shape: {})".format(self.acs.shape(self.data)))
+        return '\n'.join(s)
+
+    def __str__(self):
+        return "{}: {}".format(self.__class__.__name__, self.name)
 
     def __getitem__(self, key) -> Array:
         if self.data is None:
@@ -79,3 +86,6 @@ class Variable():
 
     def set_attr(self, name, value):
         self.attrs[name] = value
+
+    def is_loaded(self):
+        return self.data is not None
