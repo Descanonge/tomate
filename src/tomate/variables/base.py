@@ -82,6 +82,8 @@ class Variable():
 
     def view(self, keyring=None, order=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
+        keyring.make_full(self.dims)
+        keyring.make_total()
         keyring = keyring.subset(self.dims)
 
         log.debug('Taking keys from %s: %s', self.name, keyring.print())
