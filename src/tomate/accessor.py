@@ -116,11 +116,12 @@ class AccessorABC():
         raise NotImplementedError
 
     @classmethod
-    def reorder(cls, keyring: Keyring,
+    def reorder(cls, current: List[str],
                 array: Array,
                 order: List[str]) -> Array:
         """Reorder array dimensions.
 
+        # FIXME
         :param keyring: Keyring used to take the array.
             Defines the dimensions names.
         :param order: Target dimensions order.
@@ -128,9 +129,6 @@ class AccessorABC():
             but all dimensions specified must be in the
             array (ie be in the keyring, with a shape above 0).
         """
-        # Current data order
-        current = keyring.get_non_zeros()
-
         if len(order) != len(current):
             if len(order) != 2:
                 raise IndexError("Length of order must be the same as the array, or 2.")
