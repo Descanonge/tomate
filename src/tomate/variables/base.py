@@ -11,6 +11,7 @@ from typing import Iterable, List, TYPE_CHECKING
 from tomate.accessor import Accessor
 from tomate.custom_types import Array
 from tomate.keys.keyring import Keyring
+from tomate.variables_info.VariableAttributes
 
 if TYPE_CHECKING:
     from tomate import DataBase
@@ -25,8 +26,15 @@ class Variable():
     :param name: Variable name.
     :param dims: List of dimensions the variable depends on,
         in order.
-    :param data: Variable data.
     :param database: DataBase instance this variable belongs to.
+    :param data: [opt] Variable data.
+
+    :attr name: str: Variable name
+    :attr data: Array: Variable data.
+    :attr dims: List[str]: List of dimensions the variable
+        depends on.
+    :attr datatype: Any: Type of data used to allocate array.
+        Can be string that can be turned in numpy.dtype.
     """
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
@@ -59,29 +67,47 @@ class Variable():
         return "{}: {}".format(self.__class__.__name__, self.name)
 
     def __getitem__(self, key) -> Array:
+        """Get data subset."""
         if self.data is None:
             raise AttributeError(f"Data not loaded for {self.name}")
         return self.data[key]
 
     @property
-    def attrs(self):
-        """Attributes for this variable."""
+    def attrs(self) -> VariableAttributes:
+        """Attributes for this variable.
+
+        Returns a 'VariableAttributes' that is tied to
+        the parent database VI.
+        """
         return self._db.vi[self.name]
 
     @property
-    def shape(self):
+    def shape(self) -> List[int]:
         """Variable shape for current scope."""
         scope = self._db.scope
         return [scope[d].size for d in self.dims]
 
     def allocate(self, shape: Iterable[int] = None):
+        """Allocate data of given shape.
+
+        :param shape: If None, shape is determined from
+            loaded scope.
+        """
         if shape is None:
             shape = [self._db.loaded.dims[d].size
                      for d in self.dims]
         self.data = self.acs.allocate(shape, datatype=self.datatype)
 
-    def view(self, keyring=None, order=None, **keys):
-        keyring = Keyring.get_default(keyring=keyring, **keys)
+    def view(self, *keys: KeyLike, keyring: Keyring = None,
+             order: List[str] = None, **kw_keys: KeyLike) -> Array:
+        """Return subset of data.
+
+        See also
+        --------
+        tomate.data_base.DataBase.view for details on arguments.
+        """
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        keyring = Keyring.get_default(keyring=keyring, **kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring = keyring.subset(self.dims)
@@ -93,16 +119,39 @@ class Variable():
 
         return out
 
+    def view_by_value(self, *keys: KeyLikeInt,
+                      by_day: bool = False,
+                      order: List[str] = None,
+                      **kw_keys: KeyLike) -> np.ndarray:
+        """Returns a subset of loaded data.
+
+        Arguments work similarly as
+        :func:`DataDisk.load_by_value
+        <tomate.db_types.data_disk.DataDisk.load_by_value>`.
+
+        See also
+        --------
+        view
+        """
+        self.check_loaded()a
+        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
+        return self.view(keyring=keyring, order=order)
+
     def set_data(self, chunk: Array, keyring: Keyring):
+        """Set subset of data."""
         keyring.make_full(self.dims)
         keyring.make_total()
         self.acs.place(keyring, self.data, chunk)
 
-    def get_attr(self, key, default=None):
+    def get_attr(self, key: str, default: Any = None):
+        """Get variable specific attribute from VI."""
         return self.attrs.get(key, default)
 
-    def set_attr(self, name, value):
+    def set_attr(self, name: str, value: Any):
+        """Set variable specific attribute to VI."""
         self.attrs[name] = value
 
-    def is_loaded(self):
+    def is_loaded(self) -> bool:
+        """If data is loaded."""
         return self.data is not None

@@ -15,9 +15,10 @@ The 2.0 version aims at correcting this by manipulating one array for each varia
 ## Manipulating arrays
 
 - [x] Add Variable class
-- [~] Adapt data viewing
+- [x] Adapt data viewing
 - [ ] Adapt data setting
 - [~] Adapt data loading
+- [ ] Adapt data writing
 
 
 ## Other
