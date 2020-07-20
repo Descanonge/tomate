@@ -52,7 +52,7 @@ class Variable():
              "Dimensions: {}".format(self.dims),
              "Type: {}".format(self.datatype)]
         if self.is_loaded():
-            s.append("Loaded (shape: {})".format(self.acs.shape(self.data)))
+            s.append("Loaded (shape: {})".format(self.shape))
         return '\n'.join(s)
 
     def __str__(self):
@@ -67,6 +67,12 @@ class Variable():
     def attrs(self):
         """Attributes for this variable."""
         return self._db.vi[self.name]
+
+    @property
+    def shape(self):
+        """Variable shape for current scope."""
+        scope = self._db.scope
+        return [scope[d].size for d in self.dims]
 
     def allocate(self, shape: Iterable[int] = None):
         if shape is None:
