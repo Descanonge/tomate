@@ -143,7 +143,7 @@ class DataBase():
                         .format(type(key)))
 
     def check_loaded(self):
-        """Check if data is loaded.
+        """Raises if data is loaded.
 
         :raises RuntimeError: If the data is not loaded.
         """
@@ -151,7 +151,7 @@ class DataBase():
             raise RuntimeError("Data not loaded.")
 
     def __getitem__(self, key: str) -> Variable:
-        """Return a coordinate, or data for a variable.
+        """Return a variable object.
         """
         if isinstance(key, str):
             return self.variables[key]
@@ -555,14 +555,21 @@ class DataBase():
         """
         self.check_loaded()
         keyring = Keyring.get_default(keyring, **keys)
+        keyring.set_default('var', slice(None))
         keyring.make_int_list()
+        keyring.make_idx_str(var=self.loaded.var)
+
         self.loaded = self.get_subscope('loaded', keyring)
-        self.data = self.view(keyring=keyring)
+
+        for var in keyring['var']:
+            v = self.variables[var]
+            v.data = v.view(keyring)
 
     def unload_data(self):
         """Remove data."""
-        self.data = None
         self.loaded.empty()
+        for var in self.variables.values():
+            var.data = None
 
     def set_data(self, variable: str, data: np.ndarray,
                  keyring: Keyring = None):
