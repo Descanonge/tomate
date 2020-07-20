@@ -287,7 +287,7 @@ class DataBase():
         return self.view(keyring=keyring, stack=stack, order=order)
 
     def view_selected(self, scope: Union[str, Scope] = 'selected',
-                      stack: Union[str, bool] = None, order: List[str] = None,
+                      stack: Union[str, bool] = None, order: List[str] = None,
                       keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
         """Returns a subset of loaded data.
 

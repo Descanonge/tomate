@@ -92,11 +92,9 @@ class Scope():
 
         :raises KeyError: Dimension not in scope.
         """
-        if item == 'var':
-            return self.var
-        if item not in self.coords:
-            raise KeyError(f"'{item}' not in scope coordinates")
-        return self.coords[item]
+        if item not in self.dims:
+            raise KeyError(f"'{item}' not in scope dimensions")
+        return self.dims[item]
 
     def __iter__(self) -> Iterator[str]:
         """List of available variables."""
