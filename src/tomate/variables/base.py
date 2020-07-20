@@ -91,7 +91,7 @@ class Variable():
 
         return out
 
-    def set_data(self, chunk, keyring: Keyring = None):
+    def set_data(self, chunk: Array, keyring: Keyring):
         keyring.make_full(self.dims)
         keyring.make_total()
         self.acs.place(keyring, self.data, chunk)
