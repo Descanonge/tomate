@@ -116,6 +116,11 @@ class Keyring():
         """If the keyring has keys."""
         return len(self.dims) > 0
 
+    def set_default(self, key: str, value: KeyLike):
+        """Set key if not already present."""
+        if key not in self:
+            self[key] = value
+
     def subset(self, dims: List[str]) -> 'Keyring':
         """Return a subcopy of this keyring.
 
