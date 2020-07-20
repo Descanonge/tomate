@@ -7,7 +7,7 @@
 
 
 import logging
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 
@@ -634,6 +634,7 @@ class DataBase():
     def add_variable(self, variable: str,
                      coords: List[str] = None,
                      data: Array = None,
+                     var_class: Type = None,
                      **attrs: Any):
         if coords is None:
             coords = self.coords
@@ -641,8 +642,9 @@ class DataBase():
             log.warning('%s already in variables, it will be overwritten',
                         variable)
         else:
-            cls = self.vi.get_attr_safe('class', variable, Variable)
-            self.variables[variable] = cls(variable, coords, self)
+            if var_class is None:
+                var_class = self.vi.get_attr_safe('class', variable, Variable)
+            self.variables[variable] = var_class(variable, coords, self)
 
         if variable not in self.avail:
             self.avail.var.append(variable)

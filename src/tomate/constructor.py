@@ -443,7 +443,8 @@ class Constructor():
         if DataDisk not in self.db_types:
             self.db_types.insert(0, DataDisk)
 
-    def make_data(self, scan=True) -> Type[DataBase]:
+    def make_data(self, scan=True,
+                  var_classes: Dict = None) -> Type[DataBase]:
         """Create data instance.
 
         If scan:
@@ -473,7 +474,7 @@ class Constructor():
             db.scan_files()
             db.compile_scanned()
             db.scan_variables_attributes()
-            db.add_variables()
+            db.create_variables(var_classes)
         return db
 
     def create_data_class(self) -> Type[DataBase]:
