@@ -123,12 +123,11 @@ class FilegroupScan():
         return out
 
     def __repr__(self):
-        s = [self.__class__.__name__]
-        s.append(f"Name: {self.name}")
-        s.append(f"Root Directory: {self.root}")
-        s.append(f"Pre-regex: {self.pregex}")
-        s.append(f"Regex: {self.regex}")
-        s.append('')
+        s = [str(self),
+             f"Root directory: {self.root}",
+             f"Pre-regex: {self.pregex}",
+             f"Regex: {self.regex}",
+             ""]
 
         s.append("Coordinates for scan:")
         for name, cs in self.cs.items():
@@ -138,6 +137,9 @@ class FilegroupScan():
                 s1.append(': {}, {}'.format(cs.get_extent_str(), cs.size))
             s.append(''.join(s1))
         return '\n'.join(s)
+
+    def __str__(self):
+        return "{}: {}".format(self.__class__.__name__, self.name)
 
     def make_coord_scan(self, coords: CoordScanSpec):
         """Add CoordScan objects.

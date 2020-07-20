@@ -91,16 +91,25 @@ class CoordScan(Coord):
 
     def __repr__(self):
         s = [super().__repr__()]
-        s.append(["In", "Shared"][self.shared])
-        s.append("To scan: {}".format(', '.join(self.scanners)))
-        if self.scanned:
-            s.append("Scanned")
-        else:
-            s.append("Not scanned")
+        s.append("Kind: {}".format(["In", "Shared"][self.shared]))
+
         if len(self.in_idx) > 0:
             if all([c == self.in_idx[0] for c in self.in_idx]):
                 s.append("In-file index is {}".format(str(self.in_idx[0])))
+
+        if self.scanners:
+            s.append("To scan:")
+            s += ['\t' + str(s) for s in self.scanners]
+        if self.fixed_elts:
+            s.append("Fixed elements: ")
+            s += ["\t{} = {}".format(e, v) for e, v in self.fixed_elts.items()]
+
         return '\n'.join(s)
+
+    def __str__(self):
+        s = "{} ({}): {}".format(self.__class__.__name__,
+                                 self.coord.__class__.__name__, self.name)
+        return s
 
     def reset(self):
         """Remove values."""
@@ -399,7 +408,7 @@ class CoordScanShared(CoordScan):
     def __repr__(self):
         s = [super().__repr__()]
         s.append('Matchers:')
-        s += ['\t%s' % str(m) for m in self.matchers]
+        s += ['\t' + str(m) for m in self.matchers]
         return '\n'.join(s)
 
     @property

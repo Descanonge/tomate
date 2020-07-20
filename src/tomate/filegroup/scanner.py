@@ -42,8 +42,7 @@ class Scanner:
         return self.to_scan
 
     def __repr__(self):
-        s = ' - '.join([self.kind, self.name])
-        return s
+        return f"{self.kind}: {self.name}"
 
 
 class ScannerCS(Scanner):
@@ -81,10 +80,13 @@ class ScannerCS(Scanner):
                               self.elts.copy(), **self.kwargs.copy())
 
     def __repr__(self):
-        s = ' - '.join([self.kind, self.func.__name__, str(self.elts)])
-        if self.restrain is not None:
-            s += ' (restrained to {})'.format(self.restrain)
-        return s
+        s = super().__repr__()
+        if not self.restrain:
+            elts = [str(e) for e in self.elts]
+        else:
+            elts = [f"({e})" if e in self.restrain
+                    else str(e) for e in self.elts]
+        return "{} ({})".format(s, ', '.join(elts))
 
     def restrain_results(self, results):
         indices = [self.elts.index(r) for r in self.restrain]

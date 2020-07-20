@@ -31,11 +31,12 @@ class CoordStr(Coord):
         self._size = self._array.size
 
     def __repr__(self):
+        s = [super().__str__()]
         if self.has_data():
-            s = ', '.join(self[:])
+            s.append(', '.join(self[:]))
         else:
-            s = "Empty"
-        return s
+            s.append("Empty")
+        return '\n'.join(s)
 
     def get_extent_str(self, slc: KeyLike = None) -> str:
         if slc is None:

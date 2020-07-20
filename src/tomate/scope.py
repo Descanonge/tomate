@@ -65,15 +65,19 @@ class Scope():
                                        if c.size is not None and c.size > 0})
 
     def __repr__(self):
-        s = []
-        if self.name is not None:
-            s.append(f'name: {self.name}')
+        s = [str(self)]
         for d in self.dims.values():
             if d.has_data() and d.size > 0:
                 s += ['{}: {}, {}'.format(d.name, d.get_extent_str(), d.size)]
             else:
                 s += [f'{d.name}: Empty']
         return '\n'.join(s)
+
+    def __str__(self):
+        s = "Scope"
+        if self.name is not None:
+            s += ": {}".format(self.name)
+        return s
 
     def __getattribute__(self, name):
         if name in super().__getattribute__('dims'):

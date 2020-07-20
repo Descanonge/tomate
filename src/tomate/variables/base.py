@@ -44,7 +44,7 @@ class Variable():
             self.datatype = self.acs.get_datatype(data)
 
     def __repr__(self):
-        s = ["{}: {}".format(self.__class__.__name__, self.name),
+        s = [str(self),
              "Dimensions: {}".format(self.dims),
              "Type: {}".format(self.datatype)]
         if self.is_loaded():

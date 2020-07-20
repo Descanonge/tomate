@@ -94,21 +94,21 @@ class DataBase():
         s = ["Data object"]
 
         s.append("Class: {}, Bases: {} ".format(self.__class__.__name__,
-                                                ', '.join(self.bases.values())))
+                                                ', '.join(self.bases.keys())))
         s.append('')
-        s.append("Data available: \n{}".format(str(self.avail)))
+        s.append("Data available: \n{}".format(repr(self.avail)))
         s.append('')
 
         if self.loaded.is_empty():
             s.append('Data not loaded')
         else:
-            s.append('Data loaded: \n{}'.format(str(self.loaded)))
+            s.append('Data loaded: \n{}'.format(repr(self.loaded)))
         s.append('')
 
         if self.selected.is_empty():
             s.append('No data selected')
         else:
-            s.append('Data selected: \n{}'.format(str(self.selected)))
+            s.append('Data selected: \n{}'.format(repr(self.selected)))
         s.append('')
 
         return '\n'.join(s)

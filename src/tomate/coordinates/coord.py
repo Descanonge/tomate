@@ -102,18 +102,20 @@ class Coord():
         return self._array.__getitem__(y)
 
     def __repr__(self):
-        s = []
-        s.append(str(type(self)))
-        s.append(f"Name: {self.name}")
+        s = [str(self)]
         if self.fullname:
             s.append(f"Fullname: {self.fullname}")
         if self.has_data():
             s.append(f"Size: {self.size}")
             s.append(f"Extent: {self.get_extent_str()}")
-            s.append(f"Descending: {'yes' if self.is_descending() else 'no'}")
+        if self.is_descending():
+            s.append("Descending: yes")
         if self.units:
             s.append(f"Units: {self.units}")
         return '\n'.join(s)
+
+    def __str__(self):
+        return "{}: {}".format(self.__class__.__name__, self.name)
 
     def set_attr(self, name: str, attr: Any):
         """Set attribute.
