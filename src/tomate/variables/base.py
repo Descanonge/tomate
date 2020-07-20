@@ -5,6 +5,7 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
+import logging
 from typing import Iterable, List, TYPE_CHECKING
 
 from tomate.accessor import Accessor
@@ -13,6 +14,9 @@ from tomate.keys.keyring import Keyring
 
 if TYPE_CHECKING:
     from tomate import DataBase
+
+
+log = logging.getLogger(__name__)
 
 
 class Variable():
@@ -70,10 +74,15 @@ class Variable():
                      for d in self.dims]
         self.data = self.acs.allocate(shape, datatype=self.datatype)
 
-    def view(self, keyring=None, **keys):
+    def view(self, keyring=None, order=None, **keys):
         keyring = Keyring.get_default(keyring=keyring, **keys)
         keyring = keyring.subset(self.dims)
+
+        log.debug('Taking keys from %s: %s', self.name, keyring.print())
         out = self.acs.take(keyring, self.data)
+        if order is not None:
+            out = self.acs.reorder(keyring.get_non_zeros(), out, order)
+
         return out
 
     def set_data(self, chunk, keyring: Keyring = None):
