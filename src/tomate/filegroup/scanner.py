@@ -117,8 +117,8 @@ class ScannerCS(Scanner):
     See :func:`scan_in_file_default`, :func:`scan_filename_default`,
     :func:`scan_attributes_default` for more details.
     """
-    def __init__(self, kind: List[str],
-                 func, elts, **kwargs):
+    def __init__(self, kind: List[str], func: Callable,
+                 elts: List[str], **kwargs: Any):
         self.kind = kind
         self.func = func
         self.elts = elts
@@ -199,7 +199,7 @@ class PostLoadingFunc():
         will trigger function.
     :attr kwargs: Dict[str, Any]: Static keyword arguments.
     """
-    def __init__(self, func: Callable['DataBase'],
+    def __init__(self, func: Callable[['DataBase'], None],
                  variable_key: KeyLikeStr = None,
                  all_variables: bool = False, **kwargs: Any):
         self.func = func
@@ -264,7 +264,7 @@ def make_scanner(kind: str, elts: List[str]):
     return decorator
 
 
-def scan_filename_default(cs: CoordScan, values: List[float],
+def scan_filename_default(cs: 'CoordScan', values: List[float],
                           **kwargs: Any) -> Tuple[Union[Any, List[Any]]]:
     """Scan filename to find values.
 
@@ -290,7 +290,7 @@ def scan_filename_default(cs: CoordScan, values: List[float],
     raise NotImplementedError()
 
 
-def scan_in_file_default(cs: CoordScan, file: File, values: List[float],
+def scan_in_file_default(cs: 'CoordScan', file: File, values: List[float],
                          **kwargs: Any) -> Tuple[Union[Any, List[Any]]]:
     """Scan values and in-file indices inside file.
 
@@ -315,7 +315,7 @@ def scan_in_file_default(cs: CoordScan, file: File, values: List[float],
     raise NotImplementedError()
 
 
-def scan_attributes_default(cs: CoordScan, file: File) -> Dict[str, Any]:
+def scan_attributes_default(cs: 'CoordScan', file: File) -> Dict[str, Any]:
     """Scan coordinate attributes.
 
     Attributes are set to the CoordScan by

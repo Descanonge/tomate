@@ -6,12 +6,12 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 import logging
-from typing import Iterable, List, TYPE_CHECKING
+from typing import Any, Iterable, List, TYPE_CHECKING
 
 from tomate.accessor import Accessor
-from tomate.custom_types import Array
+from tomate.custom_types import Array, KeyLike, KeyLikeValue
 from tomate.keys.keyring import Keyring
-from tomate.variables_info.VariableAttributes
+from tomate.variables_info import VariableAttributes
 
 if TYPE_CHECKING:
     from tomate import DataBase
@@ -119,10 +119,10 @@ class Variable():
 
         return out
 
-    def view_by_value(self, *keys: KeyLikeInt,
+    def view_by_value(self, *keys: KeyLikeValue,
                       by_day: bool = False,
                       order: List[str] = None,
-                      **kw_keys: KeyLike) -> np.ndarray:
+                      **kw_keys: KeyLikeValue) -> Array:
         """Returns a subset of loaded data.
 
         Arguments work similarly as
@@ -133,7 +133,7 @@ class Variable():
         --------
         view
         """
-        self.check_loaded()a
+        self.check_loaded()
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
         return self.view(keyring=keyring, order=order)

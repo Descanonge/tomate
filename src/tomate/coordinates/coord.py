@@ -252,7 +252,7 @@ class Coord():
         Check if the coordinate is regular up to threshold.
         """
         if not self.is_regular(threshold):
-            log.warning("Coordinate '{}' not regular (at precision %s)",
+            log.warning("Coordinate '%s' not regular (at precision %s)",
                         self.name, threshold)
         return np.mean(np.diff(self[:]))
 
