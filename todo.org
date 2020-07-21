@@ -2,13 +2,6 @@
 ** TODO Add remove_combination
 file:tomate/variables_info.py
 
-** TODO Coords in VI
-- FG write metada
-- Scanning
-
-** TODO Log reorder
-[[file:src/tomate/data_base.py::def view_ordered(self, order: List\[str\],]]
-
 ** TODO Convert to km
 [[file:src/tomate/coordinates/latlon.py::class Lat(Coord):]]
 
@@ -23,12 +16,7 @@ file:tomate/variables_info.py
 
 ** TODO Plot histogram
 
-** TODO Variables with different dimensions
-check it works
-
 ** TODO Plot Time axis with cftime
-
-** TODO Add coords to VI
 
 * WIP
 

@@ -7,7 +7,7 @@
 
 
 import logging
-from typing import List, Iterable
+from typing import List, Iterable, Union
 import itertools
 
 import numpy as np
@@ -116,9 +116,8 @@ class AccessorABC():
         raise NotImplementedError
 
     @classmethod
-    def reorder(cls, current: List[str],
-                array: Array,
-                order: List[str]) -> Array:
+    def reorder(cls, current: List[str], array: Array,
+                order: List[str], log_lvl: Union[bool, str] = 'DEBUG') -> Array:
         """Reorder array dimensions.
 
         :param current: Current dimensions order.
@@ -137,6 +136,9 @@ class AccessorABC():
             source = list(range(len(order)))
             dest = [order.index(n) for n in current]
         if source != dest:
+            if log:
+                log.log(getattr(logging, log_lvl.upper()),
+                        "Reordering %s -> %s", source, dest)
             return cls.moveaxis(array, source, dest)
         return array
 
