@@ -121,19 +121,18 @@ class AccessorABC():
                 order: List[str]) -> Array:
         """Reorder array dimensions.
 
-        # FIXME
-        :param keyring: Keyring used to take the array.
-            Defines the dimensions names.
-        :param order: Target dimensions order.
-            Not all dimensions names need to be specified,
-            but all dimensions specified must be in the
-            array (ie be in the keyring, with a shape above 0).
+        :param current: Current dimensions order.
+        :param order: Target dimensions order. Either of same
+            length as current, or of length 2 which will swap
+            two the dimensions (if in different order than current)
         """
         if len(order) != len(current):
             if len(order) != 2:
                 raise IndexError("Length of order must be the same as the array, or 2.")
-            dest = [current.index(n) for n in order]
-            source = dest[::-1]
+            source = [current.index(n) for n in order]
+            dest = source
+            if source[0] > source[1]:
+                dest = dest[::-1]
         else:
             source = list(range(len(order)))
             dest = [order.index(n) for n in current]
