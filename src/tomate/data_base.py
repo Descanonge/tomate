@@ -616,10 +616,9 @@ class DataBase():
             check_shape(data)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable: str,
-                     coords: List[str] = None,
-                     data: Array = None,
-                     var_class: Type = None,
+    def add_variable(self, variable: str, coords: List[str] = None,
+                     data: Array = None, var_class: Type = None,
+                     datatype: Any = None, keyring: Keyring = None,
                      **attrs: Any):
         if coords is None:
             coords = self.coords
@@ -635,7 +634,7 @@ class DataBase():
             self.avail.var.append(variable)
 
         if data is not None:
-            self.variables[variable].set_data(data)
+            self.variables[variable].set_data(data, keyring=keyring)
 
         if self.vi.has('datatype', variable):
             datatype = self.vi.get_attr('datatype', variable)
