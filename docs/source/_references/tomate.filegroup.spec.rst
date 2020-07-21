@@ -1,16 +1,16 @@
 
 
 
-tomate.variable
-===============
+tomate.filegroup.spec
+=====================
 
-.. automodule:: tomate.variable
+.. automodule:: tomate.filegroup.spec
 
 
 .. rubric:: Classes
 .. autosummary::
    
-       Variable
+       CoordScanSpec
    
        VariableSpec
    
@@ -21,7 +21,7 @@ tomate.variable
 ..
 
 
-   .. autoclass:: Variable
+   .. autoclass:: CoordScanSpec
       :show-inheritance:
       :members:
       :private-members:

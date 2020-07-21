@@ -1,10 +1,10 @@
 
 
 
-tomate.db\_types.masked
+tomate.variables.masked
 =======================
 
-.. automodule:: tomate.db_types.masked
+.. automodule:: tomate.variables.masked
 
 
 
@@ -12,7 +12,7 @@ tomate.db\_types.masked
 .. autosummary::
        :nosignatures:
    
-       data_masked.DataMasked
+       variable_masked.VariableMasked
    
 
 
@@ -28,7 +28,7 @@ tomate.db\_types.masked
    :nosignatures:
 
    
-      data_masked
-   
       mask
+   
+      variable_masked
    

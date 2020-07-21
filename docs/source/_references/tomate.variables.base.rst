@@ -1,16 +1,16 @@
 
 
 
-tomate.filegroup.filegroup\_load
-================================
+tomate.variables.base
+=====================
 
-.. automodule:: tomate.filegroup.filegroup_load
+.. automodule:: tomate.variables.base
 
 
 .. rubric:: Classes
 .. autosummary::
    
-       FilegroupLoad
+       Variable
    
 
 
@@ -19,7 +19,7 @@ tomate.filegroup.filegroup\_load
 ..
 
 
-   .. autoclass:: FilegroupLoad
+   .. autoclass:: Variable
       :show-inheritance:
       :members:
       :private-members:

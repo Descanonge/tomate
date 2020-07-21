@@ -37,6 +37,8 @@ API Reference
    
       scan_library
    
+      variables
+   
 .. rubric:: Submodules
 .. autosummary::
    :toctree:
@@ -56,8 +58,6 @@ API Reference
       log
    
       scope
-   
-      variable
    
       variables_info
    

@@ -1,10 +1,10 @@
 
 
 
-tomate.db\_types.masked.mask
+tomate.variables.masked.mask
 ============================
 
-.. automodule:: tomate.db_types.masked.mask
+.. automodule:: tomate.variables.masked.mask
 
 
 

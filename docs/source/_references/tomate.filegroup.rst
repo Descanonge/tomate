@@ -42,3 +42,7 @@ tomate.filegroup
    
       matcher
    
+      scanner
+   
+      spec
+   

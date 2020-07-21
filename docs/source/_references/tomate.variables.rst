@@ -1,10 +1,10 @@
 
 
 
-tomate.db\_types
+tomate.variables
 ================
 
-.. automodule:: tomate.db_types
+.. automodule:: tomate.variables
 
 
 
@@ -12,11 +12,9 @@ tomate.db\_types
 .. autosummary::
        :nosignatures:
    
-       data_compute.DataCompute
+       base.Variable
    
-       data_disk.DataDisk
-   
-       plotting.data_plot.DataPlot
+       masked.variable_masked.VariableMasked
    
 
 
@@ -32,7 +30,7 @@ tomate.db\_types
    :nosignatures:
 
    
-      plotting
+      masked
    
 .. rubric:: Submodules
 .. autosummary::
@@ -40,7 +38,5 @@ tomate.db\_types
    :nosignatures:
 
    
-      data_compute
-   
-      data_disk
+      base
    

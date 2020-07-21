@@ -17,6 +17,8 @@ tomate.scan\_library.nc
    
        scan_variables_attributes
    
+       scan_variables_datatype
+   
 
 
 
@@ -26,3 +28,4 @@ tomate.scan\_library.nc
    .. autofunction:: scan_infos
    .. autofunction:: scan_units
    .. autofunction:: scan_variables_attributes
+   .. autofunction:: scan_variables_datatype

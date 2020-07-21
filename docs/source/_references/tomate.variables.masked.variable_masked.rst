@@ -1,10 +1,10 @@
 
 
 
-tomate.db\_types.masked.data\_masked
-====================================
+tomate.variables.masked.variable\_masked
+========================================
 
-.. automodule:: tomate.db_types.masked.data_masked
+.. automodule:: tomate.variables.masked.variable_masked
 
 
 .. rubric:: Classes
@@ -12,7 +12,7 @@ tomate.db\_types.masked.data\_masked
    
        AccessorMask
    
-       DataMasked
+       VariableMasked
    
 
 
@@ -27,7 +27,7 @@ tomate.db\_types.masked.data\_masked
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
-   .. autoclass:: DataMasked
+   .. autoclass:: VariableMasked
       :show-inheritance:
       :members:
       :private-members:
