@@ -8,7 +8,7 @@
 
 import logging
 from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
-                    Type, TYPE_CHECKING)
+                    Type, TYPE_CHECKING, Union)
 
 import os
 import re
@@ -402,13 +402,14 @@ class FilegroupScan():
                         cs.name, self.name))
                 cs.update_values(cs.values)
 
-    def add_scan_gen_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
-        """Add function for scanning general attributes. """
-        self.scanners.append(Scanner('gen', func, **kwargs))
-
-    def add_scan_var_attrs_func(self, func: Callable[..., Dict], **kwargs: Any):
-        """Add the function for scanning variables specific attributes. """
-        self.scanners.append(Scanner('var', func, **kwargs))
+    def add_scan_attrs_func(self, func: Union[Scanner, Callable],
+                                kind: str = None, **kwargs: Any):
+        """Add the function for scanning attributes."""
+        if not isinstance(func, Scanner):
+            func = Scanner(kind, func, **kwargs)
+        if func.kind not in ['var', 'gen']:
+            raise KeyError("Attributes scanner kind should be 'gen' or 'var'")
+        self.scanners.append(func)
 
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
