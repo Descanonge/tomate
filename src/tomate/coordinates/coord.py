@@ -14,6 +14,7 @@ import numpy as np
 
 from tomate.keys.key import reverse_slice_order
 from tomate.custom_types import KeyLike
+from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)
@@ -117,7 +118,7 @@ class Coord():
     def __str__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
 
-    def set_attr(self, name: str, attr: Any):
+    def set_attr(self, name: str, attr: Any, vi: VariablesInfo = None):
         """Set attribute.
 
         :param name: Name of the attribute.
@@ -130,6 +131,9 @@ class Coord():
             self.units = attr
         elif name == 'fullname':
             self.fullname = attr
+
+        if vi is not None:
+            vi.set_attrs(self.name, **{name: attr})
 
     def get_extent_str(self, slc: KeyLike = None) -> str:
         """Return the extent as string.
