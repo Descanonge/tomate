@@ -78,6 +78,7 @@ class CoordScan(Coord):
 
         self.shared = shared
         self.scanners = []
+        self.scanners_attrs = []
         self.manual = set()
         self.elts = ['values', 'in_idx']
         self.fixed_elts = {}
@@ -281,7 +282,7 @@ class CoordScan(Coord):
         --------
         scan_attributes_default: for the function signature
         """
-        self.scanners.append(Scanner('attrs', func))
+        self.scanners_attrs.append(Scanner('attrs', func))
 
     def scan_attributes(self, file: File):
         """Scan coordinate attributes if necessary.
@@ -289,19 +290,16 @@ class CoordScan(Coord):
         Using the user defined function.
         Apply them.
         """
-        for s in self.scanners:
-            if s.kind == 'attrs':
-                attrs = s.scan(self, file)
-                log.debug("Found coordinates attributes %s", list(attrs.keys()))
-                for name, value in attrs.items():
-                    self.set_attr(name, value)
+        for s in self.scanners_attrs:
+            attrs = s.scan(self, file)
+            log.debug("Found coordinates attributes %s", list(attrs.keys()))
+            for name, value in attrs.items():
+                self.set_attr(name, value)
 
     def scan_elements(self, file: File):
         elts = {e: [] for e in self.elts}
 
         for s in self.scanners:
-            if s.kind == 'attrs':
-                continue
             if s.kind == 'filename':
                 log.debug("Scanning filename for '%s'", self.name)
                 args = [elts['values']]
@@ -385,7 +383,8 @@ class CoordScanIn(CoordScan):
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
         out = (not self.scanned
-               and any([s.kind in ['in', 'attrs'] for s in self.scanners]))
+               and (any([s.kind == 'in' for s in self.scanners])
+                    or self.scanners_attrs))
         return out
 
 
@@ -467,7 +466,8 @@ class CoordScanShared(CoordScan):
 
     def is_to_open(self) -> bool:
         """If the file must be opened for scanning. """
-        out = any([s.kind in ['in', 'attrs'] for s in self.scanners])
+        out = (any([s.kind == 'in' for s in self.scanners])
+               or self.scanners_attrs)
         return out
 
 
