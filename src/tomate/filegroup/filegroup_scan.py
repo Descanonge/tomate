@@ -421,34 +421,6 @@ class FilegroupScan():
             cs.slice(key.no_int().value)
 
 
-def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
-                                    **kwargs: Any) -> Dict[str, Any]:
-    """Scan general attributes in file.
-
-    :param file: Object to access file.
-        The file is already opened by FilegroupSan.open_file().
-
-    :returns: Dictionnary of attributes.
-        {attribute name: attribute value}.
-        Attributes are added to the VI.
-    """
-    raise NotImplementedError()
-
-
-def scan_variables_attributes_default(fg: 'FilegroupLoad', file: File,
-                                      **kwargs: Any) -> Dict[str, Dict[str, Any]]:
-    """Scan variable specific attributes.
-
-    :param file: Object to access file.
-        The file is already opened by FilegroupScan.open_file().
-
-    :returns: Attributes per variable.
-        {variable name: {attribute name: value}}
-        Attributes are added to the VI.
-    """
-    raise NotImplementedError()
-
-
 def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
                    coords_fg: Iterable[CoordScanSpec],
                    vi: VariablesInfo,

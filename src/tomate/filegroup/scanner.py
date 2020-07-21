@@ -12,8 +12,9 @@ from tomate.custom_types import File, KeyLikeStr
 from tomate.keys.key import Key
 
 if TYPE_CHECKING:
-    from tomate.filegroup.coord_scan import CoordScan
     from tomate.data_base import DataBase
+    from tomate.filegroup.coord_scan import CoordScan
+    from tomate.filegroup.filegroup_load import FilegroupLoad
 
 
 class Scanner:
@@ -35,6 +36,18 @@ class Scanner:
         arguments passed to the function when scanning.
     :attr: to_scan: bool: If the function has to be
         called during scanning.
+
+    Examples
+    --------
+    'attrs' type scanners for coordinates should take in a
+    CoordScan and a file object, and return a dictionnary.
+    'gen' and 'var' type are scanners for filegroup attributes.
+    They should take in a filegroup instance, a file object and
+    for 'var' a list of variables to scan attributes for.
+
+    See :func:`scan_coord_attributes_default`,
+    :func:`scan_general_attributes_default`, and
+    :func:`scan_variables_attributes_default` for more details.
     """
     def __init__(self, kind: str, func: Callable,
                  **kwargs: Dict[str, Any]):
@@ -83,9 +96,8 @@ class ScannerCS(Scanner):
 
     Will scan different 'elements' for a CoordScan object.
 
-    :param kind: Type of function. Can be 'attr' for
-        attribute, 'in' for in-file, or 'filename' for
-        filename scanning.
+    :param kind: Type of function. Can be 'in' for in-file,
+        or 'filename' for filename scanning.
     :param func: The scanning function. Should return
         the right number of elements, and take in the
         right arguments for the scanner type (see below).
@@ -104,8 +116,6 @@ class ScannerCS(Scanner):
 
     Examples
     --------
-    'attr' type scanners should take in a CoordScan and
-     a file object, and return a dictionnary.
     'in' and 'filename' should take in a CoordScan,
     a file object (only for 'in'), a list of values previously
     scanned, and return elements. Elements can be
@@ -113,9 +123,8 @@ class ScannerCS(Scanner):
     same length, and will be concatenated to already scanned
     elements. To avoid concatenation, use tuples.
 
-
     See :func:`scan_in_file_default`, :func:`scan_filename_default`,
-    :func:`scan_attributes_default` for more details.
+    for more details.
     """
     def __init__(self, kind: List[str], func: Callable,
                  elts: List[str], **kwargs: Any):
@@ -315,7 +324,8 @@ def scan_in_file_default(cs: 'CoordScan', file: File, values: List[float],
     raise NotImplementedError()
 
 
-def scan_attributes_default(cs: 'CoordScan', file: File) -> Dict[str, Any]:
+def scan_coord_attributes_default(cs: 'CoordScan',
+                                  file: File) -> Dict[str, Any]:
     """Scan coordinate attributes.
 
     Attributes are set to the CoordScan by
@@ -328,5 +338,33 @@ def scan_attributes_default(cs: 'CoordScan', file: File) -> Dict[str, Any]:
     :returns: Dictionnary of attributes {'name': value}.
         They will be added to the CoordScan object with
         cs.set_attr()
+    """
+    raise NotImplementedError()
+
+
+def scan_general_attributes_default(fg: 'FilegroupLoad', file: File,
+                                    **kwargs: Any) -> Dict[str, Any]:
+    """Scan general attributes in file.
+
+    :param file: Object to access file.
+        The file is already opened by FilegroupSan.open_file().
+
+    :returns: Dictionnary of attributes.
+        {attribute name: attribute value}.
+        Attributes are added to the VI.
+    """
+    raise NotImplementedError()
+
+
+def scan_variables_attributes_default(fg: 'FilegroupLoad', file: File,
+                                      **kwargs: Any) -> Dict[str, Dict[str, Any]]:
+    """Scan variable specific attributes.
+
+    :param file: Object to access file.
+        The file is already opened by FilegroupScan.open_file().
+
+    :returns: Attributes per variable.
+        {variable name: {attribute name: value}}
+        Attributes are added to the VI.
     """
     raise NotImplementedError()

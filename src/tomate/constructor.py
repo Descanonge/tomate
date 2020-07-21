@@ -21,7 +21,7 @@ from tomate.db_types.data_disk import DataDisk
 from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
-from tomate.filegroup.scanner import PostLoadingFunc
+from tomate.filegroup.scanner import PostLoadingFunc, Scanner, ScannerCS
 from tomate.filegroup.spec import CoordScanSpec, VariableSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo
@@ -246,22 +246,26 @@ class Constructor():
             cs.add_scan_function(func, kind='in', elts=elements,
                                  restrain=restrain, **kwargs)
 
-    def add_scan_filename(self, func: Callable[[CoordScan, List[float]],
-                                               Tuple[List[float], List[int]]],
+    def add_scan_filename(self, func: Union[ScannerCS, Callable],
                           *coords: str,
                           elements: List[str] = None, restrain: List[str] = None,
                           **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
-        :param func: Function that recover values from filename.
+        :param func: Function or Scanner that captures coordinates
+            elements.
         :param coords: Coordinates to apply this function for.
-        :param only_value: [opt] Scan only coordinate values.
-        :param only_index: [opt] Scan only in-file indices.
-        :param kwargs: [opt] Keyword arguments that will be passed to the function.
+        :param elements: Elements that will be scanned with this
+            function. Mandatory if '`func`' is a function, else
+            it will redefine scanner elements.
+        :param restrain: [opt] Only use those elements for scanning.
+        :param kwargs: [opt] Keyword arguments that will be passed
+            to the function.
 
         See also
         --------
-        tomate.filegroup.coord_scan.scan_filename_default:
+        tomate.filegroup.scanner.ScannerCS: for details
+        tomate.filegroup.scanner.scan_filename_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -305,7 +309,8 @@ class Constructor():
 
         See also
         --------
-        tomate.filegroup.coord_scan.scan_attributes_default:
+        tomate.filegroup.scanner.Scanner: for details
+        tomate.filegroup.scanner.scan_coord_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -319,13 +324,15 @@ class Constructor():
 
         The attributes are added to the VI.
 
-        :param func: Function that recovers general attributes in file.
-            Returns a dictionnary {'attribute name': value}
+        :param func: Function or scanner that recovers general
+            attributes in file. Returns a dictionnary
+            {'attribute name': value}
         :param kwargs: [opt] Passed to the function.
 
         See also
         --------
-        tomate.filegroup.filegroup_scan.scan_attributes_default:
+        tomate.filegroup.scanner.Scanner: for details
+        tomate.filegroup.filegroup.scanner.scan_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -339,12 +346,14 @@ class Constructor():
 
         The attributes are added to the VI.
 
-        :param func: Function that recovers variables attributes in file.
-            Return a dictionnary {'variable name': {'attribute name': value}}.
+        :param func: Function or scanner that recovers variables
+             attributes in file. Return a dictionnary
+             {'variable name': {'attribute name': value}}.
         :param kwargs: [opt] Passed to the function.
 
         See also
         --------
+        tomate.filegroup.scanner.Scanner: for details
         tomate.filegroup.filegroup_scan.scan_variables_attributes_default:
             for a better description of the function interface.
         """

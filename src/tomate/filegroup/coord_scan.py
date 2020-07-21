@@ -48,23 +48,13 @@ class CoordScan(Coord):
         If that value is not contained in this filegroup, the
         index is None.
 
-    :attr values: Union[List, np.ndarray]: Temporary list of values found
+    :attr values: np.ndarray: Temporary list of values found
         for this coordinate.
-    :attr in_idx: Union[List, np.ndarray]: List of the index for each value
+    :attr in_idx: np.ndarray: List of the index for each value
         inside the files.
 
-    :attr scan: Dict[str, List[Callable, List[str], Dict]]:
-        What and how to scan.
-        Keys can be 'manual': values and in-indices are manually set,
-        'in': stuff is to find inside the file, or 'filename': stuff is to find
-        in the filename.
-        The values are lists of length 3. The first element contains
-        the things to scan (values or in-indices), the second the function
-        to use, the third the keyword arguments to pass.
-    :attr scanned: bool: If the coordinate has been scanned.
-
-    :attr scan_attr: bool: If attributes are to be scanned.
-    :attr scan_attributes_func: Callable: Function to scan for attributes.
+    :attr scan: List[ScannerCS] List of scanners to use to scan
+        coordinates elements.
     """
     def __init__(self, filegroup: 'FilegroupLoad',
                  coord: Coord, *,
