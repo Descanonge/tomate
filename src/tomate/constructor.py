@@ -194,13 +194,13 @@ class Constructor():
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
 
-    def set_variables_infile(self, *variables: List[VariableSpec]):
-        """Set variables index in the file.
 
         This information will be transmitted to the filegroup
         when loading.
         The argument name will be added to the variables scanning
         coordinate values, and the value to its in-file indices.
+    def set_variables_elements(self, *variables: List[VariableSpec]):
+        """Set variables elements.
 
         This is similar to using Constructor.set_values_manually()
         for the 'Variables' coordinate.
