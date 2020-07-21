@@ -215,26 +215,34 @@ class Constructor():
         dims = [v.dims for v in variables]
         cs.set_values_manual(values=values, in_idx=in_idx, dimensions=dims)
 
-    def remove_scan_functions(self, kind: List[str] = None, *variables):
-        for var in variables:
-            self.current_fg.cs[var].remove_scanners(kind)
+    def remove_scan_functions(self, kind: List[str] = None, *dims):
+        """Remove scan function.
 
-    def add_scan_in_file(self, func: Callable[[CoordScan, File, List[float]],
-                                              Tuple[List[float], List[int]]],
-                         *coords: str,
-                         elements: List[str] = None, restrain: List[str] = None,
-                         **kwargs: Any):
+        :param dims: Dimensions to remove scan functions from.
+        :kind: [opt] Only remove specific kind.
+        """
+        for d in dims:
+            self.current_fg.cs[d].remove_scanners(kind)
+
+    def add_scan_in_file(self, func: Union[ScannerCS, Callable],
+                         *coords: str, elements: List[str] = None,
+                         restrain: List[str] = None, **kwargs: Any):
         """Set function for scanning coordinates values in file.
 
-        :param func: Function that captures values and in-file indices.
+        :param func: Function or Scanner that captures coordinates
+            elements.
         :param coords: Coordinates to apply this function for.
-        :param only_value: [opt] Scan only coordinate values.
-        :param only_index: [opt] Scan only in-file indices.
-        :param kwargs: [opt] Keyword arguments that will be passed to the function.
+        :param elements: Elements that will be scanned with this
+            function. Mandatory if '`func`' is a function, else
+            it will redefine scanner elements.
+        :param restrain: [opt] Only use those elements for scanning.
+        :param kwargs: [opt] Keyword arguments that will be passed
+            to the function.
 
         See also
         --------
-        tomate.filegroup.coord_scan.scan_in_file_default:
+        tomate.filegroup.scanner.ScannerCS: for details
+        tomate.filegroup.scanner.coord_scan.scan_in_file_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
@@ -271,16 +279,20 @@ class Constructor():
             cs.add_scan_function(func, kind='filename', elts=elements,
                                  restrain=restrain, **kwargs)
 
-    def set_values_constant(self, dim: str, **elements):
+    def set_elements_constant(self, dim: str, **elements: Any):
+        """Fix elements to a constant.
+
+        :param elements: Constant to fix each element at.
+            Element can be 'in_idx' or 'dimensions'.
+
+        For all the dimension values, the specified elements
+        will have the same constant value.
+        """
         self.current_fg.cs[dim].set_values_constant(**elements)
 
-    def set_values_manually(self, dim: str,
-                            values: List[float],
-                            in_idx: List = None):
-        """Set coordinate values manually.
-
-        Values will still be checked for consistency with
-        others filegroups.
+    def set_elements_manually(self, dim: str, values: List[float],
+                              in_idx: List = None):
+        """Set coordinate elements manually.
 
         :param dim: Dimension to set the values for.
         :param values: Values for the coordinate.
