@@ -106,7 +106,7 @@ class Variable():
         --------
         tomate.data_base.DataBase.view for details on arguments.
         """
-        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        kw_keys = self._db.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring.get_default(keyring=keyring, **kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
@@ -134,7 +134,7 @@ class Variable():
         view
         """
         self.check_loaded()
-        kw_keys = self.get_kw_keys(*keys, **kw_keys)
+        kw_keys = self._db.get_kw_keys(*keys, **kw_keys)
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
         return self.view(keyring=keyring, order=order)
 
