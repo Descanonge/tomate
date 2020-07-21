@@ -2,8 +2,8 @@
 Introduction to Tomate
 ======================
 
-Tomate provides ways to manipulate data under the form of a
-multi-dimensional array.
+Tomate provides ways to manipulate data under the form of
+multi-dimensional arrays.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
 It also provides multiple convenience functions to retrieve
@@ -23,6 +23,7 @@ This object provides:
 * :doc:`Coordinates<coord>` which give information on the data
   coordinates, (or dimensions). Coordinates objects are grouped
   in :ref:`Scopes`.
+* :doc:`Variables<variable>` which store data for one variable
 * :doc:`VariablesInfo<variables_info>` which supply
   information about the variables, and the data in general.
 * Various optional convenience functions
@@ -30,10 +31,11 @@ This object provides:
   find the data files, and how to load data.
 
 To help construct these complex objects, a Constructor can be used. It acts as
-configuration tool. Examples can be found in /examples.
+configuration tool.
 
 To jump right into using the package, one can immediatly go read the
 :doc:`constructing a database<tutorial>` doc page.
+Examples can be found in /examples.
 
 The package contains many configurable parts, that are as independant of each
 other as possible. What can be tweaked or expanded, and how to do it is
@@ -49,4 +51,4 @@ And of course, the :doc:`API reference<_references/tomate>` contains all
 the doc strings for all modules, classes, and functions.
 
 
-Github page: `<https://github.com/Descanonge/tomate>`__
+Source code: `<https://github.com/Descanonge/tomate>`__

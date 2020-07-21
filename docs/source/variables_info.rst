@@ -48,5 +48,4 @@ affect the VI::
   vattr = vi['U']
   vattr.fullname = 'new'
 
-
 More operations are available, see :class:`VariablesInfo`.

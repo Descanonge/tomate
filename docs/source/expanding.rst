@@ -36,7 +36,7 @@ It is advised to look at
 for a practical example of a file format expansion.
 
 A new file format will recquire new scanning function. One can take example
-at the :mod:`tomate.scan_library`.
+at the :mod:`tomate.scan_library.nc`.
 
 
 Data base type
@@ -53,8 +53,8 @@ It is also possible to change how the data is stored, or accessed.
 To do that, it is necessary to modify the :ref:`Accessors` class.
 
 One can look at
-:class:`DataMasked<db_types.masked.data_masked.DataMasked>` and
-:class:`DataPlot<db_types.data_plot.DataPlot>`
+:class:`DataCompute<db_types.data_compute.DataCompute>` and
+:class:`DataPlot<db_types.plotting.data_plot.DataPlot>`
 for inspiration.
 
 
@@ -62,3 +62,9 @@ Coordinates subclasses
 ----------------------
 
 See :doc:`coord`.
+
+
+Variables subclasses
+--------------------
+
+See :doc:`variable`.

@@ -194,20 +194,22 @@ class Constructor():
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
 
-
-        This information will be transmitted to the filegroup
-        when loading.
-        The argument name will be added to the variables scanning
-        coordinate values, and the value to its in-file indices.
     def set_variables_elements(self, *variables: List[VariableSpec]):
         """Set variables elements.
 
         This is similar to using Constructor.set_values_manually()
         for the 'Variables' coordinate.
+        For each variable, enter its information into a
+        :class:`VariableSpec<tomate.filegroup.spec.VariableSpec>`
+        object. This object is accessible directly from the constructor
+        as `Constructor.VariableSpec` or `Constructor.VS`
 
         Examples
         --------
-        >>> cstr.set_variables_infile(sst='SST', chl='CHL_mean')
+        >>> cstr.set_variables_elements(cstr.VS('SST', 'sea_surface_temp',
+        ...                                     ['lat', 'lon']),
+        ...                             cstr.VS('SSH', 'sea_surface_height,
+        ...                                     ['lat', 'lon']))
         """
         cs = self.current_fg.cs['var']
         values = [v.name for v in variables]

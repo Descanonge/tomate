@@ -266,11 +266,9 @@ class DataBase():
 
         return out
 
-    def view_by_value(self, *keys: KeyLikeInt,
-                      by_day: bool = False,
-                      stack: Union[str, bool] = None,
-                      order: List[str] = None,
-                      **kw_keys: KeyLike) -> np.ndarray:
+    def view_by_value(self, *keys: KeyLikeInt, by_day: bool = False,
+                      stack: Union[str, bool] = None, order: List[str] = None,
+                      **kw_keys: KeyLike) -> Union[Array, Tuple[Array]]:
         """Returns a subset of loaded data.
 
         Arguments work similarly as
@@ -620,6 +618,24 @@ class DataBase():
                      data: Array = None, var_class: Type = None,
                      datatype: Any = None, keyring: Keyring = None,
                      **attrs: Any):
+        """Add a new variable.
+
+        Create variable object, and add variable to available / loaded
+        scope.
+
+        :param variable: Name of variable
+        :param coords: List of dimensions this variable vary along.
+        :param data: [opt] Variable data should be of correct shape
+            for loaded scope, or available if nothing is currently loaded,
+            or matching '`keyring`'.
+        :param keyring: [opt] If no data is loaded, loaded scope
+            is fetched from available scope with this keyring.
+            'var' key has no effect.
+        :param var_class: [opt] Variable subclass to use.
+        :param datatype: [opt] Override datatype eventually found
+            in the VI.
+        :param attrs: [opt] Attributes to put in the VI.
+        """
         if coords is None:
             coords = self.coords
         if variable in self.variables:

@@ -1,10 +1,10 @@
 
-.. currentmodule :: tomate
+.. currentmodule:: tomate
 
 Scanning
 ========
 
-At its creation, the database object look into the available
+At its creation, the database object looks into the available
 files on disk in a process called scanning.
 It looks inside the files and at their filenames to find
 how the data is arranged.
@@ -35,17 +35,17 @@ They are two types of dimension (and thus of CS).
 
 In-coordinates are also assumed to be arranged in the same way for all files
 (same values, same indexing). If this is not the case, the coordinate should
-be marked as shared.
-Keep in mind that *all coordinates are independent*.
+be marked as shared: keep in mind that *all coordinates are independent*.
 For example, in a dataset of the sea surface temperature with an image per date
 per file, the latitude and longitude will be 'in' and the temperature 'shared'.
 There could also be more than one date per file, for instance one file for each
 month with daily images.
 
-The CS must find 2 to 3 things: the coordinates values, the index in the
-file for that value, and if the CS is shared, the file that contains this value.
-All those variables are indexed on the coordinate values, so when we ask for the
-i_th value of a coordinate, we take the i_th file, and the i_th
+The CS must find various *elements*: the coordinates values, the index in the
+file for each value, and if the CS is shared, the file that contains this value.
+For each variable, the dimensions it depends upon must be retrieved.
+All those elements are indexed on the coordinate values, so when we ask for the
+i\ :sup:`th` value of a coordinate, we take the i\ :sup:`th` file, and the i\ :sup:`th`
 in-file index to know where to look in that file.
 The fact that everything is indexed on coordinates values, means that
 coordinates scanned from files will always have values in growing order.
@@ -56,11 +56,9 @@ This avoid storing an excessive number of long filenames, especially if there
 are multiple shared coordinates.
 With the matches from all the shared coordinates, we can reconstruct the
 filename, by replacing the matchers in the pre-regex.
-This add a limitation with multiple shared coordinates: the matches must also
-be independent accross coordinates.
 
 Some dimensions might not be represented inside the file, for instance
-in the previous example files might not contain a time dimension.
+in the previous example the files might not contain a time dimension.
 In that case, the in-file index should be `None`.
 This is then handled appropriately by the filegroup loading methods.
 
@@ -105,8 +103,6 @@ Variables Coordinates
 
 Variables are treated as coordinates when scanning, with some specificities.
 
-When adding a filegroup to the constructor, one should not specify
-the variables along with other coordinates.
 First, the user does not need to create a :class:`Variables<coordinates.variables.Variables>`
 object, it is automatically added by the constructor.
 The variable dimension can also be omitted when adding a filegroup to the constructor,
@@ -114,11 +110,15 @@ it will automatically be added, 'in' by default.
 
 The variables values still need to be set, either by scanning them like
 any other coordinate, or setting it manully using
-:func:`constructor.Constructor.set_variables_infile`.
+:func:`constructor.Constructor.set_variables_elements`.
+This function takes as argument :class:`VariablesSpec<tomate.filegroup.spec.VariableSpec>`,
+accessible from the constructor as `Constructor.VariableSpec` or `Constructor.VS`.
 
-Contrary to other CoordScan, the values are not sorted after being scanned.
-Also, note the in-file index or values do not need be integers, it can be
-a string refering to the variable name.
+
+Setting up scanning coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Talk about coords_fg and CoordScanSpec.
 
 
 .. currentmodule:: tomate.constructor
@@ -178,36 +178,44 @@ that dimension is used. The value used is logged as debug.
 .. currentmodule:: tomate
 
 
-Finding values
---------------
+Finding coordinates elements
+----------------------------
 
-Coordinate values and in-file indices can be obtained by
-:ref:`setting them manually<Setting values manually>`, or by using
+Coordinate elements (ie values, in-file indices, variables dimensions)
+can be obtained by
+:ref:`setting them manually<Setting elements manually>`, or by using
 user-defined functions to :ref:`scan a filename<Scanning filename>`
 or to :ref:`scan inside a file<Scanning in file>`.
 
-In-coordinates scan only one file, the first one found.
-Shared coordinates scan all the files available.
-Only one function can be called for each type of scanning (in-file and
-filename).
-The functions are launched in the same order they were specified by the user
-to the filegroup.
-Each can extract coordinates values and/or in-file indices.
-The values they extract can be passed from one to another.
+To use functions the user must add a series of scanning functions or
+:class:`scanners<filegroup.scanner.ScannerCS>`.
+A scanner is a wrapper around a function used to add some
+features described below.
+You can set any number of functions that will be executed in the order
+you added them to the filegroup.
+Each can extract coordinates any combination of elements.
+One can specify / override which elements are returned by a
+function / scanner, and eventually restrain what elements are kept
+from thoses returned.
+
+For each file, the coordinates values scanned so far are passed
+as argument to each function. And previously scanned elements can be
+found in the CoordScan object itself, that is passed as well.
 So, for instance with monthly files, one could first find the year and month
 in the filename, and the day of the month in the file.
 It would combine both to create the whole date.
+
+In-coordinates scan only one file, the first one found.
+Shared coordinates scan all the files available.
 
 
 Scanning in file
 ^^^^^^^^^^^^^^^^
 
-The scanning function is set by
-:func:`Constructor.set_scan_in_file<constructor.Constructor.set_scan_in_file>`.
+A scanning function is added by
+:func:`Constructor.add_scan_in_file<constructor.Constructor.add_scan_in_file>`.
 The function should receive a CoordScan object, a file object, and
-values eventually scanned from the filename if the filename scanning was
-done before-hand.
-It must returns one or more values, and the corresponding indices in the file.
+values scanned so far.
 
 The file object is a handle for whatever file format is needed.
 It is returned by the Filegroup
@@ -216,7 +224,7 @@ method.
 All exception handling (and closing the file appropriately) is done
 by the package.
 
-One should look into :func:`filegroup.coord_scan.scan_in_file_default` for
+One should look into :func:`filegroup.scanner.scan_in_file_default` for
 a better description of the function signature.
 :mod:`tomate.scan_library` contains some examples.
 
@@ -228,12 +236,10 @@ The filename can also be scanned, as sometimes it is the sole source
 of information for a coordinate.
 This is done via a pre-regex, a regular expression with added features
 that specifies how the filename is constructed.
-This is useful to retrieve information from the filename, but is also mandatory
-so that the database know where are the files, and what part of the data they
-contain.
 
-Any regex can be used in the pre-regex, however, it will be replaced
-by its match as found in the first file and then considered constant.
+One cannot just use a regular expression when having shared dimensions,
+as it will be replaced by its match as found in the first file and
+then considered constant.
 For example, if we have daily files 'sst_2003-01-01.nc' with the
 date changing for each file. We could use the regex `sst_.*\.nc`, which
 would match correctly all files, but the program would then consider that
@@ -243,14 +249,15 @@ Instead, we must specify what part of the filename varies, and along
 which dimension / coordinate.
 To this end, we use :class:`matchers<filegroup.matcher.Matcher>`.
 This is a part of the pre-regex, enclosed in parenthesis and preceded
-by a `%`. It specifies the coordinate name and the element of the coordinate.
+by a `%`. It specifies the coordinate name an element.
 The element dictate the regex that will be used for that matcher, and
 how it will eventually be treated by the filename scanning function.
 
 Various elements are already coded. Elements for dates and times follow
 *strftime* format specifications.
 For instance the element 'Y' designate a year. It will be replaced by a
-regex searching for 4 digits and :func:`scan_library.get_date_from_matches`
+regex searching for 4 digits and
+:class:`scan_library.general.get_date_from_matches`
 will use this to create a date.
 
 
@@ -298,7 +305,7 @@ regex in place of the matcher::
 
 **The custom regex must be terminated with a colon `:`**.
 
-lThe filename can comport varying part which are not detrimental to the
+The filename can comport varying part which are not detrimental to the
 extraction of coordinate values. They still have to be specified, but one
 can append the 'dummy' keyword to the matcher to make clear that this
 information is to be discarded. This is usefull for instance when dealing
@@ -313,44 +320,53 @@ Each scanned filename is matched again the regex constructed from
 the pre-regex. The matches are temporarily stored in the matchers
 of the corresponding coordinates.
 Again, the CoordScan calls a user-defined function set with
-:func:`Constructor.set_scan_filename<constructor.Constructor.set_scan_filename>`.
-The function receives a Coordscan instance, and values eventually scanned from
-inside the same file if the in-file scanning was done before-hand.
-It must returns one or more values and in-file indices.
+:func:`Constructor.add_scan_filename<constructor.Constructor.add_scan_filename>`.
+The function receives a Coordscan instance, and values previously scanned from
+the same file.
 
-One should look into :func:`filegroup.coord_scan.scan_filename_default` for
+One should look into :func:`filegroup.scanner.scan_filename_default` for
 a better description of the function signature.
 :mod:`tomate.scan_library` contains some examples.
 
 
-Setting values manually
-^^^^^^^^^^^^^^^^^^^^^^^
-
-This whole process can be overlooked by setting manually the values and
-in-file indices.
-For shared coordinates, the scanning of values should still be happening,
-as each file must be associated with one or more values.
-In that case, the value found by scanning is expected to be present in
-the values set manually.
-
-
 .. currentmodule:: tomate.constructor
+
+Setting elements manually
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This whole process can be overlooked or completed by setting manually
+various coordinates elements.
+For shared coordinates the scanning of values is recommended though
+as setting file matches manually is cumbersome and prone to errors.
+
+Elements can be set very simply using
+:func:`Constructor.set_elements_manually`.
+This is incompatible with any scanning function.
+
+Both scanning function and elements set manually are compatible
+with setting constant elements with :func:`Constructor.set_elements_constant`.
+This simply set one or more element to the same value for all coordinates
+values.
+Setting an element constant will override any results scanned, and conversely
+adding a scanning function for an element previously set constant will
+remove that constant.
+
 
 Attributes scanning
 -------------------
 
 Other metadata can also be retrieved.
 General attributes of the filegroup can be scanned by using
-:func:`Constructor.set_scan_general_attributes`,
+:func:`Constructor.add_scan_general_attributes`,
 and variables specific attributes can be retrieved with
-:func:`Constructor.set_scan_variables_attributes`.
+:func:`Constructor.add_scan_variables_attributes`.
 In both cases, found information will be added to the
 :ref:`Variables Info`.
 
 Coordinate specific metadata can be found by using
-:func:`Constructor.set_scan_coords_attributes`.
+:func:`Constructor.add_scan_coords_attributes`.
 These attributes will be sent to `CoordScan.set_attr`, and thus should only affect
-the scanning coordinate.
+the scanning coordinate (and VI).
 The user should manually propagates this information to its parent coordinates.
 
 General attributes are the first thing to be scanned, then comes coordinates

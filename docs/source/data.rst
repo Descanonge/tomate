@@ -1,5 +1,5 @@
 
-.. currentmodule :: tomate
+.. currentmodule:: tomate
 
 
 The Database object
@@ -24,6 +24,7 @@ do computations on, or plot the data.
 
    coord
    scope
+   variable
    filegroup
    variables_info
 
