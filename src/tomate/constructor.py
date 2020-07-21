@@ -52,8 +52,6 @@ class Constructor():
     :attr db_types: List[Type[DataBase]]:
         Subclass of DataBase to use to create a new dynamic
         database class.
-    :attr acs: Type[Accessor]: Subclass of Accessor
-        to use for database object.
 
     :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
     """
@@ -76,7 +74,6 @@ class Constructor():
 
         self.post_loading_funcs = []
         self.db_types = [DataBase]
-        self.acs = None
 
         self.allow_advanced = False
 
@@ -421,16 +418,13 @@ class Constructor():
             for_append = self
         for_append.post_loading_funcs.append(plf)
 
-    def set_data_types(self, db_types: Union[Type[DataBase], List[Type[DataBase]]] = None,
-                       accessor: Type[Accessor] = None):
+    def set_data_types(self, db_types: Union[Type[DataBase],
+                                             List[Type[DataBase]]] = None):
         """Set database and accessor subclasses.
 
         :param db_types: [opt] Subclass (or list of) of DataBase
             to derive the class of database from.
             If None, basic DataBase will be used.
-        :param accessor: [opt] Subclass of Accessor to use for
-            database.
-            If None, basic Accessor will be used.
 
         See also
         --------
@@ -442,7 +436,6 @@ class Constructor():
         elif not isinstance(db_types, (list, tuple)):
             db_types = [db_types]
         self.db_types = db_types
-        self.acs = accessor
 
     def add_disk_features(self):
         """Add management of data on disk.
@@ -493,12 +486,11 @@ class Constructor():
         --------
         create_data_class: for implementation
         """
-        db_class = create_data_class(self.db_types, self.acs)
+        db_class = create_data_class(self.db_types)
         return db_class
 
 
-def create_data_class(db_types: List[Type[DataBase]],
-                      accessor: Type[Accessor] = None) -> Type[DataBase]:
+def create_data_class(db_types: List[Type[DataBase]]) -> Type[DataBase]:
     """Create a dynamic data class.
 
     Find a suitable name.
@@ -507,9 +499,6 @@ def create_data_class(db_types: List[Type[DataBase]],
     :param db_types: DataBase subclasses to use, in order of
         priority for method resolution (First one in
         the list is the first class checked).
-    :param accessor: Accessor subclass to use for data.
-        If None, the accessor found in provided data types
-        will be used (according to mro priority).
     """
     if isinstance(db_types, type):
         db_types = [db_types]
