@@ -411,7 +411,7 @@ class FilegroupLoad(FilegroupScan):
         """Get infile name."""
         cs = self.cs['var']
         if var in cs:
-            return cs.in_idx[cs.idx(var)]
+            return cs.in_idx[cs.get_str_name(var)]
         return var
 
     def write_add_variable(self, var: str, sibling: str,
@@ -443,7 +443,7 @@ class FilegroupLoad(FilegroupScan):
                     else:
                         cks.infile[name].make_int_list()
                         cks.memory[name].make_int_list()
-                cks.memory['var'] = self.db.idx(var)
+                cks.memory['var'] = var
                 cks.infile['var'] = self._get_infile_name(var)
             log.debug('Command: %s', cmd)
 

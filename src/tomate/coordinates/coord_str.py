@@ -65,10 +65,6 @@ class CoordStr(Coord):
         except KeyError:
             return None
 
-    def idx(self, y: Union[str, int]) -> int:
-        """Return index of value."""
-        return self.get_str_index(y)
-
     def get_str_name(self, y: Union[int, str]) -> str:
         """Return name of value.
 

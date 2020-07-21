@@ -123,13 +123,6 @@ class Scope():
         """
         return {c: self.coords[c] for c in coords}
 
-    def idx(self, variables: Union[str, int]) -> int:
-        """Get index of variables in the array.
-
-        Wrapper around Variables.idx()
-        """
-        return self.var.idx(variables)
-
     @property
     def shape(self) -> List[int]:
         """Shape of data."""
