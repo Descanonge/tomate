@@ -69,9 +69,9 @@ class Key():
         elif isinstance(key, (list, tuple, np.ndarray)):
             tp = 'list'
             key = list(key)
-            if all([isinstance(z, self.INT_TYPES) for z in key]):
+            if all(isinstance(z, self.INT_TYPES) for z in key):
                 key = [int(z) for z in key]
-            elif all([isinstance(z, str) for z in key]):
+            elif all(isinstance(z, str) for z in key):
                 s = True
             else:
                 reject = 'List elements must be all integers or all strings'
@@ -79,7 +79,7 @@ class Key():
         elif isinstance(key, slice):
             tp = 'slice'
             slc = key.start, key.stop, key.step
-            if all([isinstance(z, (*self.INT_TYPES, type(None))) for z in slc]):
+            if all(isinstance(z, (*self.INT_TYPES, type(None))) for z in slc):
                 slc = [int(z) if z is not None else None for z in slc]
             else:
                 reject = 'Slice elments must be all None or integers'
@@ -223,7 +223,7 @@ class Key():
             from the sequence.
         :raises TypeError: Key type not applicable.
         """
-        if self.str and all([isinstance(z, str) for z in seq]):
+        if self.str and all(isinstance(z, str) for z in seq):
             return [z for z in seq if z in self]
         if self.type == 'int':
             return seq[self.value]

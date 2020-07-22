@@ -264,8 +264,8 @@ class FilegroupScan():
 
     def is_to_open(self) -> bool:
         """Return if the current file has to be opened."""
-        to_open = (any([cs.is_to_open() for cs in self.cs.values()])
-                   or any([s.kind == 'gen' for s in self.scanners]))
+        to_open = (any(cs.is_to_open() for cs in self.cs.values())
+                   or any(s.kind == 'gen' for s in self.scanners))
         return to_open
 
     def scan_general_attributes(self, file: File):
@@ -453,7 +453,7 @@ def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
         root_fg = ''
     root_fg = os.path.join(root, root_fg)
 
-    if all([css.coord.name != 'var' for css in coords_fg]):
+    if all(css.coord.name != 'var' for css in coords_fg):
         coords_fg.insert(0, CoordScanSpec(dims['var'], variables_shared, 'var'))
     fg = fg_type(root_fg, None, coords_fg, vi, name, **kwargs)
 

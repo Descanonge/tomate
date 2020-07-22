@@ -120,7 +120,7 @@ def sort_sections(app, what, name, obj, options, lines):
             argname = m.group(1)
             parameters[argname] = []
             i = add(parameters[argname], i)
-        elif any([lines[i].startswith(k) for k in return_keys]):
+        elif any(lines[i].startswith(k) for k in return_keys):
             i = add(returns, i)
         elif lines[i].startswith(':attr'):
             attr = []
@@ -132,7 +132,7 @@ def sort_sections(app, what, name, obj, options, lines):
             i = add(types, i)
         elif lines[i].startswith(':raises '):
             i = add(raises, i)
-        elif any([lines[i].startswith(k) for k in section_keys]):
+        elif any(lines[i].startswith(k) for k in section_keys):
             sections.append(current_sec)
             current_sec = [lines[i]]
             i += 1

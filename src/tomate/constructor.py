@@ -65,7 +65,7 @@ class Constructor():
     def __init__(self, root: str, coords: List[Coord]):
         self.root = root
 
-        if all([c.name != 'var' for c in coords]):
+        if all(c.name != 'var' for c in coords):
             coords.insert(0, Variables([]))
         self.dims = {c.name: c for c in coords}
 

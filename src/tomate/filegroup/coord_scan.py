@@ -85,7 +85,7 @@ class CoordScan(Coord):
         s.append("Kind: {}".format(["In", "Shared"][self.shared]))
 
         if len(self.in_idx) > 0:
-            if all([c == self.in_idx[0] for c in self.in_idx]):
+            if all(c == self.in_idx[0] for c in self.in_idx):
                 s.append("In-file index is {}".format(str(self.in_idx[0])))
 
         if self.scanners:
@@ -113,7 +113,7 @@ class CoordScan(Coord):
 
         Make sure in_idx has same dimensions.
         """
-        if not all([len(v) == len(values) for v in elts.values()]):
+        if not all(len(v) == len(values) for v in elts.values()):
             raise IndexError("Elements for dimension '{}'"
                              " have different length (values: {}, {})"
                              .format(self.name, len(values),
@@ -191,8 +191,7 @@ class CoordScan(Coord):
 
     def is_to_scan(self) -> bool:
         """If the coord needs any kind of scanning."""
-        out = any([s.kind in ['in', 'filename'] for s in self.scanners])
-        return out
+        return len(self.scanners) > 0
 
     def is_to_check(self) -> bool:
         """If the coord values need to be checked."""
@@ -308,7 +307,7 @@ class CoordScan(Coord):
                 elts[name] = [self.fixed_elts[name]
                               for _ in range(len(elts['values']))]
 
-        if not all([len(values) for values in elts.values()]):
+        if not all(len(values) for values in elts.values()):
             raise IndexError("Scan results do not all have the same length. "
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
@@ -373,7 +372,7 @@ class CoordScanIn(CoordScan):
     def is_to_open(self) -> bool:
         """If a file is to be open for scanning."""
         out = (not self.scanned
-               and (any([s.kind == 'in' for s in self.scanners])
+               and (any(s.kind == 'in' for s in self.scanners)
                     or self.scanners_attrs))
         return out
 
@@ -456,7 +455,7 @@ class CoordScanShared(CoordScan):
 
     def is_to_open(self) -> bool:
         """If the file must be opened for scanning. """
-        out = (any([s.kind == 'in' for s in self.scanners])
+        out = (any(s.kind == 'in' for s in self.scanners)
                or self.scanners_attrs)
         return out
 

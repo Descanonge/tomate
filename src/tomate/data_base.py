@@ -241,10 +241,10 @@ class DataBase():
                 for var in keyring['var']]
 
         do_stack = (stack and len(variables) > 1
-                    and all([set(d) == set(dims[0]) for d in dims[1:]])
+                    and all(set(d) == set(dims[0]) for d in dims[1:])
                     and (stack == 'force'
-                         or all([v.datatype == variables[0].datatype
-                                 for v in variables[1:]])))
+                         or all(v.datatype == variables[0].datatype
+                                for v in variables[1:])))
 
         if stack and not do_stack:
             raise RuntimeError("Cannot stack variables")

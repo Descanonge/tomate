@@ -131,8 +131,8 @@ class DataDisk(DataBase):
         for var in self.loaded.var:
             self.variables[var].allocate()
 
-        loaded = any([fg.load_from_available(keyring)
-                      for fg in self.filegroups])
+        loaded = any(fg.load_from_available(keyring)
+                     for fg in self.filegroups)
         if not loaded:
             log.warning("Nothing loaded.")
         else:
@@ -278,7 +278,7 @@ class DataDisk(DataBase):
         Filegroups should be functionnal for this.
         """
         for fg in self.filegroups:
-            if any([s.kind == 'var' for s in fg.scanners]):
+            if any(s.kind == 'var' for s in fg.scanners):
                 fg.scan_variables_attributes()
 
     def scan_files(self):
@@ -438,7 +438,7 @@ class DataDisk(DataBase):
                                    " but has not scanning function set.")
                 for elt in cs.elts:
                     if (elt not in cs.manual
-                            and not any([elt in s.returns for s in cs.scanners])
+                            and not any(elt in s.returns for s in cs.scanners)
                             and elt not in cs.fixed_elts):
                         raise KeyError("Element '{}' of coordinate '{}' in"
                                        " filegroup '{}' has no scanning function"
