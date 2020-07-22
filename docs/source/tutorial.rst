@@ -217,7 +217,7 @@ and variables specific attributes that will be placed in the VI as attributes::
 
 Conversely, we can also manually add information to the VI::
 
-    cstr.vi.set_attrs
+    cstr.vi.set_attributes
     cstr.vi.set_infos
 
 

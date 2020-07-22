@@ -252,7 +252,7 @@ class DataPlot(DataBase):
             var = kwargs.pop('var')
             if var is not None:
                 po = db.imshow(ax, var, **kwargs)
-                ax.set_title(db.vi.get_attr_safe('fullname', var, var))
+                ax.set_title(db.vi.get_attribute_default('fullname', var, var))
                 return po
             return None
 

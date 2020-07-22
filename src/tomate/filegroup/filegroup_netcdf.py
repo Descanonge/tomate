@@ -192,7 +192,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 attrs = self.vi[name]
                 for attr in attrs:
                     if not attr.startswith('_'):
-                        file[ncname].setncattr(attr, self.vi.get_attr(attr, name))
+                        file[ncname].setncattr(attr, self.vi.get_attribute(attr, name))
 
     def add_variables_to_file(self, file: 'nc.Dataset', cmd: Command,
                               **var_kw: Dict[str, Dict]):
@@ -220,14 +220,14 @@ class FilegroupNetCDF(FilegroupLoad):
             if ncname not in file.variables:
                 datatype = kwargs.pop('datatype', None)
                 if datatype is None:
-                    datatype = self.vi.get_attr_safe('datatype', name, None)
+                    datatype = self.vi.get_attribute_default('datatype', name, None)
                     if datatype is None:
                         dtype = self.db.data.dtype
                         datatype = '{}{}'.format(dtype.kind, dtype.itemsize)
 
                 try:
                     kwargs.setdefault('fill_value',
-                                      self.vi.get_attr(name, '_FillValue'))
+                                      self.vi.get_attribute(name, '_FillValue'))
                 except KeyError:
                     kwargs.setdefault('fill_value',
                                       nc.default_fillvals.get(datatype, None))

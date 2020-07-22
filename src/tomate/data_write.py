@@ -202,7 +202,7 @@ def read_vi(j_vi):
     attrs = j_vi['attrs']
     vi = VariablesInfo(None, **infos)
     for attr, values in attrs.items():
-        vi.set_attr_variables(attr, **values)
+        vi.set_attribute_variables(attr, **values)
     return vi
 
 

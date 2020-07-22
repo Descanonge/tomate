@@ -12,20 +12,21 @@ A vi holds general information about the data, but also attributes specific to a
 variable.
 For example, we can set and recover a 'version' information::
 
-  vi.set_infos('version', '2.0')
+  vi.set_infos(version='2.0')
   print(vi.version)
   print(vi.get_info('version'))
 
 or a variable specific information, for instance a `fullname` attribute::
 
-  vi.set_attrs('U', fullname='East. vel.')
+  vi.set_attributes('U', fullname='East. vel.')
   vi.fullname['U'] = 'East. vel.'
   vi['U'].fullname = 'East. vel.'
 
 As you can see, one can access the information in multiple ways.
 The more straightforward is using dedicated functions such as
-:func:`VariablesInfo.set_attrs`, :func:`VariablesInfo.set_infos`,
-:func:`VariablesInfo.get_attr`, :func:`VariablesInfo.get_attr_safe`,
+:func:`VariablesInfo.set_attribute`, :func:`VariablesInfo.set_attributes`,
+:func:`VariablesInfo.set_info`, :func:`VariablesInfo.set_infos`,
+:func:`VariablesInfo.get_attribute`, :func:`VariablesInfo.get_attribute_default`,
 and :func:`VariablesInfo.get_info`.
 
 The second is by attribute or info, by using class attributes, for instance::

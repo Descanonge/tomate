@@ -31,7 +31,7 @@ class Attribute(dict):
         super().__init__(**kwargs)
 
     def __setitem__(self, k: str, v: Any):
-        self._vi.set_attrs(k, **{self._name: v})
+        self._vi.set_attribute(k, self._name, v)
         super().__setitem__(k, v)
 
 
@@ -57,11 +57,11 @@ class VariableAttributes(dict):
         return super().__getattribute__(name)
 
     def __setattr__(self, name: str, value: Any):
-        self._vi.set_attrs(self._name, **{name: value})
+        self._vi.set_attribute(self._name, name, value)
         self[name] = value
 
     def __setitem__(self, k: str, v: Any):
-        self._vi.set_attrs(self._name, **{k: v})
+        self._vi.set_attribute(self._name, k, v)
         super().__setitem__(k, v)
 
 
@@ -69,16 +69,15 @@ class VariablesInfo():
     """Gives various info about variables.
 
     General informations (infos) and variables
-    specific information (attributes, abbreviated attrs)
+    specific information (attributes)
     are accessible as attributes.
 
     :param attributes: Variable specific information.
         {'variable name': {'fullname': 'variable fullname', ...}, ...}
     :param infos: Any additional information to be stored as attributes.
 
-    :attr variables: Set[str]: Variables names.
-    :attr _attrs: Dict[str, Dict[str, Any]]: Variables specific
-        attributes. Stored by attribute name then variable name.
+    :attr _attributes: Dict[str, Dict[str, Any]]: Variables specific
+        attributes. Stored by variable name then attribute name.
     :attr _infos: Dict[str, Any]: General attributes.
     """
 
@@ -87,23 +86,24 @@ class VariablesInfo():
         if attributes is None:
             attributes = {}
 
-        self.variables = set()
-        self._attrs = {}
+        self._attributes = {}
         self._infos = {}
 
         for var, attrs in attributes.items():
-            self.set_attrs(var, **attrs)
+            self.set_attributes_variable(var, **attrs)
         self.set_infos(**infos)
 
     @property
-    def n(self) -> int:
-        """Number of variables in the VI."""
-        return len(self.variables)
+    def variables(self) -> List[str]:
+        """List of variables names."""
+        return list(self._attributes.keys())
 
     @property
-    def attrs(self) -> List[str]:
+    def attributes(self) -> List[str]:
         """List of attributes names."""
-        return list(self._attrs.keys())
+        out = {attr for var in self._attributes.values()
+               for attr in var}
+        return list(out)
 
     @property
     def infos(self) -> List[str]:
@@ -113,23 +113,32 @@ class VariablesInfo():
     def __repr__(self):
         s = []
         s.append("Variables: {}".format(', '.join(self.variables)))
-        s.append("Attributes: {}".format(', '.join(self.attrs)))
+        s.append("Attributes: {}".format(', '.join(self.attributes)))
         s.append("Infos: {}".format(', '.join(self.infos)))
         return '\n'.join(s)
 
     def __getattribute__(self, item: str):
         """Render attributes and infos accessible as attributes."""
-        if item in super().__getattribute__('_attrs'):
-            d = super().__getattribute__('_attrs')[item]
+        get = super().__getattribute__
+
+        if item in get('__dict__'):
+            return get('__dict__')[item]
+
+        if item in super().__getattribute__('attributes'):
+            d = {var: values[item]
+                 for var, values in get('_attributes').items()
+                 if item in values}
             return Attribute(item, self, d)
-        if item in super().__getattribute__('_infos'):
-            return super().__getattribute__('_infos')[item]
-        return super().__getattribute__(item)
+
+        if item in get('_infos'):
+            return get('_infos')[item]
+
+        return get(item)
 
     def __iter__(self) -> Iterator[str]:
         """Enumerate over attributes attributes / variables pairs."""
-        return iter([(var, attr) for attr, values in self._attrs.items()
-                     for var in values])
+        return iter([(var, attr) for var, values in self._attributes.items()
+                     for attr in values])
 
     def __getitem__(self, item: str) -> VariableAttributes:
         """Return attributes for a variable.
@@ -141,36 +150,38 @@ class VariablesInfo():
 
         """
         if not isinstance(item, str):
-            TypeError("Argument must be string.")
-        d = {attr: values[item] for attr, values in self._attrs.items()
-             if item in values}
+            TypeError("Argument must be string")
+        if item not in self.variables:
+            IndexError(f"'{item}' not in variables")
+        d = self._attributes[item]
         return VariableAttributes(item, self, d)
 
-    def has(self, attr: str, var: str) -> bool:
-        out = (attr in self._attrs
-               and var in self._attrs[attr])
+    def has(self, var: str, attr: str) -> bool:
+        out = (var in self._attributes
+               and attr in self._attributes[var])
         return out
 
-    def get_attr(self, attr: str, var: str) -> Any:
+    def get_attribute(self, var: str, attr: str) -> Any:
         """Get attribute.
 
         :raises KeyError: Variable / attribute combination does not exists.
         """
         try:
-            out = self._attrs[attr][var]
+            out = self._attributes[var][attr]
         except KeyError:
             raise KeyError("'{}' attribute for variable '{}'"
                            " combination does not exists.".format(attr, var))
         return out
 
-    def get_attr_safe(self, attr: str, var: str, default: Any = None) -> Any:
+    def get_attribute_default(self, var: str, attr: str,
+                              default: Any = None) -> Any:
         """Get attribute.
 
         If attribute is not defined for this variable,
         return default.
         """
         try:
-            value = self.get_attr(attr, var)
+            value = self.get_attribute(var, attr)
         except KeyError:
             value = default
         return value
@@ -179,76 +190,69 @@ class VariablesInfo():
         """Get info."""
         return self._infos[info]
 
-    def set_attrs(self, var: str, **attrs: Any):
-        """Set attributes for a variable.
+    def set_attribute(self, var: str, name: str, value: Any):
+        """Set attribute for a variable."""
+        if (name in self.__class__.__dict__.keys()
+                or name in self.__dict__.keys()):
+            log.warning("Ignoring attribute '%s' (name is reserved)", name)
+        else:
+            if var not in self._attributes:
+                self._attributes[var] = {}
+            self._attributes[var][name] = value
 
-        :param var: Variable name.
-        :param attrs: Attributes values.
-        """
-        self.variables.add(var)
-        for attr, value in attrs.items():
-            if (attr in self.__class__.__dict__.keys()
-                    or attr in self.__dict__.keys()):
-                log.warning("Ignoring attribute '%s' (name is reserved)", attr)
-            else:
-                if attr not in self._attrs:
-                    self._attrs[attr] = {}
-                self._attrs[attr][var] = value
+    def set_attributes(self, var: str, **attributes: Any):
+        """Set attributes for a variable. """
+        for attr, value in attributes.items():
+            self.set_attribute(var, attr, value)
 
-    def set_attrs_default(self, var: str, **attrs: Any):
+    def set_attributes_default(self, var: str, **attributes: Any):
         """Set variable attributes if they are not already present."""
-        for name, value in attrs.items():
-            if not self.has(name, var):
-                self.set_attrs(var, **{name: value})
+        for name, value in attributes.items():
+            if not self.has(var, name):
+                self.set_attribute(var, name, value)
 
-    def set_attr_variables(self, attr: str, **values: Dict[str, Any]):
+    def set_attribute_variables(self, attribute: str, **values: Dict[str, Any]):
         """Set attribute for multiple variables.
 
-        :param attr: Attribute name.
+        :param attribute: Attribute name.
         :param values: Attributes values for multiple variables.
         """
         for var, value in values.items():
-            self.set_attrs(var, **{attr: value})
+            self.set_attribute(var, attribute, value)
+
+    def set_info(self, name, value):
+        """Set info."""
+        if name in self.__class__.__dict__.keys():
+            log.warning("'%s' attribute is reserved.", name)
+        else:
+            self._infos[name] = value
 
     def set_infos(self, **infos: Any):
         """Add infos."""
         for name, value in infos.items():
-            if name in self.__class__.__dict__.keys():
-                log.warning("'%s' attribute is reserved.", name)
-            else:
-                self._infos[name] = value
+            self.set_info(name, value)
 
     def set_infos_default(self, **infos: Any):
         """Set info if they are not already present."""
         for name, value in infos.items():
             if name not in self.infos:
-                self.set_infos(**{name: value})
+                self.set_info(name, value)
 
     def remove_variables(self, variables: Union[str, List[str]]):
-        """Remove variables from vi.
-
-        :param variables: Variables to remove.
-        """
+        """Remove variables from VI. """
         if not isinstance(variables, list):
             variables = [variables]
-
-        for attr in self.attrs:
-            for var in variables:
-                self._attrs[attr].pop(var)
         for var in variables:
-            self.var.remove(var)
+            self._attributes.pop(var)
 
     def remove_attributes(self, attributes: Union[str, List[str]]):
-        """Remove attribute.
-
-        :param attributes: Attributes to remove.
-        """
-
+        """Remove attribute. """
         if not isinstance(attributes, list):
             attributes = [attributes]
 
-        for attr in attributes:
-            self._attrs.pop(attr)
+        for var in self.variables:
+            for attr in attributes:
+                self._attributes[var].pop[attr]
 
     def copy(self) -> "VariablesInfo":
         """Return copy of self."""
@@ -262,7 +266,7 @@ class VariablesInfo():
                     log.warning("Could not copy '%s' attribute (type: %s)",
                                 attr, type(value))
                     value_copy = value
-                vi.set_attrs(var, **{attr: value_copy})
+                vi.set_attr(var, attr, value_copy)
 
         for info, value in self._infos.items():
             try:
@@ -271,6 +275,6 @@ class VariablesInfo():
                 log.warning("Could not copy '%s' infos (type: %s)",
                             info, type(value))
                 value_copy = value
-            vi.set_infos(**{info: value_copy})
+            vi.set_info(info, value_copy)
 
         return vi

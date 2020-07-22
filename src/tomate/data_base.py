@@ -643,7 +643,7 @@ class DataBase():
                         variable)
         else:
             if var_class is None:
-                var_class = self.vi.get_attr_safe('class', variable, Variable)
+                var_class = self.vi.get_attribute_default('class', variable, Variable)
             self.variables[variable] = var_class(variable, coords, self)
 
         if variable not in self.avail:
@@ -653,7 +653,7 @@ class DataBase():
             self.variables[variable].set_data(data, keyring=keyring)
 
         if datatype is not None:
-            datatype = self.vi.get_attr_safe('datatype', variable, None)
+            datatype = self.vi.get_attribute_default('datatype', variable, None)
         if datatype is not None:
             self.variables[variable].datatype = datatype
 

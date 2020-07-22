@@ -73,7 +73,7 @@ class Variable():
         return self.data[key]
 
     @property
-    def attrs(self) -> VariableAttributes:
+    def attributes(self) -> VariableAttributes:
         """Attributes for this variable.
 
         Returns a 'VariableAttributes' that is tied to
@@ -144,13 +144,13 @@ class Variable():
         keyring.make_total()
         self.acs.place(keyring, self.data, chunk)
 
-    def get_attr(self, key: str, default: Any = None):
+    def get_attribute(self, key: str, default: Any = None):
         """Get variable specific attribute from VI."""
-        return self.attrs.get(key, default)
+        return self.attributes.get(key, default)
 
     def set_attr(self, name: str, value: Any):
         """Set variable specific attribute to VI."""
-        self.attrs[name] = value
+        self.attributes[name] = value
 
     def is_loaded(self) -> bool:
         """If data is loaded."""

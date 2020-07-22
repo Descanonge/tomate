@@ -371,7 +371,7 @@ class FilegroupLoad(FilegroupScan):
                                                 attrs.items()):
                 log.debug("Found attributes (%s) for '%s' (%s infile)",
                           values.keys(), name, name_inf)
-                fg.vi.set_attrs_default(name, **values)
+                fg.vi.set_attributes_default(name, **values)
 
         keyring = Keyring(**{dim: 0 for dim in self.cs})
         keyring['var'] = list(range(self.cs['var'].size))

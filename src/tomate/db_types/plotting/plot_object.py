@@ -205,8 +205,8 @@ class PlotObjectABC():
         if name in self.scope.coords:
             limits = self.scope[name].get_limits()
         else:
-            vmin = self.db.vi.get_attr_safe(name, 'vmin')
-            vmax = self.db.vi.get_attr_safe(name, 'vmax')
+            vmin = self.db.vi.get_attribute_default(name, 'vmin')
+            vmax = self.db.vi.get_attribute_default(name, 'vmax')
             limits = vmin, vmax
         return limits
 
@@ -248,12 +248,12 @@ class PlotObjectABC():
                     label += ' [{}]'.format(c_units)
         else:
             attr = fullname if isinstance(fullname, str) else 'fullname'
-            label = self.db.vi.get_attr_safe(attr, name)
+            label = self.db.vi.get_attribute_default(attr, name)
             if label is None or not fullname:
                 label = name
             if units:
                 attr = units if isinstance(units, str) else 'units'
-                v_units = self.db.vi.get_attr_safe('units', name)
+                v_units = self.db.vi.get_attribute_default('units', name)
                 if v_units:
                     label += ' [{}]'.format(v_units)
 
