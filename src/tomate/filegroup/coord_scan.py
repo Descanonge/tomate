@@ -283,7 +283,7 @@ class CoordScan(Coord):
             attrs = s.scan(self, file)
             log.debug("Found coordinates attributes %s", list(attrs.keys()))
             for name, value in attrs.items():
-                self.set_attr(name, value, self.filegroup.vi)
+                self.set_attr(name, value)
 
     def scan_elements(self, file: File):
         elts = {e: [] for e in self.elts}
