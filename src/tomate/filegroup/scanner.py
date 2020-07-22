@@ -262,14 +262,16 @@ class PostLoadingFunc():
         self(database, **self.kwargs)
 
 
-def make_scanner(kind: str, elts: List[str]):
+def make_scanner(kind: str, elts: List[str]) -> ScannerCS:
     """Turn a function into a CoordScan Scanner.
 
     :param kind: Scanner kind.
     :param elts: Elements returned by function.
     """
     def decorator(func):
-        return ScannerCS(kind, func, elts)
+        scanner = ScannerCS(kind, func, elts)
+        scanner.__doc__ = func.__doc__
+        return scanner
     return decorator
 
 
