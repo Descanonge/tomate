@@ -24,7 +24,6 @@ __all__ = [
     'get_date_from_matches',
     'get_value_from_matches',
     'get_string_from_match',
-    '_find_month_number'
 ]
 
 
@@ -108,7 +107,7 @@ def get_date_from_matches(cs: CoordScan,
     return cftime.date2num(cftime.datetime(**date), cs.units)
 
 
-@make_scanner('filename', [])
+@make_scanner('filename', ['values'])
 def get_value_from_matches(cs: CoordScan,
                            values: Optional[List[float]]) -> Tuple[Optional[int], None]:
     """Retrieve value from matches."""
@@ -125,7 +124,7 @@ def get_value_from_matches(cs: CoordScan,
     return None
 
 
-@make_scanner('filename', [])
+@make_scanner('filename', ['values'])
 def get_string_from_match(cs: CoordScan,
                           values: Optional[List[float]]) -> Tuple[Optional[str]]:
     """Retrieve string from match.

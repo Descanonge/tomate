@@ -38,7 +38,7 @@ def scan_in_file(cs: CoordScan, file: nc.Dataset,
 @make_scanner('in', ['values', 'in_idx', 'dimensions'])
 def scan_variables(cs: CoordScan, file: nc.Dataset,
                    values: List[float]) -> Tuple[List[str]]:
-    """Scan netCDF file for variables names."""
+    """Scan netCDF file for variables."""
     variables = []
     dimensions = []
     for name, var in file.variables.items():

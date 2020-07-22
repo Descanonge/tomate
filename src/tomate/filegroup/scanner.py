@@ -34,7 +34,7 @@ class Scanner:
         It is still accessible with self.call()
     :attr kwargs: Dict[str, Any]: Static keyword
         arguments passed to the function when scanning.
-    :attr: to_scan: bool: If the function has to be
+    :attr to_scan: bool: If the function has to be
         called during scanning.
 
     Examples
@@ -109,9 +109,9 @@ class ScannerCS(Scanner):
         It is still accessible with self.call()
     :attr kwargs: Dict[str, Any]: Static keyword
         arguments passed to the function when scanning.
-    :attr: to_scan: bool: If the function has to be
+    :attr to_scan: bool: If the function has to be
         called during scanning.
-    :attr: restrain: Optional[List[str]]: If not None,
+    :attr restrain: Optional[List[str]]: If not None,
         only these elements will be scanned.
 
     Examples
