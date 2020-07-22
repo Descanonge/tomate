@@ -218,6 +218,12 @@ class VariablesInfo():
             else:
                 self._infos[name] = value
 
+    def set_infos_default(self, **infos: Any):
+        """Set info if they are not already present."""
+        for name, value in infos.items():
+            if name not in self.infos:
+                self.set_infos(**{name: value})
+
     def remove_variables(self, variables: Union[str, List[str]]):
         """Remove variables from vi.
 
