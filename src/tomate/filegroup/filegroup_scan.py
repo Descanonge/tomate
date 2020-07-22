@@ -275,11 +275,7 @@ class FilegroupScan():
                 log.debug('Scanning file for general attributes.')
                 infos = s.scan(self, file)
                 log.debug("Found infos %s", list(infos.keys()))
-                already_present = [info for info in infos
-                                   if infos in self.vi.infos]
-                for info in already_present:
-                    infos.pop(info)
-                self.vi.set_infos(**infos)
+                self.vi.set_infos_default(**infos)
 
     def scan_file(self, filename: str):
         """Scan a single file.
