@@ -195,6 +195,12 @@ class VariablesInfo():
                     self._attrs[attr] = {}
                 self._attrs[attr][var] = value
 
+    def set_attrs_default(self, var: str, **attrs: Any):
+        """Set attribute for a variable if it does not already exist."""
+        for name, value in attrs.items():
+            if not self.has(var, name):
+                self.set_attrs(var, **{name: value})
+
     def set_attr_variables(self, attr: str, **values: Dict[str, Any]):
         """Set attribute for multiple variables.
 
