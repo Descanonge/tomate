@@ -89,6 +89,9 @@ def sort_sections(app, what, name, obj, options, lines):
     import re
     import inspect
 
+    if isinstance(obj, tomate.filegroup.scanner.ScannerCS):
+        obj = obj.func
+
     def add(linelist, i):
         linelist.append(lines[i])
         i += 1
@@ -167,6 +170,7 @@ def sort_sections(app, what, name, obj, options, lines):
     for sec in sections[1:]:
         lines += [''] + sec
 
+
 def get_attr_lines(lines):
     text = ''.join(lines).strip()
     elts = text.split(':')
@@ -180,6 +184,7 @@ def get_attr_lines(lines):
               '    ' + desc]
     return name, lines_
 
+
 def move_opt(app, what, name, obj, options, lines):
     """Add optional to type if specified.
 
@@ -187,12 +192,10 @@ def move_opt(app, what, name, obj, options, lines):
     """
     import re
     rgx = r':param ([^:]*):\s?(\[opt\]?)'
-    change = False
 
     for i, line in enumerate(lines):
         m = re.search(rgx, line)
         if m and m.group(2) is not None:
-            change = True
             lines[i] = line[:m.start(2)] + line[m.end(2)+1:]
             argname = m.group(1)
             for j, line_ in enumerate(lines):
@@ -200,9 +203,16 @@ def move_opt(app, what, name, obj, options, lines):
                     lines[j] = line_ + ", optional"
                     break
 
+
+def fix_scanner_docstring(app, what, name, obj, options, lines):
+    if isinstance(obj, tomate.filegroup.scanner.ScannerCS):
+        if not any(line.startswith(':returns:') for line in lines):
+            lines += [":returns: {}".format(', '.join(obj.elts)), ""]
+
+
 def debug(app, what, name, obj, options, lines):
     # if 'Coord' in name:
-    if name.endswith('DataBase'):
+    if name.endswith('nc.scan_in_file'):
         print(name)
         print('\n'.join(lines))
         print()
@@ -210,6 +220,7 @@ def debug(app, what, name, obj, options, lines):
 
 
 def setup(app):
+    app.connect('autodoc-process-docstring', fix_scanner_docstring)
     app.connect('autodoc-process-docstring', move_opt)
     app.connect('autodoc-process-docstring', sort_sections)
     # app.connect('autodoc-process-docstring', debug)
