@@ -1,6 +1,6 @@
 
-doc/_build
-test/fixtures/
+docs/_build
+tests/fixtures/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
