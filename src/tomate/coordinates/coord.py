@@ -187,15 +187,21 @@ class Coord():
         [30 31 ... 42 43]
         """
         if vmin is None:
-            start = 0
-        else:
-            start = self.get_index(vmin, ["below", "above"][exclude])
+            vmin = self.get_limits()[0]
         if vmax is None:
-            stop = self.size
-        else:
-            stop = self.get_index(vmax, ["above", "below"][exclude])
+            vmax = self.get_limits()[1]
+
+        start = self.get_index(vmin, ["below", "above"][exclude])
+        stop = self.get_index(vmax, ["above", "below"][exclude])
 
         step = [1, -1][self.is_descending()]
+        if exclude:
+            s = self.get_index_exact(vmin)
+            if s is not None and s == start:
+                start += step
+            s = self.get_index_exact(vmax)
+            if s is not None and s == stop:
+                stop -= step
         stop += step
         if stop < 0:
             stop = None
