@@ -189,7 +189,7 @@ class Key():
         a serie of integers of fixed step.
         """
         if self.type == 'list' and not self.str:
-            key = list2slice_simple(self.value)
+            key = list2slice(self.value)
             if isinstance(key, slice):
                 self.type = 'slice'
             self.value = key
@@ -267,7 +267,7 @@ class Key():
         elif self.type == 'list' or other.type == 'list':
             key = self.__class__(out)
         else:
-            key = self.__class__(list2slice_simple(out))
+            key = self.__class__(list2slice(out))
             key.size = len(out)
 
         return key
@@ -289,7 +289,7 @@ class Key():
         out = a + b
 
         if self.type == 'slice' or other.type == 'slice':
-            out = list2slice_simple(out)
+            out = list2slice(out)
 
         return self.__class__(out)
 
@@ -406,11 +406,11 @@ def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
     a serie of integers of fixed step.
     """
     if isinstance(key, (list, tuple, np.ndarray)):
-        key = list2slice_simple(list(key))
+        key = list2slice(list(key))
     return key
 
 
-def list2slice_simple(L: List[int]) -> Union[slice, List[int]]:
+def list2slice(L: List[int]) -> Union[slice, List[int]]:
     """Transform a list into a slice when possible.
 
     Step can be any integer.
@@ -435,63 +435,6 @@ def list2slice_simple(L: List[int]) -> Union[slice, List[int]]:
         L = slice(start, stop, step)
 
     return L
-
-
-def list2slice_complex(L: List[int]) -> Union[slice, List[int]]:
-    """Transform a list of integer into a list of slices.
-
-    Find all series of continuous integer with a fixed
-    step (that can be any integer) of length greater than 3.
-
-    Examples
-    --------
-    [0, 1, 2, 3, 7, 8, 9, 10, 16, 14, 12, 10, 3, 10, 11, 12]
-    will yield:
-    [slice(0, 4, 1), slice(8, 11, 1), slice(16, 9, -2), 3, slice(10, 13, 1)]
-    """
-    if len(L) < 3:
-        return L
-
-    diff = list(np.diff(L))
-    diff2 = np.diff(diff)
-
-    # Index of separation between two linear parts
-    sep = np.where(diff2 != 0)[0]
-    # Only one of the index (this is a second derivative of a step function)
-    sep_start = sep[np.where(np.diff(sep) == 1)[0]] + 2
-
-    idx = list(sep_start)
-    if diff[0] != diff[1]:
-        idx.insert(0, 1)
-    if diff[-1] != diff[-2]:
-        idx.append(len(L)-1)
-        diff.append(diff[-1]+1)
-
-    idx.insert(0, 0)
-    idx.append(len(L))
-
-    slices = []
-    for i in range(len(idx)-1):
-        i1 = idx[i]
-        i2 = idx[i+1]
-        start = L[i1]
-
-        if i2 - i1 == 1:
-            slices.append([start])
-            continue
-
-        step = diff[i1]
-        stop = L[i2-1] + 1
-
-        if step < 0:
-            stop -= 2
-            if stop == -1:
-                stop = None
-
-        slc = slice(start, stop, step)
-        slices.append(slc)
-
-    return slices
 
 
 def guess_slice_size(slc: slice) -> Optional[int]:

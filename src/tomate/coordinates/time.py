@@ -22,7 +22,7 @@ else:
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import KeyLike
-from tomate.keys.key import list2slice_simple
+from tomate.keys.key import list2slice
 
 
 log = logging.getLogger(__name__)
@@ -202,7 +202,7 @@ class Time(Coord):
         slc = slice(*indices)
 
         if self.is_descending():
-            slc = list2slice_simple(list(range(*slc.indices(self.size)))[::-1])
+            slc = list2slice(list(range(*slc.indices(self.size)))[::-1])
 
         return slc
 

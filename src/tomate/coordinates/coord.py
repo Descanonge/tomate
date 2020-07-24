@@ -12,7 +12,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from tomate.keys.key import list2slice_simple
+from tomate.keys.key import list2slice
 from tomate.custom_types import KeyLike
 from tomate.variables_info import VariablesInfo
 
@@ -209,7 +209,7 @@ class Coord():
         slc = slice(start, stop, step)
 
         if self.is_descending():
-            slc = list2slice_simple(list(range(*slc.indices(self.size)))[::-1])
+            slc = list2slice(list(range(*slc.indices(self.size)))[::-1])
 
         return slc
 
