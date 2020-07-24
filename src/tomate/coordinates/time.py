@@ -22,7 +22,7 @@ else:
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import KeyLike
-from tomate.keys.key import reverse_slice_order
+from tomate.keys.key import list2slice_simple
 
 
 log = logging.getLogger(__name__)
@@ -201,9 +201,9 @@ class Time(Coord):
 
         slc = slice(*indices)
 
-        # UNTESTED
         if self.is_descending():
-            slc = reverse_slice_order(slc)
+            slc = list2slice_simple(list(range(*slc.indices(self.size)))[::-1])
+
         return slc
 
     @staticmethod

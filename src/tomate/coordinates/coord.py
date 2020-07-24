@@ -12,7 +12,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from tomate.keys.key import reverse_slice_order
+from tomate.keys.key import list2slice_simple
 from tomate.custom_types import KeyLike
 from tomate.variables_info import VariablesInfo
 
@@ -202,14 +202,14 @@ class Coord():
             s = self.get_index_exact(vmax)
             if s is not None and s == stop:
                 stop -= step
+
         stop += step
         if stop < 0:
             stop = None
         slc = slice(start, stop, step)
 
-        # Untested
         if self.is_descending():
-            slc = reverse_slice_order(slc)
+            slc = list2slice_simple(list(range(*slc.indices(self.size)))[::-1])
 
         return slc
 
