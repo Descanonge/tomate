@@ -84,7 +84,7 @@ class Coord():
             desc = np.all(diff < 0)
         else:
             desc = False
-        self._descending = desc
+        self._descending = bool(desc)
         if not np.all(diff > 0) and not self._descending:
             raise ValueError("Data not sorted")
 
