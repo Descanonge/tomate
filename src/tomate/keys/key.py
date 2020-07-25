@@ -419,6 +419,9 @@ def list2slice(L: List[int]) -> Union[slice, List[int]]:
     if len(L) < 2:
         return L
 
+    if np.any(np.sign(L) >= 0) and np.any(np.sign(L) < 0):
+        return L
+
     diff = np.diff(L)
     if len(L) == 2:
         diff2 = np.array([0])
