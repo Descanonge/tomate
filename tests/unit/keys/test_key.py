@@ -35,9 +35,54 @@ def test_list2slice():
     assert f([-1, -3, -5]) == slice(-1, -6, -2)
 
 
-
 def test_guess_size():
-    pass
+    f = guess_slice_size
+
+    # Fail
+    assert f(slice(None)) is None
+    assert f(slice(0, None)) is None
+    assert f(slice(None, -5)) is None
+
+    assert f(slice(None, None, -1)) is None
+    assert f(slice(-2, None, -1)) is None
+    assert f(slice(None, 4, -1)) is None
+
+    # Normal slice
+    assert f(slice(0, 10)) == 10
+    assert f(slice(4, 9)) == 5
+    assert f(slice(None, 5)) == 5
+    assert f(slice(-5, None)) == 5
+
+    assert f(slice(10, None, -1)) == 11
+    assert f(slice(8, 3, -1)) == 5
+    assert f(slice(None, -5, -1)) == 4
+    assert f(slice(5, None, -1)) == 6
+
+    # Edge case
+    assert f(slice(None, 0)) == 0
+    assert f(slice(0, 2)) == 2
+    assert f(slice(0, 1)) == 1
+    assert f(slice(-1, None)) == 1
+    assert f(slice(None, -2, -1)) == 1
+    assert f(slice(None, -1, -1)) == 0
+
+    # Large steps
+    assert f(slice(0, 9, 2)) == 5
+    assert f(slice(0, 8, 2)) == 4
+    assert f(slice(None, 5, 2)) == 3
+    assert f(slice(-5, None, 2)) == 3
+    assert f(slice(1, 10, 3)) == 3
+    assert f(slice(1, 11, 3)) == 4
+    assert f(slice(1, 12, 3)) == 4
+
+    assert f(slice(10, 4, -2)) == 3
+    assert f(slice(9, None, -2)) == 5
+    assert f(slice(8, None, -2)) == 5
+    assert f(slice(None, -5, -2)) == 2
+    assert f(slice(5, None, -2)) == 3
+    assert f(slice(10, 4, -3)) == 2
+    assert f(slice(10, 3, -3)) == 3
+    assert f(slice(10, 2, -3)) == 3
 
 
 def test_guess_tolist():
