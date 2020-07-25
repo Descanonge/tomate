@@ -423,19 +423,19 @@ def list2slice(L: List[int]) -> Union[slice, List[int]]:
         return L
 
     diff = np.diff(L)
-    if len(L) == 2:
-        diff2 = np.array([0])
-    else:
-        diff2 = np.diff(diff)
 
-    if np.all(diff2 == 0):
-        step = diff[0]
+    if len(set(diff)) == 1:
         start = L[0]
-        stop = L[-1] + step
+        stop = L[-1]
+        step = diff[0]
 
-        if stop < 0:
+        shift = 1 if step > 0 else -1
+        stop += shift
+        if ((step > 0 and stop == 0)
+                or (step < 0 and stop == -1)):
             stop = None
-        L = slice(start, stop, step)
+
+        return slice(start, stop, step)
 
     return L
 
