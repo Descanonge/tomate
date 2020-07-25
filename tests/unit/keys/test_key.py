@@ -1,9 +1,42 @@
 
-from tomate.keys.key import Key, list2slice, reverse_slice_order
+from tomate.keys.key import (Key, list2slice, reverse_slice_order,
+                             guess_slice_size)
 
 
 def test_reverse_slice():
-    pass
+    f = reverse_slice_order
+
+    # None slices
+    assert f(slice(None)) == slice(None, None, -1)
+    assert f(slice(None, None, -1)) == slice(None, None, 1)
+    assert f(slice(None, None, 2)) == slice(None, None, -2)
+    assert f(slice(None, None, -3)) == slice(None, None, 3)
+
+    # Start with None
+    assert f(slice(None, 10)) == slice(9, None, -1)
+    assert f(slice(None, 10, 2)) == slice(9, None, -2)
+    assert f(slice(None, -1)) == slice(-2, None, -1)
+
+    assert f(slice(None, 4, -1)) == slice(5, None, 1)
+    assert f(slice(None, 7, -2)) == slice(8, None, 2)
+
+    # End with None
+    assert f(slice(0, None, 1)) == slice(None, None, -1)
+    assert f(slice(0, None, 3)) == slice(None, None, -3)
+
+    assert f(slice(6, None, -1)) == slice(None, 7, 1)
+    assert f(slice(6, None, -3)) == slice(None, 7, 3)
+
+    # Random
+    assert f(slice(3, 5, 1)) == slice(4, 2, -1)
+    assert f(slice(4, 9, 2)) == slice(8, 3, -2)
+    assert f(slice(0, 13, 3)) == slice(12, None, -3)
+    assert f(slice(0, 14, 3)) == slice(13, None, -3)
+
+    assert f(slice(4, 2, -1)) == slice(3, 5, 1)
+    assert f(slice(8, 3, -2)) == slice(4, 9, 2)
+    assert f(slice(12, None, -3)) == slice(None, 13, 3)
+    assert f(slice(13, None, -3)) == slice(None, 14, 3)
 
 
 def test_list2slice():
