@@ -63,6 +63,53 @@ In that case, the in-file index should be `None`.
 This is then handled appropriately by the filegroup loading methods.
 
 
+Setting up scanning coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The user has to indicate for each filegroup the scanning coordinates, and some
+information about them. This is done with a series of
+:class:`CoordScanSpec<filegroup.spec.CoordScanSpec>` objects, accessible from
+the constructor as `Constructor.CoordScanSpec` or `Constructor.CSS`.
+The information to enter to a CSS are the parent coordinate object or name,
+if it is shared (`True` or `'shared'`) or in (`False` or `'in'`), and the name
+with which the dimension can be found in file.
+The last two argument are optional and default to 'in' and the same name as
+the parent coordinate.
+
+Following the same example as above::
+
+    coord_fg = [cstr.CSS('lat', name='latitude'),
+                cstr.CSS('lon', name='longitude'),
+                cstr.CSS('time', 'shared')]
+    cstr.add_filegroup(FilegroupNetCDF, coord_fg)
+
+Note the order in which the scanning coordinates are specified dictates
+the order in which they will be scanned.
+
+
+Variables Coordinates
+^^^^^^^^^^^^^^^^^^^^^
+
+Variables are treated as coordinates when scanning, with some specificities.
+
+First, the user does not need to create a :class:`Variables<coordinates.variables.Variables>`
+object, it is automatically added by the constructor.
+The variable dimension can also be omitted when adding a filegroup to the constructor,
+it will automatically be added, 'in' by default.
+
+The variables values still need to be set, either by scanning them like
+any other coordinate, or setting it manully using
+:func:`constructor.Constructor.set_variables_elements`.
+This function takes as argument :class:`VariablesSpec<filegroup.spec.VariableSpec>`,
+accessible from the constructor as `Constructor.VariableSpec` or `Constructor.VS`.
+
+Example::
+
+    cstr.set_variables_elements(cstr.VS('SST', 'sea_surface_temperature',
+                                        ['time', 'lat', 'lon']))
+
+
+
 Units conversion
 ^^^^^^^^^^^^^^^^
 
@@ -80,45 +127,6 @@ You can set the CoordScan units by scanning attributes, or by accessing it::
   cstr.current_fg.cs['time'].units = '...'
 
 The conversion will happen once all files were scanned.
-
-
-Reversing dimensions and empty dimensions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Sometimes, no information on how the data is aranged can be found in the files.
-One can still manually set values and in-file indices, but can also resort to
-not give any information. Then, the CS will remain empty.
-The values are supposed identical to the data available scope.
-When loading data, the filegroup will simply transmit the asked key as is.
-
-The user can still 'mirror' the key if he knows the dimension is upside-down
-in the file. So each asked index will go through '`i = CS.size - i`'.
-
-Still, the best is for the user to manually set information based on his
-knowledge of the data.
-
-
-Variables Coordinates
-^^^^^^^^^^^^^^^^^^^^^
-
-Variables are treated as coordinates when scanning, with some specificities.
-
-First, the user does not need to create a :class:`Variables<coordinates.variables.Variables>`
-object, it is automatically added by the constructor.
-The variable dimension can also be omitted when adding a filegroup to the constructor,
-it will automatically be added, 'in' by default.
-
-The variables values still need to be set, either by scanning them like
-any other coordinate, or setting it manully using
-:func:`constructor.Constructor.set_variables_elements`.
-This function takes as argument :class:`VariablesSpec<tomate.filegroup.spec.VariableSpec>`,
-accessible from the constructor as `Constructor.VariableSpec` or `Constructor.VS`.
-
-
-Setting up scanning coordinates
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Talk about coords_fg and CoordScanSpec.
 
 
 .. currentmodule:: tomate.constructor

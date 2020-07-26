@@ -31,9 +31,6 @@ specific functionalities for each coordinate::
 Since we do not yet have the coordinates values, we specify `None`.
 We must include a CF-metadata compliant units for the time coordinate.
 
-The order of `coords` is of great importance, as this will dictate in what
-order the data will be stored. Here the ranks of the data numpy array will be
-(variables, lat, lon, time).
 The variables dimension does not need to be created by the user. The constructor
 will take care of it.
 
@@ -59,7 +56,7 @@ Our files are organized as such::
         └── ...
 
 Both group of files have a single file per time-step (an 8 day average).
-The SSH files contain information about that time-step: there is a
+The SSH files contain information about that time-step: there are a
 time dimension and variable from which we can extract the time values for
 that file.
 For the SST on the other hand, the sole information on the time value for each
@@ -69,7 +66,7 @@ do not vary from file to file.
 Note this example is in no way a requirement, the package can accomodate with
 many more ways of organizing data in various subfolders and files.
 
-We start by importing a FilegroupLoad subclass, here all both filegroups are NetCDF,
+We start by importing a FilegroupLoad subclass, here both filegroups are NetCDF,
 so we will use FilegroupNetCDF.
 
 ::
@@ -79,17 +76,19 @@ so we will use FilegroupNetCDF.
 
 We add the first filegroup for the SSH::
 
-    coords_fg = [[lon, 'in', 'longitude'],
-                 [lat, 'in', 'latitude'],
-                 [time, 'shared']]
+    coord_fg = [cstr.CSS('lat', name='latitude'),
+                cstr.CSS('lon', name='longitude'),
+                cstr.CSS('time', 'shared')]
     cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
-The `coords_fg` variable specify how are arranged the coordinates.
-The 'in' flag means the whole coordinate/dimension is found in each file,
-and that it is arranged in the same way for all files.
-The 'shared' flag means the dimension is splitted accross multiple files.
+The `coords_fg` variable specify how are arranged the coordinates, we use
+a :class:`Constructor.CoordScanSpec<constructor.Constructor.CoordScanSpec>`
+object for each scanning coordinate.
 The spatial dimensions in our files are named differently from ours, so we
 specify it. Time is found under the same name so we say nothing.
+The 'shared' flag means the dimension is splitted accross multiple files.
+By default scanning coordinates are 'in', which means the whole
+coordinate/dimension is found in each file.
 We give a name for our filegroup, this will help in debugging.
 We give a subfolder in which the files are found,
 if not precised, the root directory from the constructor will be used.
@@ -97,14 +96,13 @@ if not precised, the root directory from the constructor will be used.
 We must now tell where are the files, and more precisely how are constructed
 their filenames. By filename, we mean the whole string starting after the
 root directory, folders included.
-For that, a pre-regex is used. It is a regular expression with a few
+For that, a 'pre-regex' is used. It is a regular expression with a few
 added features. It will be transformed in a standard regex that will be
 used to find the files.
-I can only recommend to keep the regex simple...
 
 Any regex in the pre-regex will be matched with the first file found, and then
 *considered constant accross all files*. For instance, using ``SST/A_.*\.nc``,
-a valid regex that would match all SST files, won't work the way intended.
+a valid regex would match all SST files, but won't work the way intended.
 The filegroup will consider that all files are in fact equal to the first
 filename that matched ('SST/A\_2007001-2007008.nc' here).
 
@@ -132,26 +130,19 @@ We obtain::
 Don't forget the r to allow for backslashes, and to appropriately
 escape special characters in the regex.
 
-The next step is to tell the filegroup how to scan files for
-additional information. This is done by appointing scanning functions
-to the filegroup. The appointement is coordinate specific.
-First, we must specify how to retrieve the coordinates values,
-and in-file indices by looking at the filename, and/or inside the file.
-This is done by standardized user functions. There are a number of
-pre-existing functions that can be found in
+To load data, the filegroup needs for each of its dimensions:
+the dimensions values, their indices inside the file, and for
+variables, the dimensions along which they vary.
+We can do it by hand, but can also appoint functions that will
+do the work for us during a 'scanning' process, let's do that !
+There are a number of pre-existing functions that can be found in
 :mod:`scan_library<tomate.scan_library>`.
-Here, all coordinates values are found in the netCDF files, we use an existing
-function::
+Here, all coordinates values are found inside the netCDF files::
 
     import tomate.scan_library as scanlib
-    cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
+    cstr.add_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
+    cstr.add_scan_in_file(scanlib.nc.scan_variables, 'var')
 
-We must also tell how the variable are organized in the files::
-
-    cstr.set_variables_infile(SSH='sea surface height')
-
-This will tell the filegroup to look for the variable 'sea surface height' in
-the netCDF file when loading data.
 We now do the same process for the SST files. As their structure is a bit more
 complicated, we can explore some more advanced features of the pre-regex.
 First, we notice there are two varying dates in the filename, the start and end
@@ -162,85 +153,87 @@ This is useful to specify variations that are not associated with
 any coordinate value::
 
     pregex = ('%(prefix)_'
-              '%(time:Y)%(time:doy)_'
-              '%(time:Y:dummy)%(time:doy:dummy)'
+              '%(time:Y)%(time:j)_'
+              '%(time:Y:dummy)%(time:j:dummy)'
               '%(suffix)')
-    replacements = {'prefix': 'SSH',
+    replacements = {'prefix': 'SST',
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, **replacements)
 
-Here we used the `Y` ant `doy` elements, for 'year' and 'day of year'.
+Here we used the `Y` ant `j` elements, for 'year' and 'day of year'.
 Let's pretend the 'day of year' element was not anticipated within the package.
-We need to specify the regex that should be used to replace the matcher in
-the pre-regex. We can modify the Matcher class, but that would be cumbersome.
-Instead, we specify that we are using a custom regex::
+We specify a custom regular expression that should be used to replace the matcher
+in the pre-regex ::
 
-    r'%(time:Y)%(time:doy:custom=\d\d\d:)'
+    r'%(time:Y)%(time:j:custom=\d\d\d:)'
 
-The regex will now expect a `doy` element with three digits. Note that the
+The regex will now expect a `j` element with three digits. Note that the
 custom regex **must end with a colon**. It can still be followed by the
 `dummy` keyword.
 
 We must again tell how the coordinate will be scanned. This time the
-date information will be retrieved from the filename, and we will automatically
-scan variables::
+date information will be retrieved from the filename, and we specify
+the variable by hand::
 
-    cstr.set_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon')
-    cstr.set_scan_in_file(scanlib.nc.scan_variables, 'var')
-    cstr.set_scan_filename(scanlib.get_date_from_matches, 'time', only_value=True)
+    cstr.add_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon')
+    cstr.set_variables_elements('SST', in_idx='sea_surface_temperature',
+                                dims=['lat', 'lon'])
 
-Only the time value will be fetch from the filename, so as we specify nothing for
-the time in-file index it will stay None for all time values.
-A None in-file index tells the filegroup that there is no time dimension for the
-data in file.
-Note that specifying the `only_values` keyword is actually superfluous as
-`get_date_from_matches` return a `(value, None)` tuple.
+    cstr.add_scan_filename(scanlib.get_date_from_matches, 'time')
+    cstr.set_elements_constant('time', in_idx=None)
 
-The values and index of the coordinates is not the only thing we can scan for.
+Only the time value will be fetch from the filename, we need to tell the
+filegroup that all indices for time are None.
+A None in-file index tells the filegroup that there is no time
+dimension in file.
+
+The values and index of the coordinates are not the only thing we can scan for.
 The filegroup can look for coordinate specific attributes. This will only affect
 the scanning coordinate object.
 For instance::
 
-    cstr.set_scan_coords_attributes(scanlib.nc.scan_units, 'time')
+    cstr.add_scan_coords_attributes(scanlib.nc.scan_units, 'time')
 
-will get the time units in file.
+will get the time units in file. This is very important when scanning
+time values inside files.
 For more details on scanning coordinate units, look at :ref:`Units conversion`.
 
 We can also scan for general attributes that will be placed in the VI
 as 'infos'::
 
-    cstr.set_scan_general_attributes(scanlib.nc.scan_infos)
+    cstr.add_scan_general_attributes(scanlib.nc.scan_infos)
 
 and variables specific attributes that will be placed in the VI as attributes::
 
-    cstr.set_scan_variables_attributes(scanlib.nc.scan_variables_attributes)
+    cstr.add_scan_variables_attributes(scanlib.nc.scan_variables_attributes)
 
 Conversely, we can also manually add information to the VI::
 
     cstr.vi.set_attributes
     cstr.vi.set_infos
 
-
 The scanning will not overwrite information already present in the VI.
 
-The last step is to tell what kind of database object we want. If we say
-nothing, the basic :class:`data_base.DataBase` will be used.
-If we want to add on-disk data management (scanning and loading data), we can
-use
-:func:`Constructor.add_disk_features<constructor.Constructor.add_disk_features>`.
-Note this is automatically done if at least one filegroup was added to the
-constructor, or if we keep the 'scan' flag to its default (True) when creating
-the database.
+The last step is to indicate some information on the variables, not in
+the files, but how we want them arranged in the database.
+In this simple, Tomate should be able to deduce those information for
+the SSH (as it is automatically scanned). But for the SST it is
+preferable to input it by hand.
+See :doc:`variable` for details.
+::
 
-We can add more functionalities by specifying additional child classes of
-DataBase. All of those provided by the package are present in the
-:mod:`tomate.db_types`.
-Here let's use :class:`DataMasked<db_types.masked.data_masked.DataMasked>` that add support
-for masked data, and :class:`DataPlot<db_types.plotting.data_plot.DataPlot>` which provides
-convenience plotting functions::
+   cstr.vi.set_attributes('SSH', datatype='f', dimensions=['time', 'lat', 'lon'])
+
+
+Optionally, we can customize our database object by adding functionalities
+by specifying additional child classes of DataBase.
+All of those provided by the package are present in the
+:mod:`tomate.db_types` module.
+Here let's use :class:`DataPlot<db_types.plotting.data_plot.DataPlot>`
+which provides plotting functions::
 
   import tomate.db_types as dt
-  cstr.set_data_types([dt.DataMasked, dt.DataPlot])
+  cstr.set_data_types([dt.DataPlot])
 
 More details on adding functionalities: :ref:`Additional methods`.
 
@@ -268,13 +261,12 @@ Loading data
 ------------
 
 We can now load data !
-For that, we must specify what part of the data we want.
-This is done by specifiying indices for each dimensions.
+For that, we must specify what part of the data we want,
+with indices (integers, lists of integers, or slices),
+or values with '*_by_value' functions.
+Variables can be specified by their index in the available scope,
+or their name.
 If a dimension is omitted, it will be taken entirely.
-Parts of a coordinate must be selected with an integer,
-a list of integer, or a slice.
-The variables dimension is special in that one can
-specify variables names instead of their index.
 
 For instance::
 
@@ -285,7 +277,7 @@ For instance::
     db.load(['SST', 'SSH'], time=0)
 
     # Load a subpart of all variables.
-    db.load(['SSH', 'SST'], lat=slice(0, 500), lon=slice(200, 800))
+    db.load(lat=slice(0, 500), lon=slice(200, 800))
 
     # Load by value instead of index
     slice_lat = db.avail.lat.subset(10., 30.)
