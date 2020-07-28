@@ -307,7 +307,8 @@ class CoordScan(Coord):
             if name in self.fixed_elts:
                 elts.pop(name)
 
-        if not all(len(values) for values in elts.values()):
+        if not all(len(values) == len(elts['values'])
+                   for values in elts.values()):
             raise IndexError("Scan results do not all have the same length. "
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
