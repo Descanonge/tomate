@@ -360,14 +360,14 @@ class FilegroupLoad(FilegroupScan):
             attrs = {}
             for s in fg.scanners:
                 if s.kind == 'var':
-                    new = s.scan(fg, file, infile['var'].as_list())
+                    new = s.scan(fg, file, infile)
                     for name, value in new.items():
                         if name in attrs:
                             attrs[name].update(value)
                         else:
                             attrs[name] = value
 
-            for name, [name_inf, values] in zip(memory['var'].as_list(),
+            for name, [name_inf, values] in zip(memory,
                                                 attrs.items()):
                 log.debug("Found attributes (%s) for '%s' (%s infile)",
                           values.keys(), name, name_inf)
@@ -378,18 +378,21 @@ class FilegroupLoad(FilegroupScan):
         cmds = self.get_commands(keyring, keyring.copy())
 
         for cmd in cmds:
-            for infile, memory in cmd:
-                memory.make_idx_str(var=self.cs['var'])
+            try:
+                file = self.open_file(cmd.filename, 'r', 'debug')
                 log.debug('Scanning %s for variables specific attributes.', cmd.filename)
 
-                try:
-                    file = self.open_file(cmd.filename, 'r', 'debug')
-                    scan_attr(self, file, infile, memory)
-                except Exception:
-                    self.close_file(file)
-                    raise
-                else:
-                    self.close_file(file)
+                for k in cmd:
+                    k.memory.make_idx_str(var=self.cs['var'])
+                infile = [v for k in cmd for v in k.infile['var']]
+                memory = [v for k in cmd for v in k.memory['var']]
+                scan_attr(self, file, infile, memory)
+
+            except Exception:
+                self.close_file(file)
+                raise
+            else:
+                self.close_file(file)
 
     def write(filename: str, wd: str = None,
               file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
