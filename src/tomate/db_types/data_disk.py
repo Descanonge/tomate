@@ -394,11 +394,9 @@ class DataDisk(DataBase):
         for dim, val in values.items():
             self.avail.dims[dim].update_values(val)
 
-    def create_variables(self, var_classes: Dict = None):
-        if var_classes is None:
-            var_classes = {}
+    def create_variables(self):
         for var in self.avail['var']:
-            self.add_variable(var, var_class=var_classes.get(var, None))
+            self.add_variable(var)
 
     def check_duplicates(self):
         """Check for duplicate data points.
