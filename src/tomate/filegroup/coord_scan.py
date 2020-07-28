@@ -123,7 +123,7 @@ class CoordScan(Coord):
             if len(values) != len(elt_val):
                 raise IndexError("Not as much '{}' ({}) as values ({})"
                                  .format(name, len(elt_val), len(values)))
-            setattr(self, name, np.array(elt_val))
+            setattr(self, name, elt_val)
         self.values = values
         super().update_values(values)
 
