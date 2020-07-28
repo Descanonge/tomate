@@ -215,7 +215,7 @@ class Constructor():
         values = [v.name for v in variables]
         in_idx = [v.in_idx for v in variables]
         dims = [v.dims for v in variables]
-        cs.set_values_manual(values=values, in_idx=in_idx, dimensions=dims)
+        cs.set_elements_manual(values=values, in_idx=in_idx, dimensions=dims)
 
     def remove_scan_functions(self, kind: List[str] = None, *dims):
         """Remove scan function.
@@ -290,7 +290,7 @@ class Constructor():
         For all the dimension values, the specified elements
         will have the same constant value.
         """
-        self.current_fg.cs[dim].set_values_constant(**elements)
+        self.current_fg.cs[dim].set_elements_constant(**elements)
 
     def set_elements_manually(self, dim: str, values: List[float],
                               in_idx: List = None):

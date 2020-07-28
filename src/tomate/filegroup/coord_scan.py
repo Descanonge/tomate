@@ -48,9 +48,9 @@ class CoordScan(Coord):
         If that value is not contained in this filegroup, the
         index is None.
 
-    :attr values: np.ndarray: Temporary list of values found
+    :attr values: List: Temporary list of values found
         for this coordinate.
-    :attr in_idx: np.ndarray: List of the index for each value
+    :attr in_idx: List: List of the index for each value
         inside the files.
 
     :attr scan: List[ScannerCS] List of scanners to use to scan
@@ -109,7 +109,7 @@ class CoordScan(Coord):
             setattr(self, elt, [])
 
     def update_values(self, values, **elts):
-        """Update values.
+        """Update values and elements.
 
         Make sure in_idx has same dimensions.
         """
@@ -127,7 +127,7 @@ class CoordScan(Coord):
         self.values = values
         super().update_values(values)
 
-    def sort_values(self) -> np.ndarray:
+    def sort_elements(self) -> np.ndarray:
         """Sort by values.
 
         :returns: The order used to sort values.
@@ -246,8 +246,8 @@ class CoordScan(Coord):
             self.fixed_elts.pop('elt', None)
         self.manual = set()
 
-    def set_values_manual(self, **elts):
-        """Set values manually."""
+    def set_elements_manual(self, **elts):
+        """Set elements manually."""
         self.manual |= elts.keys()
         self.scanners = [s for s in self.scanners if s.kind in ['in', 'filename']]
         self.fixed_elts = {}
@@ -255,7 +255,7 @@ class CoordScan(Coord):
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
 
-    def set_values_constant(self, **elts):
+    def set_elements_constant(self, **elts):
         for elt, value in elts.items():
             if elt not in self.elts:
                 raise KeyError(f"'{elt}' not in '{self.name}' CoordScan elements.")
@@ -419,8 +419,8 @@ class CoordScanShared(CoordScan):
                 raise IndexError("Not as much values as matches.")
             self.matches = matches
 
-    def sort_values(self) -> np.ndarray:
-        order = super().sort_values()
+    def sort_elements(self) -> np.ndarray:
+        order = super().sort_elements()
         self.matches = [self.matches[i] for i in order]
         return order
 

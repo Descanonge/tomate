@@ -374,7 +374,11 @@ class FilegroupScan():
                             .format(self.name, self.regex))
 
         for cs in self.cs.values():
-            cs.sort_values()
+            for elt, value in cs.fixed_elts.items():
+                cs.update_values(cs.values,
+                                 **{elt: [value for _ in range(len(cs.values))]})
+
+            cs.sort_elements()
 
             if (cs.coord.name != 'var'
                     and cs.units != '' and cs.coord.units != ''
