@@ -241,7 +241,10 @@ class DataBase():
                 for var in keyring['var']]
 
         do_stack = (stack and len(variables) > 1
-                    and all(set(d) == set(dims[0]) for d in dims[1:])
+                    and ((order is not None
+                          and all(set(d) == set(dims[0]) for d in dims[1:]))
+                         or (order is None
+                             and all(d == dims[0] for d in dims[1:])))
                     and (stack == 'force'
                          or all(v.datatype == variables[0].datatype
                                 for v in variables[1:])))
@@ -254,7 +257,8 @@ class DataBase():
         else:
             order_novar = None
 
-        out = tuple([var.view(keyring, order=order_novar) for var in variables])
+        out = tuple([var.view(keyring=keyring, order=order_novar)
+                     for var in variables])
         if do_stack:
             if order is not None:
                 axis_stack = order.index('var')
