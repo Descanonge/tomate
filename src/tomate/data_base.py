@@ -589,8 +589,8 @@ class DataBase():
                 raise ValueError("data of wrong shape ({}, expected {})"
                                  .format(self.acs.shape(data)[1:], self.shape[1:]))
 
-        if variable not in self.avail:
-            raise KeyError(f"{variable} is not in avail scope. Use add_variable.")
+        if variable not in self.avail or variable not in self.variables:
+            raise KeyError(f"{variable} was not created. Use add_variable")
         if self.acs.ndim(data) != self.ncoord:
             raise IndexError("data of wrong dimension ({}, expected {})"
                              .format(data.ndim, self.ncoord))
@@ -614,48 +614,73 @@ class DataBase():
             check_shape(data)
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
-    def add_variable(self, variable: str, coords: List[str] = None,
-                     data: Array = None, var_class: Type = None,
-                     datatype: Any = None, keyring: Keyring = None,
-                     **attrs: Any):
+    def add_variable(self, variable: str, dims: List[str] = None,
+                     var_class: Type = None, datatype: Any = None,
+                     attrs: Dict[str, any] = None) -> Variable:
         """Add a new variable.
 
-        Create variable object, and add variable to available / loaded
-        scope.
+        Create variable object, and add variable to available scope.
+
+        If `dims`, `var_class`, or `datatype` are not specified,
+        the value in the VI for the pair `variable` / 'dims', 'class',
+        'datatype' will be used.
+        If neither are specified, the default will be used (see below).
 
         :param variable: Name of variable
-        :param coords: List of dimensions this variable vary along.
-        :param data: [opt] Variable data should be of correct shape
-            for loaded scope, or available if nothing is currently loaded,
-            or matching '`keyring`'.
-        :param keyring: [opt] If no data is loaded, loaded scope
-            is fetched from available scope with this keyring.
-            'var' key has no effect.
+        :param dims: [opt] List of dimensions this variable vary along.
+            If not specified or in VI, Tomate will try to guess
+            from information in Filegroups.
+            If it can't, defaults to all coordinates available.
         :param var_class: [opt] Variable subclass to use.
-        :param datatype: [opt] Override datatype eventually found
-            in the VI.
+            Default to :class:`Variable<variables.base.Variable>`.
+        :param datatype: [opt] Datatype for the array.
+            Default to None.
         :param attrs: [opt] Attributes to put in the VI.
         """
-        if coords is None:
-            coords = self.coords
         if variable in self.variables:
-            log.warning('%s already in variables, it will be overwritten',
-                        variable)
-        else:
-            if var_class is None:
-                var_class = self.vi.get_attribute_default('class', variable, Variable)
-            self.variables[variable] = var_class(variable, coords, self)
+            log.warning('%s already in variables, it will be overwritten.')
+
+        if dims is None:
+            dims = self.vi.get_attribute_default('dims', variable, None)
+
+        if dims is None:
+            krg = Keyring(var=variable)
+            krg.make_str_idx(var=self.avail.var)
+            dims_fg = []
+            try:
+                for fg in self.filegroups:
+                    cmd = fg.get_fg_keyrings(krg)
+                    if cmd is not None:
+                        key = cmd.infile['var']
+                        key.make_list_int()
+                        dims_fg.append(key.apply(fg.cs['var'].dimensions))
+            except AttributeError:
+                pass
+            else:
+                lengths = [len(z) for z in dims_fg]
+                dims = list(dims_fg[lengths.index(max(lengths))])
+
+        if dims is None:
+            dims = self.coords
+
+        if var_class is None:
+            var_class = self.vi.get_attribute_default('class', variable,
+                                                      Variable)
+
+        if attrs is not None:
+            self.vi.set_attributes(variable, **attrs)
+
+        db_var = var_class(variable, dims, self)
 
         if variable not in self.avail:
             self.avail.var.append(variable)
 
-        if data is not None:
-            self.variables[variable].set_data(data, keyring=keyring)
+        if datatype is None:
+            datatype = self.vi.get_attribute_default(variable, 'datatype', None)
+        db_var.datatype = datatype
 
-        if datatype is not None:
-            datatype = self.vi.get_attribute_default('datatype', variable, None)
-        if datatype is not None:
-            self.variables[variable].datatype = datatype
+        self.variables[variable] = db_var
+        return db_var
 
     def remove_loaded_variable(self, variables: Union[str, List[str]]):
         """Remove variable from data."""
