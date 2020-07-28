@@ -249,8 +249,9 @@ class CoordScan(Coord):
     def set_elements_manual(self, **elts):
         """Set elements manually."""
         self.manual |= elts.keys()
-        self.scanners = [s for s in self.scanners if s.kind in ['in', 'filename']]
-        self.fixed_elts = {}
+        self.scanners = []
+        for elt in elts:
+            self.fixed_elts.pop(elt, None)
         if 'values' not in elts:
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
