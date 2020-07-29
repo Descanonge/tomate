@@ -33,8 +33,8 @@ class Key():
     :attr parent_size: int, None: Size of the sequence it would be applied to.
         Useful for reversing keys, or turning slices into lists.
     :attr size: int, None: Length of what the key would select.
-        Integer and None keys have shape 0 (they would return a scalar).
-        Is None if the shape is undecidable (for some slices
+        Integer and None keys have size 0 (they would return a scalar).
+        Is None if the size is undecidable (for some slices
         for instance).
     """
 
@@ -109,7 +109,7 @@ class Key():
         Is None if cannot be determined from
         the key alone.
 
-        :raises IndexError: If slice of shape 0.
+        :raises IndexError: If slice of size 0.
         """
         if self.type == 'int':
             self.size = 0
@@ -161,8 +161,8 @@ class Key():
         """
         self.parent_size = len(coord)
         if self.type == 'slice':
-            self.shape = len(self.apply(coord))
-            if self.shape == 0:
+            self.size = len(self.apply(coord))
+            if self.size == 0:
                 raise IndexError(f"Invalid slice ({self.value}) of size 0")
 
     def no_int(self) -> 'Key':
@@ -313,7 +313,7 @@ class Key():
         if self.type == 'int':
             self.type = 'list'
             self.value = [self.value]
-            self.shape = 1
+            self.size = 1
 
     def make_list(self, coord: Sequence = None):
         """Transform key into list.
@@ -353,7 +353,7 @@ class KeyValue():
     def __init__(self, key: KeyLikeValue):
         self.value = None
         self.type = ''
-        self.shape = None
+        self.size = None
         self.set(key)
 
     def set(self, key: KeyLikeValue):
@@ -369,14 +369,14 @@ class KeyValue():
 
         self.value = key
         self.type = tp
-        self.set_shape()
+        self.set_size()
 
-    def set_shape(self):
-        """Set shape."""
+    def set_size(self):
+        """Set size."""
         if self.type in ['int', 'none']:
-            self.shape = 0
+            self.size = 0
         elif self.type == 'list':
-            self.shape = len(self.value)
+            self.size = len(self.value)
 
     def apply(self, coord: 'Coord') -> KeyLikeInt:
         """Find corresponding index."""
@@ -520,7 +520,7 @@ def reverse_slice_order(slc: slice) -> slice:
 
     ie the order in which indices are taken.
     The indices themselves do not change.
-    We assume the slice is valid (shape > 0).
+    We assume the slice is valid (size > 0).
    """
     start, stop, step = slc.start, slc.stop, slc.step
     if step is None:

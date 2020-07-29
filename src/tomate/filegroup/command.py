@@ -262,7 +262,7 @@ def simplify_keys(keys: List[Key]) -> Key:
     if all(k.type == 'int' for k in keys):
         key = start.__class__([k.value for k in keys])
         key.simplify()
-        key.shape = len(keys)
+        key.size = len(keys)
         return key
 
     raise ValueError("Keys not mergeable.")

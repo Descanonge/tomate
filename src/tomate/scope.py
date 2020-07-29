@@ -231,13 +231,13 @@ class Scope():
         key = Key(key)
 
         c = self[coord]
-        key.set_shape_coord(c)
+        key.set_size_coord(c)
 
-        n_slices = int(np.ceil(key.shape / size))
+        n_slices = int(np.ceil(key.size / size))
         slices = []
         for i in range(n_slices):
             start = i*size
-            stop = min((i+1)*size, key.shape)
+            stop = min((i+1)*size, key.size)
             key_out = key * Key(slice(start, stop))
             slices.append(key_out.value)
 
@@ -289,7 +289,7 @@ class Scope():
         key = Key(key)
 
         c = self[coord]
-        key.set_shape_coord(c)
+        key.set_size_coord(c)
 
         if not issubclass(type(c), Time):
             raise TypeError("'{}' is not a subclass of Time (is {})"

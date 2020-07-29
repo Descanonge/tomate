@@ -436,7 +436,7 @@ class FilegroupLoad(FilegroupScan):
                 # keyring argument dictates command shape
                 # help user to match `krg_inf` and `dimensions`
                 for name, input_key in keyring.items():
-                    if input_key.shape == 0:
+                    if input_key.size == 0:
                         cks.infile[name].make_list_int()
                         cks.memory[name].make_list_int()
                     else:
