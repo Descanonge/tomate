@@ -227,8 +227,6 @@ class DataBase():
         :returns: Subset of data.
         :raises RuntimeError: If the user ask for an impossible stack
         """
-        self.check_loaded()
-
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring.get_default(keyring, **kw_keys)
         keyring.make_full(self.dims)
