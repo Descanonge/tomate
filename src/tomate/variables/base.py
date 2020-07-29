@@ -146,7 +146,7 @@ class Variable():
         keyring = keyring.copy()
         keyring.make_full(self.dims)
         keyring.make_total()
-        if not self.is_loaded():
+        if not self.is_loaded() and not self._db.loaded.is_empty():
             self.allocate()
             self._db.loaded.var.append(self.name)
         self.acs.place(keyring, self.data, chunk)
