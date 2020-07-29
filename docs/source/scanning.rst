@@ -336,6 +336,11 @@ One should look into :func:`filegroup.scanner.scan_filename_default` for
 a better description of the function signature.
 :mod:`tomate.scan_library` contains some examples.
 
+If the filegroup consists of a single file, it is possible to avoid
+the whole regex operation by setting `'FilegroupScan.file_override'`
+to the filename (relative to the filegroup root).
+This prevents from exploring all file tree from the filegroup root.
+
 
 .. currentmodule:: tomate.constructor
 

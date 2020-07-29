@@ -55,6 +55,8 @@ class FilegroupScan():
 
     :attr pregex: str: Pre-regex.
     :attr regex: str: Regex.
+    :attr file_override: str: If filegroup consist of a single file,
+        this is used (instead of a regular expression)
 
     :attr segments: List[str]: Fragments of filename used for reconstruction,
         elements with pair indices are replaced with matches.
@@ -93,6 +95,7 @@ class FilegroupScan():
 
         self.regex = ""
         self.pregex = ""
+        self.file_override = ''
 
         self.scanners = []
 
@@ -199,7 +202,7 @@ class FilegroupScan():
         m = self.scan_pregex(pregex)
 
         # Separations between segments
-        idx = 0
+        idx = -1
         regex = pregex
         for idx, match in enumerate(m):
             matcher = Matcher(match, idx)
@@ -218,6 +221,8 @@ class FilegroupScan():
         self.n_matcher = idx + 1
         self.regex = regex
         self.pregex = pregex
+        import pdb
+        # pdb.set_trace()
 
     @staticmethod
     def scan_pregex(pregex: str) -> Optional[Iterator[re.match]]:
@@ -329,6 +334,9 @@ class FilegroupScan():
 
         :raises RuntimeError: If no files are found.
         """
+        if self.file_override:
+            return [self.file_override]
+
         # Using a generator should fast things up even though
         # less readable
         files = [os.path.relpath(os.path.join(root, file), self.root)

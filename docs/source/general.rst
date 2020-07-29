@@ -35,6 +35,8 @@ configuration tool.
 
 To jump right into using the package, one can immediatly go read the
 :doc:`constructing a database<tutorial>` doc page.
+You can also use :func:`tomate.scan_library.nc.scan_file` to scan
+everything in a NetCDF file, without needing to specify anything.
 Examples can be found in /examples.
 
 The package contains many configurable parts, that are as independant of each
