@@ -143,6 +143,7 @@ class Variable():
 
     def set_data(self, chunk: Array, keyring: Keyring):
         """Set subset of data."""
+        keyring = keyring.copy()
         keyring.make_full(self.dims)
         keyring.make_total()
         if not self.is_loaded():
