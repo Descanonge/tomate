@@ -7,7 +7,6 @@
 
 
 import logging
-import os
 from typing import Any, Dict, List
 
 try:
@@ -20,10 +19,10 @@ else:
 import numpy as np
 
 from tomate.accessor import Accessor
-from tomate.custom_types import File, KeyLike
+from tomate.custom_types import File
 from tomate.keys.keyring import Keyring
 from tomate.filegroup.filegroup_load import FilegroupLoad
-from tomate.filegroup.command import separate_variables, Command
+from tomate.filegroup.command import separate_variables, Command, CmdKeyrings
 
 
 log = logging.getLogger(__name__)
@@ -106,79 +105,25 @@ class FilegroupNetCDF(FilegroupLoad):
         order = list(file[var_name].dimensions)
         return order
 
-    def write(self, filename: str, wd: str = None,
-              file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
-              keyring: Keyring = None, **keys: KeyLike):
-        """Write data to disk.
+    def _write(self, file: nc.Dataset, cmd: Command, var_kw: Dict):
+        self.add_vi_to_file(file, add_attr=False)
 
-        The in-file variable name is the one specified in
-        filegroup.cs['var'].in_idx if set, or the variable name passed as key.
+        for name, coord in self.db.loaded.coords.items():
+            key = cmd[0].memory[name].copy()
+            key.set_size_coord(coord)
+            if key.size != 0:
+                file.createDimension(name, key.size)
+                file.createVariable(name, 'f', [name])
+                file[name][:] = coord[key.value]
+                log.info("Laying %s values, extent %s", name,
+                         coord.get_extent_str(key.no_int().value))
 
-        Variable specific arguments are passed to `netCDF.Dataset.createVariable
-        <https://unidata.github.io/netcdf4-python/netCDF4/index.html
-        #netCDF4.Dataset.createVariable>`__. If the 'datatype' argument is
-        not specified, the 'datatype' attribute is looked in the VI, and if
-        not defined, it is guessed from the numpy array dtype.
+                file[name].setncattr('fullname', coord.fullname)
+                file[name].setncattr('units', coord.units)
 
-        If the 'fill_value' attribute is not specifed, the '_FillValue'
-        attribute is looked in the VI, and if not defined
-        `netCDF4.default_fillvals(datatype)` is used. It seems preferable
-        to specify a fill_value rather than None.
-
-        All attributes from the VariablesInfo are put in the file if their
-        name do not start with an '_'.
-
-        :param wd: Directory to place the file. If None, the
-            filegroup root is used instead.
-        :param file_kw: Keywords argument to pass to `open_file`.
-        :param var_kw: Variables specific arguments. Keys are variables
-            names, values are dictionnary containing options.
-            Use '_all' to add an option for all variables.
-        """
-        if wd is None:
-            wd = self.root
-        filename = os.path.join(wd, filename)
-
-        krg_mem = Keyring.get_default(keyring=keyring, **keys)
-        krg_mem.make_full(self.db.dims)
-        krg_mem.make_total()
-        krg_mem.sort_by(self.db.dims)
-        krg_mem.make_idx_str(var=self.db.loaded.var)
-
-        cmd = Command()
-        cmd.filename = filename
-        krg_inf = Keyring(var=[self._get_infile_name(v)
-                               for v in krg_mem['var']])
-        krg_inf.make_full(krg_mem.get_non_zeros())
-        krg_inf.make_total()
-        krg_inf.sort_by(krg_mem.get_non_zeros())
-        cmd.append(krg_inf, krg_mem)
-        cmd, = separate_variables([cmd])
-
-        if file_kw is None:
-            file_kw = {}
-        if var_kw is None:
-            var_kw = {}
-
-        file_kw.setdefault('mode', 'w')
-        file_kw.setdefault('log_lvl', 'INFO')
-        with self.open_file(filename, **file_kw) as file:
-            self.add_vi_to_file(file, add_attr=False)
-
-            for name, coord in self.db.loaded.coords.items():
-                key = krg_mem[name].copy()
-                key.set_shape_coord(coord)
-                if key.shape != 0:
-                    file.createDimension(name, key.shape)
-                    file.createVariable(name, 'f', [name])
-                    file[name][:] = coord[key.value]
-                    log.info("Laying %s values, extent %s", name,
-                             coord.get_extent_str(key.no_int()))
-
-                    file[name].setncattr('fullname', coord.fullname)
-                    file[name].setncattr('units', coord.units)
-
-            self.add_variables_to_file(file, cmd, **var_kw)
+        cmd_var, = separate_variables([cmd])
+        for cmd_krgs in cmd_var:
+            self.add_variables_to_file(file, cmd_krgs, **var_kw)
 
     def add_vi_to_file(self, file, add_info=True, add_attr=True,
                        name=None, ncname=None):
@@ -186,15 +131,23 @@ class FilegroupNetCDF(FilegroupLoad):
         if add_info:
             for info in self.vi.infos:
                 if not info.startswith('_'):
-                    file.setncattr(info, self.db.vi.get_info(info))
+                    value = self.db.vi.get_info(info)
+                    try:
+                        file.setncattr(info, value)
+                    except TypeError:
+                        file.setncattr(info, str(value))
         if add_attr:
             if name in self.vi.variables:
                 attrs = self.vi[name]
                 for attr in attrs:
                     if not attr.startswith('_'):
-                        file[ncname].setncattr(attr, self.vi.get_attribute(attr, name))
+                        value = self.vi.get_attribute(name, attr)
+                        try:
+                            file[ncname].setncattr(attr, value)
+                        except TypeError:
+                            file[ncname].setncattr(attr, str(value))
 
-    def add_variables_to_file(self, file: 'nc.Dataset', cmd: Command,
+    def add_variables_to_file(self, file: 'nc.Dataset', cmd: CmdKeyrings,
                               **var_kw: Dict[str, Dict]):
         """Add variables data and metadata to file.
 
@@ -208,51 +161,47 @@ class FilegroupNetCDF(FilegroupLoad):
         :raises IndexError: If mismatch between memory keyring and
             in-file dimensions list.
         """
-        for krg_inf, krg_mem in cmd:
-            name = self.db.loaded.var.get_str_name(krg_mem['var'].value)
-            ncname = krg_inf['var'].value
-            log.info('Inserting variable %s', ncname)
+        krg_inf, krg_mem = cmd
+        name = self.db.loaded.var.get_str_name(krg_mem['var'].value)
+        ncname = krg_inf['var'].value
+        log.info('Inserting variable %s', ncname)
 
-            kwargs = var_kw.get('_all', {})
-            kwargs.update(var_kw.get(name, {}))
-            kwargs = kwargs.copy()
+        kwargs = var_kw.get('_all', {})
+        kwargs.update(var_kw.get(name, {}))
+        kwargs = kwargs.copy()
 
-            if ncname not in file.variables:
-                datatype = kwargs.pop('datatype', None)
-                if datatype is None:
-                    datatype = self.vi.get_attribute_default('datatype', name, None)
-                    if datatype is None:
-                        dtype = self.db.data.dtype
-                        datatype = '{}{}'.format(dtype.kind, dtype.itemsize)
+        if ncname not in file.variables:
+            datatype = kwargs.pop('datatype', None)
+            if datatype is None:
+                datatype = self.db.variables[name].datatype
+            try:
+                kwargs.setdefault('fill_value',
+                                  self.vi.get_attribute(name, '_FillValue'))
+            except KeyError:
+                kwargs.setdefault('fill_value',
+                                  nc.default_fillvals.get(datatype, None))
 
-                try:
-                    kwargs.setdefault('fill_value',
-                                      self.vi.get_attribute(name, '_FillValue'))
-                except KeyError:
-                    kwargs.setdefault('fill_value',
-                                      nc.default_fillvals.get(datatype, None))
+            dimensions = kwargs.pop('dimensions', krg_inf.get_non_zeros())
+            if 'var' in dimensions:
+                dimensions.remove('var')
 
-                dimensions = kwargs.pop('dimensions', krg_inf.get_non_zeros())
-                if 'var' in dimensions:
-                    dimensions.remove('var')
+            file.createVariable(ncname, datatype, dimensions, **kwargs)
+        else:
+            log.info('Variable already exist. Overwriting data.')
 
-                file.createVariable(ncname, datatype, dimensions, **kwargs)
-            else:
-                log.info('Variable already exist. Overwriting data.')
+        self.add_vi_to_file(file, add_info=False,
+                            name=name, ncname=ncname)
 
-            self.add_vi_to_file(file, add_info=False,
-                                name=name, ncname=ncname)
+        order_file = self._get_order_in_file(file, ncname)
+        order = self._get_order(order_file)
+        int_krg = self._get_internal_keyring(order, krg_inf)
 
-            order_file = self._get_order_in_file(file, ncname)
-            order = self._get_order(order_file)
-            int_krg = self._get_internal_keyring(order, krg_inf)
+        if len(order_file) != len(krg_mem.get_non_zeros()):
+            raise IndexError("File dimensions ({}) length does not"
+                             " match keyring length ({})"
+                             .format(order_file, krg_mem.get_non_zeros()))
 
-            if len(order_file) != len(krg_mem.get_non_zeros()):
-                raise IndexError("File dimensions ({}) length does not"
-                                 " match keyring length ({})"
-                                 .format(order_file, krg_mem.get_non_zeros()))
-
-            chunk = self.db.view(keyring=krg_mem)
-            chunk = self.reorder_chunk(chunk, krg_mem, int_krg)
-            log.info("Placing it in file at %s.", int_krg.print())
-            self.acs.place_normal(int_krg, file[ncname], chunk)
+        chunk = self.db.view(keyring=krg_mem)
+        chunk = self.reorder_chunk(chunk, krg_mem, int_krg)
+        log.info("Placing it in file at %s.", int_krg.print())
+        self.acs.place_normal(int_krg, file[ncname], chunk)

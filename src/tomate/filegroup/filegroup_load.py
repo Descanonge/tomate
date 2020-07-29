@@ -6,6 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
+import os
 import itertools
 import logging
 from typing import Dict, List, Tuple, Union
@@ -394,24 +395,84 @@ class FilegroupLoad(FilegroupScan):
             else:
                 self.close_file(file)
 
-    def write(filename: str, wd: str = None,
-              file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
-              keyring: Keyring = None, **keys: KeyLike):
-        """Write data to disk.
-
-        :param wd: Directory to place the file. If None, the
-            filegroup root is used instead.
-        :param file_kw: Keywords argument to pass to `open_file`.
-        :param var_kw: Variables specific arguments.
-        """
-        raise NotImplementedError()
-
     def _get_infile_name(self, var: str) -> str:
         """Get infile name."""
         cs = self.cs['var']
         if var in cs:
-            return cs.in_idx[cs.get_str_name(var)]
+            return cs.in_idx[cs.get_str_index(var)]
         return var
+
+    def write(self, filename: str, wd: str = None,
+              file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
+              keyring: Keyring = None, **keys: KeyLike):
+        """Write data to disk.
+
+        The in-file variable name is the one specified in
+        filegroup.cs['var'].in_idx if set, or the variable name passed as key.
+
+        Variable specific arguments are passed to `netCDF.Dataset.createVariable
+        <https://unidata.github.io/netcdf4-python/netCDF4/index.html
+        #netCDF4.Dataset.createVariable>`__. If the 'datatype' argument is
+        not specified, the 'datatype' attribute is looked in the VI, and if
+        not defined, it is guessed from the numpy array dtype.
+
+        If the 'fill_value' attribute is not specifed, the '_FillValue'
+        attribute is looked in the VI, and if not defined
+        `netCDF4.default_fillvals(datatype)` is used. It seems preferable
+        to specify a fill_value rather than None.
+
+        All attributes from the VariablesInfo are put in the file if their
+        name do not start with an '_'.
+
+        :param wd: Directory to place the file. If None, the
+            filegroup root is used instead.
+        :param file_kw: Keywords argument to pass to `open_file`.
+        :param var_kw: Variables specific arguments. Keys are variables
+            names, values are dictionnary containing options.
+            Use '_all' to add an option for all variables.
+        """
+        if wd is None:
+            wd = self.root
+        filename = os.path.join(wd, filename)
+
+        krg_mem = Keyring.get_default(keyring=keyring, **keys)
+        krg_mem.make_full(self.db.dims)
+        krg_mem.make_total()
+        krg_mem.sort_by(self.db.dims)
+        krg_mem.make_idx_str(var=self.db.loaded.var)
+
+        cmd = Command()
+        cmd.filename = filename
+        krg_inf = Keyring(var=[self._get_infile_name(v)
+                               for v in krg_mem['var']])
+        krg_inf.make_full(krg_mem.get_non_zeros())
+        krg_inf.make_total()
+        krg_inf.sort_by(krg_mem.get_non_zeros())
+        cmd.append(krg_inf, krg_mem)
+
+        if file_kw is None:
+            file_kw = {}
+        if var_kw is None:
+            var_kw = {}
+
+        file_kw.setdefault('mode', 'w')
+        file_kw.setdefault('log_lvl', 'INFO')
+
+        file = self.open_file(filename, **file_kw)
+        try:
+            self._write(file, cmd, var_kw)
+        except Exception:
+            self.close_file(file)
+            raise
+        else:
+            self.close_file(file)
+
+    def _write(file: File, cmd: Command):
+        """Write data in file.
+
+        :param cmd: Memory acts on loaded scope.
+        """
+        raise NotImplementedError()
 
     def write_add_variable(self, var: str, sibling: str,
                            keyring: Keyring, kwargs: Dict = None) -> bool:

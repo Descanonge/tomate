@@ -218,7 +218,7 @@ class DataDisk(DataBase):
             if po.is_to_launch(var_loaded):
                 po.launch(self)
 
-    def write(self, filename: str, wd: str = None,
+    def write(self, filename: str, directory: str = None,
               file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
               **keys: KeyLike):
         """Write data and metadata to disk.
@@ -231,7 +231,7 @@ class DataDisk(DataBase):
 
         :param filename: File to write in. Relative to each filegroup root
             directory, or from `wd` if specified.
-        :param wd: [opt] Force to write `filename` in this directory instead
+        :param directory: [opt] Force to write `filename` in this directory instead
             of each filegroups root.
         :param file_kw: Keywords argument to pass to `open_file`.
         :param var_kw: Variables specific arguments.
@@ -239,19 +239,18 @@ class DataDisk(DataBase):
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        variables = self.loaded.var.get_str_names(keyring['var'].value)
-        if isinstance(variables, str):
-            variables = [variables]
+        keyring.make_str_idx(**self.loaded.dims)
+
+        variables = self.loaded.var.get_str_names(keyring['var'].no_int().value)
 
         for fg in self.filegroups:
-            variables_fg = [v for v in variables
-                            if v in fg.variables]
+            variables_fg = [v for v in variables if v in fg.variables]
             for v in variables_fg:
                 variables.remove(v)
             if variables_fg:
                 keyring_fg = keyring.copy()
                 keyring_fg['var'] = variables_fg
-                fg.write(filename, wd, keyring=keyring_fg,
+                fg.write(filename, directory, keyring=keyring_fg,
                          file_kw=file_kw, var_kw=var_kw)
 
     def write_add_variable(self, var: str, sibling: str,
