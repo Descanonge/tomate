@@ -93,9 +93,11 @@ def test_guess_size():
 
     # Edge case
     assert f(slice(None, 0)) == 0
+    assert f(slice(5, 0)) == 0
     assert f(slice(0, 2)) == 2
     assert f(slice(0, 1)) == 1
     assert f(slice(-1, None)) == 1
+    assert f(slice(0, None, -1)) == 1
     assert f(slice(None, -2, -1)) == 1
     assert f(slice(None, -1, -1)) == 0
 
