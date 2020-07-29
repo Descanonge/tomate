@@ -239,6 +239,9 @@ class DataBase():
                 for var in keyring['var']]
 
         if stack and len(variables) > 1:
+            if not all(v in self.loaded.var for v in keyring['var']):
+                raise RuntimeError("Cannot stack variables"
+                                   " (variable not loaded)")
             if (stack != 'force'
                 and not all(v.datatype == variables[0].datatype
                             for v in variables[1:])):
