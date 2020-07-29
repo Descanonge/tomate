@@ -238,17 +238,19 @@ class DataBase():
                  if d in keyring.get_non_zeros()]
                 for var in keyring['var']]
 
-        do_stack = (stack and len(variables) > 1
-                    and ((order is not None
-                          and all(set(d) == set(dims[0]) for d in dims[1:]))
-                         or (order is None
-                             and all(d == dims[0] for d in dims[1:])))
-                    and (stack == 'force'
-                         or all(v.datatype == variables[0].datatype
-                                for v in variables[1:])))
-
-        if stack and not do_stack:
-            raise RuntimeError("Cannot stack variables")
+        if stack and len(variables) > 1:
+            if (stack != 'force'
+                and not all(v.datatype == variables[0].datatype
+                            for v in variables[1:])):
+                raise RuntimeError("Cannot stack variables"
+                                   " (different datatypes)")
+            if (order is None and not all(d == dims[0] for d in dims[1:])):
+                raise RuntimeError("Cannot stack variables (different "
+                                   "dimensions or order not specified)")
+            if (order is not None and not all(set(d) == set(dims[0])
+                                              for d in dims[1:])):
+                raise RuntimeError("Cannot stack variables"
+                                   " (different dimensions)")
 
         if order is not None:
             order_novar = [d for d in order if d != 'var']
@@ -257,7 +259,7 @@ class DataBase():
 
         out = tuple([var.view(keyring=keyring, order=order_novar)
                      for var in variables])
-        if do_stack:
+        if stack:
             if order is not None:
                 axis_stack = order.index('var')
             else:
