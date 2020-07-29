@@ -500,15 +500,17 @@ def guess_slice_size(slc: slice) -> Optional[int]:
     :returns: None if it is not possible to guess.
         (for instance for slice(None, None))
     """
-
     start, stop, step = slc.start, slc.stop, slc.step
     pos = step is None or step > 0
+
+    # slice(a, b), a and b of same sign
     if start is not None and stop is not None:
         if start * stop >= 0:
-            if start > stop if pos else start < stop:
+            if (pos and stop == 0) or (not pos and start == 0):
                 return 0
             return abs(stop - start)
 
+    # slice with a None start or stop
     if pos:
         if start is None and stop is not None and stop >= 0:
             return stop
