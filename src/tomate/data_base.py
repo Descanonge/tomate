@@ -162,7 +162,7 @@ class DataBase():
 
         Wrapper around set_data
         """
-        self.variables[key].set_data(value)
+        self.variables[key].set_data(value, Keyring())
 
     def __getattribute__(self, name):
         """Get attribute.
