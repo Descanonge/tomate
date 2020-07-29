@@ -215,7 +215,7 @@ class Constructor():
         values = [v.name for v in variables]
         in_idx = [v.in_idx for v in variables]
         dims = [v.dims for v in variables]
-        cs.set_values_manual(values=values, in_idx=in_idx, dimensions=dims)
+        cs.set_elements_manual(values=values, in_idx=in_idx, dimensions=dims)
 
     def remove_scan_functions(self, kind: List[str] = None, *dims):
         """Remove scan function.
@@ -290,7 +290,7 @@ class Constructor():
         For all the dimension values, the specified elements
         will have the same constant value.
         """
-        self.current_fg.cs[dim].set_values_constant(**elements)
+        self.current_fg.cs[dim].set_elements_constant(**elements)
 
     def set_elements_manually(self, dim: str, values: List[float],
                               in_idx: List = None):
@@ -458,16 +458,19 @@ class Constructor():
         if DataDisk not in self.db_types:
             self.db_types.insert(0, DataDisk)
 
-    def make_data(self, scan=True,
-                  var_classes: Dict = None) -> Type[DataBase]:
+    def make_data(self, scan: bool = True,
+                  create_variables: bool = True) -> DataBase:
         """Create data instance.
 
-        If scan:
-        -Scan files.
-        -Check coordinates for consistency across filegroups.
+        Scan files, compiles coordinates values,
+        create variables.
 
-        :param scan: [opt] If the files should be scanned.
+        :param scan: If the files should be scanned.
             Default is True.
+        :param create_variables: If the variables should
+            be created. Deactivate to create variables
+            with finer control with :func:`DataBase.add_variable
+            <data_base.DataBase.add_variable>`. Default is True.
 
         :returns: Data instance ready to use.
         """
@@ -489,7 +492,8 @@ class Constructor():
             db.scan_files()
             db.compile_scanned()
             db.scan_variables_attributes()
-            db.create_variables(var_classes)
+            if create_variables:
+                db.create_variables()
         return db
 
     def create_data_class(self) -> Type[DataBase]:

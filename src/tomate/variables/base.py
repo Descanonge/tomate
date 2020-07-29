@@ -58,7 +58,7 @@ class Variable():
     def __repr__(self):
         s = [str(self),
              "Dimensions: {}".format(self.dims),
-             "Type: {}".format(self.datatype)]
+             "Datatype: {}".format(self.datatype)]
         if self.is_loaded():
             s.append("Loaded (shape: {})".format(self.shape))
         return '\n'.join(s)

@@ -34,6 +34,9 @@ class Attribute(dict):
         self._vi.set_attribute(k, self._name, v)
         super().__setitem__(k, v)
 
+    def pop(self, k: str):
+        self._vi.remove_pair(k, self._name)
+
 
 class VariableAttributes(dict):
     """View into the VI for one variable.
@@ -63,6 +66,9 @@ class VariableAttributes(dict):
     def __setitem__(self, k: str, v: Any):
         self._vi.set_attribute(self._name, k, v)
         super().__setitem__(k, v)
+
+    def pop(self, k: str):
+        self._vi.remove_pair(self._name, k)
 
 
 class VariablesInfo():
@@ -238,6 +244,17 @@ class VariablesInfo():
             if name not in self.infos:
                 self.set_info(name, value)
 
+    def remove_pair(self, variable: str, attribute: str):
+        """Remove variable/attribute pair.
+
+        :raises KeyError: If pair is not in VI.
+        """
+        if not self.has(variable, attribute):
+            raise KeyError("Pair not in VI.")
+        self._attributes[variable].pop(attribute)
+        if not self._attributes[variable]:
+            self._attributes.pop(variable)
+
     def remove_variables(self, variables: Union[str, List[str]]):
         """Remove variables from VI. """
         if not isinstance(variables, list):
@@ -252,7 +269,10 @@ class VariablesInfo():
 
         for var in self.variables:
             for attr in attributes:
-                self._attributes[var].pop[attr]
+                if attr in self._attributes[var]:
+                    self._attributes[var].pop(attr)
+            if not self._attributes[var]:
+                self._attributes.pop(var)
 
     def copy(self) -> "VariablesInfo":
         """Return copy of self."""

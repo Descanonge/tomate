@@ -452,17 +452,17 @@ def guess_slice_size(slc: slice) -> Optional[int]:
         return abs(int(np.ceil((stop - start) / step)))
 
     start, stop, step = slc.start, slc.stop, slc.step
-    if step is None:
-        step = 1
+    pos = step is None or step > 0
 
     # slice(a, b), a and b of same sign
     if start is not None and stop is not None:
         if start * stop >= 0:
-            if (step > 0 and stop == 0) or (step < 0 and start == 0):
+            if (pos and stop == 0) or (not pos and start == 0):
                 return 0
             return get(start, stop, step)
 
-    if step > 0:
+    # slice with a None start or stop
+    if pos:
         if start is None and stop is not None and stop >= 0:
             return get(0, stop, step)
         if stop is None and start is not None and start < 0:
