@@ -145,6 +145,9 @@ class Variable():
         """Set subset of data."""
         keyring.make_full(self.dims)
         keyring.make_total()
+        if not self.is_loaded():
+            self.allocate()
+            self._db.loaded.var.append(self.name)
         self.acs.place(keyring, self.data, chunk)
 
     def get_attribute(self, key: str, default: Any = None):
