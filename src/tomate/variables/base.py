@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 import logging
-from typing import Any, Iterable, List, TYPE_CHECKING
+from typing import Any, Iterable, List, Optional, TYPE_CHECKING
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
@@ -99,13 +99,16 @@ class Variable():
         self.data = self.acs.allocate(shape, datatype=self.datatype)
 
     def view(self, *keys: KeyLike, keyring: Keyring = None,
-             order: List[str] = None, **kw_keys: KeyLike) -> Array:
+             order: List[str] = None, **kw_keys: KeyLike) -> Optional[Array]:
         """Return subset of data.
 
         See also
         --------
         tomate.data_base.DataBase.view for details on arguments.
         """
+        if not self.is_loaded():
+            return None
+
         kw_keys = self._db.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring.get_default(keyring=keyring, **kw_keys)
         keyring.make_full(self.dims)
