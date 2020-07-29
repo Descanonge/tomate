@@ -6,7 +6,8 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Dict, List, Optional, Tuple
+from os import path
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 try:
     import netCDF4 as nc
@@ -15,10 +16,18 @@ except ImportError:
 
 import numpy as np
 
+from tomate.constructor import Constructor
+from tomate.coordinates.coord import Coord
+from tomate.coordinates.coord_str import CoordStr
+from tomate.coordinates.time import Time
+
 from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 from tomate.variables.masked.variable_masked import VariableMasked
+
+if TYPE_CHECKING:
+    from tomate.data_base import DataBase
 
 
 @make_scanner('in', ['values', 'in_idx'])
@@ -99,3 +108,37 @@ def scan_units(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     nc_var = file[cs.name]
     units = nc_var.getncattr('units')
     return {'units': units}
+
+
+def scan_file(filename) -> 'DataBase':
+    """Scan a single for everything.
+
+    You don't have to do a thing !
+    """
+    with nc.Dataset(filename, 'r') as file:
+        coords = []
+        for dim in file.dimensions:
+            if dim == 'time' and 'units' in file['time'].__dict__:
+                coord = Time(dim, None, units=file['time'].units)
+            elif isinstance(file[dim].dtype, str):
+                coord = CoordStr(dim)
+            else:
+                coord = Coord(dim)
+            coords.append(coord)
+
+    coords_name = [c.name for c in coords]
+
+    cstr = Constructor(path.dirname(filename), coords)
+    coords_fg = [cstr.CSS(c) for c in coords]
+    cstr.add_filegroup(FilegroupNetCDF, coords_fg)
+
+    cstr.set_fg_regex(path.basename(filename))
+    cstr.add_scan_in_file(scan_in_file, *coords_name)
+    cstr.add_scan_in_file(scan_variables, 'var')
+    cstr.add_scan_general_attributes(scan_infos)
+    cstr.add_scan_variables_attributes(scan_variables_attributes)
+    cstr.add_scan_variables_attributes(scan_variables_datatype)
+
+    db = cstr.make_data()
+
+    return db

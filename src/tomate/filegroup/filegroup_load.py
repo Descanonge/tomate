@@ -343,7 +343,6 @@ class FilegroupLoad(FilegroupScan):
     def do_post_loading(self, keyring: Keyring):
         """Apply post loading functions."""
         var_loaded = keyring['var'].apply(self.cs['var'][:])
-        print('fg: {}, varloaded: {}'.format(self.name, var_loaded))
         for plf in self.post_loading_funcs:
             if plf.is_to_launch(var_loaded):
                 plf.launch(self.db)
