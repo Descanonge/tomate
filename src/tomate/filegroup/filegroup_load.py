@@ -514,7 +514,7 @@ class FilegroupLoad(FilegroupScan):
             try:
                 sibling_dim = self._get_order_in_file(file=file, var_name=sibling_inf)
                 kwargs.setdefault('dimensions', sibling_dim)
-                self.add_variables_to_file(file, cmd, **{var: kwargs})
+                self.add_variables_to_file(file, cmd[0], **{var: kwargs})
             except Exception:
                 self.close_file(file)
                 raise
