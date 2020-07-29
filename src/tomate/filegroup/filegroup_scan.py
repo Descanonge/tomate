@@ -403,7 +403,7 @@ class FilegroupScan():
                 cs.update_values(cs.values)
 
     def add_scan_attrs_func(self, func: Union[Scanner, Callable],
-                                kind: str = None, **kwargs: Any):
+                            kind: str = None, **kwargs: Any):
         """Add the function for scanning attributes."""
         if not isinstance(func, Scanner):
             func = Scanner(kind, func, **kwargs)

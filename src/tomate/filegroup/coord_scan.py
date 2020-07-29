@@ -108,6 +108,11 @@ class CoordScan(Coord):
         for elt in self.elts:
             setattr(self, elt, [])
 
+    def self_update(self):
+        """Update values and elements from its attributes."""
+        elts = {elt: getattr(self, elt) for elt in self.elts}
+        self.update_values(**elts)
+
     def update_values(self, values, **elts):
         """Update values and elements.
 
