@@ -116,13 +116,6 @@ class Scope():
                if name != 'var'}
         return out
 
-    def subset(self, coords: List[str]) -> Dict[str, Coord]:
-        """Return coordinates objects.
-
-        :param coords: Coordinates names.
-        """
-        return {c: self.coords[c] for c in coords}
-
     @property
     def shape(self) -> List[int]:
         """Shape of data."""
