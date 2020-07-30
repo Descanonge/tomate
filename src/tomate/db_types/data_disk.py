@@ -120,7 +120,7 @@ class DataDisk(DataBase):
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring.make_int_list()
-        keyring.make_str_idx(var=self.avail.var)
+        keyring.make_str_idx(**self.loaded.dims)
         keyring.sort_by(self.dims)
 
         self.loaded = self.get_subscope('avail', keyring)
