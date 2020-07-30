@@ -254,7 +254,7 @@ class DataBase():
         else:
             order_novar = None
 
-        out = tuple([var.view(keyring, order=order_novar) for var in variables])
+        out = tuple([var.view(keyring=keyring, order=order_novar) for var in variables])
         if do_stack:
             if order is not None:
                 axis_stack = order.index('var')
