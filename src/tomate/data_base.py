@@ -570,7 +570,7 @@ class DataBase():
             v = self.variables[var]
             v.data = v.view(keyring)
 
-    def unload_data(self):
+    def unload(self):
         """Remove data."""
         self.loaded.empty()
         for var in self.variables.values():
