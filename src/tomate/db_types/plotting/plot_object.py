@@ -152,6 +152,11 @@ class PlotObjectABC():
         scope_obj = db.get_subscope(scope, name='plotted').copy()
         scope_obj.slice(**keys, int2list=False)
 
+        if scope_obj.var.size == 1:
+            dims = db[scope_obj.var[0]].dims
+            scope_obj.slice(**{d: 0 for d in db.dims if d not in dims},
+                            int2list=False)
+
         if kwargs is None:
             kwargs = {}
 

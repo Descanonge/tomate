@@ -78,7 +78,6 @@ class DataCompute(DataBase):
              **keys: KeyLike) -> Array:
         """Compute average on a given window.
 
-
         :param dims: Coordinates to compute the mean along.
         :param kwargs: [opt] Argument passed to numpy.nanmean
         :param keys: Part of the data to consider for averaging (by index).
