@@ -40,6 +40,6 @@ class PlotObjectAvgABC(PlotObjectABC):
 
     def _get_data(self):
         if 'DataCompute' not in self.db.bases:
-            raise TypeError("DataComptue necessary for averaging.")
+            raise TypeError("DataCompute necessary for averaging.")
         data = self.db.mean(self.avg_dims, **self.keyring.kw)
         return data

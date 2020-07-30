@@ -53,8 +53,7 @@ class PlotObjectScatter(PlotObjectABC):
         pass
 
     def _get_data(self) -> List[Array]:
-        data = [self.db.view_selected(self.scope, var=var)
-                for var in self.axes]
+        data = list(self.db.view_selected(self.scope, var=self.axes))
         for i, d in enumerate(data):
             data[i] = d.flatten()
         return data

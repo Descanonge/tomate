@@ -50,12 +50,15 @@ class PlotObjectABC():
                  scope: Scope, axes: List[str],
                  data, **kwargs):
         self.db = db
-        self.ax = ax
         self.scope = scope
-        self.object = None
+        self._target_scope = scope
+
         self.data = data
-        self.axes = axes
         self.kwargs = kwargs
+        self.axes = axes
+
+        self.ax = ax
+        self.object = None
         self.cax = None
         self.colorbar = None
 
@@ -91,9 +94,8 @@ class PlotObjectABC():
 
         Acts on the parent scope of `scope` attribute.
         """
-        scope = self.db.get_subscope(self.scope.parent_scope,
-                                     keyring=keyring,
-                                     int2list=False, **keys)
+        scope = self.db.get_subscope(self._target_scope, keyring,
+                                     int2list=False)
         self.scope = scope
 
     def reset_scope_by_value(self, **keys: KeyLikeValue):
@@ -101,7 +103,7 @@ class PlotObjectABC():
 
         Acts on the parent scope of `scope` attribute.
         """
-        scope = self.db.get_subscope_by_value(self.scope.parent_scope,
+        scope = self.db.get_subscope_by_value(self._target_scope,
                                               int2list=False, **keys)
         self.scope = scope
 
@@ -147,13 +149,18 @@ class PlotObjectABC():
                kwargs: Dict[str, Any] = None,
                **keys: KeyLikeInt):
         """Create plot object."""
-        scope = db.get_subscope(scope, name='plotted').copy()
-        scope.slice(**keys, int2list=False)
+        scope_obj = db.get_subscope(scope, name='plotted').copy()
+        scope_obj.slice(**keys, int2list=False)
 
         if kwargs is None:
             kwargs = {}
-        po = cls(db, ax, scope, axes, data, **kwargs)
-        po.axes = po.find_axes(axes)
+
+        po = cls(db, ax, scope_obj, axes, data, **kwargs)
+
+        po._target_scope = scope
+        if axes is None:
+            po.axes = po.find_axes(axes)
+
         return po
 
     def set_kwargs(self, replace: bool = True, **kwargs: Any):
