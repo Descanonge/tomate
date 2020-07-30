@@ -664,7 +664,7 @@ class DataBase():
             dims = self.coords
 
         if var_class is None:
-            var_class = self.vi.get_attribute_default('class', variable,
+            var_class = self.vi.get_attribute_default(variable, 'class',
                                                       Variable)
 
         if attrs is not None:
