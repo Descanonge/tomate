@@ -171,3 +171,11 @@ class Variable():
     def is_loaded(self) -> bool:
         """If data is loaded."""
         return self.data is not None
+
+    def check_loaded(self):
+        """Raises if data is loaded.
+
+        :raises RuntimeError: If the data is not loaded.
+        """
+        if not self.is_loaded():
+            raise RuntimeError("Data not loaded.")
