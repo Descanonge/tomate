@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 import logging
 
 import numpy as np
@@ -14,6 +14,7 @@ import numpy as np
 from tomate.custom_types import Array, KeyLike
 from tomate.data_base import DataBase
 from tomate.keys.keyring import Keyring
+from tomate.variables import VariableMasked
 
 log = logging.getLogger(__name__)
 
@@ -36,29 +37,30 @@ class DataCompute(DataBase):
 
         :param coords: Coordinates to compute the gradient along.
         """
-        self.check_loaded()
-        axis = [self.coords.index(c) for c in coords]
-        values = [self.coords[c][:] for c in coords]
+        var = self[variable]
+        var.check_loaded()
+        axis = [var.dims.index(c) for c in coords]
+        values = [self.loaded.coords[c][:] for c in coords]
 
-        if 'DataMasked' in self.bases:
-            data = self.filled(fill, variables=variable)
+        if issubclass(type(var), VariableMasked):
+            data = var.filled(fill)
         else:
-            data = self[variable]
+            data = var[:]
         grad = np.gradient(data, *values, axis=axis)
         return grad
 
-    def gradient_magn(self, variable: str,
-                      coords: List[str] = None) -> Array:
+    def gradient_magn(self, variable: str, coords: List[str] = None,
+                      fill=None) -> Array:
         """Compute the gradient magnitude.
 
         See also
         --------
         gradient: Compute the gradient.
         """
-        grad = self.gradient(variable, coords)
+        grad = self.gradient(variable, coords, fill)
         magn = np.linalg.norm(grad, axis=0)
 
-        if np.ma.isMaskedArray(self.data):
+        if issubclass(type(self[variable]), VariableMasked):
             mask = self[variable].mask.copy()
             magn = np.ma.array(magn, mask=mask)
         return magn
@@ -71,25 +73,7 @@ class DataCompute(DataBase):
         der = self.gradient_nd(variable, [coord])
         return der
 
-    def apply_on_subpart(self, func: Callable,
-                         args: List[Any] = None,
-                         kwargs: Dict[str, Any] = None,
-                         keyring: Keyring = None,
-                         **keys: KeyLike):
-        """Apply function on data subset.
-        """
-        self.check_loaded()
-
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
-
-        data = self.view(keyring=keyring, **keys)
-        res = func(data, *args, **kwargs)
-        return res
-
-    def mean(self, dims: List[str] = None,
+    def mean(self, variable: str, dims: List[str] = None,
              kwargs: Dict[str, Any] = None,
              **keys: KeyLike) -> Array:
         """Compute average on a given window.
@@ -101,58 +85,61 @@ class DataCompute(DataBase):
 
         Examples
         --------
-        >>> avg = db.mean(['lat', 'lon'], var='SST', lat=slice(0, 50))
+        >>> avg = db.mean('SST', ['lat', 'lon'], lat=slice(0, 50))
 
         Compute the average SST on the 50 first indices of latitude,
         and all longitude. If the data is indexed on [time, lat, lon]
         `avg` is a one dimensional array.
         """
+        var = self[variable]
+        var.check_loaded()
+
         if dims is None:
-            dims = self.dims
+            dims = var.dims
+        if kwargs is None:
+            kwargs = {}
 
         keyring = Keyring.get_default(**keys)
-        keyring.make_full(self.dims)
+        keyring.make_full(var.dims)
         keyring.make_total()
-        keyring.sort_by(self.dims)
+        keyring.sort_by(var.dims)
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
             log.warning("You are averaging only on squeezed dimensions."
                         " Returning a view.")
-            return self.view(keyring=keyring)
+            return var.view(keyring=keyring)
 
-        if kwargs is None:
-            kwargs = {}
-
-        mean = self.apply_on_subpart(np.nanmean, args=[axes],
-                                     kwargs=kwargs, keyring=keyring)
+        mean = np.nanmean(var.view(keyring=keyring), axes, **kwargs)
         return mean
 
-    def std_dev(self, dims: str = None,
+    def std_dev(self, variable: str, dims: str = None,
                 kwargs: Dict[str, Any] = None,
                 **keys: KeyLike):
         """Compute standard deviation on a given window."""
+        var = self[variable]
+        var.check_loaded()
+
         if dims is None:
-            dims = self.dims_name
+            dims = var.dims
+        if kwargs is None:
+            kwargs = {}
 
         keyring = Keyring.get_default(**keys)
-        keyring.make_full(self.dims)
+        keyring.make_full(var.dims)
         keyring.make_total()
-        keyring.sort_by(self.dims)
+        keyring.sort_by(var.dims)
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
             log.warning("You are computing only on squeezed dimensions."
                         " Returning zeros.")
-            data = self.view(keyring=keyring)
+            data = var.view(keyring=keyring)
             data[:] = 0
             return data
 
-        if kwargs is None:
-            kwargs = {}
-
-        mean = self.apply_on_subpart(np.nanstd, args=[axes], kwargs=kwargs, **keys)
-        return mean
+        std = np.nanstd(var.view(keyring=keyring), axes, **kwargs)
+        return std
 
     def linear_combination(self):
         """Compute linear combination between variables."""
