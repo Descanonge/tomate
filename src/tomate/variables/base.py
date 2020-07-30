@@ -98,6 +98,15 @@ class Variable():
                      for d in self.dims]
         self.data = self.acs.allocate(shape, datatype=self.datatype)
 
+    def unload(self):
+        """Unload data.
+
+        Set data to None, and remove variable from loaded scope.
+        """
+        if self.name in self._db.loaded:
+            self._db.loaded.var.remove(self.name)
+        self.data = None
+
     def view(self, *keys: KeyLike, keyring: Keyring = None,
              order: List[str] = None, **kw_keys: KeyLike) -> Optional[Array]:
         """Return subset of data.

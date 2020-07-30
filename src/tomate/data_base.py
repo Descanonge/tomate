@@ -574,7 +574,7 @@ class DataBase():
         """Remove data."""
         self.loaded.empty()
         for var in self.variables.values():
-            var.data = None
+            var.unload()
 
     def set_data(self, variable: str, data: np.ndarray,
                  keyring: Keyring = None):
