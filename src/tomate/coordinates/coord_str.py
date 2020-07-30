@@ -117,7 +117,11 @@ class CoordStr(Coord):
         return self._array[indices]
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._array)
+        if self.has_data():
+            var = self._array
+        else:
+            var = []
+        return iter(var)
 
     def slice(self, key: KeyLikeStr = None):
         if key is None:
