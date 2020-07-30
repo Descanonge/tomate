@@ -35,7 +35,7 @@ class PlotObjectImage(PlotObjectImageABC):
         self.object = self.ax.imshow(image, extent=extent, **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
-        self.up_scope(**keys)
+        self.update_scope(**keys)
         image = self.get_data()
         self.image.set_data(image)
         self.image.set_extent(self.scope.get_extent(*self.axes[:2]))

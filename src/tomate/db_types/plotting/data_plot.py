@@ -150,8 +150,8 @@ class DataPlot(DataBase):
         return po
 
     def plot_avg(self, ax: Axes, variable: KeyLikeInt,
-                 data: Array = None, axes: List[str] = None,
                  avg_dims: List[str] = None,
+                 data: Array = None, axes: List[str] = None,
                  plot: bool = True, limits: bool = True,
                  kwargs: Dict[str, Any] = None,
                  **keys: KeyLikeInt) -> PlotObjectLineAvg:

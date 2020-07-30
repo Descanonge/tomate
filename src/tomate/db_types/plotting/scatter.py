@@ -78,7 +78,7 @@ class PlotObjectScatter(PlotObjectABC):
                                       **self.kwargs)
 
     def update_plot(self, **keys):
-        self.up_scope(**keys)
+        self.update_scope(**keys)
         self.object.set_offsets(np.column_stack(self.get_data()))
         sizes = self.get_sizes()
         colors = self.get_colors()

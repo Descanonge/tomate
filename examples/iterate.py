@@ -40,7 +40,7 @@ size_slice = 12
 
 for slice_time in db.avail.iter_slices('time', size=size_slice):
     db.load_selected(time=slice_time)
-    avg = db.mean(['lat', 'lon'])
+    avg = db.mean('SST', ['lat', 'lon'])
     average[slice_time] = avg
 
 
