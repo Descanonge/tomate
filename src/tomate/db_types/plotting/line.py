@@ -70,7 +70,7 @@ class PlotObjectLine(PlotObjectABC):
         self.object, = self.ax.plot(*to_plot, **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
-        self.up_scope(**keys)
+        self.update_scope(**keys)
         x = self.scope[self.axes[1-self.axis_var]]
         y = self.get_data()
         if self.axis_var != 1:

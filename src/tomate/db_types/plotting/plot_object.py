@@ -67,7 +67,7 @@ class PlotObjectABC():
         """Keyring to use for fetching data."""
         return self.scope.parent_keyring
 
-    def up_scope(self, **keys: KeyLikeInt):
+    def update_scope(self, **keys: KeyLikeInt):
         """Update some dimensions scope.
 
         Only change specified dimensions.
@@ -78,7 +78,7 @@ class PlotObjectABC():
             keyring[dim] = key
         self.reset_scope(keyring)
 
-    def up_scope_by_value(self, **keys: KeyLikeValue):
+    def update_scope_by_value(self, **keys: KeyLikeValue):
         """Update some dimensions scope by value.
 
         Only change specified dimensions.
@@ -87,7 +87,7 @@ class PlotObjectABC():
         keys_ = {}
         for dim, key in keys.items():
             keys_[dim] = KeyValue(key).apply(self.scope.dims[dim])
-        self.up_scope(**keys_)
+        self.update_scope(**keys_)
 
     def reset_scope(self, keyring: Keyring = None, **keys: KeyLikeInt):
         """Reset scope.
@@ -193,9 +193,9 @@ class PlotObjectABC():
     def update_plot(self, **keys: KeyLikeInt):
         """Update plot.
 
-        :param keys: Keys to change, as for `up_scope`.
+        :param keys: Keys to change, as for `update_scope`.
         """
-        self.up_scope(**keys)
+        self.update_scope(**keys)
         self.remove()
         self.create_plot()
 

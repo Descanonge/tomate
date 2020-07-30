@@ -30,13 +30,13 @@ The scope scan be sliced, or redefined with methods:
 
 * :func:`reset_scope`, that will redefine all keys from the parent
   scope.
-* :func:`up_scope`, that will only redefine the keys specified in arguments.
+* :func:`update_scope`, that will only redefine the keys specified in arguments.
 
 The plot is created by :func:`create_plot`.
 The artist can be removed from the axis by :func:`remove` (the figure
 might need redrawing).
 It can be updated with :func:`update_plot`,
-where keys can be specified to update the scope with `up_scope`.
+where keys can be specified to update the scope with `update_scope`.
 
 The object retains the axis it was drawn upon under the :attr:`ax` attribute.
 And whatever artist was returned by matplotlib in the
