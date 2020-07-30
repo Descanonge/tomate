@@ -132,3 +132,9 @@ class CoordStr(Coord):
         """Add value."""
         variables = list(self[:]) + [var]
         self.update_values(variables)
+
+    def remove(self, var: str):
+        """Remove value."""
+        values = list(self[:])
+        values.remove(var)
+        self.update_values(values)
