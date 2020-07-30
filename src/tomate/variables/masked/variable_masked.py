@@ -6,19 +6,16 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Callable, List, Union
+from typing import List, Union
 import logging
-import os.path
 
 import numpy as np
 
-from tomate.coordinates.coord import Coord
 from tomate.custom_types import Array, KeyLike
 from tomate.accessor import Accessor
-from tomate.keys.keyring import Keyring
 from tomate.variables.base import Variable
 
-# import tomate.variables.masked.mask
+import tomate.variables.masked.mask
 
 
 log = logging.getLogger(__name__)
@@ -69,7 +66,7 @@ class VariableMasked(Variable):
         self.compute_land_mask_func = None
         super().__init__(*args, **kwargs)
 
-    def set_mask(self, variable: str, mask: Union[Array, bool, int]):
+    def set_mask(self, mask: Union[Array, bool, int]):
         """Set mask to variable data.
 
         :param mask: Potential mask.
@@ -83,15 +80,15 @@ class VariableMasked(Variable):
         self.check_loaded()
 
         if isinstance(mask, (bool, int)):
-            mask_array = np.ma.make_mask_none(self.shape[1:])
+            mask_array = np.ma.make_mask_none(self.shape)
             mask_array ^= mask
         else:
             mask_array = np.ma.make_mask(mask, shrink=None)
 
-        if list(mask_array.shape) != self.shape[1:]:
+        if self.acs.shape(mask_array) != self.shape:
             raise IndexError("Mask has incompatible shape ({}, expected {})"
-                             .format(self.acs.shape(mask_array), self.shape[1:]))
-        self[variable].mask = mask_array
+                             .format(self.acs.shape(mask_array), self.shape))
+        self.data.mask = mask_array
 
     def filled(self, fill: Union[str, float] = 'fill_value',
                axes: List[int] = None,
@@ -107,8 +104,7 @@ class VariableMasked(Variable):
         """
         data = self.view(**keys)
         if fill == 'edge':
-            pass
-            # filled = tomate.db_types.masked.mask.fill_edge(data, axes)
+            filled = tomate.variables.masked.mask.fill_edge(data, axes)
         else:
             if fill == 'nan':
                 fill_value = np.nan
@@ -119,78 +115,30 @@ class VariableMasked(Variable):
             filled = data.filled(fill_value)
         return filled
 
-    def get_coverage(self, variable: str, *coords: str) -> Union[Array, float]:
-        """Return percentage of not masked values for a variable.
+    def get_coverage(self, *dims: str) -> Union[Array, float]:
+        """Return percentage of not masked values.
 
-        :param coords: Coordinates to compute the coverage along.
+        :param dims: Coordinates to compute the coverage along.
             If None, all coordinates are taken.
 
         Examples
         --------
-        >>> print(dt.get_coverage('SST'))
+        >>> print(dt.get_coverage())
         70.
 
         If there is a time variable, we can have the coverage
         for each time step.
 
-        >>> print(dt.get_coverage('SST', 'lat', 'lon'))
+        >>> print(dt.get_coverage('lat', 'lon'))
         array([80.1, 52.6, 45.0, ...])
         """
-        if not coords:
-            coords = self.coords
-        axis = [self.coords.index(c) for c in coords]
+        if not dims:
+            dims = self.dims
+        axis = [self.coords.index(c) for c in dims]
 
         size = 1
-        for c in coords:
+        for c in dims:
             size *= self.loaded[c].size
 
-        cover = np.sum(~self[variable].mask, axis=tuple(axis))
+        cover = np.sum(~self[:].mask, axis=tuple(axis))
         return cover / size * 100
-
-    def set_compute_land_mask(self, func: Callable[[Coord, Coord], Array]):
-        """Set function to compute land mask.
-
-        Parameters
-        ----------
-        func: Function that receives latitude and longitude
-             coordinates and returns a land mask as a boolean array.
-        """
-        self.compute_land_mask_func = func
-
-    def compute_land_mask(self, file: str = None):
-        """Compute land mask and save to disk.
-        :param file: File to save the mask in. Absolute path.
-            If None, is 'land_mask.npy' in the database root directory.
-        """
-        if file is None:
-            file = os.path.join(self.root + 'land_mask.npy')
-        lat = self.avail.lat
-        lon = self.avail.lon
-        mask = self.compute_land_mask_func(lat, lon)
-        np.save(file, mask)
-
-    def get_land_mask(self, file: str = None,
-                      keyring: Keyring = None,
-                      **keys: KeyLike) -> Array:
-        """Return land mask.
-
-        If not already on-disk at `file`, compute it.
-
-        :param file: Numpy binary file containing the land mask.
-            Filename is absolute.
-            If None, is 'land_mask.npy' in the database root directory.
-        """
-        if file is None:
-            file = os.path.join(self.root + 'land_mask.npy')
-
-        keyring = Keyring.get_default(keyring, **keys)
-        # TODO: subset of land mask default to loaded or selected
-        try:
-            file = np.load(file, mmap_mode='r')
-        except FileNotFoundError:
-            self.compute_land_mask()
-            self.get_land_mask()
-        else:
-            mask = self.acs.take(file, keyring)
-
-        return mask
