@@ -8,6 +8,7 @@
 
 import matplotlib.image
 
+from tomate.coordinates.time import Time
 from tomate.custom_types import KeyLikeInt
 from tomate.db_types.plotting.image_abc import PlotObjectImageABC
 
@@ -31,7 +32,14 @@ class PlotObjectImage(PlotObjectImageABC):
 
     def create_plot(self):
         image = self.get_data()
-        extent = self.scope.get_extent(*self.axes[:2])
+        extent = []
+        for name in self.axes[:2]:
+            dim = self.scope[name]
+            if issubclass(type(dim), Time):
+                extent += dim.change_units_other(dim[[0, -1]], dim.units,
+                                                 'days since 01-01-01').tolist()
+            else:
+                extent += dim.get_extent()
         self.object = self.ax.imshow(image, extent=extent, **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
