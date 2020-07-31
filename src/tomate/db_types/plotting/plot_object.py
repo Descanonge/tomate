@@ -8,10 +8,10 @@
 
 from typing import Any, Dict, List, Union, TYPE_CHECKING
 
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+from tomate.coordinates.time import Time
 from tomate.custom_types import Array, KeyLikeInt, KeyLikeValue
 from tomate.keys.key import KeyValue
 from tomate.keys.keyring import Keyring
@@ -215,7 +215,11 @@ class PlotObjectABC():
         :param name: Coordinate or variable name.
         """
         if name in self.scope.coords:
-            limits = self.scope[name].get_limits()
+            dim = self.scope[name]
+            if issubclass(type(dim), Time):
+                limits = dim.index2date([0, -1], pydate=True)
+            else:
+                limits = dim.get_limits()
         else:
             vmin = self.db.vi.get_attribute_default(name, 'vmin')
             vmax = self.db.vi.get_attribute_default(name, 'vmax')
