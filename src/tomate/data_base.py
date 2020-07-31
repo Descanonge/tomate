@@ -629,9 +629,10 @@ class DataBase():
         Create variable object, and add variable to available scope.
 
         If `dims`, `var_class`, or `datatype` are not specified,
-        the value in the VI for the pair `variable` / 'dims', 'class',
-        'datatype' will be used.
-        If neither are specified, the default will be used (see below).
+        the value in the VI for the pair `variable` / `_dims`,
+        `_var_class`, `_datatype` are used, if not in the VI, the
+        value in the VI without the leading underscores, and if not
+        in the VI either, the default will be used (see below).
 
         :param variable: Name of variable
         :param dims: [opt] List of dimensions this variable vary along.
@@ -648,7 +649,7 @@ class DataBase():
             log.warning('%s already in variables, it will be overwritten.')
 
         if dims is None:
-            dims = self.vi.get_attribute_default('dims', variable, None)
+            dims = self.vi.get_attribute_param('dims', variable, None)
 
         if dims is None:
             krg = Keyring(var=variable)
@@ -671,8 +672,8 @@ class DataBase():
             dims = self.coords
 
         if var_class is None:
-            var_class = self.vi.get_attribute_default(variable, 'class',
-                                                      Variable)
+            var_class = self.vi.get_attribute_param(variable, 'var_class',
+                                                    Variable)
 
         if attrs is not None:
             self.vi.set_attributes(variable, **attrs)
@@ -683,7 +684,7 @@ class DataBase():
             self.avail.var.append(variable)
 
         if datatype is None:
-            datatype = self.vi.get_attribute_default(variable, 'datatype', None)
+            datatype = self.vi.get_attribute_param(variable, 'datatype', None)
         db_var.datatype = datatype
 
         self.variables[variable] = db_var
