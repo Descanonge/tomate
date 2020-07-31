@@ -162,8 +162,8 @@ class PlotObjectABC():
                kwargs: Dict[str, Any] = None,
                **keys: KeyLikeInt):
         """Create plot object."""
-        scope_obj = db.get_subscope(scope, name='plotted').copy()
-        scope_obj.slice(**keys, int2list=False)
+        scope_obj = db.get_subscope_by_value(scope, name='plotted',
+                                             **keys, int2list=False)
 
         if scope_obj.var.size == 1:
             dims = db[scope_obj.var[0]].dims

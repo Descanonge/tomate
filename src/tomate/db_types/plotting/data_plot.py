@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeStr
+from tomate.custom_types import Array, KeyLike, KeyLikeValue
 from tomate.data_base import DataBase
 
 from tomate.db_types.plotting.contour import PlotObjectContour
@@ -30,11 +30,11 @@ log = logging.getLogger(__name__)
 class DataPlot(DataBase):
     """Added functionalities for plotting data."""
 
-    def plot(self, ax: Axes, variable: KeyLikeStr,
+    def plot(self, ax: Axes, variable: str,
              data: Array = None, axes: List[str] = None,
              plot: bool = True, limits: bool = True,
              kwargs: Dict[str, Any] = None,
-             **keys: KeyLikeInt) -> PlotObjectLine:
+             **keys: KeyLikeValue) -> PlotObjectLine:
         """Plot evolution of a variable against a dimension.
 
         Creates a plot object and eventually plots data.
@@ -51,14 +51,14 @@ class DataPlot(DataBase):
         :param plot: Draw the plot if True (default).
         :param limits: Change axis limits to data limits if True (default).
         :param kwargs: [opt] Keywords arguments to pass to plotting function.
-        :param keys: Select part of data to plot.
+        :param keys: Select part of data to plot by value.
             Selected data should have correct dimension (here 1D).
 
         See also
         --------
         matplotlib.axes.Axes.plot: Function used.
         """
-        self.check_loaded()
+        self[variable].check_loaded()
         po = PlotObjectLine.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                    var=variable, **keys)
         if plot:
@@ -68,11 +68,11 @@ class DataPlot(DataBase):
 
         return po
 
-    def imshow(self, ax: Axes, variable: KeyLikeStr,
+    def imshow(self, ax: Axes, variable: str,
                data: Array = None, axes: List[str] = None,
                plot: bool = True, limits: bool = True,
                kwargs: Dict[str, Any] = None,
-               **keys: KeyLikeInt) -> PlotObjectImage:
+               **keys: KeyLikeValue) -> PlotObjectImage:
         """Plot variable as 2D image.
 
         See also
@@ -80,7 +80,7 @@ class DataPlot(DataBase):
         DataPlot.plot: For more details on arguments.
         matplotlib.axes.Axes.imshow: Function used.
         """
-        self.check_loaded()
+        self[variable].check_loaded()
         po = PlotObjectImage.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                     var=variable, **keys)
         if plot:
@@ -90,11 +90,11 @@ class DataPlot(DataBase):
 
         return po
 
-    def contour(self, ax: Axes, variable: KeyLikeStr,
+    def contour(self, ax: Axes, variable: str,
                 data: Array = None, axes: List[str] = None,
                 plot: bool = True, limits: bool = True,
                 kwargs: Dict[str, Any] = None,
-                **keys: KeyLikeInt) -> PlotObjectContour:
+                **keys: KeyLikeValue) -> PlotObjectContour:
         """Plot variable as contours.
 
         See also
@@ -102,7 +102,7 @@ class DataPlot(DataBase):
         DataPlot.plot: For more details on arguments.
         matplotlib.axes.Axes.imshow: Function used.
         """
-        self.check_loaded()
+        self[variable].check_loaded()
         po = PlotObjectContour.create(self, ax, data=data, axes=axes, kwargs=kwargs,
                                       var=variable, **keys)
         if plot:
@@ -117,7 +117,7 @@ class DataPlot(DataBase):
                 sizes=None, colors=None,
                 plot: bool = True, limits: bool = True,
                 kwargs: Dict[str, Any] = None,
-                **keys: KeyLikeInt) -> PlotObjectScatter:
+                **keys: KeyLikeValue) -> PlotObjectScatter:
         """Plot a variable against another.
 
         :param variable1: Variable on X-axis
@@ -149,12 +149,12 @@ class DataPlot(DataBase):
 
         return po
 
-    def plot_avg(self, ax: Axes, variable: KeyLikeInt,
+    def plot_avg(self, ax: Axes, variable: str,
                  avg_dims: List[str] = None,
                  data: Array = None, axes: List[str] = None,
                  plot: bool = True, limits: bool = True,
                  kwargs: Dict[str, Any] = None,
-                 **keys: KeyLikeInt) -> PlotObjectLineAvg:
+                 **keys: KeyLikeValue) -> PlotObjectLineAvg:
         """Plot evolution of average of a variable against a dimension.
 
         Selected data once averaged should be of dimension 1.
@@ -168,7 +168,7 @@ class DataPlot(DataBase):
         matplotlib.axes.Axes.plot: Function used.
         tomate.db_types.data_compute.DataCompute.mean: Function used for averaging.
         """
-        self.check_loaded()
+        self[variable].check_loaded()
         if kwargs is None:
             kwargs = {}
         kwargs['avg_dims'] = avg_dims
@@ -182,12 +182,12 @@ class DataPlot(DataBase):
 
         return po
 
-    def imshow_avg(self, ax: Axes, variable: KeyLikeStr,
+    def imshow_avg(self, ax: Axes, variable: str,
                    data: Array = None, axes: List[str] = None,
                    avg_dims: List[str] = None,
                    plot: bool = True, limits: bool = True,
                    kwargs: Dict[str, Any] = None,
-                   **keys: KeyLikeInt) -> PlotObjectImageAvg:
+                   **keys: KeyLikeValue) -> PlotObjectImageAvg:
         """Plot image of average of a variable against a dimension.
 
         Selected data once averaged should be of dimension 2.
@@ -201,13 +201,12 @@ class DataPlot(DataBase):
         matplotlib.axes.Axes.imshow: Function used.
         tomate.db_types.data_compute.DataCompute.mean: Function used for averaging.
         """
-        self.check_loaded()
+        self[variable].check_loaded()
         if kwargs is None:
             kwargs = {}
         kwargs['avg_dims'] = avg_dims
         po = PlotObjectImageAvg.create(self, ax, data=data, axes=axes,
-                                       kwargs=kwargs,
-                                       var=variable, **keys)
+                                       kwargs=kwargs, var=variable, **keys)
         if plot:
             po.create_plot()
         if limits:
@@ -259,7 +258,7 @@ class DataPlot(DataBase):
         self.check_loaded()
 
         if variables is None:
-            variables = self.loaded.var[:]
+            variables = self.loaded.var[:].tolist()
         axes = np.array(axes)
         for i in range(axes.size - len(variables)):
             variables.append(None)
