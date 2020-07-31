@@ -43,6 +43,10 @@ class PlotObjectAvgABC(PlotObjectABC):
             raise TypeError("DataCompute necessary for averaging.")
         var = self.keyring.pop('var')
         var.make_idx_str(self.scope.var)
-        data = self.db.mean(var.value, self.avg_dims,
+        var = var.value
+        data = self.db.mean(var, self.avg_dims,
                             **self.keyring.kw)
+        axes = [d for d in self.db[var].dims if d not in self.avg_dims]
+        target = self.axes[:2][::-1]
+        data = self.db[var].acs.reorder(axes, data, target)
         return data
