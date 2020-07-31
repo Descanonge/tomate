@@ -19,8 +19,7 @@ class PlotObjectImageABC(PlotObjectABC):
 
     def _get_data(self) -> Array:
         image = self.db.view_selected(self.scope,
-                                      order=self.axes[1::-1],
-                                      keyring=self.keyring)
+                                      order=self.axes[1::-1])
         return image
 
     def find_axes(self, axes: List[str] = None) -> List[str]:
