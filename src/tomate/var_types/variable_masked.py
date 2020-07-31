@@ -13,9 +13,9 @@ import numpy as np
 
 from tomate.custom_types import Array, KeyLike
 from tomate.accessor import Accessor
-from tomate.variables.base import Variable
+from tomate.variable_base import Variable
 
-import tomate.variables.masked.mask
+import tomate.util.mask
 
 
 log = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class VariableMasked(Variable):
         """
         data = self.view(**keys)
         if fill == 'edge':
-            filled = tomate.variables.masked.mask.fill_edge(data, axes)
+            filled = tomate.util.mask.fill_edge(data, axes)
         else:
             if fill == 'nan':
                 fill_value = np.nan

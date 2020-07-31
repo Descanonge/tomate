@@ -16,7 +16,7 @@ from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeValue
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
-from tomate.variables.base import Variable
+from tomate.variable_base import Variable
 from tomate.variables_info import VariablesInfo
 
 

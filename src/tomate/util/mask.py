@@ -15,7 +15,7 @@ except ImportError:
 else:
     _has_scipy = True
 
-from tomate.db_types.data_compute import do_stack
+from tomate.util.do_stack import do_stack
 
 
 def get_circle_kernel(n):

@@ -24,7 +24,7 @@ from tomate.coordinates.time import Time
 from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
-from tomate.variables.masked.variable_masked import VariableMasked
+from tomate.var_types.variable_masked import VariableMasked
 
 if TYPE_CHECKING:
     from tomate.data_base import DataBase
