@@ -190,6 +190,18 @@ class VariablesInfo():
         except KeyError:
             return default
 
+    def get_attribute_param(self, var: str, attr: str,
+                            default: Any = None) -> Any:
+        """Get attribute.
+
+        Try 'attribute', then '_attribute', then `default`.
+        """
+        if self.has(var, attr):
+            return self.get_attribute(var, attr)
+        if self.has(var, f'_{attr}'):
+            return self.get_attribute(var, f'_{attr}')
+        return default
+
     def get_info(self, info: str) -> Any:
         """Get info."""
         return self._infos[info]
