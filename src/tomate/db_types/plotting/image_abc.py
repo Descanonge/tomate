@@ -34,6 +34,8 @@ class PlotObjectImageABC(PlotObjectABC):
         if len(axes_) == 2:
             axes_.append(self.scope.var[0])
 
+        self.var_idx = 2
+
         return axes_
 
     def set_limits(self):

@@ -28,4 +28,6 @@ class PlotObjectImageAvg(PlotObjectAvgABC, PlotObjectImage):
         if len(axes_) != 3:
             raise IndexError(f"Number of axes not 3 ({axes_})")
 
+        self.var_idx = 2
+
         return axes_

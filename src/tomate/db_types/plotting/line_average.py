@@ -27,6 +27,6 @@ class PlotObjectLineAvg(PlotObjectAvgABC, PlotObjectLine):
             raise IndexError(f"Number of axes not 2 ({axes_})")
 
         if axes_[0] in self.scope.coords:
-            self.axis_var = 1
+            self.var_idx = 1
 
         return axes_

@@ -47,6 +47,8 @@ class PlotObjectScatter(PlotObjectABC):
         if len(axes_) != 2:
             raise IndexError(f"Number of not 2 ({axes_})")
 
+        self.var_idx = [0, 1]
+
         return axes_
 
     def check_keyring(self):

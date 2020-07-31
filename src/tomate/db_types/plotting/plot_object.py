@@ -42,6 +42,8 @@ class PlotObjectABC():
     :attr kwargs: Dict[Any]: Keyword arguments to use for creating plot.
     :attr cax: matplotlib.axes.Axes: Colorbar axis.
     :attr colorbar: matplotlib.colorbar.Colorbar: Colorbar object.
+    :attr var_idx: Union[int, List[int]]: Positions of plotted variables
+        in `axes` attribute.
     """
 
     DIM = 0  #: Dimension of the data to plot.
@@ -56,6 +58,7 @@ class PlotObjectABC():
         self.data = data
         self.kwargs = kwargs
         self.axes = axes
+        self.var_idx = None
 
         self.ax = ax
         self.object = None
@@ -96,7 +99,18 @@ class PlotObjectABC():
         """
         scope = self.db.get_subscope(self._target_scope, keyring,
                                      int2list=False)
+        if scope.var != self.scope.var:
+            self.update_variables(scope.var[:].tolist())
         self.scope = scope
+
+    def update_variables(self, var: List[str]):
+        """Update variables plotted."""
+        if isinstance(self.var_idx, int):
+            var_idx = [self.var_idx]
+        else:
+            var_idx = self.var_idx
+        for i, v in zip(var_idx, var):
+            self.axes[i] = v
 
     def reset_scope_by_value(self, **keys: KeyLikeValue):
         """Reset scope.
@@ -144,8 +158,7 @@ class PlotObjectABC():
     @classmethod
     def create(cls, db: 'DataPlot', ax: Axes,
                scope: Union[str, Scope] = 'loaded',
-               axes: List[str] = None,
-               data=None,
+               axes: List[str] = None, data=None,
                kwargs: Dict[str, Any] = None,
                **keys: KeyLikeInt):
         """Create plot object."""

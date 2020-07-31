@@ -18,19 +18,12 @@ from tomate.db_types.plotting.plot_object import PlotObjectABC
 class PlotObjectLine(PlotObjectABC):
     """Plot a variables against a coordinate.
 
-    :attr axis_var: int: Place of variable in axes
-        (0 if variable is on X, 1 if on Y)
-
     See also
     --------
     matplotlib.axes.Axes.plot: Function used.
     """
 
     DIM = 1
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.axis_var = 0
 
     @property
     def line(self) -> matplotlib.lines.Line2D:
@@ -47,9 +40,9 @@ class PlotObjectLine(PlotObjectABC):
             raise IndexError(f"Number of axes not 2 ({axes_})")
 
         if axes_[0] in self.scope.coords:
-            self.axis_var = 1
+            self.var_idx = 1
         else:
-            self.axis_var = 0
+            self.var_idx = 0
 
         return axes_
 
@@ -59,21 +52,21 @@ class PlotObjectLine(PlotObjectABC):
     def create_plot(self):
         data = self.get_data()
 
-        dim = self.scope[self.axes[1-self.axis_var]]
+        dim = self.scope[self.axes[1-self.var_idx]]
         if issubclass(type(dim), Time):
             data_dim = dim.index2date(pydate=True)
         else:
             data_dim = dim[:]
         to_plot = [data_dim, data]
-        if self.axis_var != 1:
+        if self.var_idx != 1:
             to_plot.reverse()
         self.object, = self.ax.plot(*to_plot, **self.kwargs)
 
     def update_plot(self, **keys: KeyLikeInt):
         self.update_scope(**keys)
-        x = self.scope[self.axes[1-self.axis_var]]
+        x = self.scope[self.axes[1-self.var_idx]]
         y = self.get_data()
-        if self.axis_var != 1:
+        if self.var_idx != 1:
             x, y = y, x
         self.object.set_xdata(x)
         self.object.set_ydata(y)
