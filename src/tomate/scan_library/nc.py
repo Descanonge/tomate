@@ -90,7 +90,7 @@ def scan_variables_datatype(fg: FilegroupNetCDF, file: nc.Dataset,
         attrs[var] = {'datatype': dtype.str}
 
         if ({'_FillValue', 'missing_value'} & set(list(file[var].ncattrs()))):
-            attrs[var]['class'] = VariableMasked
+            attrs[var]['_var_class'] = VariableMasked
     return attrs
 
 
