@@ -166,8 +166,6 @@ class Key():
         """
         self.parent_size = len(coord)
         if self.type == 'slice':
-            if self.size == 0:
-                raise IndexError(f"Invalid slice ({self.value}) of size 0")
             self._size = len(self.apply(coord))
 
     def no_int(self) -> 'Key':
