@@ -32,10 +32,8 @@ class Key():
     :attr str: bool: If the key is a string or a list of strings.
     :attr parent_size: int, None: Size of the sequence it would be applied to.
         Useful for reversing keys, or turning slices into lists.
-    :attr size: int, None: Length of what the key would select.
-        Integer and None keys have size 0 (they would return a scalar).
-        Is None if the size is undecidable (for some slices
-        for instance).
+    :attr _size: int, None: Length of what the key would select.
+        Is False until size of key is computed.
     """
 
     INT_TYPES = (int, np.integer)  #: Types that are considered integer.
@@ -45,10 +43,21 @@ class Key():
         self.type = 'none'
         self.str = False
 
-        self.size = None
+        self._size = False
         self.parent_size = None
 
         self.set(key)
+
+    @property
+    def size(self) -> Optional[int]:
+        """Length of what the key would select.
+
+        Integer and None keys have size 0 (they would return a scalar).
+        Is None if the size is undecidable (for some slices
+        for instance)."""
+        if self._size is False and self.type == 'slice':
+            self._size = guess_slice_size(self.value)
+        return self._size
 
     def set(self, key: KeyLike):
         """Set key value.
@@ -112,15 +121,11 @@ class Key():
         :raises IndexError: If slice of size 0.
         """
         if self.type == 'int':
-            self.size = 0
+            self._size = 0
         elif self.type == 'none':
-            self.size = 0
+            self._size = 0
         elif self.type == 'list':
-            self.size = len(self.value)
-        elif self.type == 'slice':
-            self.size = guess_slice_size(self.value)
-            if self.size == 0:
-                raise IndexError(f"Invalid slice ({self.value}) of size 0")
+            self._size = len(self.value)
 
     def __eq__(self, other: 'Key'):
         return self.value == other.value
@@ -145,7 +150,7 @@ class Key():
         else:
             value = self.value
         key = self.__class__(value)
-        key.size = self.size
+        key._size = self._size
         key.parent_size = self.parent_size
         return key
 
@@ -161,9 +166,9 @@ class Key():
         """
         self.parent_size = len(coord)
         if self.type == 'slice':
-            self.size = len(self.apply(coord))
             if self.size == 0:
                 raise IndexError(f"Invalid slice ({self.value}) of size 0")
+            self._size = len(self.apply(coord))
 
     def no_int(self) -> 'Key':
         """Return copy that replaces int with list."""
@@ -268,7 +273,7 @@ class Key():
             key = self.__class__(out)
         else:
             key = self.__class__(list2slice(out))
-            key.size = len(out)
+            key._size = len(out)
 
         return key
 
@@ -306,14 +311,14 @@ class Key():
         if self.type == 'list' and len(self.value) == 1:
             self.type = 'int'
             self.value = self.value[0]
-            self.size = 0
+            self._size = 0
 
     def make_int_list(self):
         """Make integer a list of lenght one."""
         if self.type == 'int':
             self.type = 'list'
             self.value = [self.value]
-            self.size = 1
+            self._size = 1
 
     def make_list(self, coord: Sequence = None):
         """Transform key into list.
