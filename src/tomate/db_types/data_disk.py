@@ -125,8 +125,7 @@ class DataDisk(DataBase):
         keyring.make_str_idx(**self.avail.dims)
         keyring.sort_by(self.dims)
 
-        self.loaded = self.get_subscope('avail', keyring)
-        self.loaded.name = 'loaded'
+        self.loaded = self.get_subscope('avail', keyring, name='loaded')
 
         for var in self.loaded.var:
             self.variables[var].allocate()
