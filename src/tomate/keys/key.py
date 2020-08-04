@@ -272,6 +272,7 @@ class Key():
             key = self.__class__(out)
         else:
             key = self.__class__(list2slice(out))
+            assert key.type == 'slice'
             key._size = len(out)
 
         return key
