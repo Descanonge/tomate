@@ -160,9 +160,9 @@ class Keyring():
 
     def set_shape(self, coords: Dict[str, 'Coord']):
         """Set shape of keys using coordinates."""
-        for name, k in self.items():
-            if name in coords:
-                k.set_size_coord(coords[name])
+        for name, coord in coords.items():
+            if name in self:
+                self[name].set_size_coord(coord)
 
     def get_non_zeros(self) -> List[str]:
         """Return dimensions name with a non zero shape.
