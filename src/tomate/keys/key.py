@@ -183,7 +183,12 @@ class Key():
         if self.type == 'list':
             self.value = self.value[::-1]
         elif self.type == 'slice':
-            self.value = reverse_slice_order(self.value)
+            if is_none_slice(self.value):
+                self.value = slice(None, None, -1)
+            else:
+                self.make_list()
+                self.reverse()
+                self.simplify()
 
     def simplify(self):
         """Simplify list into a slice if possible.
@@ -200,12 +205,8 @@ class Key():
     def as_list(self) -> Union[List[int], List[str]]:
         """Return list of key.
 
-        If self is a slice and the parent size is not set,
-        try to guess a list if possible. Throw error if not possible.
-
-        See also
-        --------
-        guess_tolist
+        :raises TypeError: If is slice and parent size was
+            not set, will throw.
         """
         a = self.value
         if self.type == 'int':
@@ -213,10 +214,11 @@ class Key():
         elif self.type == 'list':
             a = a.copy()
         elif self.type == 'slice':
-            if self.parent_size is not None:
-                a = list(range(*self.value.indices(self.parent_size)))
-            else:
-                a = guess_tolist(self.value)
+            if self.parent_size is None:
+                raise TypeError("parent_size must be set to transform"
+                                "slice into list")
+            a = list(range(*a.indices(self.parent_size)))
+
         return a
 
     def apply(self, seq: Sequence, int2list=False) -> Union[List[Any], Any]:
@@ -317,19 +319,6 @@ class Key():
             self.value = [self.value]
             self._size = 1
 
-    def make_list(self, coord: Sequence = None):
-        """Transform key into list.
-
-        :param coord: If not None, is used to create list.
-        """
-        self.make_int_list()
-        if self.type == 'slice':
-            if coord is not None:
-                self.set(self.apply(coord))
-                self.parent_size = len(coord)
-            else:
-                self.set(guess_tolist(self.value))
-
     def make_idx_str(self, coord: 'CoordStr'):
         """Transform indices into strings"""
         if not self.str:
@@ -401,6 +390,14 @@ class KeyValue():
         raise TypeError(f"Not applicable (key type '{self.type}')")
 
 
+def is_none_slice(slc) -> bool:
+    """Return if slice is equivalent to None slice."""
+    is_none = (slc.start in [0, None]
+               and slc.stop in [-1, None]
+               and slc.step in [1, None])
+    return is_none
+
+
 def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
     """Simplify a key.
 
@@ -445,6 +442,8 @@ def list2slice(L: List[int]) -> Union[slice, List[int]]:
 def guess_slice_size(slc: slice) -> Optional[int]:
     """Guess the size of a slice.
 
+    NOT MAINTAINED.
+
     :returns: None if it is not possible to guess.
         (for instance for slice(None, None))
     """
@@ -482,6 +481,8 @@ def guess_slice_size(slc: slice) -> Optional[int]:
 
 def guess_tolist(slc: slice) -> List[int]:
     """Guess a list of indices without the size.
+
+    NOT MAINTAINED.
 
     Transforming a slice into a list of indices requires
     the size of the sequence the slice is destined for.
@@ -522,6 +523,8 @@ def guess_tolist(slc: slice) -> List[int]:
 def reverse_slice_order(slc: slice) -> slice:
     """Reverse a slice order.
 
+    NOT MAINTAINED.
+
     ie the order in which indices are taken.
     The indices themselves do not change.
     We assume the slice is valid (size > 0).
@@ -546,10 +549,3 @@ def reverse_slice_order(slc: slice) -> slice:
     step *= -1
     start, stop = stop, start
     return slice(start, stop, step)
-
-
-def is_none_slice(slc):
-    is_none = (slc.start in [0, None]
-               and slc.stop in [-1, None]
-               and slc.step in [1, None])
-    return is_none
