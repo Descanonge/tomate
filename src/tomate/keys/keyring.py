@@ -295,12 +295,9 @@ class Keyring():
 
         :returns: self*other
         """
-        res = Keyring()
-        other_ = other.copy()
-        other_.make_full(self.dims)
-        other_.make_total()
-        for name, key in self.items():
-            res[name] = key * other_[name]
+        res = self.copy()
+        for name, key in other.items():
+            res[name] = self[name] * key
         return res
 
     def __add__(self, other: 'Keyring') -> 'Keyring':
