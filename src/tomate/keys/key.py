@@ -216,7 +216,7 @@ class Key():
         elif self.type == 'slice':
             if self.parent_size is None:
                 raise TypeError("parent_size must be set to transform"
-                                "slice into list")
+                                " slice into list")
             a = list(range(*a.indices(self.parent_size)))
 
         return a
@@ -230,7 +230,7 @@ class Key():
         """
         if self.str and all(isinstance(z, str) for z in seq):
             return [z for z in seq if z in self]
-        if self.type == 'list' or int2list:
+        if self.type == 'list' or (int2list and self.type == 'int'):
             return [seq[z] for z in self]
         if self.type == 'int':
             return seq[self.value]
