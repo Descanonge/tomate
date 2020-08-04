@@ -107,6 +107,7 @@ class Key():
         self.type = tp
         self.str = s
 
+        self._size = False
         self.set_size()
 
     def set_size(self):
