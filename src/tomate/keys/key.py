@@ -219,7 +219,7 @@ class Key():
                 a = guess_tolist(self.value)
         return a
 
-    def apply(self, seq: Sequence) -> Union[List[Any], Any]:
+    def apply(self, seq: Sequence, int2list=False) -> Union[List[Any], Any]:
         """Apply key to a sequence.
 
         :returns: One element or a list of elements
@@ -228,10 +228,10 @@ class Key():
         """
         if self.str and all(isinstance(z, str) for z in seq):
             return [z for z in seq if z in self]
+        if self.type == 'list' or int2list:
+            return [seq[z] for z in self]
         if self.type == 'int':
             return seq[self.value]
-        if self.type == 'list':
-            return [seq[z] for z in self.value]
         if self.type == 'slice':
             return seq[self.value]
         raise TypeError("Key not applicable")
@@ -255,15 +255,14 @@ class Key():
             return self
 
         a = self.as_list()
-        b = other.copy()
-        b.make_int_list()
+        b = other
         if other.str and not self.str:
             raise TypeError("Cannot multiply an integer indices key"
                             " by a string indices key")
         elif self.str and other.str:
             out = [z for z in a if z in b]
         else:
-            out = b.apply(a)
+            out = b.apply(a, int2list=True)
 
         if self.type == 'int' or other.type == 'int':
             key = self.__class__(out[0])
