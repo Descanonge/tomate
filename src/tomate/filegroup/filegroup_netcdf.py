@@ -116,7 +116,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 file.createVariable(name, 'f', [name])
                 file[name][:] = coord[key.value]
                 log.info("Laying %s values, extent %s", name,
-                         coord.get_extent_str(key.no_int().value))
+                         coord.get_extent_str(key.no_int()))
 
                 file[name].setncattr('fullname', coord.fullname)
                 file[name].setncattr('units', coord.units)

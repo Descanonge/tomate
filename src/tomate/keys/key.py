@@ -170,11 +170,10 @@ class Key():
             self._size = len(self.apply(coord))
 
     def no_int(self) -> 'Key':
-        """Return copy that replaces int with list."""
-        new = self.copy()
+        """Return value but replace int with list."""
         if self.type == 'int':
-            new.set([self.value])
-        return new
+            return [self.value]
+        return self.value
 
     def reverse(self):
         """Reverse key.

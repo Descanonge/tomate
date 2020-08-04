@@ -426,8 +426,8 @@ class FilegroupScan():
             if isinstance(key, KeyValue):
                 key = Key(key.apply(cs))
             log.debug("Slicing '%s' in filegroup '%s' with indices %s",
-                      dim, self.name, key.no_int().value)
-            cs.slice(key.no_int().value)
+                      dim, self.name, key.no_int())
+            cs.slice(key.no_int())
 
 
 def make_filegroup(fg_type: Type, root: str, dims: List[Coord],

@@ -223,9 +223,9 @@ class FilegroupLoad(FilegroupScan):
         rgx_idxs = []
         in_idxs = []
         for name, cs in self.iter_shared(True).items():
-            key = keyring[name].no_int()
-            matches.append(key.apply(cs.matches))
-            in_idxs.append(key.apply(cs.in_idx))
+            key = keyring[name]
+            matches.append(key.apply(cs.matches, int2list=True))
+            in_idxs.append(key.apply(cs.in_idx, int2list=True))
             rgx_idxs.append([rgx.idx for rgx in cs.matchers])
         return matches, rgx_idxs, in_idxs
 

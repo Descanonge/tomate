@@ -240,7 +240,7 @@ class DataDisk(DataBase):
         keyring.make_total()
         keyring.make_str_idx(**self.loaded.dims)
 
-        variables = self.loaded.var.get_str_names(keyring['var'].no_int().value)
+        variables = self.loaded.var.get_str_names(keyring['var'].no_int())
 
         for fg in self.filegroups:
             variables_fg = [v for v in variables if v in fg.variables]
