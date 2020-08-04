@@ -1,6 +1,5 @@
 
-from tomate.keys.key import (Key, list2slice, reverse_slice_order,
-                             guess_slice_size)
+from tomate.keys.key import Key, list2slice
 
 
 def test_list2slice():
@@ -61,4 +60,16 @@ def test_multiplication():
 
 
 def test_addition():
-    pass
+    def test(k1, k2, k3, s1=None, s2=None):
+        k1 = Key(k1)
+        k2 = Key(k2)
+        k1.parent_size = s1
+        k2.parent_size = s2
+        assert k1 + k2 == Key(k3)
+
+    test(0, 0, [0, 0])
+    test([0, 1, 3], 4, [0, 1, 3, 4])
+
+    test(slice(10, 15), [15, 16], slice(10, 17, 1), 50)
+
+    test(slice(0, 5), slice(20, 25), [0, 1, 2, 3, 4, 20, 21, 22, 23, 24], 50, 50)
