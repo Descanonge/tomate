@@ -33,7 +33,31 @@ def test_list2slice():
 
 
 def test_multiplication():
-    pass
+    def test(k1, k2, k3, size=None):
+        k1 = Key(k1)
+        k1.parent_size = size
+        assert k1 * Key(k2) == Key(k3)
+
+    # None slices
+    test(slice(None), 0, 0)
+    test(slice(None), [0, 1, 2], [0, 1, 2])
+    test(slice(10, 5, -1), slice(None), slice(10, 5, -1))
+
+    test(10, 0, 10)
+    test(10, [0], 10)
+    test(10, slice(None), 10)
+
+    test([10, 11], 0, 10)
+    test([10, 11], 1, 11)
+    test([10, 11], [0, 1], [10, 11])
+    test([0, 1, 2, 3], slice(None), [0, 1, 2, 3])
+    test([0, 1, 2, 3], slice(0, 2), [0, 1])
+    test([0, 1, 2, 3], slice(3, None, -1), [3, 2, 1, 0])
+
+    test(slice(0, 10), 3, 3, 10)
+    test(slice(10, 20), [5, 3, 2], [15, 13, 12], 20)
+    test(slice(10, 20), slice(0, 6, 2), slice(10, 15, 2), 20)
+    test(slice(2, 18, 3), slice(1, 7, 2), slice(5, 18, 6), 20)
 
 
 def test_addition():
