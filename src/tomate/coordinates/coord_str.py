@@ -48,9 +48,9 @@ class CoordStr(Coord):
 
         :param y: Name or index of value.
         """
-        if isinstance(y, str):
-            y = self.get_index(y)
-        return y
+        if isinstance(y, int):
+            return y
+        return self.get_index(y)
 
     def get_index(self, value: str, loc: str = None) -> int:
         if value not in self._array:
