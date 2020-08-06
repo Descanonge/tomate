@@ -225,8 +225,8 @@ class Accessor(AccessorABC):
         -----
         See :doc:`../accessor` for more information.
 
-        See Numpy docpage on indexing
-        https://docs.scipy.org/doc/numpy/user/basics.indexing.html
+        See Numpy docpage on `indexing
+        <https://docs.scipy.org/doc/numpy/user/basics.indexing.html>`__
 
         See also
         --------

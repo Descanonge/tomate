@@ -1,4 +1,4 @@
-"""Coordinates."""
+"""Object containing coordinate values."""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -8,13 +8,12 @@
 
 import logging
 import bisect
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 
 from tomate.keys.key import list2slice
 from tomate.custom_types import KeyLike
-from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)
@@ -23,9 +22,9 @@ log = logging.getLogger(__name__)
 class Coord():
     """Coordinate object.
 
-    Contains strictly monoteous values.
+    Contains strictly monoteous, float values.
 
-    :param name: str: Identification of the coordinate.
+    :param name: str: Name of the coordinate.
     :param array: [opt] Values of the coordinate.
     :param units: [opt] Coordinate units
     :param fullname: [opt] Print name.
@@ -132,17 +131,6 @@ class Coord():
         elif name == 'fullname':
             self.fullname = attr
 
-    def get_extent_str(self, slc: KeyLike = None) -> str:
-        """Return the extent as string.
-
-        :param slc: [opt]
-        """
-        if self.size == 1:
-            return self.format(self._array[0])
-        s = "{} - {}".format(*[self.format(v)
-                               for v in self.get_extent(slc)])
-        return s
-
     def copy(self) -> "Coord":
         """Return a copy of itself."""
         return self.__class__(self.name, self._array, self.units, self.fullname)
@@ -169,8 +157,8 @@ class Coord():
                exclude: bool = False) -> slice:
         """Return slice between vmin and vmax.
 
-        If descending, the slice is reverted (values are always
-        in increasing order).
+        If the coordinate is descending, the slice is reverted
+        (such that values are always in increasing order).
 
         :param vmin, vmax: [opt] Bounds to select.
             If None, min and max of coordinate are taken.
@@ -184,7 +172,7 @@ class Coord():
         ... print(slice_lat)
         slice(10, 24, 1)
         >>> print(lat[slice_lat])
-        [30 31 ... 42 43]
+        [30. 31. ... 42. 43.]
         """
         if vmin is None:
             vmin = self.get_limits()[0]
@@ -236,6 +224,8 @@ class Coord():
     def change_units(self, new: str):
         """Change units.
 
+        Wrapper around `self.change_units_other`.
+
         :param new: New units.
         """
         self.update_values(self.change_units_other(self._array, self.units, new))
@@ -258,7 +248,7 @@ class Coord():
                         self.name, threshold)
         return np.mean(np.diff(self[:]))
 
-    def get_extent(self, slc: Union[List[int], slice] = None) -> List[float]:
+    def get_extent(self, slc: KeyLike = None) -> List[float]:
         """Return extent.
 
         ie first and last values
@@ -271,7 +261,18 @@ class Coord():
         values = self._array[slc]
         return list(values[[0, -1]])
 
-    def get_limits(self, slc: Union[List[int], slice] = None) -> List[float]:
+    def get_extent_str(self, slc: KeyLike = None) -> str:
+        """Return the extent as string.
+
+        :param slc: [opt] Constrain to a slice.
+        """
+        if self.size == 1:
+            return self.format(self._array[0])
+        s = "{} - {}".format(*[self.format(v)
+                               for v in self.get_extent(slc)])
+        return s
+
+    def get_limits(self, slc: KeyLike = None) -> List[float]:
         """Return min/max
 
         :param slc: [opt] Constrain extent with a slice.
@@ -288,7 +289,7 @@ class Coord():
         Can return the index of the closest element above, below
         or from both sides to the specified value.
 
-        loc: {'closest', 'below', 'above'}
+        :param loc: {'closest', 'below', 'above'}
             What index to choose.
         """
         loc_ = {'below': 'left',
@@ -306,16 +307,17 @@ class Coord():
 
         return idx
 
-    def get_indices(self, values: Sequence[float], loc: str = 'closest') -> List[int]:
+    def get_indices(self, values: Sequence[float],
+                    loc: str = 'closest') -> List[int]:
         """Return indices of the elements closest to values.
 
-        loc: {'closest', 'below', 'above'}
+        :param loc: [opt] {'closest', 'below', 'above'}
         """
         indices = [self.get_index(v, loc) for v in values]
         return indices
 
     def get_index_exact(self, value: float) -> Optional[int]:
-        """Return index of value if present.
+        """Return index of value if present in coordinate.
 
         None if value is not present.
         """
@@ -331,7 +333,7 @@ class Coord():
 
 
 def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
-    """Return index closest to elt in L.
+    """Return index closest to `elt` in `L`.
 
     If two numbers are equally close, return the smallest number.
 

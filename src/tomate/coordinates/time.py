@@ -1,4 +1,4 @@
-"""Convenient management of dates.
+"""Coordinate managing dates and time.
 
 Use user settings to set locales.
 """
@@ -35,6 +35,10 @@ class Time(Coord):
     Values are stored as floats, and can be converted
     to datetime objects.
     All conversion are done with the cftime package.
+    The standard CF calendar is used. Using a different
+    calendar is not presently supported, but can be implemented.
+    This coordinate needs units, which must  be CF compliant.
+    See `<http://cfconventions.org>`__.
 
     Use user settings to set locales.
 
@@ -59,9 +63,8 @@ class Time(Coord):
                                                   List['cftime.datetime']]:
         """Return datetimes objects corresponding to indices.
 
-        :param indices: [opt] If None, all available are used.
+        :param indices: [opt] If None, all datetimes are taken.
         :returns: Return a list if the input was a list.
-        :raises ImportError: If netCDF4 package is missing.
         """
         if indices is None:
             indices = slice(None, None)
@@ -76,20 +79,13 @@ class Time(Coord):
 
     @staticmethod
     def change_units_other(values: Sequence[float], old: str, new: str):
-        """Change time units.
-
-        CF compliant time units.
-
-        Examples
-        --------
-        >>> time.change_units("hours since 1950-01-01 12:00:00")
-        """
+        """Change time units."""
         dates = cftime.num2date(values, old)
         values = cftime.date2num(dates, new)
         return values
 
     def get_index(self, value: Union['cftime.datetime',
-                                     List[Union[int, float]], float, int],
+                                     List[Union[int]], float],
                   loc: str = 'closest') -> int:
         """Return index of value.
 
@@ -97,7 +93,7 @@ class Time(Coord):
             self units, datetime object, or a list of value that
             can be transformed to date
             ([year, month, day [, hours, minutes, ...]])
-        loc: {'closest', 'below', 'above'}
+        :param loc: {'closest', 'below', 'above'}
             Works as for Coord.get_index.
         """
         if isinstance(value, (list, tuple)):

@@ -14,10 +14,6 @@ from tomate.coordinates.coord_str import CoordStr
 class Variables(CoordStr):
     """List of variables.
 
-    With easy access to their index in a potential
-    array.
-    Akin to a Coord object.
-
     Its name is always 'var'.
 
     :param array: [opt] Variables names.

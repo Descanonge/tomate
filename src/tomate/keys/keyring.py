@@ -25,6 +25,9 @@ log = logging.getLogger(__name__)
 class Keyring():
     """Object for indexing a multidimensional array.
 
+    As for dictionnaries, keys are kept in the order
+    they are put in the Keyring.
+
     See :doc:`../accessor` for more information.
 
     :param keys: What part of the data must be selected
@@ -131,7 +134,7 @@ class Keyring():
         return self._keys.items()
 
     def items_values(self) -> Iterator[Tuple[str, KeyLike]]:
-        """List of keys values present in the keyring."""
+        """Iterate through dimensions and values."""
         d = {name: key.value for name, key in self.items()}
         return d.items()
 
@@ -190,7 +193,7 @@ class Keyring():
 
         :param dimensions: List of dimensions to add if not
             already present.
-        :param fill: [opt] Value to set new keys to.
+        :param fill: Value to set new keys to.
         """
         for c in dims:
             if c not in self:
@@ -211,7 +214,7 @@ class Keyring():
     def make_single(self, *dims: str, idx: Union[Key, KeyLike] = 0):
         """Fill missing keys by an index.
 
-        :param dims: Dimensions names to fill if missing.
+        :param dims: [opt] Dimensions names to fill if missing.
             If not specified, all are selected.
         :param idx: Index to set as value.
         """
@@ -225,8 +228,7 @@ class Keyring():
         """Turn integer values into lists.
 
         :param dims: [opt] Dimensions names to change if
-             necessary. If not specified, all are
-             selected.
+             necessary. If not specified, all are selected.
         """
         if not dims:
             dims = self.dims
@@ -238,8 +240,7 @@ class Keyring():
         """Turn lists of length one in integers.
 
         :param dims: Dimensions names to change if
-             necessary. If not specified, all are
-             selected.
+             necessary. If not specified, all are selected.
         """
         if not dims:
             dims = self.dims
@@ -268,7 +269,7 @@ class Keyring():
     def simplify(self):
         """Simplify keys.
 
-        Turn list into a slice if possible.
+        Turn lists into a slices if possible.
         """
         for key in self.keys:
             key.simplify()
@@ -277,7 +278,7 @@ class Keyring():
         """Sort keys.
 
         Remove redondant indices.
-        Sort by indices.
+        Sort indices in increasing order.
         """
         if dims is None:
             dims = self.dims

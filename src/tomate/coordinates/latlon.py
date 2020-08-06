@@ -5,6 +5,7 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
+from typing import Sequence
 
 from tomate.coordinates.coord import Coord
 
@@ -12,14 +13,14 @@ from tomate.coordinates.coord import Coord
 class Lat(Coord):
     """Latitude coordinate.
 
-    :param name: [opt] Identification of the coordinate.
+    :param name: [opt] Name of the coordinate.
     :param array: [opt] Values of the coordinate.
     :param units: [opt] Coordinate units
     :param fullname: [opt] Print name.
     """
 
-    def __init__(self, name='lat', array=None,
-                 units='degree_north', fullname='Latitude'):
+    def __init__(self, name: str = 'lat', array: Sequence = None,
+                 units: str = 'degree_north', fullname: str = 'Latitude'):
         super().__init__(name, array, units, fullname)
 
     @staticmethod

@@ -1,4 +1,4 @@
-"""Coordinate which values are strings."""
+"""Coordinate with string values."""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -15,15 +15,14 @@ from tomate.custom_types import KeyLike, KeyLikeStr
 
 
 class CoordStr(Coord):
-    """Coordinate which values are strings."""
+    """Coordinate with string values."""
 
     def update_values(self, values: Union[str, Sequence[str]], dtype=None):
-        """Change variables names.
+        """Change values.
 
-        :param values: New variables names.
+        :param values: New value(s).
         :param dtype: [opt] Dtype of the array.
-            Default to a variation of np.U#.
-        :type dtype: data-type
+            Default None, which gives a variation of np.U#.
         """
         if isinstance(values, str):
             values = [values]
@@ -74,15 +73,11 @@ class CoordStr(Coord):
             return y
         return self._array[y]
 
-    def get_str_indices(self, y: KeyLikeStr) -> Union[int, List[int]]:
+    def get_str_indices(self, y: KeyLike) -> Union[int, List[int]]:
         """Returns indices of values.
 
-        :param y: List of values names or indices,
-            or slice (of integers or strings),
-            or single values name or index.
-
-        :returns: List of values indices, or a single
-            value index.
+        :returns: List of values indices, or a single value index,
+            depending on key size.
         """
         if isinstance(y, (int, str)):
             return self.get_str_index(y)
@@ -99,11 +94,11 @@ class CoordStr(Coord):
         indices = [self.get_str_index(i) for i in y]
         return indices
 
-    def get_str_names(self, y: KeyLikeStr) -> Union[str, List[str]]:
+    def get_str_names(self, y: KeyLike) -> Union[str, List[str]]:
         """Return values names.
 
-        :param y: List of values names or indices,
-            or a single value name or index.
+        :returns: List of values, or a single value, depending
+            on key size.
         """
         idx = self.get_str_indices(y)
         if isinstance(idx, int):
@@ -111,7 +106,7 @@ class CoordStr(Coord):
         names = [self._array[i] for i in idx]
         return names
 
-    def __getitem__(self, y: KeyLikeStr) -> str:
+    def __getitem__(self, y: KeyLike) -> str:
         """Return value.
 
         :param y: Index or name of value(s).
@@ -128,8 +123,8 @@ class CoordStr(Coord):
 
     def append(self, var: str):
         """Add value."""
-        variables = list(self[:]) + [var]
-        self.update_values(variables)
+        values = list(self[:]) + [var]
+        self.update_values(values)
 
     def remove(self, var: str):
         """Remove value."""

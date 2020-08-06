@@ -13,7 +13,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Union
 import re
 
 import numpy as np
@@ -346,8 +346,7 @@ class CoordScan(Coord):
         else:
             contains = []
             for value in outer:
-                contains.append(
-                    self.get_index_exact(value))
+                contains.append(self.get_index_exact(value))
             contains = np.array(contains)
         self.contains = contains
 
