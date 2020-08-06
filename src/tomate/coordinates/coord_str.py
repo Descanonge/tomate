@@ -126,11 +126,6 @@ class CoordStr(Coord):
             var = []
         return iter(var)
 
-    def slice(self, key: KeyLikeStr = None):
-        if key is None:
-            key = slice(None)
-        self.update_values(self[key])
-
     def append(self, var: str):
         """Add value."""
         variables = list(self[:]) + [var]
