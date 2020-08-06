@@ -127,21 +127,6 @@ class DataBase():
                for c in bases}
         return out
 
-    def get_filegroup(self, key: Union[int, str]) -> FilegroupLoad:
-        """Get filegroup by index or name."""
-        if isinstance(key, int):
-            return self.filegroups[key]
-        if isinstance(key, str):
-            fgs = [fg for fg in self.filegroups
-                   if fg.name == key]
-            if len(fgs) == 0:
-                raise KeyError(f"No filegroup with name {key}")
-            if len(fgs) > 1:
-                raise IndexError(f"More than one filegroup with name {key}")
-            return fgs[0]
-        raise TypeError("Key must be filegroup index or name (is {})"
-                        .format(type(key)))
-
     def check_loaded(self):
         """Raises if data is loaded.
 
