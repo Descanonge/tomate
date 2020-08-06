@@ -213,16 +213,6 @@ class Coord():
 
         return slc
 
-    def select(self, vmin: float = None, vmax: float = None,
-               exclude: bool = False) -> np.ndarray:
-        """Select values slice.
-
-        :param vmin: [opt]
-        :param vmax: [opt]
-        :param exclude: [opt]
-        """
-        return self._array[self.subset(vmin, vmax, exclude)]
-
     def is_descending(self) -> bool:
         """Return if coordinate is descending"""
         return self._descending
