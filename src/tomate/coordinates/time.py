@@ -175,6 +175,10 @@ class Time(Coord):
         :param: Exclude `dmin` and `dmax` of the selection if True.
             Selection still only consists of whole days.
         """
+        if self.is_descending():
+            raise TypeError("subset_by_day not supported for descending"
+                            " coordinates.")
+
         indices = []
         for i, date in enumerate([dmin, dmax]):
             if date is None:
@@ -200,9 +204,6 @@ class Time(Coord):
         indices[1] += 1
 
         slc = slice(*indices, 1)
-
-        if self.is_descending():
-            slc = list2slice(list(range(*slc.indices(self.size)))[::-1])
 
         return slc
 
