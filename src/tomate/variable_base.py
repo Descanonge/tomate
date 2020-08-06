@@ -150,15 +150,35 @@ class Variable():
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
         return self.view(keyring=keyring, order=order)
 
-    def set_data(self, chunk: Array, keyring: Keyring):
-        """Set subset of data."""
-        keyring = keyring.copy()
+    def set_data(self, array: Array, keyring: Keyring = None,
+                 **keys: KeyLike):
+        """Set subset of data.
+
+        If no data is loaded, loaded scope is set from the
+        keys acting on loaded.
+
+        Otherwise use `array` to set a part of this variable,
+        keys specifiy part of loaded scope to set.
+        If this variable is not loaded (but others are), allocate
+        this variable first.
+
+        :param array: Data Array. Its shape should
+            correspond to the keys.
+        """
+        keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.dims)
+        keyring.subset(self.dims)
         keyring.make_total()
-        if not self.is_loaded() and not self._db.loaded.is_empty():
+
+        if self._db.loaded.is_empty():
+            self._db.loaded = self._db.get_subscope('avail', keyring,
+                                                    name='loaded')
+        if not self.is_loaded():
             self.allocate()
+        if self.name not in self._db.loaded.var:
             self._db.loaded.var.append(self.name)
-        self.acs.place(keyring, self.data, chunk)
+
+        self.acs.place(keyring, self.data, array)
 
     def get_attribute(self, key: str, default: Any = None):
         """Get variable specific attribute from VI."""

@@ -556,56 +556,23 @@ class DataBase():
             v.data = v.view(keyring)
 
     def unload(self):
-        """Remove data."""
+        """Remove all data."""
         self.loaded.empty()
         for var in self.variables.values():
             var.unload()
 
-    def set_data(self, variable: str, data: np.ndarray,
-                 keyring: Keyring = None):
+    def set_data(self, variable: str, data: Array,
+                 keyring: Keyring = None, **keys: KeyLike):
         """Set the data for a single variable.
 
-        :param var: Variable to set the data to.
-        :param data: Array of the correct shape for currently
-            selected coordinates. Has no axis for variables.
-        :param keyring: [opt] If no data is loaded, loaded scope
-            is fetched from available scope with this keyring.
-            'var' key has no effect.
+        Wrapper around :func:`Variable.set_data
+        <tomate.variable_base.Variable.set_data>`.
 
-        :raises KeyError: If the variable is not in available scope.
-        :raises IndexError: If the data has not the right dimension.
-        :raises ValueError: If the data is not of the shape of loaded scope.
+        :raises KeyError: If the variable was not created.
         """
-        def check_shape(data):
-            if self.acs.shape(data)[1:] != self.shape[1:]:
-                raise ValueError("data of wrong shape ({}, expected {})"
-                                 .format(self.acs.shape(data)[1:], self.shape[1:]))
-
         if variable not in self.avail or variable not in self.variables:
             raise KeyError(f"{variable} was not created. Use add_variable")
-        if self.acs.ndim(data) != self.ncoord:
-            raise IndexError("data of wrong dimension ({}, expected {})"
-                             .format(data.ndim, self.ncoord))
-
-        data = np.expand_dims(data, 0)
-
-        # No data is loaded
-        if self.loaded.is_empty():
-            self.loaded = self.get_subscope('avail', keyring=keyring, var=variable)
-            check_shape(data)
-            self.data = data
-
-        # Variable is already loaded
-        elif variable in self.loaded.var:
-            check_shape(data)
-            self[variable][:] = data[0]
-
-        # Variable is not loaded, others are
-        else:
-            self.loaded.var.append(variable)
-            check_shape(data)
-            # FIXME OOF
-            self.data = self.acs.concatenate((self.data, data), axis=0)
+        self.variables[variable].set_data(data, keyring, **keys)
 
     def add_variable(self, variable: str, dims: List[str] = None,
                      var_class: Type = None, datatype: Any = None,
