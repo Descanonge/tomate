@@ -1,4 +1,8 @@
-"""Logging functions."""
+"""Logging features.
+
+Allow to change logging level, output streams,
+or messages format.
+"""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -90,7 +94,7 @@ def add_file_handler(filename: str, mode: str = 'w', level: str = None):
 
 
 def remove_stream_handlers():
-    """Remove all stream handler from package logger."""
+    """Remove all stream handlers from package logger."""
     log = get_logger()
     handlers = log.handlers
     for handler in handlers:
@@ -99,7 +103,7 @@ def remove_stream_handlers():
 
 
 def remove_file_handlers():
-    """Remove all file handler from package logger."""
+    """Remove all file handlers from package logger."""
     log = get_logger()
     handlers = log.handlers
     for handler in handlers:

@@ -5,6 +5,7 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
+
 from typing import List, Union
 from dataclasses import dataclass
 

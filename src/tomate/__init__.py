@@ -1,7 +1,7 @@
 """Manages sets of data on disk.
 
-Tomate provides ways to manipulate data under the form of a
-multi-dimensional array.
+Tomate provides ways to manipulate data under the form of
+multi-dimensional arrays.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
 It also provides multiple convenience functions to retrieve
@@ -30,7 +30,6 @@ from .coordinates.variables import Variables
 
 from .keys.keyring import Keyring
 
-from .variables_info import VariablesInfo
 from .data_base import DataBase
 from .constructor import Constructor
 
@@ -47,7 +46,6 @@ __all__ = [
 
     'Keyring',
 
-    'VariablesInfo',
     'DataBase',
     'Constructor'
 ]

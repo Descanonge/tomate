@@ -23,15 +23,19 @@ log = logging.getLogger(__name__)
 
 
 class Keyring():
-    """Object for indexing an array.
-
-    Multiple dimensions can be specified.
+    """Object for indexing a multidimensional array.
 
     See :doc:`../accessor` for more information.
 
     :param keys: What part of the data must be selected
         for a given dimension.
     """
+
+    def __init__(self, **keys: Union[Key, KeyLike]):
+        self._keys = {}
+
+        for name, key in keys.items():
+            self[name] = key
 
     @classmethod
     def get_default(cls, keyring: 'Keyring' = None,
@@ -40,7 +44,8 @@ class Keyring():
         """Return a new keyring, eventually updated.
 
         :param keyring: Keyring to take values from.
-        :param keys: Keys to add to the keyring.
+        :param keys: Keys to add or replace in the keyring.
+        :param dims: Dictionnary of coordinates to set keys shape.
         """
         if keyring is None:
             keyring = cls()
@@ -50,15 +55,8 @@ class Keyring():
 
         if dims is not None:
             keyring.set_shape(dims)
-            keyring.make_str_idx(**dims)
 
         return keyring
-
-    def __init__(self, **keys: Union[Key, KeyLike]):
-        self._keys = {}
-
-        for name, key in keys.items():
-            self[name] = key
 
     def __getitem__(self, item: str) -> Key:
         """Return key for a dimension.
@@ -109,7 +107,7 @@ class Keyring():
 
     @property
     def shape(self) -> List[int]:
-        """Return shape of all keys."""
+        """Shape of would be selected array."""
         return [k.size for k in self.keys if k.size != 0]
 
     def __bool__(self):

@@ -20,14 +20,13 @@ if TYPE_CHECKING:
 
 
 class Key():
-    """Element for indexing a dimension of an array.
+    """Element for indexing an iterable.
 
     Can be None, int, str, List[int], List[str] or slice.
 
     See :doc:`../accessor` for more information.
 
     :param key: Key-like object.
-
     :attr type: str: {'none', 'int', 'list', 'slice'}
     :attr str: bool: If the key is a string or a list of strings.
     :attr parent_size: int, None: Size of the sequence it would be applied to.
@@ -54,7 +53,8 @@ class Key():
 
         Integer and None keys have size 0 (they would return a scalar).
         Is None if the size is undecidable (for some slices
-        for instance)."""
+        for instance).
+        """
         if self._size is False and self.type == 'slice':
             self._size = guess_slice_size(self.value)
         return self._size
@@ -64,9 +64,9 @@ class Key():
 
         :param TypeError: If key is not valid.
         """
-        reject = ''
-        s = False
-        tp = ''
+        reject = ''  # Reject message if key is wrong
+        s = False    # If key is string
+        tp = ''      # Key type
 
         if isinstance(key, self.INT_TYPES):
             tp = 'int'
@@ -96,6 +96,7 @@ class Key():
 
         elif key is None:
             tp = 'none'
+
         else:
             reject = ('Invalid type (must be int, str, iterable, or slice),'
                       f' is {type(key)}')
@@ -113,13 +114,9 @@ class Key():
     def _set_size(self):
         """Set size if possible.
 
-        Size is the size an array would have
-        if the key was applied.
-
-        Is None if cannot be determined from
-        the key alone.
-
-        :raises IndexError: If slice of size 0.
+        Cannot set size from a slice alone, we
+        need the length of the iterable it will
+        be applied to.
         """
         if self.type == 'int':
             self._size = 0
@@ -172,7 +169,7 @@ class Key():
         if self.type == 'slice':
             self._size = len(self.apply(coord))
 
-    def no_int(self) -> 'Key':
+    def no_int(self) -> KeyLike:
         """Return value but replace int with list."""
         if self.type == 'int':
             return [self.value]
@@ -209,7 +206,7 @@ class Key():
         """Return list of key.
 
         :raises TypeError: If is slice and parent size was
-            not set, will throw.
+            not set, will throw error.
         """
         a = self.value
         if self.type == 'int':
@@ -224,11 +221,13 @@ class Key():
 
         return a
 
-    def apply(self, seq: Sequence, int2list=False) -> Union[List[Any], Any]:
+    def apply(self, seq: Sequence,
+              int2list: bool = False) -> Union[List[Any], Any]:
         """Apply key to a sequence.
 
-        :returns: One element or a list of elements
-            from the sequence.
+        :param int2list: If True, even if key select single element,
+             return list. Default is False.
+        :returns: One element or a list of elements from the sequence.
         :raises TypeError: Key type not applicable.
         :raises KeyError: One string key not in sequence.
         """
@@ -242,6 +241,7 @@ class Key():
                 return out[0]
             if self.type == 'list':
                 return out
+
         if self.type == 'list' or (int2list and self.type == 'int'):
             return [seq[z] for z in self]
         if self.type == 'int':
@@ -256,6 +256,7 @@ class Key():
         If `B = A[self]`
         and `C = B[other]`
         then `C = A[self*other]`
+        Operation is not commutative.
 
         The type of the resulting key is of the strongest
         type of the two keys (int > list > slice).
@@ -290,6 +291,7 @@ class Key():
 
         If `B = A[self]` and `C=A[other]`
         concatenate(B, C) = A[self + other]
+        Operation is not commutative (unless followed by a sort).
 
         The type of the resulting key is a list,
         or a slice if one of the argument is a slice
@@ -307,7 +309,7 @@ class Key():
         return self.__class__(out)
 
     def sort(self):
-        """Sort indices."""
+        """Sort indices in increasing order."""
         if self.type == 'list':
             self.value.sort()
         if self.type == 'slice':
@@ -329,7 +331,7 @@ class Key():
             self._size = 1
 
     def make_idx_str(self, coord: 'CoordStr'):
-        """Transform indices into strings"""
+        """Transform indices into strings."""
         if not self.str:
             names = coord.get_str_names(self.value)
             self.set(names)

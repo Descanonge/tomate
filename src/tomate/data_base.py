@@ -619,6 +619,7 @@ class DataBase():
         else:
             self.loaded.var.append(variable)
             check_shape(data)
+            # FIXME OOF
             self.data = self.acs.concatenate((self.data, data), axis=0)
 
     def add_variable(self, variable: str, dims: List[str] = None,

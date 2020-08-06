@@ -10,13 +10,11 @@ from typing import List, Union, TypeVar
 
 Array = TypeVar('Array')
 
-KeyLikeInt = TypeVar('KeyLikeInt', int, List[int], slice, None)
+File = TypeVar('File')
 
+KeyLikeInt = TypeVar('KeyLikeInt', int, List[int], slice, None)
 KeyLikeStr = TypeVar('KeyLikeStr', str, List[str])
+KeyLike = TypeVar('KeyLike', KeyLikeInt, KeyLikeStr)
 
 KeyLikeFloat = TypeVar('KeyLikeFloat', int, float, List[Union[int, float]], slice, None)
 KeyLikeValue = TypeVar('KeyLikeValue', KeyLikeFloat, KeyLikeStr)
-
-KeyLike = TypeVar('KeyLike', KeyLikeInt, KeyLikeStr)
-
-File = TypeVar('File')

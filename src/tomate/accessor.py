@@ -1,4 +1,10 @@
-"""Access data array."""
+"""Access data array.
+
+The accessor object allow to put an abstract
+layer between the data and Tomate API. This makes
+Tomate data-format agnostic (to a certain extent).
+The main way is still to store data in numpy arrays.
+"""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -28,7 +34,7 @@ class AccessorABC():
     See :doc:`../accessor`.
     """
     @staticmethod
-    def ndim(array: Array):
+    def ndim(array: Array) -> int:
         """Return number of dimensions of array."""
         raise NotImplementedError
 
@@ -107,8 +113,7 @@ class AccessorABC():
     def moveaxis(array: Array,
                  source: List[int],
                  destination: List[int]) -> Array:
-        """
-        Exchange axes.
+        """Exchange axes.
 
         :param source: Original position of axes to move.
         :param destination: Destination positions of axes to move.
@@ -123,7 +128,8 @@ class AccessorABC():
         :param current: Current dimensions order.
         :param order: Target dimensions order. Either of same
             length as current, or of length 2 which will swap
-            two the dimensions (if in different order than current)
+            the two dimensions (if in different order than current)
+        :raises IndexError: `order` has incorrect length.
         """
         if len(order) != len(current):
             if len(order) != 2:
@@ -169,16 +175,13 @@ class AccessorABC():
 
 
 class Accessor(AccessorABC):
-    """Manages access to arrays.
-
-    Stores static and class methods.
-    Can be subclassed for different implementation.
+    """Manages access to numpy arrays.
 
     See :doc:`../accessor`.
     """
 
     @staticmethod
-    def ndim(array: np.ndarray):
+    def ndim(array: np.ndarray) -> int:
         return array.ndim
 
     @staticmethod
@@ -191,7 +194,6 @@ class Accessor(AccessorABC):
 
     @staticmethod
     def get_datatype(data: Array) -> str:
-        """Get array datatype as string."""
         return data.dtype.str
 
     @classmethod
@@ -216,7 +218,6 @@ class Accessor(AccessorABC):
         If not, uses more complex method to access array.
 
         :param keyring: Part of the array to take.
-
         :returns: View of the input array in the case
             of normal indexing, or a copy otherwise.
 
@@ -229,11 +230,8 @@ class Accessor(AccessorABC):
 
         See also
         --------
-        take_normal:
-             Function used for normal indexing.
-        take_complex:
-             Function used when normal indexing
-             would not work.
+        take_normal: Function used for normal indexing.
+        take_complex: Function used when normal indexing would not work.
         """
         if cls.has_normal_access(keyring):
             return cls.take_normal(keyring, array)
@@ -338,8 +336,7 @@ class Accessor(AccessorABC):
     def moveaxis(array: np.ndarray,
                  source: List[int],
                  destination: List[int]) -> np.ndarray:
-        """
-        Exchange axes.
+        """ Exchange axes.
 
         :param source: Original position of axes to move.
         :param destination: Destination positions of axes to move.

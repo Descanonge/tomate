@@ -11,7 +11,7 @@
 </div>
 
 Tomate is a Python package that provides ways to manipulate data
-under the form of a multi-dimensional array.
+under the form of multi-dimensional arrays.
 It manages multiples variables, as well as the coordinates along
 which the data varies.
 It also provides multiple convenience functions to retrieve
@@ -28,7 +28,8 @@ or coordinates values can be retrieved automatically.
 For data in memory:
 - Keep information about the data, the variables, the coordinates.
   All this information is in sync with the data.
-- Select subparts of data easily.
+- Select subparts of data easily, by index or by value.
+- Support for date & time dimensions.
 - Use and create convenience function for analysis, plotting,...
 
 For data on disk:
@@ -50,7 +51,7 @@ easily extended for other file formats. See the section
 ['Expanding the package'](https://tomate.readthedocs.io/en/latest/expanding.html)
 of the documentation.
 
-Only tested for linux, should work on other OS.
+Only tested for linux.
 
 See [examples] for use cases.
 
@@ -65,7 +66,8 @@ See the [documentation on logging](https://tomate.readthedocs.io/en/latest/log.h
 for more information.
 
 Features supplied in 'data_write', that allow to save a database information in
-a json file to avoid re-scanning it each time, is to be considered very experimental.
+a json file to avoid re-scanning it each time, is to be considered very experimental,
+(and is currently heavily out-of-date).
 
 
 ## Documentation
