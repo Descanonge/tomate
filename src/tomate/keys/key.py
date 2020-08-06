@@ -156,6 +156,9 @@ class Key():
         return key
 
     def __repr__(self):
+        return '{}: {}'.format(str(self.__class__.__name__), self)
+
+    def __str__(self):
         return str(self.value)
 
     def set_size_coord(self, coord: Iterable):
@@ -266,14 +269,10 @@ class Key():
             return self
 
         a = self.as_list()
-        b = other
         if other.str and not self.str:
             raise TypeError("Cannot multiply an integer indices key"
                             " by a string indices key")
-        elif self.str and other.str:
-            out = [z for z in a if z in b]
-        else:
-            out = b.apply(a, int2list=True)
+        out = other.apply(a, int2list=True)
 
         if self.type == 'int' or other.type == 'int':
             key = self.__class__(out[0])
@@ -281,7 +280,7 @@ class Key():
             key = self.__class__(out)
         else:
             key = self.__class__(list2slice(out))
-            assert key.type == 'slice'
+            assert key.type == 'slice', 'slice * slice should be slice'
             key._size = len(out)
 
         return key
@@ -317,7 +316,7 @@ class Key():
 
     def make_list_int(self):
         """Make list of length one an integer."""
-        if self.type == 'list' and len(self.value) == 1:
+        if self.type == 'list' and self.size == 1:
             self.type = 'int'
             self.value = self.value[0]
             self._size = 0
@@ -406,17 +405,6 @@ def is_none_slice(slc) -> bool:
                and slc.stop in [-1, None]
                and slc.step in [1, None])
     return is_none
-
-
-def simplify_key(key: KeyLikeInt) -> KeyLikeInt:
-    """Simplify a key.
-
-    Transform a list into a slice if the list is
-    a serie of integers of fixed step.
-    """
-    if isinstance(key, (list, tuple, np.ndarray)):
-        key = list2slice(list(key))
-    return key
 
 
 def list2slice(L: List[int]) -> Union[slice, List[int]]:
