@@ -227,11 +227,14 @@ class Coord():
         """Return if coordinate is descending"""
         return self._descending
 
-    def is_regular(self, threshold: float = 1e-5) -> bool:
+    def is_regular(self, threshold: float = None) -> bool:
         """Return if coordinate values are regularly spaced.
 
-        Float comparison is made to a threshold.
+        :param threshold: Threshold used for float comparison. If
+            None, the `float_threshold` attribute is used.
         """
+        if threshold is None:
+            threshold = self.float_comparison
         diff = np.diff(self[:])
         regular = np.all(diff - diff[0] <= threshold)
         return regular
@@ -253,11 +256,13 @@ class Coord():
         """Change units of a sequence of values."""
         raise NotImplementedError("change_units_other not implemented.")
 
-    def get_step(self, threshold: float = 1e-5) -> float:
+    def get_step(self, threshold: float = None) -> float:
         """Return mean step between values.
 
         Check if the coordinate is regular up to threshold.
         """
+        if threshold is None:
+            threshold = self.float_comparison
         if not self.is_regular(threshold):
             log.warning("Coordinate '%s' not regular (at precision %s)",
                         self.name, threshold)
