@@ -342,14 +342,8 @@ class Keyring():
             elif k.type == 'slice':
                 z = []
                 start, stop, step = k.value.start, k.value.stop, k.value.step
-                if start is None:
-                    z.append('')
-                else:
-                    z.append(str(start))
-                if stop is None:
-                    z.append('')
-                else:
-                    z.append(str(stop))
+                z.append('' if start is None else str(start))
+                z.append('' if stop is None else str(stop))
                 if step is not None and step != 1:
                     z.append(str(step))
                 s.append(':'.join(z))
