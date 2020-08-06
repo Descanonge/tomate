@@ -108,9 +108,9 @@ class Key():
         self.str = s
 
         self._size = False
-        self.set_size()
+        self._set_size()
 
-    def set_size(self):
+    def _set_size(self):
         """Set size if possible.
 
         Size is the size an array would have
@@ -370,9 +370,9 @@ class KeyValue():
 
         self.value = key
         self.type = tp
-        self.set_size()
+        self._set_size()
 
-    def set_size(self):
+    def _set_size(self):
         """Set size."""
         if self.type in ['int', 'none']:
             self.size = 0
