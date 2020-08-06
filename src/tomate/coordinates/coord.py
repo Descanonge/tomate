@@ -332,43 +332,6 @@ class Coord():
         """Format a scalar value."""
         return fmt.format(value)
 
-    def get_collocated(self, other: "Coord") -> Tuple[List[int], List[int]]:
-        """Return indices of identical values.
-
-        :param other: Other coordinate.
-
-        :returns: idx_self, idx_other:
-            List of indices for both coordinates, where
-            their values are identical.
-        """
-        values = {v for v in self[:] if v in other[:]}
-
-        idx_self = [self.get_index(v) for v in values]
-        idx_other = [other.get_index(v) for v in values]
-
-        return idx_self, idx_other
-
-    def get_collocated_float(self, other: "Coord",
-                             threshold: float = 1e-5) -> Tuple[List[int], List[int]]:
-        """Return indices of values closer than a threshold.
-
-        :param other: Other coordinate.
-
-        :returns: idx_self, idx_other:
-            List of indices for both coordinates, where
-            their values less than `threshold` apart.
-        """
-        idx_self = []
-        idx_other = []
-        for i, v in enumerate(self[:]):
-            i_other = other.get_index(v, loc='closest')
-            v_other = other[i_other]
-            if abs(v - v_other) < threshold:
-                idx_self.append(i)
-                idx_other.append(i_other)
-
-        return idx_self, idx_other
-
 
 def get_closest(L: List[float], elt: float, loc: str = 'closest') -> int:
     """Return index closest to elt in L.
