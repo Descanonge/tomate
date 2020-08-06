@@ -227,9 +227,18 @@ class Key():
         :returns: One element or a list of elements
             from the sequence.
         :raises TypeError: Key type not applicable.
+        :raises KeyError: One string key not in sequence.
         """
-        if self.str and all(isinstance(z, str) for z in seq):
-            return [z for z in seq if z in self]
+        if self.str:
+            out = []
+            for z in self:
+                if z not in seq:
+                    raise KeyError(f"'{z}' not in sequence")
+                out.append(z)
+            if self.type == 'int':
+                return out[0]
+            if self.type == 'list':
+                return out
         if self.type == 'list' or (int2list and self.type == 'int'):
             return [seq[z] for z in self]
         if self.type == 'int':
