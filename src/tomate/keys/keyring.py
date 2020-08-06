@@ -310,19 +310,26 @@ class Keyring():
 
     def is_shape_equivalent(self, other: Union[Iterable[Optional[int]],
                                                'Keyring']) -> bool:
-        """Compare keyrings shapes."""
+        """Compare keyrings shapes.
+
+        Keys with shape None do not count in the comparison.
+
+        :param other: Other keyring (or iterable representing
+            a shape)
+        """
         if isinstance(other, type(self)):
             other = other.shape
         else:
             other = list(other)
 
-        if len(self.shape) == len(other) == 0:
-            out = True
-        else:
-            out = all((a is None
-                       or b is None
-                       or a == b)
-                      for a, b in zip(self.shape, other))
+        if len(self.shape) != len(other):
+            return False
+
+        out = all((a is None
+                   or b is None
+                   or a == b)
+                  for a, b in zip(self.shape, other))
+
         return out
 
     def print(self) -> str:
