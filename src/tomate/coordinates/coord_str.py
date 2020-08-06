@@ -136,3 +136,7 @@ class CoordStr(Coord):
         values = list(self[:])
         values.remove(var)
         self.update_values(values)
+
+    @staticmethod
+    def format(value: str, fmt: str = '{:s}') -> str:
+        return fmt.format(value)
