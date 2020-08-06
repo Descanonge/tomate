@@ -7,25 +7,25 @@ from tomate.coordinates.time import Time
 @pytest.fixture
 def dates():
     dates = [
-        [2000, 1, 10, 0],    # 0
-        [2000, 1, 10, 6],    # 1
-        [2000, 1, 10, 12],   # 2
-        [2000, 1, 10, 18],   # 3
+        [2000, 1, 10, 0],    # 0  /  15
+        [2000, 1, 10, 6],    # 1  /  14
+        [2000, 1, 10, 12],   # 2  /  13
+        [2000, 1, 10, 18],   # 3  /  12
 
-        [2000, 1, 11, 0],    # 4
-        [2000, 1, 11, 6],    # 5
-        [2000, 1, 11, 12],   # 6
-        [2000, 1, 11, 18],   # 7
+        [2000, 1, 11, 0],    # 4  /  11
+        [2000, 1, 11, 6],    # 5  /  10
+        [2000, 1, 11, 12],   # 6  /  9
+        [2000, 1, 11, 18],   # 7  /  8
 
-        [2000, 1, 13, 0],    # 8
-        [2000, 1, 13, 6],    # 9
-        [2000, 1, 13, 12],   # 10
-        [2000, 1, 13, 18],   # 11
+        [2000, 1, 13, 0],    # 8  /  7
+        [2000, 1, 13, 6],    # 9  /  6
+        [2000, 1, 13, 12],   # 10 /  5
+        [2000, 1, 13, 18],   # 11 /  4
 
-        [2000, 1, 15, 0],    # 12
-        [2000, 1, 16, 0],    # 13
-        [2000, 1, 17, 0],    # 14
-        [2000, 1, 18, 12],    # 15
+        [2000, 1, 15, 0],    # 12 /  3
+        [2000, 1, 16, 0],    # 13 /  2
+        [2000, 1, 17, 0],    # 14 /  1
+        [2000, 1, 18, 12],   # 15 /  0
     ]
     return dates
 
@@ -47,6 +47,11 @@ def test_get_index(coord):
     assert f([2000, 1, 10, 5], 'below') == 0
     assert f([2000, 1, 13, 0]) == 8
 
+    coord.update_values(coord[::-1])
+    assert f([2000, 1, 10, 5]) == 14
+    assert f([2000, 1, 10, 5], 'below') == 15
+    assert f([2000, 1, 13, 0]) == 7
+
 
 def test_get_index_by_day(coord):
     f = coord.get_index_by_day
@@ -54,6 +59,21 @@ def test_get_index_by_day(coord):
     assert f([2000, 1, 10, 5]) == 1
     assert f([2000, 1, 10, 5], 'below') == 0
     assert f([2000, 1, 10, 7], 'above') == 2
+
+    with pytest.raises(IndexError):
+        f([2000, 1, 12])
+    with pytest.raises(IndexError):
+        f([2000, 1, 15, 1], 'above')
+    with pytest.raises(IndexError):
+        f([2000, 1, 18, 6], 'below')
+    with pytest.raises(IndexError):
+        f([2000, 1, 11, 20], 'above')
+
+    coord.update_values(coord[::-1])
+
+    assert f([2000, 1, 10, 5]) == 14
+    assert f([2000, 1, 10, 5], 'below') == 15
+    assert f([2000, 1, 10, 7], 'above') == 13
 
     with pytest.raises(IndexError):
         f([2000, 1, 12])
