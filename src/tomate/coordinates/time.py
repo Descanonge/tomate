@@ -199,7 +199,7 @@ class Time(Coord):
             indices.append(idx)
         indices[1] += 1
 
-        slc = slice(*indices)
+        slc = slice(*indices, 1)
 
         if self.is_descending():
             slc = list2slice(list(range(*slc.indices(self.size)))[::-1])
