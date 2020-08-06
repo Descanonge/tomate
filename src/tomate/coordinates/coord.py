@@ -300,7 +300,9 @@ class Coord():
                 'above': 'right',
                 'closest': 'closest'}[loc]
 
-        C = self._array[::[1, -1][self._descending]]
+        C = self._array
+        if self._descending:
+            C = C[::-1]
 
         idx = get_closest(C, value, loc_)
 
