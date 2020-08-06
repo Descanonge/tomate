@@ -88,8 +88,11 @@ class CoordStr(Coord):
             return self.get_str_index(y)
 
         if isinstance(y, slice):
-            start = self.get_str_index(y.start)
-            stop = self.get_str_index(y.stop)
+            start, stop = y.start, y.stop
+            if isinstance(start, str):
+                start = self.get_str_index(start)
+            if isinstance(stop, str):
+                stop = self.get_str_index(stop)
             y = slice(start, stop, y.step)
             y = list(range(*y.indices(self.size)))
 
