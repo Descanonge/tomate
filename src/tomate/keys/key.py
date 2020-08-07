@@ -56,7 +56,10 @@ class Key():
         for instance).
         """
         if self._size is False and self.type == 'slice':
-            self._size = guess_slice_size(self.value)
+            if self.parent_size is not None:
+                self._size = len(range(*self.value.indices(self.parent_size)))
+            else:
+                self._size = guess_slice_size(self.value)
         return self._size
 
     def set(self, key: KeyLike):
@@ -441,8 +444,6 @@ def list2slice(L: List[int]) -> Union[slice, List[int]]:
 
 def guess_slice_size(slc: slice) -> Optional[int]:
     """Guess the size of a slice.
-
-    NOT MAINTAINED.
 
     :returns: None if it is not possible to guess.
         (for instance for slice(None, None))
