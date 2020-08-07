@@ -459,9 +459,6 @@ class DataDisk(DataBase):
         """
         for fg in self.filegroups:
             for name, cs in fg.cs.items():
-                if cs.shared and not cs.is_to_scan():
-                    raise KeyError(f"'{name}' (in filegroup '{fg.name}') is "
-                                   "shared but has not scanning function set.")
                 for elt in cs.elts:
                     if (elt not in cs.manual
                             and not any(elt in s.returns for s in cs.scanners)

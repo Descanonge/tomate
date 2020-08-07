@@ -213,7 +213,8 @@ class FilegroupScan():
 
         for name, cs in self.iter_shared(True).items():
             if len(cs.matchers) == 0:
-                raise RuntimeError(f"'{name}' has no matcher in the pre-regex.")
+                raise IndexError(f"'{name}' in filegroup '{self.name}' is "
+                                 "shared but has no matcher in the pre-regex.")
 
         self.n_matcher = idx + 1
         self.regex = regex
