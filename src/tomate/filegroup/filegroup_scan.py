@@ -79,6 +79,8 @@ class FilegroupScan():
         False if any variable must be loaded, and kwargs to pass.
     """
 
+    MAX_DEPTH_SCAN = 3
+
     def __init__(self, root: str,
                  db: 'DataBase',
                  coords_fg: List[CoordScanSpec],
@@ -329,23 +331,23 @@ class FilegroupScan():
     def find_files(self) -> List[str]:
         """Find files to scan.
 
-        Uses os.walk.
-        Sort files alphabetically
+        Uses os.walk. Sort files alphabetically
 
-        :raises RuntimeError: If no files are found.
+        :raises IndexError: If no files are found.
         """
         if self.file_override:
             return [self.file_override]
 
-        # Using a generator should fast things up even though
-        # less readable
-        files = [os.path.relpath(os.path.join(root, file), self.root)
-                 for root, _, files in os.walk(self.root)
-                 for file in files]
+        files = []
+        for i, (root, _, files_) in enumerate(os.walk(self.root)):
+            if i > self.MAX_DEPTH_SCAN:
+                break
+            files += [os.path.relpath(os.path.join(root, file), self.root)
+                      for file in files_]
         files.sort()
 
         if len(files) == 0:
-            raise RuntimeError(f"No files were found in {self.root}")
+            raise IndexError(f"No files were found in {self.root}")
 
         log.debug("Found %s files in %s", len(files), self.root)
 
