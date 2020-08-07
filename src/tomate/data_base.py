@@ -9,11 +9,8 @@
 import logging
 from typing import Any, Dict, List, Tuple, Type, Union
 
-import numpy as np
-
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import Array, KeyLike, KeyLikeInt, KeyLikeValue
-from tomate.filegroup.filegroup_load import FilegroupLoad
+from tomate.custom_types import Array, KeyLike, KeyLikeValue
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
 from tomate.variable_base import Variable
@@ -24,45 +21,38 @@ log = logging.getLogger(__name__)
 
 
 class DataBase():
-    r"""Encapsulate data array and info about the variables.
+    r"""Encapsulate all elements of a database.
 
-    The data itself is stored in the data attribute.
-    The data can be conveniently accessed using the `view` method.
+    The DataBase object contains the scopes for available,
+    loaded, and selected data. It is the primary object
+    to modify thoses scope (by loading or selecting data
+    for instance). Many methods use the current scope by
+    default, *ie* the loaded scope if data is loaded,
+    available scope otherwise.
+    Coordinates of the current scope are available as
+    attributes.
 
-    The data consists in multiple variables varying along
-    multiple coordinates.
-    An ensemble of coordinates and variables makes a `Scope`.
-    The data object has three different scopes:
-    \*avail: all data available on disk
-    \*loaded: part of that data that is loaded in memory
-    \*selected: part of data selected
-
-    Coordinates objects, the list of variables, the shape
-    of data, and other attributes of the different scopes objects,
-    are directly accessible from the data object.
-    If data has been loaded, the 'loaded' scope is used,
-    otherwise the 'available' scope is used.
-
-    Data and coordinates can be accessed as items:
-    `Data[name of variable]`.
+    Tha DataBase object also contains one or more Variable
+    object. Those are accessible as items with
+    `Data[name of variable]`. Data can be retrieved
+    directly with the view method, eventually for multiple
+    variable at once.
 
     See :doc:`../data` for more information.
 
-    :param vi: Information on the variables and data.
-    :param dims: Dimensions, (ie subclasses of Coord)
-        in the order the data should be kept.
-        This includes variables.
-        They are linked (not copied) to the available
-        scope.
+    :param dims: Dimensions, (ie subclasses of Coord). This includes variables.
+        The dimensions will be stored in various scopes in the order they
+        are supplied. This same order is used in many methods when specifying
+        keys. They are linked (not copied) to the available scope.
+    :param vi: [opt] Information on the variables and data.
+        If None, one is created.
 
-    :attr dims: List[str]: Dimensions names,
-        in the order the data is kept in the array.
-
+    :attr dims: List[str]: Dimensions names in order.
     :attr vi: VariablesInfo: Information on the variables and data.
-    :attr data: np.ndarray or subclass: Data array if loaded, None otherwise.
     :attr avail: Scope: Scope of available data (on disk).
     :attr loaded: Scope: Scope of loaded data.
     :attr selected: Scope: Scope of selected data.
+    :attr variables: Dict[Variable]: Variable objects
     """
 
     def __init__(self, dims: List[Coord],
@@ -128,16 +118,15 @@ class DataBase():
         return out
 
     def check_loaded(self):
-        """Raises if data is loaded.
+        """Raises if data is not loaded.
 
         :raises RuntimeError: If the data is not loaded.
         """
         if self.loaded.is_empty():
             raise RuntimeError("Data not loaded.")
 
-    def __getitem__(self, key: str) -> Variable:
-        """Return a variable object.
-        """
+    def __getitem__(self, key: KeyLike) -> Variable:
+        """Return a variable object. """
         if isinstance(key, str):
             return self.variables[key]
         raise TypeError("Key must be a str.")
@@ -145,16 +134,14 @@ class DataBase():
     def __setitem__(self, key: str, value: Array):
         """Assign data to a variable.
 
-        Wrapper around set_data
+        Wrapper around Variable.set_data
         """
         self.variables[key].set_data(value, Keyring())
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str):
         """Get attribute.
 
         If `name` is a coordinate name, return coordinate from
-        current scope.
-        If `name` is 'var', return list of variable from
         current scope.
         """
         if name in super().__getattribute__('dims'):
@@ -173,7 +160,11 @@ class DataBase():
         return self.avail
 
     def get_scope(self, scope: Union[str, Scope]) -> Scope:
-        """Get scope by name."""
+        """Get scope by name.
+
+        :param scope: Can be {'avail', 'loaded', 'selected', 'current'},
+            or a Scope object, which will simply be returned.
+        """
         if isinstance(scope, str):
             scope = {'avail': self.avail,
                      'loaded': self.loaded,
@@ -195,7 +186,7 @@ class DataBase():
 
         :param keyring: [opt] Keyring specifying parts of dimensions to take.
         :param keys: [opt] Keys specifying parts of dimensions to take, in
-            the order dimensions are stored. Take precedence over `keyring`.
+            the order dimensions are stored in. Take precedence over `keyring`.
         :param kw_keys: [opt] Argument name is dimension name. Takes precedence
             over `keys`.
         :param stack: [opt] Concatenate different variables into one array.
@@ -258,13 +249,12 @@ class DataBase():
 
         return out
 
-    def view_by_value(self, *keys: KeyLikeInt, by_day: bool = False,
+    def view_by_value(self, *keys: KeyLike, by_day: bool = False,
                       stack: Union[str, bool] = None, order: List[str] = None,
                       **kw_keys: KeyLike) -> Union[Array, Tuple[Array]]:
         """Returns a subset of loaded data.
 
-        Arguments work similarly as
-        :func:`DataDisk.load_by_value
+        Arguments work similarly as :func:`DataDisk.load_by_value
         <tomate.db_types.data_disk.DataDisk.load_by_value>`.
 
         See also
@@ -278,7 +268,8 @@ class DataBase():
 
     def view_selected(self, scope: Union[str, Scope] = 'selected',
                       stack: Union[str, bool] = None, order: List[str] = None,
-                      keyring: Keyring = None, **keys: KeyLike) -> np.ndarray:
+                      keyring: Keyring = None,
+                      **keys: KeyLike) -> Union[Array, Tuple[Array]]:
         """Returns a subset of loaded data.
 
         Subset to view is specified by a scope.
@@ -286,9 +277,8 @@ class DataBase():
 
         :param scope: Scope indicating the selection to take.
             If str, can be {'avail', 'loaded', 'selected', 'current'},
-            corresponding scope will then be taken.
-            It must have been created from the loaded scope.
-            Defaults to current selection.
+            corresponding scope will then be taken. It must have been
+            created from the loaded scope. Defaults to current selection.
         :param keyring: [opt] Keyring specifying further slicing of selection.
         :param keys: [opt] Keys specifying further slicing of selection.
             Take precedence over keyring.
@@ -351,15 +341,12 @@ class DataBase():
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
-        Scope is loaded if not empty, available otherwise.
 
         :param coords: [opt] Coordinates name.
-            If None, defaults to all coordinates, in the order
-            of data.
+            If None, defaults to all coordinates in order.
         :param scope: [opt] Scope to use. Default is current.
         :param keyring: [opt] Subset coordinates.
-        :param keys: [opt] Subset coordinates.
-            Take precedence over keyring.
+        :param keys: [opt] Subset coordinates. Take precedence over keyring.
 
         :returns: Min and max of each coordinate. Flattened.
 
@@ -382,12 +369,10 @@ class DataBase():
         Return first and last value of specified coordinates.
 
         :param coords: [opt] Coordinates name.
-            If None, defaults to all coordinates, in the order
-            of data.
+            If None, defaults to all coordinates, in the order.
         :param scope: [opt] Scope to use. Default is current.
         :param keyring: [opt] Subset coordinates.
-        :param keys: [opt] Subset coordinates.
-            Take precedence over keyring.
+        :param keys: [opt] Subset coordinates. Take precedence over keyring.
 
         :returns: First and last values of each coordinate.
 
@@ -405,19 +390,15 @@ class DataBase():
     def get_kw_keys(self, *keys: KeyLike, **kw_keys: KeyLike) -> Dict[str, KeyLike]:
         """Make keyword keys when asking for coordinates parts.
 
-        From a mix of positional and keyword argument,
-        make a list of keywords.
+        From a mix of positional and keyword argument, make a list of keywords.
         Keywords arguments take precedence over positional arguments.
         Positional argument shall be ordered as the coordinates
         are ordered in data.
 
-        :param keys: [opt]
-        :param kw_keys: [opt]
-
         Examples
         --------
-        >>> print( db.get_kw_keys([0, 1], lat=slice(0, 10)) )
-        {'time': [0, 1], 'lat': slice(0, 10)}
+        >>> print( db.get_kw_keys('SST', [0, 1], lat=slice(0, 10)) )
+        {'var': 'SST', 'time': [0, 1], 'lat': slice(0, 10)}
         """
         for i, key in enumerate(keys):
             name = self.dims[i]
@@ -427,15 +408,18 @@ class DataBase():
 
     def get_subscope(self, scope: Union[str, Scope] = 'avail',
                      keyring: Keyring = None, int2list: bool = True,
-                     name: str = None,
-                     **keys: KeyLike) -> Scope:
+                     name: str = None, **keys: KeyLike) -> Scope:
         """Return subset of scope.
 
         :param scope: [opt] Scope to subset.
             If str, can be {'avail', 'loaded', 'selected', 'current'},
             corresponding scope of data will then be taken.
-        :param keyring: [opt]
+        :param keyring: [opt] Act on `scope`.
         :param keys: [opt]
+        :param name: [opt] Name of new scope. If None will take
+            name of input scope.
+        :param int2list: If True, integer keys are turned to list.
+            This avoids squeezing dimensions. Default to True.
 
         :returns: Copy of input scope, sliced with specified keys.
         """
@@ -449,16 +433,17 @@ class DataBase():
         return subscope
 
     def get_subscope_by_value(self, scope: Union[str, Scope] = 'avail',
-                              int2list: bool = True,
-                              name: str = None,
+                              int2list: bool = True, name: str = None,
                               by_day: bool = False,
                               **keys: KeyLikeValue) -> Scope:
         """Return subset of scope.
 
-        :param bool: Use `subset_by_day` for Time dimension rather than `subset`.
-            Default to False.
-        :param kw_keys: [opt] Argument name is dimension name for value selection,
-            or dimension name appended with `_idx` for index selection.
+        Arguments work similarly as :func:`DataDisk.load_by_value
+        <tomate.db_types.data_disk.DataDisk.load_by_value>`.
+
+        See also
+        --------
+        get_subscope
         """
         scope = self.get_scope(scope)
         keyring = scope.get_keyring_by_index(by_day=by_day, **keys)
@@ -470,10 +455,10 @@ class DataBase():
 
         :param scope: [opt] Scope to select from.
             If str, can be {'avail', 'loaded', 'selected', 'current'},
-            corresponding scope will then be taken.
-            Default to current scope (loaded if data has been loaded,
-            avail otherwise).
+            corresponding scope will then be taken. Default to current scope
+            (loaded if data has been loaded, avail otherwise).
         :param keyring: [opt] Keyring specifying parts of dimensions to take.
+            Act on the specified scope.
         :param keys: [opt] Keys specifying parts of dimensions to take.
             Act on the specified scope. Take precedence over `keyring`.
 
@@ -493,13 +478,8 @@ class DataBase():
                         by_day: bool = False, **keys: KeyLike):
         """Set selection scope by value.
 
-        :param scope: [opt] Scope to select from. See `select()`.
-        :param by_day: If True, find indices prioritising dates.
-            See :ref:`Some examples of coordinates subclasses` for details.
-        :param keys: [opt] Keys specifying parts of dimensions to take
-            by value. Take precedence over `keyring`. Act on specified scope.
-            See 'kw_keys' argument of :func:`DataDisk.load_by_value
-            <tomate.db_types.data_disk.DataDisk.load_by_value>` for details.
+        Arguments work similarly as :func:`DataDisk.load_by_value
+        <tomate.db_types.data_disk.DataDisk.load_by_value>`.
 
         Examples
         --------
@@ -518,14 +498,12 @@ class DataBase():
 
     def add_to_selection(self, scope: Union[str, Scope] = 'avail',
                          keyring: Keyring = None, **keys: KeyLike):
-        """Add to selection.
+        """Expand 'selected' scope.
 
-        Keys act on the parent scope of selection.
-        Keys are always sorted in increasing order
-
-        :param Scope: [opt] If nothing was selected before, select keys from this scope.
+        :param Scope: [opt] If nothing was selected before, select keys from
+             this scope.
         :param keyring: [opt]
-        :param keys: [opt]
+        :param keys: [opt] Keys act on the parent scope of selection.
         """
         scope = self.selected
         if scope.is_empty():
@@ -541,7 +519,7 @@ class DataBase():
     def slice_data(self, keyring: Keyring = None, **keys: KeyLike):
         """Slice loaded data.
 
-        Keys act on loaded scope.
+        :param keys: Keys act on loaded scope.
         """
         self.check_loaded()
         keyring = Keyring.get_default(keyring, **keys)
@@ -643,8 +621,8 @@ class DataBase():
         self.variables[variable] = db_var
         return db_var
 
-    def remove_loaded_variable(self, variables: Union[str, List[str]]):
-        """Remove variable from data."""
+    def remove_loaded_variables(self, variables: Union[str, List[str]]):
+        """Remove variables from loaded scope."""
         if isinstance(variables, str):
             variables = [variables]
         keep = [v for v in self.loaded if v not in variables]

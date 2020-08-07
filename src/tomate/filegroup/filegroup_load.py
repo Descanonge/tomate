@@ -201,10 +201,10 @@ class FilegroupLoad(FilegroupScan):
 
         return commands
 
-    def _get_commands_shared__get_info(self,
-                                       keyring: Keyring) -> Tuple[List[List[List[str]]],
-                                                                  List[List[int]],
-                                                                  Union[List[int], None]]:
+    def _get_commands_shared__get_info(
+            self, keyring: Keyring) -> Tuple[List[List[List[str]]],
+                                             List[List[int]],
+                                             Union[List[int], None]]:
         """For all asked values, retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.

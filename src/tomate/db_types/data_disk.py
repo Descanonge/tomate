@@ -8,7 +8,7 @@
 
 import logging
 import itertools
-from typing import Any, Dict, List, Union, Tuple, Type
+from typing import Any, Dict, List, Type, Union
 
 import numpy as np
 
@@ -17,6 +17,7 @@ from tomate.custom_types import KeyLike, KeyLikeValue
 from tomate.data_base import DataBase
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.filegroup_scan import make_filegroup
+from tomate.filegroup.spec import CoordScanSpec
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
 from tomate.variables_info import VariablesInfo
@@ -28,20 +29,24 @@ log = logging.getLogger(__name__)
 class DataDisk(DataBase):
     """Added functionalities for on-disk data management.
 
-    Scan metadata.
-    Load data from disk.
+    Files are regrouped in Filegroups object, treated independently.
+    DataDisk act as a director for those filegroups. It starts
+    the scanning process, compile information found in different
+    filegroups, and initiate loading and writing data from / to disk.
 
+    :param dims: Dimensions (ie subclasses of Coord). This includes variables.
+        The dimensions will be stored in various scopes in the order they
+        are supplied. This same order is used in many methods when specifying
+        keys. They are linked (not copied) to the available scope.
+    :param vi: [opt] Information on the variables and data.
+        If None, one is created.
     :param root: Root data directory containing all files.
 
     :attr root: str: Root data directory containing all files.
-    :attr filegroups: List[FilegroupLoad]:
+    :attr filegroups: List[FilegroupLoad]: List of filegroups.
     :attr allow_advanced: bool: If allows advanced data arrangement.
-    :attr post_loading_funcs: List[Tuple[Callable[DataBase]],
-                                   Key, bool, Dict[str, Any]]:
-        Functions applied after loading data.
-        Each element is a tuple of the function, the variable that triggers
-        the call, a boolean True if all said variables must present to trigger,
-        False if any variable must be loaded, and kwargs to pass.
+    :attr post_loading_funcs: List[PostLoadingFunc]: Functions applied
+        after loading data.
     """
     def __init__(self, dims: List[Coord],
                  root: str, filegroups: List[FilegroupLoad],
@@ -78,11 +83,9 @@ class DataDisk(DataBase):
         raise TypeError("Key must be filegroup index or name (is {})"
                         .format(type(key)))
 
-    def add_filegroup(self, fg_type: Type,
-                      coords_fg: List[Tuple[Union[str, Coord], Union[str, bool], str]],
+    def add_filegroup(self, fg_type: Type, coords_fg: List[CoordScanSpec],
                       name: str = '', root: str = None,
-                      variables_shared: bool = False,
-                      **kwargs: Any):
+                      variables_shared: bool = False, **kwargs: Any):
         """Add filegroup to database.
 
         See :func:`Constructor.add_filegroup
@@ -97,15 +100,16 @@ class DataDisk(DataBase):
     def load(self, *keys: KeyLike, **kw_keys: KeyLike):
         """Load part of data from disk into memory.
 
-        What variables, and what coordinates indices to load can be specified.
+        Unload all data previously loaded, and load other data from disk.
         Keys specified to subset data act on the available scope.
-        If a dimensions is omitted or None, all available values are loaded.
+        If a dimension is omitted or None, all available values are loaded.
 
-        :param keys: [opt] What part of each dimension to load, in the
-            order dimensions are stored. Can be integers, list of integers,
-            slices, or None.
-        :param kw_keys: [opt] What part of each dimension to load. Takes precedence
-            over positional `keys`. Key for variables should be named 'var'.
+        :param keys: [opt] Part of each dimension to load, specified in the same
+            order as in the database. Can be integers, list of integers, slices,
+            or None. For string coordinates (variables for instance), can also
+            be strings or list of strings.
+        :param kw_keys: [opt] Same as `keys`, takes precedence over it.
+            Key for variables should be named 'var'.
 
         Examples
         --------
@@ -158,18 +162,17 @@ class DataDisk(DataBase):
 
         Part of the data to load is specified by values or index.
 
-        :param keys: [opt] Values to load for each dimension,
-            in the order dimensions are stored.
-            If is slice, use start and stop as boundaries.
-            Step has no effect. If is float, int, or a list of,
-            closest index for each value is taken. Act on loaded scope.
+        :param keys: [opt] Values to load for each dimension, in the same order
+            as in the database. If is slice, use start and stop as boundaries.
+            Step has no effect. If is float, int, or a list of, closest index
+            for each value is taken. Act on loaded scope.
         :param by_day: If True, find indices prioritising dates.
             See :ref:`Some examples of coordinates subclasses` for details.
-        :param kw_keys: [opt] Values to load for each dimension.
-            Argument name is dimension name, argument value is similar to `keys`.
-            Take precedence over `keys`. Argument name can also be a dimension
-            name appended with `_idx`, in which case the selection is made by
-            index instead. Value selection has priority.
+        :param kw_keys: [opt] Values to load for each dimension. Argument name
+            is dimension name, argument value is similar to `keys`, and take
+            precedence over it. Argument name can also be a dimension name
+            appended with `_idx`, in which case the selection is made by index
+            instead. Value selection has priority.
 
         Examples
         --------
@@ -194,22 +197,22 @@ class DataDisk(DataBase):
         load
         """
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
-        scope = self.get_subscope_by_value('avail', int2list=True, by_day=by_day, **kw_keys)
+        scope = self.get_subscope_by_value('avail', int2list=True,
+                                           by_day=by_day, **kw_keys)
         self.load_selected(scope=scope)
 
     def load_selected(self, keyring: Keyring = None,
                       scope: Union[str, Scope] = 'selected',
                       **keys: KeyLike):
-        """Load data from a child scope of available.
+        """Load data from the selected scope.
 
-        Subset is specified by a scope.
-        The selection scope is expected to be created from
-        the available one.
+        Selection has to have been made from the available scope.
 
+        :param keys: [opt] Slice the selection further. Keys act on
+            `scope`.
+        :param scope: [opt] Any scope created from available scope, defaults
+             to selected scope.
         :param keyring: [opt]
-        :param scope: [opt] Selected scope created from available scope.
-            Defaults to `self.selected`.
-        :param keys: [opt]
 
         :raises KeyError: Selection scope is empty.
         :raises ValueError: Selection scope was not created from available.
@@ -240,15 +243,21 @@ class DataDisk(DataBase):
         If a variable to write is contained in multiple filegroups,
         only the first filegroup will be used to write this variable.
 
-        Filegroups variables CoordScan should contain the variables to write,
-        otherwise one can use filegroup.write() directly.
+        To find with what filegroup to write each variable, the variable
+        CoordScan should be set up correctly. Otherwise one can use
+        filegroup.write() directly.
 
-        :param filename: File to write in. Relative to each filegroup root
+        Essentially a wrapper around :func:`FilegroupLoad.write
+        <tomate.filegroup.filegroup_load.FilegroupLoad.write>`, see for
+        more details on arguments.
+
+        :param filename: File to write. Relative to each filegroup root
             directory, or from `wd` if specified.
-        :param directory: [opt] Force to write `filename` in this directory instead
-            of each filegroups root.
+        :param directory: [opt] Force to write `filename` in this directory
+            instead of each filegroups root.
         :param file_kw: Keywords argument to pass to `open_file`.
         :param var_kw: Variables specific arguments.
+        :param keys: [opt] Only write a subpart of loaded data.
         """
         keyring = Keyring(**keys)
         keyring.make_full(self.dims)
@@ -269,15 +278,15 @@ class DataDisk(DataBase):
 
     def write_add_variable(self, var: str, sibling: str,
                            kwargs: Dict = None, **keys: KeyLike):
-        """Add variables to files.
+        """Add variable to existing files.
+
+        Add a variable to the same files of another variable.
 
         :param var: Variable to add. Must be in loaded scope.
-        :param sibling: Variable along which to add the data.
-            New variable will be added to the same files
-            and in same order.
-        :param keys: [opt] If a subpart of data is to be written.
-            The selected data must match in shape that of the
-            sibling data on disk.
+        :param sibling: Variable along which to add the data. New variable will
+            be added to the same files and in same order.
+        :param keys: [opt] If a subpart of data is to be written. The selected
+            data must match in shape that of the sibling data on disk.
         """
         scope = self.loaded.copy()
         scope.slice(var=sibling, **keys, int2list=False)
@@ -288,7 +297,8 @@ class DataDisk(DataBase):
     def scan_variables_attributes(self):
         """Scan variables specific attributes.
 
-        Filegroups should be functionnal for this.
+        In each filegroup, emit a load command to locate one file for each
+        variable.
         """
         for fg in self.filegroups:
             if any(s.kind == 'var' for s in fg.scanners):
@@ -297,10 +307,10 @@ class DataDisk(DataBase):
     def scan_files(self):
         """Scan files for metadata.
 
-        :raises RuntimeError: If no filegroups in database.
+        :raises IndexError: If no filegroups in database.
         """
         if not self.filegroups:
-            raise RuntimeError("No filegroups in database.")
+            raise IndexError("No filegroups in database.")
         self.check_regex()
         self.check_scanning_functions()
         for fg in self.filegroups:
@@ -311,8 +321,7 @@ class DataDisk(DataBase):
 
         -Apply CoordScan selections.
         -Aggregate coordinate values from all filegroups.
-        -If advanced data organization is not allowed, only keep
-        intersection.
+        -If advanced data organization is not allowed, only keep intersection.
         -Apply coordinates values to available scope.
         """
         if len(self.filegroups) == 1:
@@ -335,7 +344,8 @@ class DataDisk(DataBase):
             self.check_duplicates()
             self._apply_coord_values(values)
 
-    def _find_contained(self, values):
+    def _find_contained(self, values: Dict[str, np.ndarray]):
+        """Find what part of available are contained in each fg."""
         for fg in self.filegroups:
             for dim, value in values.items():
                 fg.cs[dim].find_contained(value)
@@ -344,7 +354,7 @@ class DataDisk(DataBase):
         """Aggregate all available coordinate values.
 
         :returns: Values for each dimension.
-        :raises ValueError: No values found for a variable.
+        :raises ValueError: No values found for one of the coordinate.
         """
         values_c = {}
         for c in self.dims:
@@ -374,13 +384,12 @@ class DataDisk(DataBase):
     def _get_intersection(self, values: Dict[str, np.ndarray]):
         """Get intersection of coordinate values.
 
-        Only keep coordinates values common to all filegroups.
-        The variables dimensions is excluded from this.
-        Slice CoordScan and `contains` accordingly.
+        Only keep coordinates values common to all filegroups. The variables
+        dimensions is excluded from this. Slice CoordScan and `contains`
+        accordingly.
 
-        :param values: All values available for each dimension.
-            Modified in place to only values common
-            accross filegroups.
+        :param values: All values available for each dimension. Modified in
+            place to only values common accross filegroups.
         """
         for dim in self.coords:
             none = np.zeros(values[dim].size, bool)
@@ -393,13 +402,15 @@ class DataDisk(DataBase):
                     cs = fg.cs[dim]
                     size, extent = cs.size, cs.get_extent_str()
                     if cs.slice_from_avail(sel):
-                        log.warning("'%s' in '%s' will be cut: found %d values ranging %s",
+                        log.warning("'%s' in '%s' will be cut:"
+                                    "found %d values ranging %s",
                                     dim, fg.name, size, extent)
                         if cs.size == 0:
                             raise IndexError(f"No common values for '{dim}'")
 
                 cs = self.filegroups[0].cs[dim]
-                log.warning("Common values taken for '%s', %d values ranging %s.",
+                log.warning("Common values taken for '%s',"
+                            "%d values ranging %s.",
                             dim, cs.size, cs.get_extent_str())
 
     def _apply_coord_values(self, values: Dict[str, np.ndarray]):
@@ -408,13 +419,14 @@ class DataDisk(DataBase):
             self.avail.dims[dim].update_values(val)
 
     def create_variables(self):
+        """Create variables objects."""
         for var in self.avail['var']:
             self.add_variable(var)
 
     def check_duplicates(self):
         """Check for duplicate data points.
 
-        ie if a same data point (according to coordinate values)
+        *ie* if a same data point (according to coordinate values)
         can be found in two filegroups.
 
         :raises ValueError: If there is a duplicate.
@@ -432,21 +444,24 @@ class DataDisk(DataBase):
     def check_regex(self):
         """Check if a pregex has been added where needed.
 
-        :raises RuntimeError: If regex is empty and there is at
+        :raises AttributeError: If regex is empty and there is at
             least one shared coordinate.
         """
         for fg in self.filegroups:
             coords = list(fg.iter_shared(True))
             if len(coords) > 0 and fg.regex == '':
-                raise RuntimeError(f"Filegroup '{fg.name}' is missing a regex.")
+                raise AttributeError(f"Filegroup '{fg.name}' is missing a regex.")
 
     def check_scanning_functions(self):
-        """Check if CoordScan have scanning functions set."""
+        """Check if CoordScan have scanning functions set.
+
+        :raises KeyError: One coordinate is missing a scanning function.
+        """
         for fg in self.filegroups:
             for name, cs in fg.cs.items():
                 if cs.shared and not cs.is_to_scan():
-                    raise KeyError(f"'{name}' (in filegroup '{fg.name}') is shared"
-                                   " but has not scanning function set.")
+                    raise KeyError(f"'{name}' (in filegroup '{fg.name}') is "
+                                   "shared but has not scanning function set.")
                 for elt in cs.elts:
                     if (elt not in cs.manual
                             and not any(elt in s.returns for s in cs.scanners)

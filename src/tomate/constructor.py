@@ -31,28 +31,21 @@ log = logging.getLogger(__name__)
 
 
 class Constructor():
-    """Helps creating a database object.
+    """Help creating a database object.
 
     :param root: Root directory of all files.
-    :param coords: Coordinates, in the order the data should be kept.
-        Variables can be omitted.
+    :param coords: Coordinates. Variables can be omitted. Their order
+        will dictate the coordinates order in the database and scopes.
 
     :attr root: str: Root directory of all files.
-    :attr dims: Dict[str, Coord]: Coordinates, in the order
-        the data should be kept.
-        These are the 'master' coordinate that will be
+    :attr dims: Dict[str, Coord]: These are the 'master' coordinate that will be
         transmitted to the database object.
     :attr filegroups: List[Filegroup]: Filegroups added so far.
     :attr vi: VariablesInfo:
-
-    :attr post_loading_funcs: List[Tuple[Callable[DataBase]], Key,
-                                   bool, Dict[str, Any]]:
-        Functions applied after loading data at the database level.
-
-    :attr db_types: List[Type[DataBase]]:
-        Subclass of DataBase to use to create a new dynamic
-        database class.
-
+    :attr post_loading_funcs: List[PostLoadingFunc]: Functions applied after
+        loading data, at the database level.
+    :attr db_types: List[Type[DataBase]]: Subclass of DataBase to use to create
+        a new dynamic database class.
     :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
     """
 
@@ -78,22 +71,10 @@ class Constructor():
         self.allow_advanced = False
 
     @property
-    def var(self) -> Variables:
-        """Variables dimensions."""
-        return self.dims['var']
-
-    @property
-    def coords(self) -> Dict[str, Coord]:
-        """Coordinates (Dimensions without variables)."""
-        out = {name: c for name, c in self.dims.items()
-               if name != 'var'}
-        return out
-
-    @property
     def current_fg(self) -> FilegroupLoad:
         """Current filegroup.
 
-        (ie last filegroup added)
+        (*ie* last filegroup added)
         """
         return self.filegroups[-1]
 
@@ -115,30 +96,26 @@ class Constructor():
     def add_filegroup(self, fg_type: Type,
                       coords_fg: Iterable[CoordScanSpec],
                       name: str = '', root: str = None,
-                      variables_shared: bool = False,
-                      **kwargs: Any):
+                      variables_shared: bool = False, **kwargs: Any):
         """Add filegroup.
 
         :param fg_type: Class of filegroup to add. Dependant on the file-format.
-        :param coords_fg: Coordinates used in this grouping of files.
-            Each element of the list is a tuple of length 2 or 3 with
-            the coordinate (or its name), a shared flag, and eventually
-            the name of the coordinate in the file.
-            The flag can be 'shared' or 'in', or a boolean (True = shared).
-            The name is optional, if not specified the name of the coordinate
-            object is used.
-            Variables dimension can be omitted.
+        :param coords_fg: Coordinates used in this grouping of files. Each
+            element is an :class:`CoordScanSpec
+            <tomate.filegroup.spec.CoordScanSpec>`. See its documentation
+            for details.
         :param name: Name of the filegroup.
-        :param root: [opt] Subfolder from root.
+        :param root: [opt] Subfolder, relative to root.
         :param variables_shared: [opt] If the Variables dimension is shared.
             Default is False.
-        :param kwargs: [opt] Passed to the fg_type initializator.
+        :param kwargs: [opt] Passed to the `fg_type` initializator.
 
         Examples
         --------
-        >>> add_filegroup(FilegroupNetCDF, [[lat, 'in', 'latitude'],
-        ...                                 [lon, 'in'],
-        ...                                 [time, 'shared']])
+        >>> cstr.add_filegroup(FilegroupNetCDF, [cstr.CSS('lat'),
+        ...                                      cstr.CSS('lon'),
+        ...                                      cstr.CSS('time', 'shared')]
+        ...                    name='SST', root='GHRSST')
         """
         fg = make_filegroup(fg_type, self.root, self.dims,
                             coords_fg, self.vi, root, name,
@@ -154,7 +131,7 @@ class Constructor():
         Examples
         --------
         >>> cstr.set_fg_regex("%(prefix)_%(time:year)",
-        ...                   {"prefix": "SST"})
+        ...                   prefix= "SST")
         """
         if replacements is None:
             replacements = {}
@@ -179,12 +156,8 @@ class Constructor():
 
         This allows to select only a subpart of a CoordScan.
         The selection is applied by value, after scanning.
-
-        :param keys: Values to select in a CoordScan.
-            If is slice, use start and stop as boundaries.
-            Step has no effect.
-            If is float, int, or a list of, closest index
-            each value is taken.
+        See :func:`DataDisk.load<tomate.db_types.data_disk.DataDisk.Load>`
+        for details on `keys` arguments.
 
         Examples
         --------
@@ -197,12 +170,11 @@ class Constructor():
     def set_variables_elements(self, *variables: List[VariableSpec]):
         """Set variables elements.
 
-        This is similar to using Constructor.set_values_manually()
-        for the 'Variables' coordinate.
-        For each variable, enter its information into a
-        :class:`VariableSpec<tomate.filegroup.spec.VariableSpec>`
-        object. This object is accessible directly from the constructor
-        as `Constructor.VariableSpec` or `Constructor.VS`
+        This is similar to using Constructor.set_values_manually() for the
+        'Variables' coordinate. For each variable, enter its information into a
+        :class:`VariableSpec<tomate.filegroup.spec.VariableSpec>` object. This
+        object is accessible directly from the constructor as
+        `Constructor.VariableSpec` or `Constructor.VS`
 
         Examples
         --------
@@ -217,8 +189,8 @@ class Constructor():
         dims = [v.dims for v in variables]
         cs.set_elements_manual(values=values, in_idx=in_idx, dimensions=dims)
 
-    def remove_scan_functions(self, kind: List[str] = None, *dims):
-        """Remove scan function.
+    def remove_scan_functions(self, kind: List[str] = None, *dims: str):
+        """Remove scan functions.
 
         :param dims: Dimensions to remove scan functions from.
         :kind: [opt] Only remove specific kind.
@@ -231,15 +203,14 @@ class Constructor():
                          restrain: List[str] = None, **kwargs: Any):
         """Set function for scanning coordinates values in file.
 
-        :param func: Function or Scanner that captures coordinates
-            elements.
+        :param func: Function or Scanner that captures coordinates elements.
         :param coords: Coordinates to apply this function for.
-        :param elements: Elements that will be scanned with this
-            function. Mandatory if '`func`' is a function, else
-            it will redefine scanner elements.
+        :param elements: Elements that will be scanned with this function.
+            Mandatory if '`func`' is a function, else it will redefine scanner
+            elements.
         :param restrain: [opt] Only use those elements for scanning.
-        :param kwargs: [opt] Keyword arguments that will be passed
-            to the function.
+        :param kwargs: [opt] Keyword arguments that will be passed to the
+            function.
 
         See also
         --------
@@ -254,20 +225,18 @@ class Constructor():
                                  restrain=restrain, **kwargs)
 
     def add_scan_filename(self, func: Union[ScannerCS, Callable],
-                          *coords: str,
-                          elements: List[str] = None, restrain: List[str] = None,
-                          **kwargs: Any):
+                          *coords: str, elements: List[str] = None,
+                          restrain: List[str] = None, **kwargs: Any):
         """Set function for scanning coordinates values from filename.
 
-        :param func: Function or Scanner that captures coordinates
-            elements.
+        :param func: Function or Scanner that captures coordinates elements.
         :param coords: Coordinates to apply this function for.
-        :param elements: Elements that will be scanned with this
-            function. Mandatory if '`func`' is a function, else
-            it will redefine scanner elements.
+        :param elements: Elements that will be scanned with this function.
+            Mandatory if '`func`' is a function, else it will redefine scanner
+            elements.
         :param restrain: [opt] Only use those elements for scanning.
-        :param kwargs: [opt] Keyword arguments that will be passed
-            to the function.
+        :param kwargs: [opt] Keyword arguments that will be passed to the
+            function.
 
         See also
         --------
@@ -296,6 +265,8 @@ class Constructor():
                               in_idx: List = None):
         """Set coordinate elements manually.
 
+        All elements should have the same length as `values`.
+
         :param dim: Dimension to set the values for.
         :param values: Values for the coordinate.
         :param in_idx: [opt] Values of the in-file index.
@@ -312,7 +283,7 @@ class Constructor():
                                    *coords: str, **kwargs: Any):
         """Add a function for scanning coordinate attributes.
 
-        The attribute is set using CoordScan.set_attr.
+        Each attribute is set using CoordScan.set_attr.
 
         :param func: Function that recovers coordinate attribute in file.
             Returns a dictionnary {'attribute name' : value}.
@@ -321,7 +292,6 @@ class Constructor():
 
         See also
         --------
-        tomate.filegroup.scanner.Scanner: for details
         tomate.filegroup.scanner.scan_coord_attributes_default:
             for a better description of the function interface.
         """
@@ -330,40 +300,38 @@ class Constructor():
             cs = fg.cs[name]
             cs.add_scan_attributes_func(func, **kwargs)
 
-    def add_scan_general_attributes(self, func: Union[Scanner, Callable],
+    def add_scan_general_attributes(self,
+                                    func: Callable[[File], Dict[str, Any]],
                                     **kwargs: Any):
         """Add a function for scanning general data attributes.
 
         The attributes are added to the VI.
 
-        :param func: Function or scanner that recovers general
-            attributes in file. Returns a dictionnary
-            {'attribute name': value}
+        :param func: Function that recovers general attributes in file. Returns
+            a dictionnary {'attribute name': value}
         :param kwargs: [opt] Passed to the function.
 
         See also
         --------
-        tomate.filegroup.scanner.Scanner: for details
         tomate.filegroup.filegroup.scanner.scan_attributes_default:
             for a better description of the function interface.
         """
         fg = self.current_fg
         fg.add_scan_attrs_func(func, 'gen', **kwargs)
 
-    def add_scan_variables_attributes(self, func: Union[Scanner, Callable],
+    def add_scan_variables_attributes(self,
+                                      func: Callable[[File], Dict[str, Any]],
                                       **kwargs: Any):
         """Add function for scanning variables specific attributes.
 
         The attributes are added to the VI.
 
-        :param func: Function or scanner that recovers variables
-             attributes in file. Return a dictionnary
-             {'variable name': {'attribute name': value}}.
+        :param func: Function that recovers variables attributes in file. Return
+             a dictionnary {'variable name': {'attribute name': value}}.
         :param kwargs: [opt] Passed to the function.
 
         See also
         --------
-        tomate.filegroup.scanner.Scanner: for details
         tomate.filegroup.filegroup_scan.scan_variables_attributes_default:
             for a better description of the function interface.
         """
@@ -371,16 +339,17 @@ class Constructor():
         fg.add_scan_attrs_func(func, 'var', **kwargs)
 
     def set_coords_units_conversion(self, coord: str,
-                                    func: Callable[[Sequence, str, str], Sequence]):
+                                    func: Callable[[Sequence, str, str],
+                                                   Sequence]):
         """Set custom function to convert coordinate values.
 
         Changing units use Coord.change_units_other by default.
-        This method allow to override it for the current filegroup.
+        This method allow to override it.
 
         See also
         --------
-        tomate.coordinates.coord.change_units_other: `func` should behave similarly
-            and have the same signature.
+        tomate.coordinates.coord.change_units_other: `func` should behave
+            similarly and have the same signature.
         tomate.coordinates.time.change_units_other: For a working example.
         """
         self.current_fg.cs[coord].change_units_custom = func
@@ -392,8 +361,9 @@ class Constructor():
                               **kwargs: Any):
         """Add a post-loading function.
 
-        Function will be called if any or all of `variables`
-        are being loaded.
+        Function will be called if any or all of `variables` are being loaded.
+        See :class:`PostLoadingFunc<tomate.filegroup.scanner.PostLoadingFunc>`
+        for details.
 
         :param func: Function to call. Take DataBase as first argument, and
             optional additional keywords.
@@ -401,8 +371,9 @@ class Constructor():
             available variables.
         :param all_variables: True if all of variables must be loaded to launch
             function. False if any of the variables must be loaded (default).
-        :param current_fg: Will apply only for current filegroup, otherwise will apply
-            for any filegroup (default). Filegroup specific function are applied first.
+        :param current_fg: Will apply only for current filegroup, otherwise will
+            apply for any filegroup (default). Filegroup specific function are
+            applied first.
         :param kwargs: [opt] Will be passed to the function.
 
         Examples
@@ -419,11 +390,12 @@ class Constructor():
 
     def set_data_types(self, db_types: Union[Type[DataBase],
                                              List[Type[DataBase]]] = None):
-        """Set database and accessor subclasses.
+        """Set database subclasses.
 
-        :param db_types: [opt] Subclass (or list of) of DataBase
-            to derive the class of database from.
-            If None, basic DataBase will be used.
+        :param db_types: Subclass (or list of) of DataBase to derive the class
+            of database from. If None, basic DataBase will be used.
+            Note that :func:`make_data` will automatically `DataDisk` in
+            some cases.
 
         See also
         --------
@@ -436,27 +408,18 @@ class Constructor():
             db_types = [db_types]
         self.db_types = db_types
 
-    def add_disk_features(self):
-        """Add management of data on disk.
-
-        If not already present.
-        """
-        if DataDisk not in self.db_types:
-            self.db_types.insert(0, DataDisk)
-
     def make_data(self, scan: bool = True,
                   create_variables: bool = True) -> DataBase:
         """Create data instance.
 
-        Scan files, compiles coordinates values,
+        Scan files, compiles coordinates values, scan variable attributes,
         create variables.
 
-        :param scan: If the files should be scanned.
+        :param scan: If the files should be scanned. Default is True.
+        :param create_variables: If the variables should be created. Deactivate
+            to create variables with finer control with
+            :func:`DataBase.add_variable <data_base.DataBase.add_variable>`.
             Default is True.
-        :param create_variables: If the variables should
-            be created. Deactivate to create variables
-            with finer control with :func:`DataBase.add_variable
-            <data_base.DataBase.add_variable>`. Default is True.
 
         :returns: Data instance ready to use.
         """
@@ -464,7 +427,8 @@ class Constructor():
                 'vi': self.vi}
 
         if scan or self.filegroups:
-            self.add_disk_features()
+            if DataDisk not in self.db_types:
+                self.db_types.insert(0, DataDisk)
         if DataDisk in self.db_types:
             args.update({'root': self.root,
                          'filegroups': self.filegroups})
@@ -496,12 +460,10 @@ class Constructor():
 def create_data_class(db_types: List[Type[DataBase]]) -> Type[DataBase]:
     """Create a dynamic data class.
 
-    Find a suitable name.
-    Check that there is no clash between methods.
+    Find a suitable name. Issue a warning if there are clash between methods.
 
-    :param db_types: DataBase subclasses to use, in order of
-        priority for method resolution (First one in
-        the list is the first class checked).
+    :param db_types: DataBase subclasses to use, in order of priority for method
+        resolution (First one in the list is the first class checked).
     """
     if isinstance(db_types, type):
         db_types = [db_types]

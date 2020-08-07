@@ -334,10 +334,9 @@ class CoordScan(Coord):
                 current.append(values)
 
     def find_contained(self, outer: np.ndarray) -> List[Union[int, None]]:
-        """Find values of inner contained in outer.
+        """Find indices of values present in `outer`.
 
-        :param outer: List of values.
-
+        :param outer: List of available values.
         :returns:  List of the index of the outer values in the CS.
             If the value is not contained in CS, the index is `None`.
         """

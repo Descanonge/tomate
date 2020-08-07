@@ -1,4 +1,7 @@
-"""Add convenience functions for various operations on data."""
+"""Add convenience functions for various operations on data.
+
+All functions were not thoroughly tested, use with caution.
+"""
 
 # This file is part of the 'tomate' project
 # (http://github.com/Descanonge/tomate) and subject
@@ -6,7 +9,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import logging
 
 import numpy as np
@@ -22,11 +25,14 @@ log = logging.getLogger(__name__)
 class DataCompute(DataBase):
     """Data class with added functionalities for various computations.
 
+    All functions were not thoroughly tested, use with caution.
+
     See :class:`DataBase` for more information.
     """
 
     def histogram(self, variable, bins=None, bounds=None,
-                  density=False, **keys):
+                  density=False, **keys) -> Tuple[np.ndarray]:
+        """Compute histogram."""
         data = self.view(variable, **keys).compressed()
         return np.histogram(data, bins=bins, range=bounds,
                             density=density)
@@ -36,6 +42,7 @@ class DataCompute(DataBase):
         """Compute a n-dimensional gradient.
 
         :param coords: Coordinates to compute the gradient along.
+        :param fill: [opt] Value to fill masked data.
         """
         var = self[variable]
         var.check_loaded()
@@ -79,8 +86,8 @@ class DataCompute(DataBase):
         """Compute average on a given window.
 
         :param dims: Coordinates to compute the mean along.
-        :param kwargs: [opt] Argument passed to numpy.nanmean
-        :param keys: Part of the data to consider for averaging (by index).
+        :param kwargs: [opt] Arguments passed to numpy.nanmean
+        :param keys: Part of the data to select.
 
         Examples
         --------
@@ -88,7 +95,7 @@ class DataCompute(DataBase):
 
         Compute the average SST on the 50 first indices of latitude,
         and all longitude. If the data is indexed on [time, lat, lon]
-        `avg` is a one dimensional array.
+        `avg` is a one dimensional array (for time dimension).
         """
         var = self[variable]
         var.check_loaded()
@@ -117,7 +124,10 @@ class DataCompute(DataBase):
     def std_dev(self, variable: str, dims: str = None,
                 kwargs: Dict[str, Any] = None,
                 **keys: KeyLike):
-        """Compute standard deviation on a given window."""
+        """Compute standard deviation on a given window.
+
+        Arguments similar to :func:`mean`.
+        """
         var = self[variable]
         var.check_loaded()
 
@@ -139,7 +149,3 @@ class DataCompute(DataBase):
         log.debug("Computing standard deviation over axes %s", axes)
         std = np.nanstd(data, axes, **kwargs)
         return std
-
-    def linear_combination(self):
-        """Compute linear combination between variables."""
-        raise NotImplementedError
