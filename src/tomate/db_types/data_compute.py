@@ -133,11 +133,7 @@ class DataCompute(DataBase):
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
-            log.warning("You are computing only on squeezed dimensions."
-                        " Returning zeros.")
-            data = var.view(keyring=keyring)
-            data[:] = 0
-            return data
+            log.warning("You are computing only on squeezed dimensions.")
 
         data = var.view(keyring=keyring)
         log.debug("Computing standard deviation over axes %s", axes)
