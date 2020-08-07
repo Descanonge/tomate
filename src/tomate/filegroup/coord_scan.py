@@ -78,7 +78,6 @@ class CoordScan(Coord):
         self.values = []
         self.in_idx = []
 
-        self.force_idx_descending = False
 
     def __repr__(self):
         s = [super().__repr__()]
@@ -178,14 +177,7 @@ class CoordScan(Coord):
         :param key: Index of the demanded values.
         """
         try:
-            if self.size is None:
-                if self.force_idx_descending:
-                    indices = mirror_key(key, self.coord.size)
-                else:
-                    indices = key.value
-            else:
-                indices = key.apply(self.in_idx)
-
+            indices = key.apply(self.in_idx)
             key_data = key.__class__(indices)
         except Exception:
             log.error("Error in retrieving in-file indices of '%s' for values %s.",
