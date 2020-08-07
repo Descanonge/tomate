@@ -110,12 +110,7 @@ class FilegroupScan():
     @property
     def variables(self) -> List[str]:
         """List of variables contained in this filegroup."""
-        csv = self.cs['var']
-        if csv.has_data():
-            v = csv[:].tolist()
-        else:
-            v = []
-        return v
+        return self.cs['var'].to_list()
 
     @property
     def contains(self) -> Dict[str, Optional[np.ndarray]]:
@@ -223,8 +218,6 @@ class FilegroupScan():
         self.n_matcher = idx + 1
         self.regex = regex
         self.pregex = pregex
-        import pdb
-        # pdb.set_trace()
 
     @staticmethod
     def scan_pregex(pregex: str) -> Optional[Iterator[re.match]]:
