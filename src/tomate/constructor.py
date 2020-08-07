@@ -367,8 +367,8 @@ class Constructor():
 
         :param func: Function to call. Take DataBase as first argument, and
             optional additional keywords.
-        :param variables: Key for variable selection. None will select all
-            available variables.
+        :param variables: Name of variables that should trigger the function.
+            None will select all available variables.
         :param all_variables: True if all of variables must be loaded to launch
             function. False if any of the variables must be loaded (default).
         :param current_fg: Will apply only for current filegroup, otherwise will

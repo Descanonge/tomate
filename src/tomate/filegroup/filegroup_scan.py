@@ -8,7 +8,7 @@
 
 import logging
 from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
-                    Type, TYPE_CHECKING, Union)
+                    Type, TYPE_CHECKING)
 
 import os
 import re
@@ -25,7 +25,6 @@ from tomate.filegroup.spec import CoordScanSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo
 if TYPE_CHECKING:
-    from tomate.filegroup.filegroup_load import FilegroupLoad
     from tomate.data_base import DataBase
 
 log = logging.getLogger(__name__)
@@ -39,9 +38,9 @@ class FilegroupScan():
 
     :param root: Root data directory containing all files.
     :param db: Parent database.
-    :param coords_fg: Parent coordinates objects,
-        a bool indicating if the coordinate is shared accross files,
-        and their name inside files.
+    :param coords_fg: Coordinates present in those files, see
+        :class:`CoordScanSpec <tomate.filegroup.spec.CoordScanSpec>` for
+        details.
     :param vi: Global VariablesInfo instance.
     :param name: [opt] Name of the filegroup.
 
@@ -50,28 +49,20 @@ class FilegroupScan():
     :attr vi: VariablesInfo: Global VariablesInfo instance.
     :attr name: str: Name of the filegroup.
 
-    :attr cs: Dict[str, CoordScan or subclass]: Dictionnary of scanning
-        coordinates, each dynamically inheriting from its parent Coord.
-
     :attr pregex: str: Pre-regex.
     :attr regex: str: Regex.
-    :attr file_override: str: If filegroup consist of a single file,
-        this is used (instead of a regular expression)
+    :attr file_override: str: If filegroup consist of a single file, this is
+        used (instead of a regular expression).
 
+    :attr found_file: bool: If any file matching the regex has been found.
+    :attr n_matcher: int: Number of matchers in the pre-regex.
     :attr segments: List[str]: Fragments of filename used for reconstruction,
         elements with pair indices are replaced with matches.
 
-    :attr scan_attr: Dict[str, [Callable, scanned:bool, kwargs: Dict]]:
-        Functions to call to scan variables specific
-        attributes or general attributes.
-        Key is 'gen' for general attributes, 'var' for variable specific.
-        Value is a tuple of the function to call, a boolean if the attributes
-        have been scanned, and kwargs to pass to the function.
-
+    :attr cs: Dict[str, CoordScan]: Dictionnary of scanning coordinates, each
+        dynamically inheriting from its parent Coord.
     :attr selection: Dict[str, Union[KeyLike, KeyLikeValue]]:
-        Keys for selecting parts of the CoordScan, by index or value.
-        Dict key is dimension name.
-
+        Keys for selecting parts of each CoordScan, by index or value.
     :attr post_loading_funcs: List[Tuple[Callable, Key, bool, Dict]]:
         Functions applied after loading data.
         Each element is a tuple of the function, the variable that triggers
@@ -80,6 +71,7 @@ class FilegroupScan():
     """
 
     MAX_DEPTH_SCAN = 3
+    """Limit descending into lower directories when finding files."""
 
     def __init__(self, root: str,
                  db: 'DataBase',
@@ -91,13 +83,13 @@ class FilegroupScan():
         self.vi = vi
         self.name = name
 
-        self.found_file = False
-        self.n_matcher = 0
-        self.segments = []
-
         self.regex = ""
         self.pregex = ""
         self.file_override = ''
+
+        self.found_file = False
+        self.n_matcher = 0
+        self.segments = []
 
         self.scanners = []
 
@@ -116,8 +108,7 @@ class FilegroupScan():
     def contains(self) -> Dict[str, Optional[np.ndarray]]:
         """Index of values contained in this filegroup.
 
-        Indexed on available scope.
-        None designate a value not contained.
+        Indexed on available scope. None designate a value not contained.
         """
         out = {name: c.contains for name, c in self.cs.items()}
         return out
@@ -144,11 +135,7 @@ class FilegroupScan():
     def make_coord_scan(self, coords: CoordScanSpec):
         """Add CoordScan objects.
 
-        Each CoordScan is dynamically rebased
-        from its parent Coord.
-
-        :param coords: List of tuple containing the coordinate object,
-            the shared flag, and the name of the coordinate infile.
+        Each CoordScan is dynamically rebased from its parent Coord.
         """
         self.cs = {}
         for c in coords:
@@ -159,8 +146,8 @@ class FilegroupScan():
         """Iter through CoordScan objects.
 
         :param shared: [opt] To iterate only shared coordinates (shared=True),
-            or only in coordinates (shared=False).
-            If left to None, iter all coordinates.
+            or only in coordinates (shared=False). If left to None, iter all
+            coordinates.
         """
         cs = {}
         for name, c in self.cs.items():
@@ -178,13 +165,17 @@ class FilegroupScan():
     def set_scan_regex(self, pregex: str, **replacements: str):
         """Specify the pre-regex.
 
-        Create a proper regex from the pre-regex.
-        Find the matchers: replace them by the appropriate regex,
-        store segments for easy replacement by the matches later.
+        Create a proper regex from the pre-regex. Find the matchers, replace
+        them by the appropriate regex, store segments for easy replacement by
+        the matches later.
 
         :param pregex: Pre-regex.
         :param replacements: Matchers to be replaced by a constant.
             The arguments names must match a matcher in the pre-regex.
+
+        :raises KeyError: A matcher has an unknown dimension.
+        :raises TypeError: A dimensions is not shared but has a matcher.
+        :raises IndexError: A dimension is shared but has not matcher.
 
         Example
         -------
@@ -198,8 +189,7 @@ class FilegroupScan():
 
         m = self.scan_pregex(pregex)
 
-        # Separations between segments
-        idx = -1
+        idx = -1  # If no matcher, we get n_matcher = 0, see below
         regex = pregex
         for idx, match in enumerate(m):
             matcher = Matcher(match, idx)
@@ -222,15 +212,12 @@ class FilegroupScan():
 
     @staticmethod
     def scan_pregex(pregex: str) -> Optional[Iterator[re.match]]:
-        """Scan pregex for matchers.
-
-        :param pregex: Pre-regex.
-        """
+        """Scan pregex for matchers. """
         regex = r"%\(([a-zA-Z]*):([a-zA-Z]*)(?P<cus>:custom=)?((?(cus)[^:]+:))(:?dummy)?\)"
         m = re.finditer(regex, pregex)
         return m
 
-    def find_segments(self, m: Optional[Iterator[re.match]]):
+    def find_segments(self, m: Iterator[re.match]):
         """Find segments in filename.
 
         Store result.
@@ -252,6 +239,9 @@ class FilegroupScan():
                   log_lvl: str = 'info',
                   **kwargs: Any) -> File:
         """Open a file.
+
+        Exception are handled by Tomate (which should close the file in case
+        an exception is thrown).
 
         :param filename: File to open.
         :param mode: Mode for opening (read only, replace, append, ...)
@@ -281,13 +271,10 @@ class FilegroupScan():
     def scan_file(self, filename: str):
         """Scan a single file.
 
-        Match filename against regex.
-        If first match, retrieve segments.
+        Match filename against regex. If first match, retrieve segments.
 
-        If needed, open file.
-        Scan general attributes.
-        For all CoordScan, scan coordinate attributes,
-        scan values, and in-file indices.
+        If needed, open file. Scan general attributes. For all CoordScan, scan
+        coordinate attributes, scan elements.
 
         Close file.
         """
@@ -325,7 +312,12 @@ class FilegroupScan():
     def find_files(self) -> List[str]:
         """Find files to scan.
 
-        Uses os.walk. Sort files alphabetically
+        Uses os.walk. Limit search to `MAX_DEPTH_SCAN` levels of directories
+        deep.
+
+        If `file_override` is set, bypass this search, just use it.
+
+        Sort files alphabetically.
 
         :raises IndexError: If no files are found.
         """
@@ -350,10 +342,8 @@ class FilegroupScan():
     def scan_files(self):
         """Scan files.
 
-        Reset scanning coordinate if they are to scan.
-        Find files.
-        Scan each file.
-        Set CoordScan values.
+        Reset scanning coordinate if they are to scan. Find files. Scan each
+        file. Set CoordScan elements.
 
         :raises NameError: If no files matching the regex were found.
         :raises ValueError: If no values were detected for a coordinate.
@@ -396,8 +386,8 @@ class FilegroupScan():
                 try:
                     cs.values = f(cs.values, cs.units, cs.coord.units)
                 except NotImplementedError:
-                    log.warning("Units conversion should happen for '%s' (%s)"
-                                " from '%s' to '%s' but no function is defined.",
+                    log.warning("Units conversion should happen for '%s' (%s) "
+                                "from '%s' to '%s' but no function is defined.",
                                 cs.name, self.name, cs.units, cs.coord.units)
 
             if len(cs.values) == 0:
@@ -407,7 +397,7 @@ class FilegroupScan():
 
     def add_scan_attrs_func(self, func: Callable,
                             kind: str = None, **kwargs: Any):
-        """Add the function for scanning attributes."""
+        """Add a function for scanning attributes."""
         func = Scanner(kind, func, **kwargs)
         if func.kind not in ['var', 'gen']:
             raise KeyError("Attributes scanner kind should be 'gen' or 'var'")
@@ -424,7 +414,7 @@ class FilegroupScan():
             cs.slice(key.no_int())
 
 
-def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
+def make_filegroup(fg_type: Type, root: str, dims: Dict[str, Coord],
                    coords_fg: Iterable[CoordScanSpec],
                    vi: VariablesInfo,
                    root_fg: str = None, name: str = '',
@@ -433,20 +423,18 @@ def make_filegroup(fg_type: Type, root: str, dims: List[Coord],
     """Convenience function to create filegroup.
 
     :param fg_type: Class of filegroup to add. Dependant on the file-format.
-    :param root: Base root.
-    :param coords_fg: Coordinates used in this grouping of files.
-        Each element of the list is a tuple of length 2 or 3 with
-        the coordinate (or its name), a shared flag, and eventually
-        the name of the coordinate in the file.
-        The flag can be 'shared' or 'in', or a boolean (True = shared).
-        The name is optional, if not specified the name of the coordinate
-        object is used.
-        Variables dimension can be omitted.
+    :param root: Database root directory.
+    :param dims: List of parent coordinates.
+    :param coords_fg: Coordinates used in this grouping of files. Each
+        element is an :class:`CoordScanSpec
+        <tomate.filegroup.spec.CoordScanSpec>`. See its documentation
+        for details.
+    :param vi: Global VariablesInfo instance.
+    :param root_fg: Subfolder, relative to root.
     :param name: Name of the filegroup.
-    :param root_fg: [opt] Subfolder from root.
     :param variables_shared: [opt] If the Variables dimension is shared.
         Default is False.
-    :param kwargs: [opt] Passed to the fg_type initializator.
+    :param kwargs: [opt] Passed to the `fg_type` initializator.
     """
     for css in coords_fg:
         css.process(dims)

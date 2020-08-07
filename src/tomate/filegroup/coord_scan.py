@@ -300,8 +300,12 @@ class CoordScan(Coord):
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
 
-    def append_elements(self, **elts: Dict[str, Sequence]):
-        """Append elements to those already scanned."""
+    def append_elements(self, **elts: Dict[str, Any]):
+        """Append elements to those already scanned.
+
+        If an element is a list, it is concatenated to already scanned elements,
+        any other type is appended to it.
+        """
         for name, values in elts.items():
             if name == 'values':
                 n_values = len(values)

@@ -17,13 +17,11 @@ from tomate.coordinates.coord import Coord
 class CoordScanSpec:
     """Specification for a scanning coordinate.
 
-    :param coord: Parent coordinate object or name.
-        Its name will be used to refer to the CoordScan
-        object as well.
-    :param shared: If is `'in'` or `True`, the CoordScan is
-        'in', if is `'shared'` or `False, the CoordScan` is
-        'shared', ie shared across multiple files.
-        Defaults to 'in'.
+    :param coord: Parent coordinate object or name. Its name will be used to
+        refer to the CoordScan object as well.
+    :param shared: If is `'in'` or `True`, the CoordScan is 'in', if is
+        `'shared'` or `False, the CoordScan` is 'shared', ie shared across
+        multiple files. Defaults to 'in'.
     :param name: Name of the dimensions inside the files.
         If is None (default), the name of the coordinate is used.
     """
@@ -48,14 +46,12 @@ class CoordScanSpec:
 
 
 class VariableSpec:
-    """Specification for a variable.
+    """Specify elements for a scanning variable CoordScan.
 
     :param name: Name of the variable.
-    :param in_idx: Name or index of the variable
-        in file. If is `'__equal_as_name__'` (default),
-        The variable name is used.
-    :param dims: Dimensions along which the variable varies.
-        Defaults to None.
+    :param in_idx: Name or index of the variable in file. If is
+        `'__equal_as_name__'` (default), The variable name is used.
+    :param dims: Dimensions along which the variable varies. Defaults to None.
     """
     def __init__(self, name: str,
                  in_idx: KeyLikeStr = '__equal_as_name__',

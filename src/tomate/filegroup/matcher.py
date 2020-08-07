@@ -17,8 +17,8 @@ class Matcher():
 
     Holds (temporarily) the match for the current file.
 
-    :param m: Match object of a matcher in the pre-regex.
-        See FilegroupScan.scan_pregex().
+    :param m: Match object of a matcher in the pre-regex. See
+        FilegroupScan.scan_pregex().
     :param idx: Index of the matcher in the full pre-regex
 
     :attr coord: str: Coordinate name.
@@ -67,11 +67,10 @@ class Matcher():
 
     @classmethod
     def process_regex(cls, rgx):
-        """Replace elements.
+        """Replace matchers by true regex.
 
-        % followed by a single letter is replaced by the corresponding
-        regex from `ELT_RGX`.
-        %% is replaced by a single percentage character.
+        '%' followed by a single letter is replaced by the corresponding regex
+        from `ELT_RGX`. '%%' is replaced by a single percentage character.
         """
         def replace(match):
             group = match.group(1)
