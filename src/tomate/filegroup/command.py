@@ -24,12 +24,10 @@ class CmdKeyrings():
     where it should be placed in memory.
 
     :param infile: Keys that will be taken in file.
-    :param memory: Keys to indicate where to put the data
-        in the memory.
+    :param memory: Keys to indicate where to put the data in the memory.
 
     :attr infile: Keyring: Keys that will be taken in file
-    :attr memory: Keyring: Keys to indicate where to put the data
-        in the memory.
+    :attr memory: Keyring: Keys to indicate where to put the data in the memory.
     """
 
     def __init__(self, infile: Keyring = None, memory: Keyring = None):
@@ -78,13 +76,10 @@ class CmdKeyrings():
 class Command():
     """Information for loading slices of data from one file.
 
-    A command is composed of a filename, and
-    a series of keyrings duos that each specifies a
-    part of the data to take, and where to
-    place it.
+    A command is composed of a filename, and a series of keyrings duos that each
+    specifies a part of the data to take, and where to place it.
 
     :attr filename: str: File to open.
-    :attr var_list: List[str]: Variables to take in that file.
     :attr keyrings: List[CmdKeyrings]: List of keyrings that tell
         what to take in the file, and where to place it.
     """
@@ -124,7 +119,8 @@ class Command():
         """Add a command keyring duo."""
         self.keyrings.append(CmdKeyrings(krg_infile, krg_memory))
 
-    def add_keyrings(self, krgs_infile: List[Keyring], krgs_memory: List[Keyring]):
+    def add_keyrings(self, krgs_infile: List[Keyring],
+                     krgs_memory: List[Keyring]):
         """Add multiple keyrings duos."""
         n = len(krgs_infile)
         for i in range(n):
@@ -134,8 +130,8 @@ class Command():
         """Set a keyrings duo by index."""
         self[i].set(krg_infile, krg_memory)
 
-    def modify_keyring(self, krg_infile: Keyring = None, krg_memory: Keyring = None,
-                       i: int = 0):
+    def modify_keyring(self, krg_infile: Keyring = None,
+                       krg_memory: Keyring = None, i: int = 0):
         """Modify a keyrings duo in place."""
         self[i].modify(krg_infile, krg_memory)
 
@@ -153,26 +149,22 @@ class Command():
         new.filename = self.filename
 
         for krg in self:
-            krg_ = krg.copy()
-            new.append(*krg_)
+            new.append(*krg.copy())
         return new
 
     def order_keys(self, order: List[str]):
         """Modify all keys order."""
         for krg in self:
-            krg_inf, krg_mem = krg
-            krg_inf.sort_by(order)
-            krg_mem.sort_by(order)
-            krg.set(krg_inf, krg_mem)
+            krg.infile.sort_by(order)
+            krg.memory.sort_by(order)
 
     def merge_keys(self):
         """Merge successive shared keys.
 
-        Due to the way get_commands_shared is written,
-        we expect to have a series of keyrings for all shared
-        coordinates, for the same file. All keys are list of
-        integers of length one.
-        The keys are varying in the order of coords_shared.
+        Due to the way get_commands_shared is written, we expect to have a
+        series of keyrings for all shared coordinates, for the same file. All
+        keys are list of integers of length one. The keys are varying in the
+        order of coords_shared.
 
         :raises TypeError: If the one of the in-file key is not an integer.
         """

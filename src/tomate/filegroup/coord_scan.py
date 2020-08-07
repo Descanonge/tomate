@@ -1,7 +1,6 @@
 """This is where the scanning is happening.
 
-Handles scanning of the filenames, and of the
-coordinate values inside files.
+Handles scanning of elements in filenames and files.
 
 See :doc:`../scanning` and :doc:`../coord`.
 """
@@ -13,7 +12,7 @@ See :doc:`../scanning` and :doc:`../coord`.
 
 
 import logging
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Sequence, Union
 import re
 
 import numpy as np
@@ -32,7 +31,9 @@ log = logging.getLogger(__name__)
 
 
 class CoordScan(Coord):
-    """Abstract Coord used for scanning of one variable.
+    """Coord used for scanning of one dimension.
+
+    Abstract class meant to be subclassed into CoordScanIn or CoordScanShared.
 
     :param filegroup: Corresponding filegroup.
     :param coord: Parent coordinate.
@@ -41,20 +42,24 @@ class CoordScan(Coord):
 
     :attr filegroup: FilegroupLoad: Corresponding filegroup.
     :attr coord: Coord: Parent coordinate object.
+    :attr contains: Optional[np.ndarray]: For each value of the available scope,
+        the index of the corresponding value in that CS. If that value is not
+        contained in this filegroup, the index is None.
     :attr shared: bool: If the coordinate is shared accross files.
-    :attr contains: Optional[np.ndarray]:
-        For each value of the available scope, the index of the
-        corresponding value in that CS.
-        If that value is not contained in this filegroup, the
-        index is None.
 
-    :attr values: List: Temporary list of values found
-        for this coordinate.
-    :attr in_idx: List: List of the index for each value
-        inside the files.
+    :attr elts: List[str]: Elements to be scanned.
+    :attr values: List: Values found for this coordinate.
+    :attr in_idx: List: Index for each value inside the files.
 
-    :attr scan: List[ScannerCS] List of scanners to use to scan
-        coordinates elements.
+    :attr scanners: List[ScannerCS]: List of scanners to use to scan coordinates
+        elements.
+    :attr scanners_attrs: List[Scanner]: List of scanners to use to scan
+        attributes.
+    :attr manual: Set[str]: Elements that are set manually.
+    :attr fixed_elts: Dict[str, Any]: Elements fixed to a constant.
+
+    :attr change_units_custom: Callable: Function that will override
+        `change_units_other`.
     """
     def __init__(self, filegroup: 'FilegroupLoad',
                  coord: Coord, *,
@@ -67,17 +72,16 @@ class CoordScan(Coord):
         self.contains = None
 
         self.shared = shared
-        self.scanners = []
-        self.scanners_attrs = []
-        self.manual = set()
         self.elts = ['values', 'in_idx']
-        self.fixed_elts = {}
-
-        self.change_units_custom = None
-
         self.values = []
         self.in_idx = []
 
+        self.scanners = []
+        self.scanners_attrs = []
+        self.manual = set()
+        self.fixed_elts = {}
+
+        self.change_units_custom = None
 
     def __repr__(self):
         s = [super().__repr__()]
@@ -102,7 +106,7 @@ class CoordScan(Coord):
         return s
 
     def reset(self):
-        """Remove values."""
+        """Remove elements."""
         self.empty()
         for elt in self.elts:
             setattr(self, elt, [])
@@ -112,17 +116,11 @@ class CoordScan(Coord):
         elts = {elt: getattr(self, elt) for elt in self.elts}
         self.update_values(**elts)
 
-    def update_values(self, values, **elts):
+    def update_values(self, values: Sequence, **elts: Sequence):
         """Update values and elements.
 
-        Make sure in_idx has same dimensions.
+        :raises IndexError: If an element does not have same length as values.
         """
-        if not all(len(v) == len(values) for v in elts.values()):
-            raise IndexError("Elements for dimension '{}'"
-                             " have different length (values: {}, {})"
-                             .format(self.name, len(values),
-                                     ', '.join([f'{k}: {len(v)}'
-                                                for k, v in elts.items()])))
         for name, elt_val in elts.items():
             if len(values) != len(elt_val):
                 raise IndexError("Not as much '{}' ({}) as values ({})"
@@ -142,14 +140,14 @@ class CoordScan(Coord):
             setattr(self, elt, new_elt)
         return order
 
-    def slice(self, key: KeyLikeInt):
+    def slice(self, key: KeyLike):
         k = Key(key)
         for elt in self.elts:
             setattr(self, elt, k.apply(getattr(self, elt)))
         if self.size is not None:
             super().slice(key)
 
-    def slice_from_avail(self, key: KeyLikeInt) -> bool:
+    def slice_from_avail(self, key: KeyLike) -> bool:
         """Slice using a key working on available scope.
 
         Use `contains` attribute to convert.
@@ -166,26 +164,31 @@ class CoordScan(Coord):
         return out
 
     def is_to_scan(self) -> bool:
-        """If the coord needs any kind of scanning."""
+        """If the coord has to scan elements."""
         return len(self.scanners) > 0
 
     def remove_scanners(self, kind=None):
+        """Remove scanners.
+
+        :param kind: If None, all kinds are removed.
+        """
         if kind is None:
-            kind = ['in', 'filename', 'manual']
+            kind = ['in', 'filename']
         for k in kind:
             self.scanners[k].clear()
 
     def add_scan_function(self, func: Union[Callable, ScannerCS],
-                          elts: List[str] = None, kind=None,
+                          elts: List[str] = None, kind: str = None,
                           restrain: List[str] = None, **kwargs: Any):
         """Set function for scanning values in filename.
 
-        :param elts: Elements to scan ('values', 'in_idx')
-        :param kwargs: [opt]
-
-        See also
-        --------
-        scan_filename_default: for the function signature.
+        :param func: Scanner or callable.
+        :param kind: Kind of scanner ('filename' or 'in').
+        :param elts: Elements to scan. If `func` is a Scanner, redefine its
+            elements.
+        :param restrain: Restrain elements to use. Others are ignored.
+            If None, use all elements.
+        :param kwargs: [opt] Passed to scanning function.
         """
         if isinstance(func, ScannerCS):
             func = func.copy()
@@ -217,8 +220,12 @@ class CoordScan(Coord):
             self.fixed_elts.pop('elt', None)
         self.manual = set()
 
-    def set_elements_manual(self, **elts):
-        """Set elements manually."""
+    def set_elements_manual(self, **elts: Sequence):
+        """Set elements manually.
+
+        Remove all scanners. Remove overlapping fixed elements.
+        Wrapper around `update_values`.
+        """
         self.manual |= elts.keys()
         self.scanners = []
         for elt in elts:
@@ -227,7 +234,12 @@ class CoordScan(Coord):
             raise TypeError("Values should be indicated when setting elements")
         self.update_values(elts.pop('values'), **elts)
 
-    def set_elements_constant(self, **elts):
+    def set_elements_constant(self, **elts: Any):
+        """Set elements as constant.
+
+        They stay the same for all coordinate values.
+        Remove overlapping elements set manually.
+        """
         for elt, value in elts.items():
             if elt not in self.elts:
                 raise KeyError(f"'{elt}' not in '{self.name}' CoordScan elements.")
@@ -248,8 +260,7 @@ class CoordScan(Coord):
     def scan_attributes(self, file: File):
         """Scan coordinate attributes if necessary.
 
-        Using the user defined function.
-        Apply them.
+        Using the user defined function. Apply them using `set_attr`.
         """
         for s in self.scanners_attrs:
             attrs = s.scan(self, file)
@@ -257,7 +268,12 @@ class CoordScan(Coord):
             for name, value in attrs.items():
                 self.set_attr(name, value)
 
-    def scan_elements(self, file: File):
+    def scan_elements(self, file: File) -> Dict[str, List]:
+        """Scan elements.
+
+        :raises IndexError: Elements do not have the same length.
+        :returns: Dictionnary of sequences.
+        """
         elts = {e: [] for e in self.elts}
 
         for s in self.scanners:
@@ -284,7 +300,8 @@ class CoordScan(Coord):
                              "({})".format({n: len(v) for n, v in elts.items()}))
         return elts
 
-    def append_elements(self, **elts):
+    def append_elements(self, **elts: Dict[str, Sequence]):
+        """Append elements to those already scanned."""
         for name, values in elts.items():
             if name == 'values':
                 n_values = len(values)
@@ -319,8 +336,10 @@ class CoordScan(Coord):
 class CoordScanIn(CoordScan):
     """Coord used for scanning of a 'in' coordinate.
 
-    Only scan the first file found.
-    All files are thus considered to have the same structure.
+    Only scan the first file found. All files are considered to have the same
+    structure.
+
+    :attr scanned: bool: If coordinate has scanned a file.
     """
     def __init__(self, *args, **kwargs):
         self.scanned = False
@@ -332,7 +351,6 @@ class CoordScanIn(CoordScan):
 
         :param m: Match of the filename against the regex.
         :param file: Object to access file.
-            The file is already opened by FilegroupScan.open_file().
         """
         if not self.scanned and self.is_to_scan():
             elts = self.scan_elements(file)
@@ -350,10 +368,11 @@ class CoordScanIn(CoordScan):
 class CoordScanShared(CoordScan):
     """Coord used for scanning of a 'shared' coordinate.
 
-    Scan all files.
+    Coordinate values are shared across multiple files. Scan all files.
 
     :attr matchers: List[Matcher]: Matcher objects for this coordinate.
-    :attr matches: Array[str]: List of matches in the filename, for each file.
+    :attr matches: List[List[str]]: List of matches in the filename, for each
+        value.
     """
 
     def __init__(self, *args, **kwargs):
@@ -378,8 +397,9 @@ class CoordScanShared(CoordScan):
         """Add a matcher."""
         self.matchers.append(matcher)
 
-    def update_values(self, values, matches=None, **elts):
-        """Update values.
+    def update_values(self, values: Sequence, matches: Sequence = None,
+                      **elts: Sequence):
+        """Update values and elements.
 
         Make sure matcher has same dimensions.
         """
@@ -408,7 +428,6 @@ class CoordScanShared(CoordScan):
 
         :param m: Match of the filename against the regex.
         :param file: Object to access file.
-            The file is already opened by FilegroupScan.open_file().
         """
         # Find matches
         matches = []
@@ -434,9 +453,8 @@ def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,
                   shared: bool, name: str):
     """Get the right CoordScan object derived from a Coord.
 
-    Dynamically create a subclass of CoordScanShared
-    or CoordScanIn, that inherits methods from a
-    subclass of Coord.
+    Dynamically create a subclass of CoordScanShared or CoordScanIn, that
+    inherits methods from a subclass of Coord.
 
     :param coord: Coordinate to create a CoordScan object from.
     :param shared: If the coordinate is shared.
