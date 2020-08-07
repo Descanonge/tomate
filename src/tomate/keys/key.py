@@ -8,6 +8,7 @@
 
 from typing import (Any, Iterable, Iterator, List, Optional,
                     Sequence, Union, TYPE_CHECKING)
+import logging
 
 import numpy as np
 
@@ -17,6 +18,9 @@ if TYPE_CHECKING:
     from tomate.coordinates.coord import Coord
     from tomate.coordinates.coord_str import CoordStr
     from tomate.coordinates.time import Time
+
+
+log = logging.getLogger(__name__)
 
 
 class Key():
@@ -59,6 +63,7 @@ class Key():
             if self.parent_size is not None:
                 self._size = len(range(*self.value.indices(self.parent_size)))
             else:
+                log.debug("Guessing slice %s size", self.value)
                 self._size = guess_slice_size(self.value)
         return self._size
 
