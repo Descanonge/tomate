@@ -104,6 +104,9 @@ class FilegroupLoad(FilegroupScan):
         krg_infile.simplify()
         krg_memory.simplify()
 
+        krg_infile.set_shape(self.cs)
+        krg_memory.set_shape(self.db.scope.dims)
+
         msg = "Infile and memory Fg keyrings not shape equivalent."
         assert krg_infile.is_shape_equivalent(krg_memory), msg
 
