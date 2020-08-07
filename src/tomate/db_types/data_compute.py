@@ -70,7 +70,7 @@ class DataCompute(DataBase):
 
         Other coordinates are looped over.
         """
-        der = self.gradient_nd(variable, [coord])
+        der = self.gradient(variable, [coord])
         return der
 
     def mean(self, variable: str, dims: List[str] = None,
@@ -109,7 +109,9 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return var.view(keyring=keyring)
 
-        mean = np.nanmean(var.view(keyring=keyring), axes, **kwargs)
+        data = var.view(keyring=keyring)
+        log.debug("Averaging over axes %s", axes)
+        mean = np.nanmean(data, axes, **kwargs)
         return mean
 
     def std_dev(self, variable: str, dims: str = None,
@@ -137,7 +139,9 @@ class DataCompute(DataBase):
             data[:] = 0
             return data
 
-        std = np.nanstd(var.view(keyring=keyring), axes, **kwargs)
+        data = var.view(keyring=keyring)
+        log.debug("Computing standard deviation over axes %s", axes)
+        std = np.nanstd(data, axes, **kwargs)
         return std
 
     def linear_combination(self):
