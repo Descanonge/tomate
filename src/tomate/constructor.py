@@ -385,20 +385,6 @@ class Constructor():
         """
         self.current_fg.cs[coord].change_units_custom = func
 
-    def set_coord_descending(self, *coords: str):
-        """Set coordinates as descending in the filegroup.
-
-        Only useful when there is no information on the in-file
-        index of each value in the files.
-        """
-        fg = self.current_fg
-        for name in coords:
-            cs = fg.cs[name]
-            if cs.shared:
-                log.warning("%s '%s' is shared, setting it index descending"
-                            " will have no impact.", fg.variables, name)
-            cs.force_idx_descending = True
-
     def add_post_loading_func(self, func: Callable,
                               variables: KeyLikeStr = None,
                               all_variables: bool = False,
