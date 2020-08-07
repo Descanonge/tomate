@@ -413,9 +413,10 @@ class FilegroupScan():
     def add_scan_attrs_func(self, func: Callable,
                             kind: str = None, **kwargs: Any):
         """Add the function for scanning attributes."""
+        func = Scanner(kind, func, **kwargs)
         if func.kind not in ['var', 'gen']:
             raise KeyError("Attributes scanner kind should be 'gen' or 'var'")
-        self.scanners.append(Scanner(kind, func, **kwargs))
+        self.scanners.append(func)
 
     def apply_coord_selection(self):
         """Apply CoordScan selection."""
