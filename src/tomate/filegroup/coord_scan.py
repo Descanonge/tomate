@@ -190,11 +190,6 @@ class CoordScan(Coord):
         """If the coord needs any kind of scanning."""
         return len(self.scanners) > 0
 
-    def is_to_check(self) -> bool:
-        """If the coord values need to be checked."""
-        out = self.is_to_scan() or self.manual
-        return out
-
     def remove_scanners(self, kind=None):
         if kind is None:
             kind = ['in', 'filename', 'manual']

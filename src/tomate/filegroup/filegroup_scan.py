@@ -406,11 +406,10 @@ class FilegroupScan():
                                 " from '%s' to '%s' but no function is defined.",
                                 cs.name, self.name, cs.units, cs.coord.units)
 
-            if cs.is_to_check() or cs.name == 'var':
-                if len(cs.values) == 0:
-                    raise ValueError("No values detected ({0}, {1})".format(
-                        cs.name, self.name))
-                cs.update_values(cs.values)
+            if len(cs.values) == 0:
+                raise ValueError("No values detected ({0}, {1})".format(
+                    cs.name, self.name))
+            cs.update_values(cs.values)
 
     def add_scan_attrs_func(self, func: Callable,
                             kind: str = None, **kwargs: Any):
