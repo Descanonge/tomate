@@ -165,27 +165,6 @@ class CoordScan(Coord):
         self.slice(indices.astype(int))
         return out
 
-    def get_in_idx(self, key: KeyLike) -> Key:
-        """Get the in file indices.
-
-        Give the index inside the file corresponding to the
-        demanded values.
-
-        If the CS is empty and set as index descending, the key
-        is mirrored.
-
-        :param key: Index of the demanded values.
-        """
-        try:
-            indices = key.apply(self.in_idx)
-            key_data = key.__class__(indices)
-        except Exception:
-            log.error("Error in retrieving in-file indices of '%s' for values %s.",
-                      self.name, key)
-            raise
-
-        return key_data
-
     def is_to_scan(self) -> bool:
         """If the coord needs any kind of scanning."""
         return len(self.scanners) > 0

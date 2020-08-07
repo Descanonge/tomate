@@ -239,8 +239,7 @@ class FilegroupLoad(FilegroupScan):
         """
         krg_inf = Keyring()
         for name, cs in self.iter_shared(False).items():
-            key_inf = cs.get_in_idx(keyring[name])
-            krg_inf[name] = key_inf
+            krg_inf[name] = keyring[name].apply(cs.in_idx)
         krg_inf.simplify()
         return krg_inf
 
