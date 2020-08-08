@@ -16,11 +16,8 @@ except ImportError:
 else:
     _has_netcdf = True
 
-import numpy as np
-
 from tomate.accessor import Accessor
 from tomate.custom_types import File
-from tomate.keys.keyring import Keyring
 from tomate.filegroup.filegroup_load import FilegroupLoad
 from tomate.filegroup.command import separate_variables, Command, CmdKeyrings
 
@@ -29,7 +26,11 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupNetCDF(FilegroupLoad):
-    """Filegroup class for NetCDF files."""
+    """Filegroup class for NetCDF files.
+
+    Accessor is normal accessor for numpy arrays. But we only use `take_normal`
+    since the python-netcdf4 api handles it well.
+    """
 
     acs = Accessor
 
@@ -125,9 +126,10 @@ class FilegroupNetCDF(FilegroupLoad):
 
         :param cmd: Load command. Variables must be separated.
         :param var_kw: [opt] Variables specific argument. See
-            `FilegroupNetCDF.write`.
-        :raises IndexError: If mismatch between memory keyring and
-            in-file dimensions list.
+            :func:`FilegroupLoad.write
+        <tomate.filegroup.filegroup_load.FilegroupLoad.write>`.
+        :raises IndexError: If mismatch between memory keyring and in-file
+            dimensions list.
         """
         krg_inf, krg_mem = cmd
         name = self.db.loaded.var.get_str_name(krg_mem.pop('var').value)

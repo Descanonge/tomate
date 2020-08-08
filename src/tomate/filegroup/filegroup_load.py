@@ -9,7 +9,7 @@
 import os
 import itertools
 import logging
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -77,7 +77,6 @@ class FilegroupLoad(FilegroupScan):
         to acting on the filegroup alone.
 
         :param keyring: Keyring acting on database available scope.
-
         :returns: Infile and memory keyrings for this filegroup.
             None if there is nothing to load in this filegroup.
         """
@@ -163,13 +162,14 @@ class FilegroupLoad(FilegroupScan):
 
                 self._sort_memory(keyrings)
 
-                if not keyrings.infile.is_shape_equivalent(keyrings.memory):
+                inf, mem = keyrings
+                if not inf.is_shape_equivalent(mem.subset(inf)):
                     raise IndexError("Infile and memory keyrings have different"
                                      f" shapes ({cmd})")
 
         return commands
 
-    def _process_infile(self, keyrings):
+    def _process_infile(self, keyrings: CmdKeyrings):
         """Process infile keyring.
 
         Fetch order of dimensions of the data array in file using CS. If a
@@ -202,7 +202,7 @@ class FilegroupLoad(FilegroupScan):
         order = [d for d in inf if d not in order] + list(order)
         keyrings.set(inf.subset(order), keyrings.memory)
 
-    def _sort_memory(self, keyrings):
+    def _sort_memory(self, keyrings: CmdKeyrings):
         """Sort keyrings according to each variables dimensions.
 
         This assume that variables have been separated (one variable per
@@ -220,7 +220,8 @@ class FilegroupLoad(FilegroupScan):
         cmd.filename = ''.join(self.segments)
         return [cmd]
 
-    def _get_commands_shared(self, keyring: Keyring, memory: Keyring) -> List[Command]:
+    def _get_commands_shared(self, keyring: Keyring,
+                             memory: Keyring) -> List[Command]:
         """Return list of commands only with shared keys.
 
         :param keyring: Data to load, acting on this filegroup scope.
@@ -308,8 +309,8 @@ class FilegroupLoad(FilegroupScan):
         See :doc:`../filegroup` and :doc:`../expanding` for more information on
         how this function works, and how to implement it.
 
-        :param file: Object to access file.
-            The file is already opened by FilegroupScan.open_file().
+        :param file: Object to access file. The file is already opened by
+            FilegroupScan.open_file().
         :param cmd: Load command.
 
         See also
@@ -329,10 +330,8 @@ class FilegroupLoad(FilegroupScan):
     def scan_variables_attributes(self):
         """Scan for variables specific attributes.
 
-        Issues load commands to find for each variable
-        a file in which it lies.
-        For each command, use user defined function to
-        scan attributes.
+        Issues load commands to find for each variable a file in which it lies.
+        For each command, use user defined function to scan attributes.
         Store them in VI.
         """
         def scan_attr(fg, file, infile, memory):
@@ -390,24 +389,24 @@ class FilegroupLoad(FilegroupScan):
 
         Variable specific arguments are passed to `netCDF.Dataset.createVariable
         <https://unidata.github.io/netcdf4-python/netCDF4/index.html
-        #netCDF4.Dataset.createVariable>`__. If the 'datatype' argument is
-        not specified, the 'datatype' attribute is looked in the VI, and if
-        not defined, it is guessed from the numpy array dtype.
+        #netCDF4.Dataset.createVariable>`__. If the 'datatype' argument is not
+        specified, the 'datatype' attribute is looked in the VI, and if not
+        defined, it is guessed from the numpy array dtype.
 
         If the 'fill_value' attribute is not specifed, the '_FillValue'
         attribute is looked in the VI, and if not defined
-        `netCDF4.default_fillvals(datatype)` is used. It seems preferable
-        to specify a fill_value rather than None.
+        `netCDF4.default_fillvals(datatype)` is used. It seems preferable to
+        specify a fill_value rather than None.
 
         All attributes from the VariablesInfo are put in the file if their
         name do not start with an '_'.
 
-        :param wd: Directory to place the file. If None, the
-            filegroup root is used instead.
+        :param wd: Directory to place the file. If None, the filegroup root is
+            used instead.
         :param file_kw: Keywords argument to pass to `open_file`.
-        :param var_kw: Variables specific arguments. Keys are variables
-            names, values are dictionnary containing options.
-            Use '_all' to add an option for all variables.
+        :param var_kw: Variables specific arguments. Keys are variables names,
+            values are dictionnary containing options. Use '_all' to add an
+            option for all variables.
         """
         if wd is None:
             wd = self.root
