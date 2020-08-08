@@ -16,7 +16,7 @@ import numpy as np
 from tomate.accessor import Accessor
 from tomate.custom_types import File, KeyLike, KeyLikeStr
 from tomate.filegroup import command
-from tomate.filegroup.command import CmdKeyrings, Command
+from tomate.filegroup.command import CmdKeyrings, Command, separate_variables
 from tomate.filegroup.filegroup_scan import FilegroupScan
 from tomate.keys.keyring import Keyring
 
@@ -100,7 +100,6 @@ class FilegroupLoad(FilegroupScan):
             krg_infile[dim] = infile
             krg_memory[dim] = memory
 
-        krg_memory.make_idx_str(var=self.db.avail.var)
         krg_infile.simplify()
         krg_memory.simplify()
 
@@ -131,8 +130,8 @@ class FilegroupLoad(FilegroupScan):
             commands = self._get_commands_shared(keyring, memory)
             commands = command.merge_cmd_per_file(commands)
 
-        key_in_inf = self._get_key_infile(keyring)
-        key_in_mem = memory.subset(self.iter_shared(False))
+        krg_in_inf = self._get_keyring_in(keyring)
+        krg_in_mem = memory.subset(self.iter_shared(False))
 
         for cmd in commands:
             cmd.join_filename(self.root)
@@ -142,20 +141,74 @@ class FilegroupLoad(FilegroupScan):
             else:
                 cmd.append(Keyring(), Keyring())
 
-            for key in cmd:
-                key.modify(key_in_inf, key_in_mem)
+            for keyrings in cmd:
+                keyrings.modify(krg_in_inf, krg_in_mem)
 
             for krg_inf, krg_mem in cmd:
                 krg_inf.make_list_int()
                 krg_mem.make_list_int()
 
-                if not krg_inf.is_shape_equivalent(krg_mem):
+        commands = separate_variables(commands)
+
+        for cmd in commands:
+            for keyrings in cmd:
+                self._process_infile(keyrings)
+
+                # Need to access variables object with their name.
+                keyrings.memory.make_idx_str(var=self.db.avail.var)
+
+                self._sort_memory(keyrings)
+
+                if not keyrings.infile.is_shape_equivalent(keyrings.memory):
                     raise IndexError("Infile and memory keyrings have different"
                                      f" shapes ({cmd})")
 
-            cmd.order_keys(keyring.dims)
-
         return commands
+
+    def _process_infile(self, keyrings):
+        """Process infile keyring.
+
+        Fetch order of dimensions of the data array in file using CS. If a
+        dimension is in order but not in keyring, take first index.
+        Remove None keys from keyring.
+
+        Sort the infile keyring with the retrieved order. Additional keys
+        not in the order are placed at the start of the keyring. It is the job
+        of `load_cmd` to treat those appropriately (for example, variables).
+        """
+        order = self.cs['var'].dimensions[keyrings.memory['var'].value]
+        inf = keyrings.infile
+        for dim in order:
+            if dim not in keyrings.infile:
+                log.warning("Additional dimension %s in file."
+                            " Index 0 will be taken.", dim)
+                key = 0
+            else:
+                key = keyrings.infile[dim]
+            inf[dim] = key
+
+            if inf[dim].type == 'none':
+                raise KeyError(f"A None key was issued for '{dim}' "
+                               "dimension which is present in file.")
+
+        for d, k in inf.items():
+            if k.type == 'none':
+                inf.pop(d)
+
+        order = [d for d in inf if d not in order] + list(order)
+        keyrings.set(inf.subset(order), keyrings.memory)
+
+    def _sort_memory(self, keyrings):
+        """Sort keyrings according to each variables dimensions.
+
+        This assume that variables have been separated (one variable per
+        command). Remove keys not in the dimensions (except the variable key).
+        """
+        var = keyrings.memory['var'].value
+        if var in self.db.variables:
+            dims = self.db.variables[var].dims
+            mem = keyrings.memory.subset(['var'] + dims)
+            keyrings.set(keyrings.infile, mem)
 
     def _get_commands_no_shared(self) -> List[Command]:
         """Get commands when there are no shared coords."""
@@ -255,34 +308,8 @@ class FilegroupLoad(FilegroupScan):
         :param file: Object to access file.
             The file is already opened by FilegroupScan.open_file().
         :param cmd: Load command.
+
         """
-        raise NotImplementedError
-
-    def _get_order_in_file(self, file: File = None,
-                           var_name: KeyLikeStr = None) -> List[str]:
-        """Get order of dimensions in file.
-
-        Default to the order of coordinates in the filegroup.
-
-        :returns: Dimensions names as in the file, in the order of the file.
-        """
-        return list(self.cs.keys())
-
-    def _get_order(self, order_file: List[str]) -> List[str]:
-        """Get order of dimensions in file with their database names.
-
-        Keep the order, change the name of the CoordScan if
-        different from the Coord.
-        If the in-file dimension is not associated with any database
-        coordinate, keep it as is.
-
-        :param order_file: Dimensions order as in file.
-
-        :returns: Dimensions order, with their database name.
-        """
-        rosetta = {cs.name: name for name, cs in self.cs.items()}
-        order = [rosetta.get(d, d) for d in order_file]
-        return order
 
     @staticmethod
     def _get_internal_keyring(order: List[str], keyring: Keyring) -> Keyring:
@@ -293,8 +320,6 @@ class FilegroupLoad(FilegroupScan):
 
         Remove any keys from dimension not in the file.
         (ie when key is None).
-
-        Put the keyring in order.
 
         :param order: Order of dimensions in-file, as they appear in
             the database.

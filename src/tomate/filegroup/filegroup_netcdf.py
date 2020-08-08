@@ -52,58 +52,24 @@ class FilegroupNetCDF(FilegroupLoad):
     def close_file(self, file: File):
         file.close()
 
-    def get_commands(self, keyring: Keyring, memory: Keyring) -> List[Command]:
-        commands = super().get_commands(keyring, memory)
-        commands = separate_variables(commands)
-        return commands
-
     def load_cmd(self, file: File, cmd: Command):
         for krg_inf, krg_mem in cmd:
             name = krg_mem.pop('var').value
-            ncname = krg_inf['var'].value
-            log.info("Looking at variable %s", ncname)
+            ncname = krg_inf.pop('var').value
+            log.info("Taking keys %s from variable %s",
+                     krg_inf.print(), ncname)
+            chunk = self.acs.take_normal(krg_inf, file[ncname])
 
-            chunk = self._load_slice_single_var(file, krg_inf, ncname)
+            chunk_shape = self.acs.shape(chunk)
+            if not krg_inf.is_shape_equivalent(self.acs.shape(chunk)):
+                raise ValueError("Data taken from file has not expected shape"
+                                 " (is {}, excepted {})"
+                                 .format(chunk_shape, krg_inf.shape))
 
-            log.info("Placing it in %s",
-                     krg_mem.print())
+            chunk = self.reorder_chunk(chunk, krg_mem, krg_inf)
+
+            log.info("Placing it in %s, %s", name, krg_mem.print())
             self.db.variables[name].set_data(chunk, krg_mem)
-
-    def _load_slice_single_var(self, file: 'nc.Dataset',
-                               keyring: Keyring, ncname: str) -> np.ndarray:
-        """Load data for a single variable.
-
-        :param file: File object.
-        :param keyring: Keys to load from file.
-        :param ncname: Name of the variable in file.
-        """
-        order_file = self._get_order_in_file(file, ncname)
-        order = self._get_order(order_file)
-        int_krg = self._get_internal_keyring(order, keyring)
-
-        log.info("Taking keys %s", int_krg.print())
-        chunk = self.acs.take_normal(int_krg, file[ncname])
-
-        chunk_shape = self.acs.shape(chunk)
-        if not int_krg.is_shape_equivalent(self.acs.shape(chunk)):
-            raise ValueError("Data taken from file has not expected shape"
-                             " (is {}, excepted {})"
-                             .format(chunk_shape, int_krg.shape))
-
-        chunk = self.reorder_chunk(chunk, keyring, int_krg)
-        return chunk
-
-    @staticmethod
-    def _get_order_in_file(file: 'nc.Dataset' = None,
-                           var_name: str = None) -> List[str]:
-        """Get order from netcdf file, reorder keys.
-
-        :param file: File object.
-        :param inf_name: Name of the variable in file.
-        :returns: Coordinate names in order.
-        """
-        order = list(file[var_name].dimensions)
-        return order
 
     def _write(self, file: nc.Dataset, cmd: Command, var_kw: Dict):
         self.add_vi_to_file(file, add_attr=False)
