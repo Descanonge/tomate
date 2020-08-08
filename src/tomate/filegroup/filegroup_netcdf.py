@@ -56,6 +56,7 @@ class FilegroupNetCDF(FilegroupLoad):
         for krg_inf, krg_mem in cmd:
             name = krg_mem.pop('var').value
             ncname = krg_inf.pop('var').value
+
             log.info("Taking keys %s from variable %s",
                      krg_inf.print(), ncname)
             chunk = self.acs.take_normal(krg_inf, file[ncname])
@@ -76,17 +77,18 @@ class FilegroupNetCDF(FilegroupLoad):
         self.add_vi_to_file(file, add_attr=False)
 
         for name, coord in self.db.loaded.coords.items():
+            ncname = self.cs[name].name
             key = cmd[0].memory[name].copy()
             key.set_size_coord(coord)
             if key.size != 0:
-                file.createDimension(name, key.size)
-                file.createVariable(name, 'f', [name])
-                file[name][:] = coord[key.value]
+                file.createDimension(ncname, key.size)
+                file.createVariable(ncname, 'f', [ncname])
+                file[ncname][:] = coord[key.value]
                 log.info("Laying %s values, extent %s", name,
                          coord.get_extent_str(key.no_int()))
 
-                file[name].setncattr('fullname', coord.fullname)
-                file[name].setncattr('units', coord.units)
+                file[ncname].setncattr('fullname', coord.fullname)
+                file[ncname].setncattr('units', coord.units)
 
         cmd_var, = separate_variables([cmd])
         for cmd_krgs in cmd_var:
@@ -152,6 +154,7 @@ class FilegroupNetCDF(FilegroupLoad):
             if 'var' in dimensions:
                 dimensions.remove('var')
 
+            dimensions = self.translate_dimensions(dimensions, True)
             file.createVariable(ncname, datatype, dimensions, **kwargs)
         else:
             log.info('Variable already exist. Overwriting data.')
@@ -159,25 +162,23 @@ class FilegroupNetCDF(FilegroupLoad):
         self.add_vi_to_file(file, add_info=False,
                             name=name, ncname=ncname)
 
-        order = self.get_order_dimensions(file, ncname)
+        order = self.translate_dimensions(list(file[ncname].dimensions))
         if len(order) != len(krg_mem.get_non_zeros()):
             raise IndexError("File dimensions ({}) length does not"
                              " match keyring length ({})"
                              .format(order, krg_mem.get_non_zeros()))
 
         log.info("Taking %s from: %s", krg_mem.print(), name)
-        chunk = self.db.variables[name].view(keyring=krg_mem, order=dimensions)
-
+        chunk = self.db.variables[name].view(keyring=krg_mem, order=order)
         log.info("Placing it in file at %s.", krg_inf.print())
         self.acs.place_normal(krg_inf, file[ncname], chunk)
 
-    def get_order_dimensions(self, file: nc.Dataset,
-                             variable: str) -> List[str]:
-        """Get order of dimensions of a variable.
-
-        If dimensions names are different than in the filegroup, translate.
-        """
-        dimensions = list(file[variable].dimensions)
-        translate = {c.name: c.coord.name for c in self.cs.values()}
-        dimensions = [translate[d] for d in dimensions]
-        return dimensions
+    def translate_dimensions(self, dimensions: List[str],
+                             reverse: bool = False) -> List[str]:
+        """Translate dimensions as they appear in file to in database."""
+        if not reverse:
+            rosetta = {c.name: c.coord.name for c in self.cs.values()}
+        else:
+            rosetta = {c.coord.name: c.name for c in self.cs.values()}
+        translate = [rosetta[d] for d in dimensions]
+        return translate

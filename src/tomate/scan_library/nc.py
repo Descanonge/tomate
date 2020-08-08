@@ -53,10 +53,9 @@ def scan_variables(cs: CoordScan, file: nc.Dataset,
     for name, var in file.variables.items():
         if name not in file.dimensions:
             variables.append(name)
-            dimensions.append(var.dimensions)
-
-    translate = {c.name: c.coord.name for c in cs.fg.cs.values()}
-    dimensions = [translate[d] for d in dimensions]
+            dims = list(file[name].dimensions)
+            dims = cs.filegroup.translate_dimensions(dims)
+            dimensions.append(dims)
     return variables, variables, dimensions
 
 
