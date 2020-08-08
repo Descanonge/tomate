@@ -310,37 +310,7 @@ class FilegroupLoad(FilegroupScan):
         :param cmd: Load command.
 
         """
-
-    @staticmethod
-    def _get_internal_keyring(order: List[str], keyring: Keyring) -> Keyring:
-        """Get keyring for in file.
-
-        If dimension that are not known by the filegroup,
-        and thus not in the keyring, take the first index.
-
-        Remove any keys from dimension not in the file.
-        (ie when key is None).
-
-        :param order: Order of dimensions in-file, as they appear in
-            the database.
-        :returns: Keyring to take the data.
-        """
-        int_krg = keyring.copy()
-        for dim in order:
-            if dim not in keyring:
-                log.warning("Additional dimension %s in file."
-                            " Index 0 will be taken.", dim)
-                key = 0
-            else:
-                key = keyring[dim]
-            int_krg[dim] = key
-
-            if int_krg[dim].type == 'none':
-                raise KeyError(f"A None key was issued for '{dim}' dimension"
-                               " which is present in file.")
-
-        int_krg = int_krg.subset(order)
-        return int_krg
+        raise NotImplementedError
 
     def reorder_chunk(self, chunk: np.ndarray,
                       keyring: Keyring, int_keyring: Keyring) -> np.ndarray:
