@@ -87,6 +87,8 @@ class FilegroupLoad(FilegroupScan):
         krg_memory = Keyring()
 
         for dim, key in keyring.items_values():
+            if dim not in self.cs:
+                continue
             infile = np.array(self.contains[dim][key])
             memory = np.arange(infile.size)
 

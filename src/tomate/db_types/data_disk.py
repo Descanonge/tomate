@@ -327,10 +327,10 @@ class DataDisk(DataBase):
         if len(self.filegroups) == 1:
             fg = self.filegroups[0]
             fg.apply_coord_selection()
-            values = {d: fg.cs[d][:] for d in self.dims}
+            values = {d: fg.cs[d][:] for d in fg.cs}
             self._apply_coord_values(values)
-            for d in self.dims:
-                fg.cs[d].contains = np.arange(fg.cs[d].size)
+            for cs in fg.cs.values():
+                cs.contains = np.arange(cs.size)
         else:
             for fg in self.filegroups:
                 fg.apply_coord_selection()
