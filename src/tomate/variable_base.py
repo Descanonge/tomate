@@ -108,7 +108,8 @@ class Variable():
         self.data = None
 
     def view(self, *keys: KeyLike, keyring: Keyring = None,
-             order: List[str] = None, **kw_keys: KeyLike) -> Optional[Array]:
+             order: List[str] = None, log_lvl: str = 'DEBUG',
+             **kw_keys: KeyLike,) -> Optional[Array]:
         """Return subset of data.
 
         See also
@@ -124,10 +125,12 @@ class Variable():
         keyring.make_total()
         keyring = keyring.subset(self.dims)
 
-        log.debug('Taking keys from %s: %s', self.name, keyring.print())
+        log.log(getattr(logging, log_lvl.upper()),
+                'Taking keys from %s: %s', self.name, keyring.print())
         out = self.acs.take(keyring, self.data)
         if order is not None:
-            out = self.acs.reorder(keyring.get_non_zeros(), out, order)
+            out = self.acs.reorder(keyring.get_non_zeros(), out,
+                                   order, log_lvl=log_lvl)
 
         return out
 
