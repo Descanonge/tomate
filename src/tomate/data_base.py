@@ -7,7 +7,7 @@
 
 
 import logging
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type, Union, TYPE_CHECKING
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
@@ -15,6 +15,9 @@ from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
 from tomate.variable_base import Variable
 from tomate.variables_info import VariablesInfo
+
+if TYPE_CHECKING:
+    from tomate.db_types.data_disk import DataDisk
 
 
 log = logging.getLogger(__name__)
@@ -581,24 +584,8 @@ class DataBase():
 
         if dims is None:
             dims = self.vi.get_attribute_param('dims', variable, None)
-
         if dims is None:
-            krg = Keyring(var=variable)
-            krg.make_str_idx(var=self.avail.var)
-            dims_fg = []
-            try:
-                for fg in self.filegroups:
-                    cmd = fg.get_fg_keyrings(krg)
-                    if cmd is not None:
-                        key = cmd.infile['var']
-                        key.make_list_int()
-                        dims_fg.append(key.apply(fg.cs['var'].dimensions))
-            except AttributeError:
-                pass
-            else:
-                lengths = [len(z) for z in dims_fg]
-                dims = list(dims_fg[lengths.index(max(lengths))])
-
+            dims = guess_dimensions(self, variable)
         if dims is None:
             dims = self.coords
 
@@ -627,3 +614,25 @@ class DataBase():
             variables = [variables]
         keep = [v for v in self.loaded if v not in variables]
         self.slice_data(var=keep)
+
+
+def guess_dimensions(db: 'DataDisk', var: str):
+    krg = Keyring(var=var)
+    krg.make_str_idx(var=db.avail.var)
+    dims_fg = []
+    try:
+        for fg in db.filegroups:
+            cmd = fg.get_fg_keyrings(krg)
+            if cmd is not None:
+                key = cmd.infile['var']
+                key.make_list_int()
+                dims = key.apply(fg.cs['var'].dimensions)
+                dims = [d for d in dims if d in db.dims]
+                dims_fg.append(dims)
+    except AttributeError:
+        pass
+    else:
+        lengths = [len(z) for z in dims_fg]
+        dims = list(dims_fg[lengths.index(max(lengths))])
+
+    return dims
