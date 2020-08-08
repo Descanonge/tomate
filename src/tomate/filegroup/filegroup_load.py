@@ -9,12 +9,12 @@
 import os
 import itertools
 import logging
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
 from tomate.accessor import Accessor
-from tomate.custom_types import File, KeyLike, KeyLikeStr
+from tomate.custom_types import File, KeyLike
 from tomate.filegroup import command
 from tomate.filegroup.command import CmdKeyrings, Command, separate_variables
 from tomate.filegroup.filegroup_scan import FilegroupScan
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class FilegroupLoad(FilegroupScan):
-    """Filegroup class with data loading functionnalies.
+    """Filegroup class with data loading functionnalities.
 
     This class is abstract and is meant to be subclassed to be usable.
     A subclass would replace functions specific to a file format.
@@ -51,11 +51,10 @@ class FilegroupLoad(FilegroupScan):
     def load(self, keyring: Keyring, memory: Keyring):
         """Load data for that filegroup.
 
-        Retrieve load commands.
-        Open file, load data, close file.
+        Retrieve load commands. Open file, load data, close file.
 
-        :param keyring: Data to load. Acting on this filegroup CS.
-        :param memory: Corresponding memory keyring.
+        :param keyring: Data to load, acting on this filegroup scope.
+        :param memory: Corresponding memory keyring, acting on loaded scope.
         """
         commands = self.get_commands(keyring, memory)
         for cmd in commands:
@@ -71,14 +70,13 @@ class FilegroupLoad(FilegroupScan):
 
         self.do_post_loading(keyring)
 
-    def get_fg_keyrings(self, keyring: Keyring) -> CmdKeyrings:
+    def get_fg_keyrings(self, keyring: Keyring) -> Optional[CmdKeyrings]:
         """Get filegroup specific keyring.
 
-        Use `contains` attribute to translate
-        keyring acting on available scope to acting
-        on the filegroup alone.
+        Use `contains` attribute to translate keyring acting on available scope
+        to acting on the filegroup alone.
 
-        :param keyring: Keyring acting on database avail.
+        :param keyring: Keyring acting on database available scope.
 
         :returns: Infile and memory keyrings for this filegroup.
             None if there is nothing to load in this filegroup.
@@ -105,6 +103,8 @@ class FilegroupLoad(FilegroupScan):
         krg_infile.simplify()
         krg_memory.simplify()
 
+        # Shared coordinates will suffer from a '.as_list' later on, we need
+        # their parent size to be set.
         krg_infile.set_shape(self.cs)
         krg_memory.set_shape(self.db.scope.dims)
 
@@ -116,15 +116,17 @@ class FilegroupLoad(FilegroupScan):
     def get_commands(self, keyring: Keyring, memory: Keyring) -> List[Command]:
         """Get load commands.
 
-        Recreate filenames from matches and find in file indices..
-        Merge commands that have the same filename.
-        If possible, merge contiguous shared keys.
-        Add the keys for in coords.
-        Favor integers and slices keys.
-        Order keys according to the database coordinate order.
+        Recreate filenames from matches. Find in file indices for shared
+        coordinates. Merge commands that have the same filename. If possible,
+        merge contiguous shared keys.
 
-        :param keyring: Data to load. Acting on this filegroup CS.
-        :param memory: Corresponding memory keyring.
+        Add the keys for in coords. Favor integers
+        and slices keys. Separate commands in different variables, order
+        according to each variable dimensions order.
+
+        :param keyring: Data to load, acting on this filegroup scope.
+        :param memory: Corresponding memory keyring, acting on loaded scope.
+
         """
         if len(self.iter_shared(True)) == 0:
             commands = self._get_commands_no_shared()
@@ -219,10 +221,10 @@ class FilegroupLoad(FilegroupScan):
         return [cmd]
 
     def _get_commands_shared(self, keyring: Keyring, memory: Keyring) -> List[Command]:
-        """Return the combo filename / keys_in for shared coordinates.
+        """Return list of commands only with shared keys.
 
-        :param keyring: Data to load. Acting on this filegroup CS.
-        :param memory: Corresponding memory keyring.
+        :param keyring: Data to load, acting on this filegroup scope.
+        :param memory: Corresponding memory keyring, acting on loaded scope.
 
         :returns: List of command, one per combination of shared
             coordinate key.
@@ -260,12 +262,12 @@ class FilegroupLoad(FilegroupScan):
             self, keyring: Keyring) -> Tuple[List[List[List[str]]],
                                              List[List[int]],
                                              Union[List[int], None]]:
-        """For all asked values, retrieve matchers, regex index and in file index.
+        """Retrieve matchers, regex index and in file index.
 
         Find matches and their regex indices for reconstructing filenames.
         Find the in-file indices as the same time.
 
-        :param keyring: Data to load. Acting on this filegroup CS.
+        :param keyring: Data to load, acting on this filegroup scope.
 
         :returns:
             matches
@@ -303,14 +305,17 @@ class FilegroupLoad(FilegroupScan):
 
         Load content following a 'load command'.
 
-        See :doc:`../filegroup` and :doc:`../expanding`
-        for more information on how this function works, and
-        how to implement it.
+        See :doc:`../filegroup` and :doc:`../expanding` for more information on
+        how this function works, and how to implement it.
 
         :param file: Object to access file.
             The file is already opened by FilegroupScan.open_file().
         :param cmd: Load command.
 
+        See also
+        --------
+        tomate.filegroup.filegroup_netcdf.FilegroupNetCDF.load_cmd:
+            for an example
         """
         raise NotImplementedError
 
