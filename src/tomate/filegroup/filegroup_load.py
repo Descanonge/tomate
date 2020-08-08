@@ -285,10 +285,10 @@ class FilegroupLoad(FilegroupScan):
             rgx_idxs.append([rgx.idx for rgx in cs.matchers])
         return matches, rgx_idxs, in_idxs
 
-    def _get_key_infile(self, keyring: Keyring) -> Keyring:
-        """Get the keys for data in file.
+    def _get_keyring_in(self, keyring: Keyring) -> Keyring:
+        """Get the keys for in coordinates.
 
-        :param keyring: Data to load. Acting on this filegroup CS.
+        :param keyring: Data to load, acting on this filegroup scope.
         """
         krg_inf = Keyring()
         for name, cs in self.iter_shared(False).items():
