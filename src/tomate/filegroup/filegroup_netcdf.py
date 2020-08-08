@@ -129,8 +129,8 @@ class FilegroupNetCDF(FilegroupLoad):
             in-file dimensions list.
         """
         krg_inf, krg_mem = cmd
-        name = self.db.loaded.var.get_str_name(krg_mem['var'].value)
-        ncname = krg_inf['var'].value
+        name = self.db.loaded.var.get_str_name(krg_mem.pop('var').value)
+        ncname = krg_inf.pop('var').value
         log.info('Inserting variable %s', ncname)
 
         kwargs = var_kw.get('_all', {})
@@ -159,16 +159,25 @@ class FilegroupNetCDF(FilegroupLoad):
         self.add_vi_to_file(file, add_info=False,
                             name=name, ncname=ncname)
 
-        order_file = self._get_order_in_file(file, ncname)
-        order = self._get_order(order_file)
-        int_krg = self._get_internal_keyring(order, krg_inf)
-
-        if len(order_file) != len(krg_mem.get_non_zeros()):
+        order = self.get_order_dimensions(file, ncname)
+        if len(order) != len(krg_mem.get_non_zeros()):
             raise IndexError("File dimensions ({}) length does not"
                              " match keyring length ({})"
-                             .format(order_file, krg_mem.get_non_zeros()))
+                             .format(order, krg_mem.get_non_zeros()))
 
-        chunk = self.db.view(keyring=krg_mem)
-        chunk = self.reorder_chunk(chunk, krg_mem, int_krg)
-        log.info("Placing it in file at %s.", int_krg.print())
-        self.acs.place_normal(int_krg, file[ncname], chunk)
+        log.info("Taking %s from: %s", krg_mem.print(), name)
+        chunk = self.db.variables[name].view(keyring=krg_mem, order=dimensions)
+
+        log.info("Placing it in file at %s.", krg_inf.print())
+        self.acs.place_normal(krg_inf, file[ncname], chunk)
+
+    def get_order_dimensions(self, file: nc.Dataset,
+                             variable: str) -> List[str]:
+        """Get order of dimensions of a variable.
+
+        If dimensions names are different than in the filegroup, translate.
+        """
+        dimensions = list(file[variable].dimensions)
+        translate = {c.name: c.coord.name for c in self.cs.values()}
+        dimensions = [translate[d] for d in dimensions]
+        return dimensions
