@@ -319,31 +319,6 @@ class FilegroupLoad(FilegroupScan):
         """
         raise NotImplementedError
 
-    def reorder_chunk(self, chunk: np.ndarray,
-                      keyring: Keyring, int_keyring: Keyring) -> np.ndarray:
-        """Reorder data.
-
-        Dimensions are not necessarily stored with the same
-        order in file and in memory.
-
-        :param chunk: Data chunk taken from file and to re-order.
-        :param keyring: Keyring asked. It contains the dimensions as
-            they should be stored in the database.
-        :param int_keyring: Keyring used to fetch chunk array from file.
-            It contains the dimensions in the order of array.
-        :returns: Re-ordered data.
-        """
-        in_file = int_keyring.get_non_zeros()
-        in_data = [c for c in keyring.get_non_zeros() if c in in_file]
-        source = [in_data.index(n) for n in in_data if n in in_file]
-        dest = [in_data.index(n) for n in in_file]
-
-        if source != dest:
-            log.info("reordering %s -> %s", source, dest)
-            chunk = self.acs.moveaxis(chunk, source, dest)
-
-        return chunk
-
     def do_post_loading(self, keyring: Keyring):
         """Apply post loading functions."""
         var_loaded = keyring['var'].apply(self.cs['var'][:])

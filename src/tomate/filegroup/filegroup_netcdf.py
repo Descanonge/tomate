@@ -66,7 +66,8 @@ class FilegroupNetCDF(FilegroupLoad):
                                  " (is {}, excepted {})"
                                  .format(chunk_shape, krg_inf.shape))
 
-            chunk = self.reorder_chunk(chunk, krg_mem, krg_inf)
+            chunk = self.acs.reorder(krg_inf.get_non_zeros(), chunk,
+                                     krg_mem.get_non_zeros(), log_lvl='INFO')
 
             log.info("Placing it in %s, %s", name, krg_mem.print())
             self.db.variables[name].set_data(chunk, krg_mem)
