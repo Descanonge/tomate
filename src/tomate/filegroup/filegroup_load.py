@@ -423,11 +423,17 @@ class FilegroupLoad(FilegroupScan):
         cmd.filename = filename
         krg_inf = Keyring(var=[self._get_infile_name(v)
                                for v in krg_mem['var']])
-        krg_inf.make_full(krg_mem.get_non_zeros())
-        krg_inf.make_total()
-        krg_inf.sort_by(krg_mem.get_non_zeros())
+
         cmd.append(krg_inf, krg_mem)
         cmd, = separate_variables([cmd])
+
+        for keyrings in cmd:
+            inf, mem = keyrings
+            key = self.cs['var'].get_str_index(mem['var'].value)
+            dims = self.cs['var'].dimensions[key]
+            inf.make_full(dims)
+            inf.make_total()
+            inf.sort_by(['var'] + dims)
 
         if file_kw is None:
             file_kw = {}
