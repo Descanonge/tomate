@@ -90,8 +90,7 @@ class FilegroupNetCDF(FilegroupLoad):
                 file[ncname].setncattr('fullname', coord.fullname)
                 file[ncname].setncattr('units', coord.units)
 
-        cmd_var, = separate_variables([cmd])
-        for cmd_krgs in cmd_var:
+        for cmd_krgs in cmd:
             self.add_variables_to_file(file, cmd_krgs, **var_kw)
 
     def add_vi_to_file(self, file, add_info=True, add_attr=True,

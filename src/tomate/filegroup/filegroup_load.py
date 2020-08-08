@@ -427,6 +427,7 @@ class FilegroupLoad(FilegroupScan):
         krg_inf.make_total()
         krg_inf.sort_by(krg_mem.get_non_zeros())
         cmd.append(krg_inf, krg_mem)
+        cmd, = separate_variables([cmd])
 
         if file_kw is None:
             file_kw = {}
