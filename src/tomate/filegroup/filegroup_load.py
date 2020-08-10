@@ -432,7 +432,7 @@ class FilegroupLoad(FilegroupScan):
             dims = self.cs['var'].dimensions[key]
             inf.make_full(dims)
             inf.make_total()
-            inf.sort_by(['var'] + dims)
+            inf.sort_by(['var'] + list(dims))
 
         if file_kw is None:
             file_kw = {}
