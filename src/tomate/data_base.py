@@ -525,16 +525,13 @@ class DataBase():
         :param keys: Keys act on loaded scope.
         """
         self.check_loaded()
-        keyring = Keyring.get_default(keyring, **keys)
-        keyring.set_default('var', slice(None))
-        keyring.make_int_list()
-        keyring.make_idx_str(var=self.loaded.var)
+        self.loaded.slice(keyring=keyring, **keys)
 
-        self.loaded = self.get_subscope('loaded', keyring)
-
-        for var in keyring['var']:
-            v = self.variables[var]
-            v.data = v.view(keyring)
+        for var in self.variables.values():
+            if var.name not in self.loaded:
+                var.unload()
+            else:
+                var.data = var.view(keyring=keyring, **keys)
 
     def unload(self):
         """Remove all data."""
