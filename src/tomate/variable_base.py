@@ -96,6 +96,7 @@ class Variable():
         if shape is None:
             shape = [self._db.loaded.dims[d].size
                      for d in self.dims]
+        log.info("Allocating array of size %s", shape)
         self.data = self.acs.allocate(shape, datatype=self.datatype)
 
     def unload(self):
