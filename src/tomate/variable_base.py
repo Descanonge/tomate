@@ -29,12 +29,13 @@ class Variable():
     :param database: DataBase instance this variable belongs to.
     :param data: [opt] Variable data.
 
-    :attr name: str: Variable name
+    :attr name: str: Variable name.
+    :attr _db: DataBase: DataBase instance.
     :attr data: Array: Variable data.
     :attr dims: List[str]: List of dimensions the variable
         depends on.
-    :attr datatype: Any: Type of data used to allocate array.
-        Can be string that can be turned in numpy.dtype.
+    :attr datatype: Any: Type of data used to allocate array. Passed to
+        accessor.allocate. Can be string that can be turned in numpy.dtype.
     """
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
@@ -67,7 +68,7 @@ class Variable():
         return "{}: {}".format(self.__class__.__name__, self.name)
 
     def __getitem__(self, key) -> Array:
-        """Get data subset."""
+        """Access data array directly."""
         if self.data is None:
             raise AttributeError(f"Data not loaded for {self.name}")
         return self.data[key]
@@ -76,8 +77,7 @@ class Variable():
     def attributes(self) -> VariableAttributes:
         """Attributes for this variable.
 
-        Returns a 'VariableAttributes' that is tied to
-        the parent database VI.
+        Returns a 'VariableAttributes' that is tied to the parent database VI.
         """
         return self._db.vi[self.name]
 
@@ -90,8 +90,7 @@ class Variable():
     def allocate(self, shape: Iterable[int] = None):
         """Allocate data of given shape.
 
-        :param shape: If None, shape is determined from
-            loaded scope.
+        :param shape: If None, shape is determined from loaded scope.
         """
         if shape is None:
             shape = [self._db.loaded.dims[d].size
@@ -137,8 +136,7 @@ class Variable():
         return out
 
     def view_by_value(self, *keys: KeyLikeValue,
-                      by_day: bool = False,
-                      order: List[str] = None,
+                      by_day: bool = False, order: List[str] = None,
                       **kw_keys: KeyLikeValue) -> Array:
         """Returns a subset of loaded data.
 
@@ -155,20 +153,17 @@ class Variable():
         keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
         return self.view(keyring=keyring, order=order)
 
-    def set_data(self, array: Array, keyring: Keyring = None,
-                 **keys: KeyLike):
+    def set_data(self, array: Array, keyring: Keyring = None, **keys: KeyLike):
         """Set subset of data.
 
-        If no data is loaded, loaded scope is set from the
-        keys acting on loaded.
+        If no data is loaded, loaded scope is set from the `keys` which then act
+        on the available scope.
 
-        Otherwise use `array` to set a part of this variable,
-        keys specifiy part of loaded scope to set.
-        If this variable is not loaded (but others are), allocate
-        this variable first.
+        Otherwise use `array` to set a part of this variable, `keys` then
+        specify the part of loaded scope to set. If this variable is not loaded
+        (but others are), allocate this variable first.
 
-        :param array: Data Array. Its shape should
-            correspond to the keys.
+        :param array: Data Array. Its shape should correspond to the keys.
         """
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.dims)

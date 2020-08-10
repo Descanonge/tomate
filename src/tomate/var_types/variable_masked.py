@@ -62,18 +62,12 @@ class VariableMasked(Variable):
 
     acs = AccessorMask  #: Accessor class to use to access the data.
 
-    def __init__(self, *args, **kwargs):
-        self.compute_land_mask_func = None
-        super().__init__(*args, **kwargs)
-
     def set_mask(self, mask: Union[Array, bool, int]):
         """Set mask to variable data.
 
-        :param mask: Potential mask.
-            If bool or int, a mask array is filled with this value.
-            Array like (ndarray, tuple, list) with shape of the data
-            without the variable dimension.
-            0's are interpreted as False, everything else as True.
+        :param mask: Potential mask. If bool or int, a mask array is filled with
+            this value. Can be array like (ndarray, tuple, list) with shape of
+            the data. 0's are interpreted as False, everything else as True.
 
         :raises IndexError: Mask does not have the shape of the data.
         """
