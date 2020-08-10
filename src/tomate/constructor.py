@@ -189,6 +189,16 @@ class Constructor():
         dims = [v.dims for v in variables]
         cs.set_elements_manual(values=values, in_idx=in_idx, dimensions=dims)
 
+    def set_variables_names(self, **variables: KeyLike):
+        """Only specify variables infile keys.
+
+        Dimensions must be specified with another way (manual or constant).
+        """
+        cs = self.current_fg.cs['var']
+        values = list(variables.keys())
+        in_idx = list(variables.values())
+        cs.set_elements_manual(values=values, in_idx=in_idx)
+
     def remove_scan_functions(self, kind: List[str] = None, *dims: str):
         """Remove scan functions.
 
