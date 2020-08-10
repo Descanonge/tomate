@@ -105,7 +105,7 @@ class Variable():
         Set data to None, and remove variable from loaded scope.
         """
         if self.name in self._db.loaded:
-            self._db.loaded.var.remove(self.name)
+            self._db.remove_loaded_variables(self.name)
         self.data = None
 
     def view(self, *keys: KeyLike, keyring: Keyring = None,
