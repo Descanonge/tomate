@@ -142,7 +142,7 @@ class AccessorABC():
             source = list(range(len(order)))
             dest = [order.index(n) for n in current]
         if source != dest:
-            if log:
+            if log_lvl:
                 log.log(getattr(logging, log_lvl.upper()),
                         "Reordering %s -> %s", source, dest)
             return cls.moveaxis(array, source, dest)
