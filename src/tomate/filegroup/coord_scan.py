@@ -109,7 +109,8 @@ class CoordScan(Coord):
         """Remove elements."""
         self.empty()
         for elt in self.elts:
-            setattr(self, elt, [])
+            if elt not in self.fixed_elts:
+                setattr(self, elt, [])
 
     def self_update(self):
         """Update values and elements from its attributes."""
@@ -237,8 +238,9 @@ class CoordScan(Coord):
     def set_elements_constant(self, **elts: Any):
         """Set elements as constant.
 
-        They stay the same for all coordinate values.
-        Remove overlapping elements set manually.
+        They stay the same for all coordinate values. Remove overlapping
+        elements set manually. If values were set manually before hand, use
+        their length to complete constant elements.
         """
         for elt, value in elts.items():
             if elt not in self.elts:
@@ -247,6 +249,7 @@ class CoordScan(Coord):
                 raise TypeError("Values cannot be set to a constant.")
             self.fixed_elts[elt] = value
             self.manual -= {elt}
+            setattr(self, elt, [value for _ in range(len(self.values))])
 
     def add_scan_attributes_func(self, func: Callable):
         """Add function for scanning attributes in file.
