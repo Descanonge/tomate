@@ -464,12 +464,15 @@ class FilegroupLoad(FilegroupScan):
 
         Create load command to add variable to file.
 
-        :param scope: Scope to write.
+        :param var: Variable to add.
+        :param sibling: Variable along which to add.
+        :param keyring: Part of data to write. On available scope.
         :param kwargs: Keyword arguments to pass for variable creation.
         """
         if kwargs is None:
             kwargs = {}
 
+        keyring['var'] = self.db.avail.var.get_str_index(sibling)
         cmd = self.get_fg_keyrings(keyring)
         if cmd is None:
             return False
@@ -491,13 +494,8 @@ class FilegroupLoad(FilegroupScan):
                 cks.infile['var'] = self._get_infile_name(var)
             log.debug('Command: %s', cmd)
 
-            cs = self.cs['var']
-            sibling_inf = cs.in_idx[cs.idx(sibling)]
-
             file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
             try:
-                sibling_dim = self._get_order_in_file(file=file, var_name=sibling_inf)
-                kwargs.setdefault('dimensions', sibling_dim)
                 self.add_variables_to_file(file, cmd[0], **{var: kwargs})
             except Exception:
                 self.close_file(file)

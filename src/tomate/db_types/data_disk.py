@@ -289,7 +289,7 @@ class DataDisk(DataBase):
             data must match in shape that of the sibling data on disk.
         """
         scope = self.loaded.copy()
-        scope.slice(var=sibling, **keys, int2list=False)
+        scope.slice(**keys, int2list=False)
         for fg in self.filegroups:
             fg.write_add_variable(var, sibling, scope.parent_keyring,
                                   kwargs=kwargs)
