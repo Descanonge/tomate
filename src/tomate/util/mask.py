@@ -59,28 +59,3 @@ def enlarge_mask(mask, n_neighbors, axes=None):
     mask = do_stack(ndimage.convolve, 2, 1.*mask, kernel, axes) > 0
 
     return mask
-
-
-def fill_edge(data, axes=None):
-    """Fill masked by value of closest pixel.
-
-    Parameters
-    ----------
-    data: Array
-    axes: List[int]
-        Axes to work on.
-        If None, the last two axes are used.
-    """
-    if not _has_scipy:
-        raise ImportError("scipy package necessary to use fill_edge.")
-
-    mask = data.mask
-    small_mask = ~enlarge_mask(~mask, 1, axes=axes)
-    to_fill_mask = small_mask * mask
-
-    kernel = np.array([[0, 1, 0],
-                       [1, 0, 1],
-                       [0, 1, 0]])
-    to_fill = do_stack(ndimage.convolve, 2, data.filled(0), kernel, axes)
-    data.data[to_fill_mask] = to_fill
-    return np.ma.array(data, mask=small_mask)

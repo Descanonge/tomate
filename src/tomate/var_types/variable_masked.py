@@ -91,29 +91,20 @@ class VariableMasked(Variable):
         self.data.mask = mask_array
 
     def filled(self, fill: Union[str, float] = 'fill_value',
-               axes: List[int] = None,
                **keys: KeyLike) -> np.ndarray:
         """Return data with filled masked values.
 
-        :param fill: If float, that value is used as fill.
-            If 'nan', numpy.nan is used.
-            If 'fill_value', the array fill value is used (default).
-            If 'edge', the closest pixel value is used.
-        :param axes: If `fill` is 'edge', the axes that should be
-            used to fill values.
+        :param fill: If float, that value is used as fill. If 'nan', numpy.nan
+            is used. If 'fill_value', the array fill value is used (default).
         """
         data = self.view(**keys)
-        if fill == 'edge':
-            filled = tomate.util.mask.fill_edge(data, axes)
+        if fill == 'nan':
+            fill_value = np.nan
+        elif fill == 'fill_value':
+            fill_value = self.data.fill_value
         else:
-            if fill == 'nan':
-                fill_value = np.nan
-            elif fill == 'fill_value':
-                fill_value = self.data.fill_value
-            else:
-                fill_value = fill
-            filled = data.filled(fill_value)
-        return filled
+            fill_value = fill
+        return data.filled(fill_value)
 
     def get_coverage(self, *dims: str) -> Union[Array, float]:
         """Return percentage of not masked values.
