@@ -152,6 +152,7 @@ class Scope():
         """
         keyring = Keyring.get_default(keyring, **keys, dims=self.dims)
         keyring.make_total()
+        keyring.make_str_idx(**self.dims)
         if int2list:
             keyring.make_int_list()
         for c, k in keyring.items_values():
