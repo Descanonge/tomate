@@ -479,6 +479,7 @@ def get_coordscan(filegroup: 'FilegroupLoad', coord: Coord,
     cs = CoordScanType(filegroup, coord, name=name)
     if coord.name == 'var':
         cs.elts.append('dimensions')
+    cs.reset()
 
     return cs
 
