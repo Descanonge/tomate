@@ -289,8 +289,9 @@ class Key():
             key = self.__class__(out)
         else:
             key = self.__class__(list2slice(out))
-            assert key.type == 'slice', 'slice * slice should be slice'
             key._size = len(out)
+            if key._size > 2:
+                assert key.type == 'slice', 'slice * slice should be slice'
 
         return key
 
