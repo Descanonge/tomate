@@ -291,8 +291,8 @@ class CoordScan(Coord):
                 elts[name] = values.tolist()
             if not isinstance(values, list):
                 elts[name] = [values]
-            if name in self.fixed_elts:
-                elts.pop(name)
+        for name in self.fixed_elts:
+            elts.pop(name, None)
 
         if not all(len(values) == len(elts['values'])
                    for values in elts.values()):
