@@ -582,7 +582,8 @@ class DataBase():
         if dims is None:
             dims = self.vi.get_attribute_param('dims', variable, None)
         if dims is None:
-            dims = guess_dimensions(self, variable)
+            if hasattr(self, 'var_disk') and variable in self.var_disk:
+                dims = guess_dimensions(self, variable)
         if dims is None:
             dims = self.coords
 
@@ -617,19 +618,16 @@ def guess_dimensions(db: 'DataDisk', var: str):
     krg = Keyring(var=var)
     krg.make_str_idx(var=db.avail.var)
     dims_fg = []
-    try:
-        for fg in db.filegroups:
-            cmd = fg.get_fg_keyrings(krg)
-            if cmd is not None:
-                key = cmd.infile['var']
-                key.make_list_int()
-                dims = key.apply(fg.cs['var'].dimensions)
-                dims = [d for d in dims if d in db.dims]
-                dims_fg.append(dims)
-    except AttributeError:
-        pass
-    else:
-        lengths = [len(z) for z in dims_fg]
-        dims = list(dims_fg[lengths.index(max(lengths))])
+    for fg in db.filegroups:
+        cmd = fg.get_fg_keyrings(krg)
+        if cmd is not None:
+            key = cmd.infile['var']
+            key.make_list_int()
+            dims = key.apply(fg.cs['var'].dimensions)
+            dims = [d for d in dims if d in db.dims]
+            dims_fg.append(dims)
+
+    lengths = [len(z) for z in dims_fg]
+    dims = list(dims_fg[lengths.index(max(lengths))])
 
     return dims
