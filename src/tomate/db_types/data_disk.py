@@ -47,12 +47,15 @@ class DataDisk(DataBase):
     :attr allow_advanced: bool: If allows advanced data arrangement.
     :attr post_loading_funcs: List[PostLoadingFunc]: Functions applied
         after loading data.
+    :attr var_disk: set: Variables on disk.
     """
     def __init__(self, dims: List[Coord],
                  root: str, filegroups: List[FilegroupLoad],
                  vi: VariablesInfo = None):
         super().__init__(dims, vi)
         self.root = root
+
+        self.var_disk = set(self.avail.var)
 
         self.filegroups = filegroups
         for fg in self.filegroups:
@@ -134,17 +137,18 @@ class DataDisk(DataBase):
 
         >>> db.load("SST", 0, lat=slice(200, 400))
         """
-        self.unload()
+        for var in self.variables.values():
+            var.unload()
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring(**kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.make_int_list()
         keyring.make_str_idx(**self.avail.dims)
-        keyring.sort_by(self.dims)
 
         self.loaded = self.get_subscope('avail', keyring, name='loaded')
+        self.remove_loaded_variables([v for v in self.loaded
+                                      if v not in self.var_disk])
 
         for var in self.loaded.var:
             self.variables[var].allocate()
@@ -422,6 +426,7 @@ class DataDisk(DataBase):
         """Create variables objects."""
         for var in self.avail['var']:
             self.add_variable(var)
+            self.var_disk.add(var)
 
     def check_duplicates(self):
         """Check for duplicate data points.
