@@ -126,8 +126,9 @@ class Variable():
         keyring.make_total()
         keyring = keyring.subset(self.dims)
 
-        log.log(getattr(logging, log_lvl.upper()),
-                'Taking keys from %s: %s', self.name, keyring.print())
+        if log_lvl:
+            log.log(getattr(logging, log_lvl.upper()),
+                    'Taking keys from %s: %s', self.name, keyring.print())
         out = self.acs.take(keyring, self.data)
         if order is not None:
             out = self.acs.reorder(keyring.get_non_zeros(), out,
