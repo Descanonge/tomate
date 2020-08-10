@@ -428,8 +428,14 @@ class FilegroupLoad(FilegroupScan):
 
         for keyrings in cmd:
             inf, mem = keyrings
-            key = self.cs['var'].get_str_index(mem['var'].value)
-            dims = self.cs['var'].dimensions[key]
+
+            cs = self.cs['var']
+            key = cs.get_str_index(mem['var'].value)
+            try:
+                dims = cs.dimensions[key]
+            except IndexError:
+                dims = self.db.variables[mem['var'].value].dims
+
             inf.make_full(dims)
             inf.make_total()
             inf.sort_by(['var'] + list(dims))
