@@ -255,8 +255,8 @@ class PlotObjectABC():
         self.add_colorbar_axis(loc, size, pad, **kwargs)
         self.colorbar = self.ax.figure.colorbar(self.object, cax=self.cax, ax=self.ax)
 
-    def _get_label(self, name: str,
-                   fullname: Union[bool, str], units: Union[bool, str]):
+    def _get_label(self, name: str, fullname: Union[bool, str],
+                   units: Union[bool, str]):
         """Get label for axis.
 
         :param name: Coordinate or variable name.
@@ -277,12 +277,12 @@ class PlotObjectABC():
                     label += ' [{}]'.format(c_units)
         else:
             attr = fullname if isinstance(fullname, str) else 'fullname'
-            label = self.db.vi.get_attribute_default(attr, name)
+            label = self.db.vi.get_attribute_default(name, attr)
             if label is None or not fullname:
                 label = name
             if units:
                 attr = units if isinstance(units, str) else 'units'
-                v_units = self.db.vi.get_attribute_default('units', name)
+                v_units = self.db.vi.get_attribute_default(name, 'units')
                 if v_units:
                     label += ' [{}]'.format(v_units)
 
