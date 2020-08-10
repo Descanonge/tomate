@@ -425,8 +425,8 @@ class DataDisk(DataBase):
     def create_variables(self):
         """Create variables objects."""
         for var in self.avail['var']:
-            self.add_variable(var)
             self.var_disk.add(var)
+            self.add_variable(var)
 
     def check_duplicates(self):
         """Check for duplicate data points.
