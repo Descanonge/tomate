@@ -185,11 +185,7 @@ class Variable():
 
         self.acs.place(keyring, self.data, array)
 
-    def get_attribute(self, key: str, default: Any = None):
-        """Get variable specific attribute from VI."""
-        return self.attributes.get(key, default)
-
-    def set_attr(self, name: str, value: Any):
+    def set_attribute(self, name: str, value: Any):
         """Set variable specific attribute to VI."""
         self.attributes[name] = value
 
