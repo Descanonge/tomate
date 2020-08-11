@@ -356,8 +356,8 @@ class FilegroupLoad(FilegroupScan):
         cmds = self.get_commands(keyring, keyring.copy())
 
         for cmd in cmds:
+            file = self.open_file(cmd.filename, 'r', 'debug')
             try:
-                file = self.open_file(cmd.filename, 'r', 'debug')
                 log.debug('Scanning %s for variables specific attributes.', cmd.filename)
 
                 for k in cmd:
