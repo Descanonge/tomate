@@ -10,6 +10,7 @@ import logging
 from typing import Any, Dict, List, Tuple, Type, Union, TYPE_CHECKING
 
 from tomate.coordinates.coord import Coord
+from tomate.coordinates.variables import Variables
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
 from tomate.keys.keyring import Keyring
 from tomate.scope import Scope
@@ -43,7 +44,7 @@ class DataBase():
 
     See :doc:`../data` for more information.
 
-    :param dims: Dimensions, (ie subclasses of Coord). This includes variables.
+    :param dims: Dimensions, (ie subclasses of Coord). Variables can be omitted.
         The dimensions will be stored in various scopes in the order they
         are supplied. This same order is used in many methods when specifying
         keys. They are linked (not copied) to the available scope.
@@ -61,6 +62,8 @@ class DataBase():
     def __init__(self, dims: List[Coord],
                  vi: VariablesInfo = None):
 
+        if not any(d.name == 'var' for d in dims):
+            dims.insert(0, Variables([]))
         self.dims = [c.name for c in dims]
 
         self.avail = Scope(dims=dims, copy=False)
