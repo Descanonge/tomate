@@ -158,7 +158,8 @@ class FilegroupLoad(FilegroupScan):
                 self._process_infile(keyrings)
 
                 # Need to access variables object with their name.
-                keyrings.memory.make_idx_str(var=self.db.avail.var)
+                # Use current scope, in case nothing is loaded
+                keyrings.memory.make_idx_str(var=self.db.scope.var)
 
                 self._sort_memory(keyrings)
 
