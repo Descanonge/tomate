@@ -144,12 +144,12 @@ class FilegroupNetCDF(FilegroupLoad):
             datatype = kwargs.pop('datatype', None)
             if datatype is None:
                 datatype = self.db.variables[name].datatype
-            try:
-                kwargs.setdefault('fill_value',
-                                  self.vi.get_attribute(name, '_FillValue'))
-            except KeyError:
-                kwargs.setdefault('fill_value',
-                                  nc.default_fillvals.get(datatype, None))
+
+            if 'fill_value' not in kwargs:
+                if self.vi.has(name, '_FillValue'):
+                    kwargs['fill_value'] = self.vi.get_attribute(name, '_FillValue')
+                else:
+                    kwargs['fill_value'] = nc.default_fillvals.get(datatype, None)
 
             dimensions = kwargs.pop('dimensions', krg_inf.get_non_zeros())
             if 'var' in dimensions:
