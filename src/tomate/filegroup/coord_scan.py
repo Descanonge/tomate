@@ -18,7 +18,7 @@ import re
 import numpy as np
 
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import File, KeyLike, KeyLikeInt
+from tomate.custom_types import File, KeyLike
 from tomate.filegroup.matcher import Matcher
 from tomate.filegroup.scanner import Scanner, ScannerCS
 from tomate.keys.key import Key
@@ -441,12 +441,12 @@ class CoordScanShared(CoordScan):
         for mchr in self.matchers:
             mchr.match = m.group(mchr.idx + 1)
             matches.append(mchr.match)
-        matches = tuple(matches)
         log.debug("Found matches %s for filename %s", matches, m.group())
 
         # If multiple shared coord, this match could already been found
         if matches not in self.matches:
             elts = self.scan_elements(file)
+            matches = [matches for _ in range(len(elts['values']))]
             self.append_elements(**elts, matches=matches)
 
     def is_to_open(self) -> bool:
