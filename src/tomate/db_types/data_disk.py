@@ -49,6 +49,9 @@ class DataDisk(DataBase):
         after loading data.
     :attr var_disk: set: Variables on disk.
     """
+
+    CSS = CoordScanSpec
+
     def __init__(self, dims: List[Coord],
                  root: str, filegroups: List[FilegroupLoad],
                  vi: VariablesInfo = None):
