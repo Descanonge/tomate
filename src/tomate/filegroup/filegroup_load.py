@@ -414,9 +414,6 @@ class FilegroupLoad(FilegroupScan):
         filename = os.path.join(wd, filename)
 
         krg_mem = Keyring.get_default(keyring=keyring, **keys)
-        krg_mem.make_full(self.db.dims)
-        krg_mem.make_total()
-        krg_mem.sort_by(self.db.dims)
         krg_mem.make_idx_str(var=self.db.loaded.var)
 
         cmd = Command()
@@ -430,13 +427,17 @@ class FilegroupLoad(FilegroupScan):
         for keyrings in cmd:
             inf, mem = keyrings
 
+            var = mem['var'].value
             cs = self.cs['var']
-            key = cs.get_str_index(mem['var'].value)
-            try:
+            dims = None
+            if var in cs:
+                key = cs.get_str_index(var)
                 dims = cs.dimensions[key]
-            except IndexError:
-                dims = self.db.variables[mem['var'].value].dims
+            if dims is None:
+                dims = self.db.variables[var].dims
 
+            mem.make_full(dims)
+            mem.make_total()
             inf.make_full(dims)
             inf.make_total()
             inf.sort_by(['var'] + list(dims))
