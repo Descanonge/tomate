@@ -102,7 +102,10 @@ class FilegroupScan():
     @property
     def variables(self) -> List[str]:
         """List of variables contained in this filegroup."""
-        return self.cs['var'][:].tolist()
+        cs = self.cs['var']
+        if cs.has_data():
+            return cs[:].tolist()
+        return []
 
     @property
     def contains(self) -> Dict[str, Optional[np.ndarray]]:

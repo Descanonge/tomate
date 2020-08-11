@@ -68,7 +68,8 @@ class DataDisk(DataBase):
     def __repr__(self):
         s = [super().__repr__()]
         s.append("{} Filegroups:".format(len(self.filegroups)))
-        s += ['\t{}'.format(', '.join(fg.variables)) for fg in self.filegroups]
+        s += ['\t{}: {}'.format(fg.name, ', '.join(fg.variables))
+              for fg in self.filegroups]
         return '\n'.join(s)
 
     def get_filegroup(self, key: Union[int, str]) -> FilegroupLoad:
