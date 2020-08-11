@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 
 
 @make_scanner('in', ['values', 'in_idx'])
-def scan_in_file(cs: CoordScan, file: nc.Dataset,
-                 values: Optional[List[float]]) -> Tuple[List[float], List[int]]:
+def scan_dims(cs: CoordScan, file: nc.Dataset,
+              values: Optional[List[float]]) -> Tuple[List[float], List[int]]:
     """Scan netCDF file for coordinates values and in-file index.
 
     Convert time values to CS units. Variable name must
