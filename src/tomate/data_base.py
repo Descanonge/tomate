@@ -516,6 +516,7 @@ class DataBase():
             self.select(scope, keyring=keyring, **keys)
         else:
             keyring = Keyring.get_default(keyring, **keys, dims=self.avail.dims)
+            keyring.make_str_idx(**scope.parent_scope.dims)
             keyring.set_shape(scope.parent_scope.dims)
             keyring = keyring + scope.parent_keyring
             keyring.sort_keys()
