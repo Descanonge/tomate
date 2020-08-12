@@ -75,7 +75,7 @@ class VariableMasked(Variable):
 
         if isinstance(mask, (bool, int)):
             mask_array = np.ma.make_mask_none(self.shape)
-            mask_array ^= mask
+            mask_array |= mask
         else:
             mask_array = np.ma.make_mask(mask, shrink=None)
 
