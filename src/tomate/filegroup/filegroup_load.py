@@ -417,6 +417,7 @@ class FilegroupLoad(FilegroupScan):
         filename = os.path.join(wd, filename)
 
         krg_mem = Keyring.get_default(keyring=keyring, **keys)
+        krg_mem.set_default('var', slice(None))
         krg_mem.make_idx_str(var=self.db.loaded.var)
 
         cmd = Command()
@@ -444,6 +445,9 @@ class FilegroupLoad(FilegroupScan):
             inf.make_full(dims)
             inf.make_total()
             inf.sort_by(['var'] + list(dims))
+            # FIXME I see this failing soon. Variables with different dims,
+            # if a key slips up `order` will be too short. Also when creating
+            # dimensions in file, I rely on cmd[0], it might not contains all
 
         if file_kw is None:
             file_kw = {}
