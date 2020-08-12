@@ -402,7 +402,8 @@ class DataDisk(DataBase):
         for dim in self.coords:
             none = np.zeros(values[dim].size, bool)
             for fg in self.filegroups:
-                none ^= np.equal(fg.contains[dim], None)
+                if dim in fg.cs:
+                    none |= np.equal(fg.contains[dim], None)
             if np.any(none):
                 values[dim] = np.delete(values[dim], np.where(none))
                 sel = np.where(~none)[0]
