@@ -329,6 +329,7 @@ class FilegroupScan():
 
         files = []
         for i, (root, _, files_) in enumerate(os.walk(self.root)):
+            # FIXME This just limit the number of directories we walk, not the depth
             if i > self.MAX_DEPTH_SCAN:
                 break
             files += [os.path.relpath(os.path.join(root, file), self.root)

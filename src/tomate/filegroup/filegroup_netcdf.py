@@ -79,7 +79,6 @@ class FilegroupNetCDF(FilegroupLoad):
 
         mem, inf = cmd[0]
         for name in set(inf) - {'var'}:
-            print(name)
             coord = self.db.loaded.coords[name]
             if name in self.cs:
                 ncname = self.cs[name].name
@@ -91,7 +90,6 @@ class FilegroupNetCDF(FilegroupLoad):
             if key.size != 0:
                 file.createDimension(ncname, key.size)
                 if issubclass(type(coord), CoordStr):
-                    print("lol")
                     file.createVariable(ncname, 'S2', [ncname])
                     for i, v in enumerate(coord[:]):
                         file[ncname][i] = v
@@ -194,5 +192,5 @@ class FilegroupNetCDF(FilegroupLoad):
             rosetta = {c.name: c.coord.name for c in self.cs.values()}
         else:
             rosetta = {c.coord.name: c.name for c in self.cs.values()}
-        translate = [rosetta[d] for d in dimensions]
+        translate = [rosetta[d] if d in rosetta else d for d in dimensions]
         return translate
