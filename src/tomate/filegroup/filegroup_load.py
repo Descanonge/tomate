@@ -181,7 +181,8 @@ class FilegroupLoad(FilegroupScan):
         not in the order are placed at the start of the keyring. It is the job
         of `load_cmd` to treat those appropriately (for example, variables).
         """
-        order = self.cs['var'].dimensions[keyrings.memory['var'].value]
+        key = self.cs['var'].in_idx.index(keyrings.infile['var'].value)
+        order = self.cs['var'].dimensions[key]
         inf = keyrings.infile
         for dim in order:
             if dim not in keyrings.infile:
@@ -196,9 +197,9 @@ class FilegroupLoad(FilegroupScan):
                 raise KeyError(f"A None key was issued for '{dim}' "
                                "dimension which is present in file.")
 
-        for d, k in inf.items():
-            if k.type == 'none':
-                inf.pop(d)
+        none_keys = [d for d, k in inf.items() if k.type == 'none']
+        for d in none_keys:
+            inf.pop(d)
 
         order = [d for d in inf if d not in order] + list(order)
         keyrings.set(inf.subset(order), keyrings.memory)
