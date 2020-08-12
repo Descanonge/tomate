@@ -627,19 +627,26 @@ class DataBase():
 
 
 def guess_dimensions(db: 'DataDisk', var: str):
-    krg = Keyring(var=var)
-    krg.make_str_idx(var=db.avail.var)
-    dims_fg = []
-    for fg in db.filegroups:
-        cmd = fg.get_fg_keyrings(krg)
-        if cmd is not None:
-            key = cmd.infile['var']
-            key.make_list_int()
-            dims = key.apply(fg.cs['var'].dimensions)
-            dims = [d for d in dims if d in db.dims]
-            dims_fg.append(dims)
 
-    lengths = [len(z) for z in dims_fg]
-    dims = list(dims_fg[lengths.index(max(lengths))])
+    try:
+        krg = Keyring(var=var)
+        krg.make_str_idx(var=db.avail.var)
+        dims_fg = []
+        for fg in db.filegroups:
+            cmd = fg.get_fg_keyrings(krg)
+            if cmd is not None:
+                key = cmd.infile['var']
+                key.make_list_int()
+                dims = key.apply(fg.cs['var'].dimensions)
+                dims = [d for d in dims if d in db.dims]
+                dims_fg.append(dims)
+    except Exception:
+        return None
+
+    if len(dims_fg) > 0:
+        lengths = [len(z) for z in dims_fg]
+        dims = list(dims_fg[lengths.index(max(lengths))])
+    else:
+        return None
 
     return dims
