@@ -131,6 +131,7 @@ class Variable():
         keyring.make_full(self.dims)
         keyring.make_total()
         keyring = keyring.subset(self.dims)
+        keyring.make_str_idx(**self._db.loaded.dims)
 
         if log_lvl:
             log.log(getattr(logging, log_lvl.upper()),
@@ -174,7 +175,7 @@ class Variable():
         """
         keyring = Keyring.get_default(keyring, **keys)
         keyring.make_full(self.dims)
-        keyring.subset(self.dims)
+        keyring = keyring.subset(self.dims)
         keyring.make_total()
 
         if self._db.loaded.is_empty():
@@ -185,6 +186,7 @@ class Variable():
         if self.name not in self._db.loaded.var:
             self._db.loaded.var.append(self.name)
 
+        keyring.make_str_idx(**self._db.loaded.dims)
         self.acs.place(keyring, self.data, array)
 
     def set_attribute(self, name: str, value: Any):

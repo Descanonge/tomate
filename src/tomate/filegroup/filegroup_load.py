@@ -124,8 +124,7 @@ class FilegroupLoad(FilegroupScan):
         according to each variable dimensions order.
 
         :param keyring: Data to load, acting on this filegroup scope.
-        :param memory: Corresponding memory keyring, acting on loaded scope.
-
+        :param memory: Corresponding memory keyring, acting on available scope.
         """
         if len(self.iter_shared(True)) == 0:
             commands = self._get_commands_no_shared()
@@ -158,7 +157,6 @@ class FilegroupLoad(FilegroupScan):
                 self._process_infile(keyrings)
 
                 # Need to access variables object with their name.
-                # Use current scope, in case nothing is loaded
                 keyrings.memory.make_idx_str(var=self.db.scope.var)
 
                 self._sort_memory(keyrings)

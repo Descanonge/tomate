@@ -18,8 +18,9 @@ else:
 
 from tomate.accessor import Accessor
 from tomate.custom_types import File
+from tomate.coordinates.coord_str import CoordStr
 from tomate.filegroup.filegroup_load import FilegroupLoad
-from tomate.filegroup.command import separate_variables, Command, CmdKeyrings
+from tomate.filegroup.command import Command, CmdKeyrings
 
 
 log = logging.getLogger(__name__)
