@@ -68,7 +68,7 @@ class Scope():
         s = [str(self)]
         for d in self.dims.values():
             if d.has_data() and d.size > 0:
-                s += ['{}: {}, {}'.format(d.name, d.get_extent_str(), d.size)]
+                s += ['{}: {} [{}]'.format(d.name, d.get_extent_str(), d.size)]
             else:
                 s += [f'{d.name}: Empty']
         return '\n'.join(s)
