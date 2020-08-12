@@ -73,6 +73,12 @@ class Variable():
             raise AttributeError(f"Data not loaded for {self.name}")
         return self.data[key]
 
+    def __setitem__(self, key, value):
+        """Access data array directly."""
+        if self.data is None:
+            raise AttributeError(f"Data not loaded for {self.name}")
+        self.data[key] = value
+
     @property
     def attributes(self) -> VariableAttributes:
         """Attributes for this variable.
