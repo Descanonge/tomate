@@ -27,20 +27,15 @@ log = logging.getLogger(__name__)
 class DataBase():
     r"""Encapsulate all elements of a database.
 
-    The DataBase object contains the scopes for available,
-    loaded, and selected data. It is the primary object
-    to modify thoses scope (by loading or selecting data
-    for instance). Many methods use the current scope by
-    default, *ie* the loaded scope if data is loaded,
-    available scope otherwise.
-    Coordinates of the current scope are available as
-    attributes.
+    The DataBase object contains the scopes for available, loaded, and selected
+    data. It is the primary object to modify thoses scope (by loading or
+    selecting data for instance). Many methods use the current scope by default,
+    *ie* the loaded scope if data is loaded, available scope otherwise.
+    Coordinates of the current scope are available as attributes.
 
-    Tha DataBase object also contains one or more Variable
-    object. Those are accessible as items with
-    `Data[name of variable]`. Data can be retrieved
-    directly with the view method, eventually for multiple
-    variable at once.
+    Tha DataBase object also contains one or more Variable object. Those are
+    accessible as items with `Data[name of variable]`. Data can be retrieved
+    directly with the view method, eventually for multiple variable at once.
 
     See :doc:`../data` for more information.
 
@@ -57,6 +52,7 @@ class DataBase():
     :attr loaded: Scope: Scope of loaded data.
     :attr selected: Scope: Scope of selected data.
     :attr variables: Dict[Variable]: Variable objects
+    :attr var_disk: set: Variables on disk.
     """
 
     def __init__(self, dims: List[Coord],
@@ -79,6 +75,7 @@ class DataBase():
             vi = VariablesInfo()
         self.vi = vi
 
+        self.var_disk = set()
         self.variables = {}
 
     @property

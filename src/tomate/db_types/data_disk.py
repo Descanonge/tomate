@@ -47,7 +47,6 @@ class DataDisk(DataBase):
     :attr allow_advanced: bool: If allows advanced data arrangement.
     :attr post_loading_funcs: List[PostLoadingFunc]: Functions applied
         after loading data.
-    :attr var_disk: set: Variables on disk.
     """
 
     CSS = CoordScanSpec
