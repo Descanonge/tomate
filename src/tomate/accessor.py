@@ -305,7 +305,8 @@ class Accessor(AccessorABC):
         :param array: Array to assign.
         :param chunk: Array to be assigned.
        """
-        cls.check_parent(keyring, chunk)
+        if len(keyring.shape) > 0:
+            cls.check_parent(keyring, chunk)
         array[tuple(keyring.keys_values)] = chunk
 
     @classmethod
