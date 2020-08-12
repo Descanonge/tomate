@@ -140,7 +140,7 @@ There are a number of pre-existing functions that can be found in
 Here, all coordinates values are found inside the netCDF files::
 
     import tomate.scan_library as scanlib
-    cstr.add_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon', 'time')
+    cstr.add_scan_in_file(scanlib.nc.scan_dims, 'lat', 'lon', 'time')
     cstr.add_scan_in_file(scanlib.nc.scan_variables, 'var')
 
 We now do the same process for the SST files. As their structure is a bit more
@@ -175,7 +175,7 @@ We must again tell how the coordinate will be scanned. This time the
 date information will be retrieved from the filename, and we specify
 the variable by hand::
 
-    cstr.add_scan_in_file(scanlib.nc.scan_in_file, 'lat', 'lon')
+    cstr.add_scan_in_file(scanlib.nc.scan_dims, 'lat', 'lon')
     cstr.set_variables_elements('SST', in_idx='sea_surface_temperature',
                                 dims=['lat', 'lon'])
 

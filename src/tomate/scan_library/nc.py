@@ -135,7 +135,7 @@ def scan_file(filename) -> 'DataBase':
     cstr.add_filegroup(FilegroupNetCDF, coords_fg)
 
     cstr.current_fg.file_override = path.basename(filename)
-    cstr.add_scan_in_file(scan_in_file, *coords_name)
+    cstr.add_scan_in_file(scan_dims, *coords_name)
     cstr.add_scan_in_file(scan_variables, 'var')
     cstr.add_scan_general_attributes(scan_infos)
     cstr.add_scan_variables_attributes(scan_variables_attributes)
