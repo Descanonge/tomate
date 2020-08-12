@@ -156,9 +156,9 @@ class DataDisk(DataBase):
         for var in self.loaded.var:
             self.variables[var].allocate()
 
-        loaded = any(fg.load_from_available(keyring)
-                     for fg in self.filegroups)
-        if not loaded:
+        loaded = [fg.load_from_available(self.loaded.parent_keyring)
+                  for fg in self.filegroups]
+        if not any(loaded):
             log.warning("Nothing loaded.")
         else:
             self.do_post_loading()
