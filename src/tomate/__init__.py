@@ -24,6 +24,7 @@ import sys
 import tomate.log
 
 from .coordinates.coord import Coord
+from .coordinates.coord_str import CoordStr
 from .coordinates.time import Time
 from .coordinates.latlon import Lat, Lon
 from .coordinates.variables import Variables
@@ -39,6 +40,7 @@ __version__ = "1.1.0"
 
 __all__ = [
     'Coord',
+    'CoordStr',
     'Time',
     'Lat',
     'Lon',
