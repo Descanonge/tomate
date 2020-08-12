@@ -347,15 +347,17 @@ class FilegroupLoad(FilegroupScan):
                         else:
                             attrs[name] = value
 
-            for name, [name_inf, values] in zip(memory,
-                                                attrs.items()):
+            for name, [name_inf, values] in zip(memory, attrs.items()):
                 log.debug("Found attributes (%s) for '%s' (%s infile)",
                           values.keys(), name, name_inf)
                 fg.vi.set_attributes_default(name, **values)
 
-        keyring = Keyring(**{dim: 0 for dim in self.cs})
-        keyring['var'] = list(range(self.cs['var'].size))
-        cmds = self.get_commands(keyring, keyring.copy())
+        infile = Keyring(**{dim: 0 for dim in self.cs})
+        infile['var'] = list(range(self.cs['var'].size))
+        memory = infile.copy()
+        memory['var'] = [i for i, d in enumerate(self.contains['var'])
+                         if d is not None]
+        cmds = self.get_commands(infile, memory)
 
         for cmd in cmds:
             file = self.open_file(cmd.filename, 'r', 'debug')
