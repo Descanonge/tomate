@@ -589,8 +589,9 @@ class DataBase():
             dims = self.coords
 
         if var_class is None:
-            var_class = self.vi.get_attribute_param(variable, 'var_class',
-                                                    Variable)
+            var_class = self.vi.get_attribute_param(variable, 'var_class', Variable)
+        if var_class is None:
+            var_class = self.vi.get_attribute_param('_all', 'var_class', Variable)
 
         if attrs is not None:
             self.vi.set_attributes(variable, **attrs)
@@ -602,6 +603,8 @@ class DataBase():
 
         if datatype is None:
             datatype = self.vi.get_attribute_param(variable, 'datatype', None)
+        if datatype is None:
+            datatype = self.vi.get_attribute_param('_all', 'datatype', None)
         db_var.datatype = datatype
 
         self.variables[variable] = db_var
