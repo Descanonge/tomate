@@ -200,7 +200,7 @@ class CoordScan(Coord):
             if elts is not None:
                 if len(func.elts) != len(elts):
                     raise IndexError("Scanner '{}' returns {}, of incompatible"
-                                     " lenght with specified {}"
+                                     " length with specified {}"
                                      .format(func.name, func.elts, elts))
                 func.elts = elts
         else:
@@ -337,6 +337,17 @@ class CoordScan(Coord):
             for value in outer:
                 contains.append(self.get_index_exact(value))
             contains = np.array(contains)
+
+            # Check
+            from tomate.keys.key import list2slice
+            indices = [i for i in contains if i is not None]
+            if len(indices) > 2 and isinstance(list2slice(indices), list):
+                log.warning("'%s' from '%s' contains discontinuous values "
+                            "from all available. This might indicate "
+                            "incompatible values accross filegroups, or a "
+                            "too small `float_comparison` threshold.",
+                            self.name, self.filegroup.name)
+
         self.contains = contains
 
 
