@@ -453,7 +453,7 @@ class Constructor():
             db.compile_scanned()
             db.scan_variables_attributes()
             if create_variables:
-                db.create_variables()
+                db.create_variables(disk=True)
         return db
 
     def create_data_class(self) -> Type[DataBase]:

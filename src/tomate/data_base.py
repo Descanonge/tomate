@@ -607,6 +607,14 @@ class DataBase():
         self.variables[variable] = db_var
         return db_var
 
+    def create_variables(self, disk=False, replace=False):
+        """Create variables objects."""
+        for var in self.avail['var']:
+            if disk:
+                self.var_disk.add(var)
+            if var not in self.variables or replace:
+                self.add_variable(var)
+
     def remove_loaded_variables(self, variables: Union[str, List[str]]):
         """Remove variables from loaded scope."""
         if isinstance(variables, str):

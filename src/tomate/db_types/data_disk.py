@@ -425,12 +425,6 @@ class DataDisk(DataBase):
         for dim, val in values.items():
             self.avail.dims[dim].update_values(val)
 
-    def create_variables(self):
-        """Create variables objects."""
-        for var in self.avail['var']:
-            self.var_disk.add(var)
-            self.add_variable(var)
-
     def check_duplicates(self):
         """Check for duplicate data points.
 
