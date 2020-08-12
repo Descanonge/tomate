@@ -77,14 +77,27 @@ class FilegroupNetCDF(FilegroupLoad):
     def _write(self, file: nc.Dataset, cmd: Command, var_kw: Dict):
         self.add_vi_to_file(file, add_attr=False)
 
-        for name, coord in self.db.loaded.coords.items():
-            ncname = self.cs[name].name
-            key = cmd[0].memory[name].copy()
+        mem, inf = cmd[0]
+        for name in set(inf) - {'var'}:
+            print(name)
+            coord = self.db.loaded.coords[name]
+            if name in self.cs:
+                ncname = self.cs[name].name
+            else:
+                ncname = name
+
+            key = mem[name].copy()
             key.set_size_coord(coord)
             if key.size != 0:
                 file.createDimension(ncname, key.size)
-                file.createVariable(ncname, 'f', [ncname])
-                file[ncname][:] = coord[key.value]
+                if issubclass(type(coord), CoordStr):
+                    print("lol")
+                    file.createVariable(ncname, 'S2', [ncname])
+                    for i, v in enumerate(coord[:]):
+                        file[ncname][i] = v
+                else:
+                    file.createVariable(ncname, 'f', [ncname])
+                    file[ncname][:] = coord[key.value]
                 log.info("Laying %s values, extent %s", name,
                          coord.get_extent_str(key.no_int()))
 
