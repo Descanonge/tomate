@@ -354,8 +354,8 @@ class DataDisk(DataBase):
     def _find_contained(self, values: Dict[str, np.ndarray]):
         """Find what part of available are contained in each fg."""
         for fg in self.filegroups:
-            for dim, value in values.items():
-                fg.cs[dim].find_contained(value)
+            for dim in fg.cs:
+                fg.cs[dim].find_contained(values[dim])
 
     def _get_coord_values(self) -> Dict[str, np.ndarray]:
         """Aggregate all available coordinate values.
@@ -367,7 +367,7 @@ class DataDisk(DataBase):
         for c in self.dims:
             values = []
             for fg in self.filegroups:
-                if fg.cs[c].size is not None:
+                if c in fg.cs and fg.cs[c].size is not None:
                     values += list(fg.cs[c][:])
 
             values = np.array(values)
@@ -378,7 +378,8 @@ class DataDisk(DataBase):
             if c != 'var':
                 values.sort()
                 threshold = max([fg.cs[c].float_comparison
-                                 for fg in self.filegroups])
+                                 for fg in self.filegroups
+                                 if c in fg.cs])
                 duplicates = np.abs(np.diff(values)) < threshold
                 if np.any(duplicates):
                     log.debug("Removing duplicates in available '%s' values"
@@ -406,17 +407,19 @@ class DataDisk(DataBase):
                 values[dim] = np.delete(values[dim], np.where(none))
                 sel = np.where(~none)[0]
                 for fg in self.filegroups:
+                    if dim not in fg.cs:
+                        continue
                     cs = fg.cs[dim]
                     size, extent = cs.size, cs.get_extent_str()
                     if cs.slice_from_avail(sel):
-                        log.warning("'%s' in '%s' will be cut:"
+                        log.warning("'%s' in '%s' will be cut: "
                                     "found %d values ranging %s",
                                     dim, fg.name, size, extent)
                         if cs.size == 0:
                             raise IndexError(f"No common values for '{dim}'")
 
                 cs = self.filegroups[0].cs[dim]
-                log.warning("Common values taken for '%s',"
+                log.warning("Common values taken for '%s', "
                             "%d values ranging %s.",
                             dim, cs.size, cs.get_extent_str())
 
