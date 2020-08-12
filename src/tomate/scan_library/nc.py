@@ -25,6 +25,7 @@ from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.scanner import make_scanner
 from tomate.filegroup.filegroup_netcdf import FilegroupNetCDF
 from tomate.var_types.variable_masked import VariableMasked
+import tomate.db_types as dt
 
 if TYPE_CHECKING:
     from tomate.data_base import DataBase
@@ -140,6 +141,8 @@ def scan_file(filename) -> 'DataBase':
     cstr.add_scan_general_attributes(scan_infos)
     cstr.add_scan_variables_attributes(scan_variables_attributes)
     cstr.add_scan_variables_attributes(scan_variables_datatype)
+
+    cstr.set_data_types([dt.DataCompute, dt.DataPlot])
 
     db = cstr.make_data()
 
