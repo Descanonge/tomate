@@ -123,7 +123,7 @@ def scan_file(filename) -> 'DataBase':
         for dim in file.dimensions:
             if dim == 'time' and 'units' in file['time'].__dict__:
                 coord = Time(dim, None, units=file['time'].units)
-            elif isinstance(file[dim].dtype, str):
+            elif file[dim].dtype is str:
                 coord = CoordStr(dim)
             else:
                 coord = Coord(dim)
