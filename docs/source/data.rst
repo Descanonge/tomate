@@ -5,15 +5,15 @@
 The Database object
 ===================
 
-The data object is the main focus of this package,
-and main gateway to its functionalities.
-It holds the data array itself when loaded, and all the informations
-about variables, coordinates, and files on disk.
-It contains a variety of functions to load, select, slice,
-do computations on, or plot the data.
+The data object is the main focus of this package, and main gateway to its
+functionalities.
+It holds the variables, the informations about variables, coordinates, and files
+on disk. It contains a variety of functions to load, select, slice, do
+computations on, or plot the data.
 
 * To learn how coordinates are managed, see :ref:`Coordinates` and
   :ref:`Scopes`.
+* To learn how variables are managed, see :ref:`variable`.
 * To learn how data files are managed, see :ref:`Filegroups`.
 * To learn how information on data and variables are stored see
   :ref:`Variables Info`.
@@ -44,6 +44,8 @@ The scope is created from the available scope (by default) with the
 One can also use :func:`add_to_selection<data_base.DataBase.add_to_selection>`
 to expand the selection, or
 :func:`Scope.slice<scope.Scope.slice>` to reduce the selection.
+**Do not modify this scope using other functions than thoses. Especially not by
+directly modifying the scope coordinates objects.**
 
 We can then use functions such as
 :func:`load_selected<db_types.data_disk.DataDisk.load_selected>`
@@ -58,33 +60,30 @@ Both these methods can further slice the selection before doing their job
 Additional methods
 ^^^^^^^^^^^^^^^^^^
 
-The base type for the data object
-(:class:`data_base.DataBase`)
-provides all functions for data manipulation (loading,
-slicing, viewing).
-Adding more features can easily be done by creating a subclass, and adding
-or overwritting methods.
-But one may want to use different features for different datasets, and
-combine those features in an organic way.
+The base type for the data object (:class:`data_base.DataBase`) provides all
+functions for data manipulation (loading, slicing, viewing).
+Adding more features can easily be done by creating a subclass, and adding or
+overwritting methods.
+But one may want to use different features for different datasets, and combine
+those features in an organic way.
 
 To this end, the package can dynamically create a new data class, combining
 different subclasses of DataBase.
-See
-:func:`constructor.create_data_class` and
+See :func:`constructor.create_data_class` and
 :func:`constructor.Constructor.set_data_types`.
 Note that the classes should be specified in order of priority for method
 resolution.
 If a clashing in the methods names should arise, warnings will be ensued.
 
-For instance, `set_data_types([DataMasked, DataPlot])` will set a database
-supporting masked values, and plotting functions.
+For instance, `set_data_types([DataCompute, DataPlot])` will set a database
+with computations and plot functions.
 
 
 Post loading function
 ^^^^^^^^^^^^^^^^^^^^^
 
-It can be useful to apply some operations each time data is loaded.
-One can add multiple functions that will be called each time specific variables
-are loaded. These function can also tied to a specific filegroup.
-This is done by using
-:func:`Constructor.add_post_loading_func<constructor.Constructor.add_post_loading_func>`.
+It can be useful to apply some operations each time data is loaded. One can add
+multiple functions that will be called each time specific variables are loaded.
+These functions can also tied to a specific filegroup. This is done by using
+:func:`Constructor.add_post_loading_func
+<constructor.Constructor.add_post_loading_func>`.

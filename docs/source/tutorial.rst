@@ -5,13 +5,13 @@
 Constructing a database
 =======================
 
-A data object needs a few objects to be functionnal, namely: coordinates,
-a vi, and filegroups.
-The constructor object provides ways to easily create a data object,
-and conduct the scanning if the data is on disk.
+A data object needs a few objects to be functionnal, namely: coordinates, a vi,
+and filegroups.
+The constructor object provides ways to easily create a data object, and conduct
+the scanning if the data is on disk.
 
-This page will break down a typical database creation script, and present
-the main features of the package.
+This page will break down a typical database creation script, and present the
+main features of the package.
 
 
 Adding Coordinates
@@ -30,6 +30,11 @@ specific functionalities for each coordinate::
 
 Since we do not yet have the coordinates values, we specify `None`.
 We must include a CF-metadata compliant units for the time coordinate.
+
+We then create a Constructor object that will help in creating a database::
+
+    from tomate import Constructor
+    cstr = Constructor('/Data/', coords)
 
 The variables dimension does not need to be created by the user. The constructor
 will take care of it.
@@ -56,9 +61,8 @@ Our files are organized as such::
         └── ...
 
 Both group of files have a single file per time-step (an 8 day average).
-The SSH files contain information about that time-step: there are a
-time dimension and variable from which we can extract the time values for
-that file.
+The SSH files contain information about that time-step: there are a time
+dimension and variable from which we can extract the time values for that file.
 For the SST on the other hand, the sole information on the time value for each
 step is found in the filename.
 For both file groups, the latitude and longitude are contained in each file, and
@@ -67,12 +71,9 @@ Note this example is in no way a requirement, the package can accomodate with
 many more ways of organizing data in various subfolders and files.
 
 We start by importing a FilegroupLoad subclass, here both filegroups are NetCDF,
-so we will use FilegroupNetCDF.
-
-::
+so we will use FilegroupNetCDF::
 
     from tomate.filegroup import FilegroupNetCDF
-
 
 We add the first filegroup for the SSH::
 
@@ -90,15 +91,15 @@ The 'shared' flag means the dimension is splitted accross multiple files.
 By default scanning coordinates are 'in', which means the whole
 coordinate/dimension is found in each file.
 We give a name for our filegroup, this will help in debugging.
-We give a subfolder in which the files are found,
-if not precised, the root directory from the constructor will be used.
+We give a subfolder in which the files are found, if not precised, the root
+directory from the constructor will be used.
 
 We must now tell where are the files, and more precisely how are constructed
-their filenames. By filename, we mean the whole string starting after the
-root directory, folders included.
-For that, a 'pre-regex' is used. It is a regular expression with a few
-added features. It will be transformed in a standard regex that will be
-used to find the files.
+their filenames. By filename, I mean the whole string starting after the root
+directory, folders included.
+For that, a 'pre-regex' is used. It is a regular expression with a few added
+features. It will be transformed in a standard regex that will be used to find
+the files.
 
 Any regex in the pre-regex will be matched with the first file found, and then
 *considered constant accross all files*. For instance, using ``SST/A_.*\.nc``,
@@ -113,12 +114,10 @@ We use :class:`Matchers<filegroup.matcher.Matcher>`::
 
 Let's break it down. Each variation is notified by \% followed in parenthesis
 by the coordinate name, and the element of that coordinate.
-Here 'x' means the match will be the date: the matcher will be replaced by
-the correspond regex (8 digits in this case, YYYYMMDD), and the string found in each
-filename will be used to find the date.
-The elements available are defined in the
-:class:`Matcher<filegroup.matcher.Matcher>` class.
-(see :ref:`Scanning filename` for a list of defaults elements)
+Here 'x' means the match will be the date: the matcher will be replaced by the
+correspond regex (8 digits in this case, YYYYMMDD), and the string found in each
+filename can be used to find the date.
+See :ref:`Scanning filename` for more details on the pre-regex.
 For more complicated and longer filenames, we can specify some replacements.
 We obtain::
 
@@ -127,14 +126,14 @@ We obtain::
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, **replacements)
 
-Don't forget the r to allow for backslashes, and to appropriately
-escape special characters in the regex.
+Don't forget the r to allow for backslashes, and to appropriately escape special
+characters in the regex.
 
-To load data, the filegroup needs for each of its dimensions:
-the dimensions values, their indices inside the file, and for
-variables, the dimensions along which they vary.
-We can do it by hand, but can also appoint functions that will
-do the work for us during a 'scanning' process, let's do that !
+To load data, the filegroup needs for each of its dimensions: the dimensions
+values, their indices inside the file, and for variables, the dimensions along
+which they vary inside the file.
+We can do it by hand, but can also appoint functions that will do the work for
+us during a 'scanning' process: let's do that !
 There are a number of pre-existing functions that can be found in
 :mod:`scan_library<tomate.scan_library>`.
 Here, all coordinates values are found inside the netCDF files::
@@ -149,8 +148,8 @@ First, we notice there are two varying dates in the filename, the start and end
 of the 8-days averaging. We only want to retrieve the starting date, but must
 still specify that there is a second changing date. To discard that second part,
 we add the `dummy` flag to the end of the matchers.
-This is useful to specify variations that are not associated with
-any coordinate value::
+This is useful to specify variations that will be ignored by function retrieving
+coordinates values from matches::
 
     pregex = ('%(prefix)_'
               '%(time:Y)%(time:j)_'
@@ -162,14 +161,14 @@ any coordinate value::
 
 Here we used the `Y` ant `j` elements, for 'year' and 'day of year'.
 Let's pretend the 'day of year' element was not anticipated within the package.
-We specify a custom regular expression that should be used to replace the matcher
-in the pre-regex ::
+We specify a custom regular expression that should be used to replace the
+matcher in the pre-regex ::
 
     r'%(time:Y)%(time:j:custom=\d\d\d:)'
 
-The regex will now expect a `j` element with three digits. Note that the
-custom regex **must end with a colon**. It can still be followed by the
-`dummy` keyword.
+The regex will now expect a `j` element with three digits. Note that the custom
+regex **must end with a colon**. It can still be followed by the `dummy`
+keyword.
 
 We must again tell how the coordinate will be scanned. This time the
 date information will be retrieved from the filename, and we specify
@@ -183,14 +182,12 @@ the variable by hand::
     cstr.set_elements_constant('time', in_idx=None)
 
 Only the time value will be fetch from the filename, we need to tell the
-filegroup that all indices for time are None.
-A None in-file index tells the filegroup that there is no time
-dimension in file.
+filegroup that all infile indices for time are None. A None in-file index tells
+the filegroup that there is no time dimension in file.
 
 The values and index of the coordinates are not the only thing we can scan for.
 The filegroup can look for coordinate specific attributes. This will only affect
-the scanning coordinate object.
-For instance::
+the scanning coordinate object. For instance::
 
     cstr.add_scan_coords_attributes(scanlib.nc.scan_units, 'time')
 
@@ -206,6 +203,7 @@ as 'infos'::
 and variables specific attributes that will be placed in the VI as attributes::
 
     cstr.add_scan_variables_attributes(scanlib.nc.scan_variables_attributes)
+    cstr.add_scan_variables_attributes(scanlib.nc.scan_variables_datatype)
 
 Conversely, we can also manually add information to the VI::
 
@@ -214,23 +212,22 @@ Conversely, we can also manually add information to the VI::
 
 The scanning will not overwrite information already present in the VI.
 
-The last step is to indicate some information on the variables, not in
-the files, but how we want them arranged in the database.
-In this simple, Tomate should be able to deduce those information for
-the SSH (as it is automatically scanned). But for the SST it is
-preferable to input it by hand.
+The last step is to indicate some information on the variables, not in the
+files, but how we want them arranged in the database.
 See :doc:`variable` for details.
-::
+In this simple example, Tomate should be able to deduce those information for
+the SSH (as it is automatically scanned). But for the SST it is preferable to
+input it by hand::
 
    cstr.vi.set_attributes('SSH', datatype='f', dimensions=['time', 'lat', 'lon'])
 
 
-Optionally, we can customize our database object by adding functionalities
-by specifying additional child classes of DataBase.
-All of those provided by the package are present in the
-:mod:`tomate.db_types` module.
-Here let's use :class:`DataPlot<db_types.plotting.data_plot.DataPlot>`
-which provides plotting functions::
+Optionally, we can customize our database object by adding functionalities by
+specifying additional child classes of DataBase.
+All of those provided by the package are present in the :mod:`tomate.db_types`
+module.
+Here let's use :class:`DataPlot<db_types.plotting.data_plot.DataPlot>` which
+provides plotting functions::
 
   import tomate.db_types as dt
   cstr.set_data_types([dt.DataPlot])
@@ -245,11 +242,10 @@ Now that everything is in place, we can create the data object::
 
   db = cstr.make_data()
 
-The line above will start the scanning process. Each filegroup will
-scan their files for coordinates values and indices. The values obtained
-will be compared.
-If the coordinates from different filegroups have different values, only
-the common part of the data will be available for loading.
+The line above will start the scanning process. Each filegroup will scan their
+files for coordinates values and indices. The values obtained will be compared.
+If the coordinates from different filegroups have different values, only the
+common part of the data will be available for loading.
 (Note this is a default behavior, for more advanced features, see
 :ref:`Multiple filegroups`)
 
@@ -260,13 +256,11 @@ More information on logging: :doc:`log`.
 Loading data
 ------------
 
-We can now load data !
-For that, we must specify what part of the data we want,
-with indices (integers, lists of integers, or slices),
-or values with '*_by_value' functions.
-Variables can be specified by their index in the available scope,
-or their name.
-If a dimension is omitted, it will be taken entirely.
+We can now load data ! For that, we must specify what part of the data we want,
+with indices (integers, lists of integers, or slices), or values with
+'*_by_value' functions. Variables can be specified by their index in the
+available scope, or their name. If a dimension is omitted, it will be taken
+entirely.
 
 For instance::
 
