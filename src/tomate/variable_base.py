@@ -10,6 +10,7 @@ from typing import Any, Iterable, List, Optional, TYPE_CHECKING
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
+from tomate.keys.key import Key
 from tomate.keys.keyring import Keyring
 from tomate.variables_info import VariableAttributes
 
@@ -186,6 +187,8 @@ class Variable():
             self.allocate()
         if self.name not in self._db.loaded.var:
             self._db.loaded.var.append(self.name)
+            key = self._db.avail.var.get_str_index(self.name)
+            self._db.loaded.parent_keyring['var'] += Key(key)
 
         keyring.make_str_idx(**self._db.loaded.dims)
         self.acs.place(keyring, self.data, array)
