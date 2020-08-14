@@ -140,6 +140,7 @@ class DataDisk(DataBase):
 
         >>> db.load("SST", 0, lat=slice(200, 400))
         """
+        self.loaded.empty()
         for var in self.variables.values():
             var.unload()
 
