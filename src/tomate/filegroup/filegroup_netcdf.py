@@ -78,7 +78,7 @@ class FilegroupNetCDF(FilegroupLoad):
     def _write(self, file: nc.Dataset, cmd: Command, var_kw: Dict):
         self.add_vi_to_file(file, add_attr=False)
 
-        mem, inf = cmd[0]
+        inf, mem = cmd[0]
         for name in set(inf) - {'var'}:
             coord = self.db.loaded.coords[name]
             if name in self.cs:
