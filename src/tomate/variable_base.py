@@ -180,7 +180,8 @@ class Variable():
 
         if self._db.loaded.is_empty():
             self._db.loaded = self._db.get_subscope('avail', keyring,
-                                                    name='loaded')
+                                                    name='loaded',
+                                                    var=self.name)
         if not self.is_loaded():
             self.allocate()
         if self.name not in self._db.loaded.var:
