@@ -293,6 +293,7 @@ class Key():
             if key._size > 2:
                 assert key.type == 'slice', 'slice * slice should be slice'
 
+        key.parent_size = self.parent_size
         return key
 
     def __add__(self, other: 'Key') -> 'Key':
