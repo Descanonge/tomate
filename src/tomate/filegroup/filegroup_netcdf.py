@@ -182,7 +182,7 @@ class FilegroupNetCDF(FilegroupLoad):
                             name=name, ncname=ncname)
 
         order = self.translate_dimensions(list(file[ncname].dimensions))
-        if len(order) != len(krg_mem.get_non_zeros()):
+        if order != krg_inf.get_non_zeros():
             raise IndexError("File dimensions ({}) length does not"
                              " match keyring length ({})"
                              .format(order, krg_mem.get_non_zeros()))
