@@ -140,9 +140,7 @@ class DataDisk(DataBase):
 
         >>> db.load("SST", 0, lat=slice(200, 400))
         """
-        self.loaded.empty()
-        for var in self.variables.values():
-            var.unload()
+        self.unload()
 
         kw_keys = self.get_kw_keys(*keys, **kw_keys)
         keyring = Keyring(**kw_keys)
