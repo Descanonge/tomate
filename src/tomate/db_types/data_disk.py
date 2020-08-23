@@ -418,6 +418,12 @@ class DataDisk(DataBase):
                                     "found %d values ranging %s",
                                     dim, fg.name, size, extent)
                         if cs.size == 0:
+                            for fg_ in self.filegroups:
+                                if fg != fg_:
+                                    log.warning("'%s' in '%s': found %d values"
+                                                " ranging %s", dim, fg_.name,
+                                                fg_.cs[dim].size,
+                                                fg_.cs[dim].get_extent_str())
                             raise IndexError(f"No common values for '{dim}'")
 
                 cs = self.filegroups[0].cs[dim]

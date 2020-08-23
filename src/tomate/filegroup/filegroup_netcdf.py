@@ -183,6 +183,7 @@ class FilegroupNetCDF(FilegroupLoad):
 
         chunk = self.db.variables[name].view(keyring=krg_mem, order=order,
                                              log_lvl='INFO')
+
         log.info("Placing it in file at %s.", krg_inf.print())
         self.acs.place_normal(krg_inf, file[ncname], chunk)
 
