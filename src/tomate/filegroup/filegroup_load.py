@@ -443,9 +443,6 @@ class FilegroupLoad(FilegroupScan):
             inf.make_full(dims)
             inf.make_total()
             inf.sort_by(['var'] + list(dims))
-            # FIXME I see this failing soon. Variables with different dims,
-            # if a key slips up `order` will be too short. Also when creating
-            # dimensions in file, I rely on cmd[0], it might not contains all
 
         if file_kw is None:
             file_kw = {}
