@@ -76,10 +76,8 @@ class FilegroupNetCDF(FilegroupLoad):
             self.db.variables[name].set_data(chunk, krg_mem)
 
     def _write(self, file: nc.Dataset, cmd: Command, var_kw: Dict):
-        self.add_vi_to_file(file, add_attr=False)
 
-        inf, mem = cmd[0]
-        for name in set(inf) - {'var'}:
+        def add_coord(name, mem):
             coord = self.db.loaded.coords[name]
             if name in self.cs:
                 ncname = self.cs[name].name
@@ -102,6 +100,14 @@ class FilegroupNetCDF(FilegroupLoad):
 
                 file[ncname].setncattr('fullname', coord.fullname)
                 file[ncname].setncattr('units', coord.units)
+
+        self.add_vi_to_file(file, add_attr=False)
+
+        dims = {'var'}
+        for inf, mem in cmd:
+            for dim in set(inf) - dims:
+                dims.add(dim)
+                add_coord(dim, mem)
 
         for cmd_krgs in cmd:
             self.add_variables_to_file(file, cmd_krgs, **var_kw)
