@@ -592,7 +592,7 @@ class DataBase():
             log.warning('%s already in variables, it will be overwritten.')
 
         if dims is None:
-            dims = self.vi.get_attribute_param('dims', variable, None)
+            dims = self.vi.get_attribute_param(variable, 'dims', None)
         if dims is None:
             if hasattr(self, 'var_disk') and variable in self.var_disk:
                 dims = guess_dimensions(self, variable)
