@@ -13,9 +13,9 @@
 Tomate is a Python package that provides ways to manipulate data
 under the form of multi-dimensional arrays.
 It manages multiples variables, as well as the coordinates along
-which the data varies.
+which those variables vary.
 It also provides multiple convenience functions to retrieve
-subparts of the data, do computations, or plot the data.
+subparts of the data, do simple computations, or plot the data.
 
 The data can be retrieved from disk, where it can be arranged
 in multiple ways and formats.
@@ -53,7 +53,15 @@ of the documentation.
 
 Only tested for linux.
 
-See [examples] for use cases.
+See [examples] for use cases. Get started up with a couple of lines and a NetCDF file:
+
+``` python
+from tomate.scan_library.nc import scan_file
+db = scan_file("/your_file.nc")
+
+print(db)
+db.load()
+```
 
 
 ## Warning
