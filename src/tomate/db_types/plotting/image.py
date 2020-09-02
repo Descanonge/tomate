@@ -6,6 +6,8 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
+from typing import List
+
 import matplotlib.image
 
 from tomate.coordinates.time import Time
@@ -32,6 +34,16 @@ class PlotObjectImage(PlotObjectImageABC):
 
     def create_plot(self):
         image = self.get_data()
+        self.object = self.ax.imshow(image, extent=self._get_extent(),
+                                     **self.kwargs)
+
+    def update_plot(self, **keys: KeyLikeInt):
+        self.update_scope(**keys)
+        image = self.get_data()
+        self.image.set_data(image)
+        self.image.set_extent(self._get_extent())
+
+    def _get_extent(self) -> List[float]:
         extent = []
         for name in self.axes[:2]:
             dim = self.scope[name]
@@ -40,10 +52,4 @@ class PlotObjectImage(PlotObjectImageABC):
                                                  'days since 01-01-01').tolist()
             else:
                 extent += dim.get_extent()
-        self.object = self.ax.imshow(image, extent=extent, **self.kwargs)
-
-    def update_plot(self, **keys: KeyLikeInt):
-        self.update_scope(**keys)
-        image = self.get_data()
-        self.image.set_data(image)
-        self.image.set_extent(self.scope.get_extent(*self.axes[:2]))
+        return extent
