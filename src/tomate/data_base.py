@@ -89,6 +89,17 @@ class DataBase():
         s.append("Class: {}, Bases: {} ".format(self.__class__.__name__,
                                                 ', '.join(self.bases.keys())))
         s.append('')
+        if self.variables:
+            s.append('Variables:')
+            for v in self.variables.values():
+                z = v.name
+                if not type(v) is Variable:
+                    z += ' ({}) '.format(type(v).__name__)
+                z += ' [{}] '.format(', '.join(v.dims))
+                if v.is_loaded():
+                    z += ', (loaded)'
+                s.append(z)
+            s.append('')
         s.append("Data available: \n{}".format(repr(self.avail)))
         s.append('')
 
