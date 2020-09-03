@@ -21,7 +21,7 @@ scanning: :class:`CoordScan<filegroup.coord_scan.CoordScan>` objects, often
 abbrievated CS.
 Each CoordScan has a parent :class:`Coord<coordinates.coord.Coord>` object.
 The CS is dynamically subclassed from the parent Coord class at runtime.
-So then user can use any subclass of coordinate he defined and the corresponding
+So the user can use any subclass of coordinate he defined and the corresponding
 CoordScan will have access to its methods and attributes.
 
 
@@ -34,33 +34,36 @@ They are two types of dimension (and thus of CS).
 * others can be scattered accross different files: they are 'shared'.
 
 In-coordinates are also assumed to be arranged in the same way for all files
-(same values, same indexing). If this is not the case, the coordinate should be
-marked as shared: keep in mind that *all coordinates are independent*.
+(same values, same indexing).
 For example, in a dataset of the sea surface temperature with an image per date
 per file, the latitude and longitude will be 'in' and the temperature 'shared'.
 There could also be more than one date per file, for instance one file for each
 month with daily images.
 
-The CS must find various *elements*: the coordinates values, the index in the
+.. note::
+
+   keep in mind that all coordinates are independent.
+
+The CS must find various **elements**: the coordinates values, the index in the
 file for each value, and if the CS is shared, the file that contains this value.
-For each variable, the dimensions it depends upon must be retrieved.
+For each variable, the dimensions it depends upon must also be retrieved.
 All those elements are indexed on the coordinate values, so when we ask for the
 i\ :sup:`th` value of a coordinate, we take the i\ :sup:`th` file, and the i\
 :sup:`th` in-file index to know where to look in that file.
 The fact that everything is indexed on coordinates values, means that
 coordinates scanned from files will always have values in growing order.
 
-No full filenames are stored. Rather, the matches from the pre-regex
+Some dimensions might not be represented inside the file, for instance in the
+first example above the files might not contain a time dimension.
+In that case, the in-file index should be `None`. This is then handled
+appropriately by the filegroup loading methods.
+
+Filenames are stored in full. Rather, the matches from the pre-regex
 corresponding to that coordinate are kept for each coordinate value.
 This avoid storing an excessive number of long filenames, especially if there
 are multiple shared coordinates.
 With the matches from all the shared coordinates, we can reconstruct the
 filename, by replacing the matchers in the pre-regex.
-
-Some dimensions might not be represented inside the file, for instance in the
-previous example the files might not contain a time dimension.
-In that case, the in-file index should be `None`. This is then handled
-appropriately by the filegroup loading methods.
 
 
 Setting up scanning coordinates
@@ -69,12 +72,15 @@ Setting up scanning coordinates
 The user has to indicate for each filegroup the scanning coordinates, and some
 information about them. This is done with a series of
 :class:`CoordScanSpec<filegroup.spec.CoordScanSpec>` objects, accessible from
-the constructor as `Constructor.CoordScanSpec` or `Constructor.CSS`.
-The information to enter to a CSS are the parent coordinate object or name,
-if it is shared (`True` or `'shared'`) or in (`False` or `'in'`), and the name
-with which the dimension can be found in file.
-The last two argument are optional and default to 'in' and the same name as the
-parent coordinate.
+the constructor as `Constructor.CSS`.
+The information to enter to a CSS are:
+
+- the **parent** coordinate object or name,
+- if it is **shared** (`True` or `'shared'`) or in (`False` or `'in'`),
+- and the **name** with which the dimension can be found in file.
+
+The last two argument are optional and default to 'in' and to the same name as
+the parent coordinate.
 
 Following the same example as above::
 
@@ -103,7 +109,7 @@ other coordinate, or setting it manully using
 :func:`constructor.Constructor.set_variables_elements`.
 This function takes as argument
 :class:`VariablesSpec<filegroup.spec.VariableSpec>`, accessible from the
-constructor as `Constructor.VariableSpec` or `Constructor.VS`.
+constructor as `Constructor.VS`.
 
 Example::
 
@@ -125,7 +131,7 @@ function or use a custom function instead by using
 This conversion will only happen if the 'units' attribute on the CoordScan
 and its parent Coord are defined and different.
 By default the CoordScan object will inherit the units of its parent Coord, but
-this might not reflect the units inside the files !
+this might not reflect the units inside the files!
 You can set the CoordScan units by scanning attributes, or by accessing it::
 
   cstr.current_fg.cs['time'].units = '...'
@@ -143,7 +149,8 @@ multiple filegroups, a choice has to be made in what coordinates points should
 be kept.
 
 When all filegroups have finished scanning, the database object will compile
-found values. This will dictate the range of the 'available' scope.
+values found for each coordinate. This will dictate the range of the 'available'
+scope.
 By default, only coordinates points common to all filegroups are taken. The
 variables dimension is an exception to this.
 If in some filegroup a coordinate must be sliced, a warning will be emitted.
@@ -199,12 +206,12 @@ user-defined functions to :ref:`scan a filename<Scanning filename>` or to
 :ref:`scan inside a file<Scanning in file>`.
 
 To use functions the user must add a series of scanning functions or
-:class:`scanners<filegroup.scanner.ScannerCS>`.
-A scanner is a wrapper around a function used to add some features described
+:class:`'scanners'<filegroup.scanner.ScannerCS>`.
+A scanner is a wrapper around a function that adds some features described
 below.
 You can set any number of functions that will be executed in the order you added
 them to the filegroup.
-Each can extract coordinates any combination of elements.
+Each can extract any combination of elements.
 One can specify / override which elements are returned by a function / scanner,
 and eventually restrain what elements are kept from thoses returned.
 
@@ -230,8 +237,7 @@ scanned so far.
 The file object is a handle for whatever file format is needed. It is returned
 by the Filegroup
 :func:`open_file<filegroup.filegroup_scan.FilegroupScan.open_file>` method.
-All exception handling (and closing the file appropriately) is done by the
-package.
+All exception handling (and closing the file appropriately) is done by Tomate.
 
 One should look into :func:`filegroup.scanner.scan_in_file_default` for a better
 description of the function signature.
@@ -263,7 +269,7 @@ The element dictate the regex that will be used for that matcher, and how it
 will eventually be treated by the filename scanning function.
 
 Various elements are already coded. Elements for dates and times follow
-*strftime* format specifications.
+`strftime <https://linux.die.net/man/3/strftime>`__ format specifications.
 For instance the element 'Y' designate a year. It will be replaced by a regex
 searching for 4 digits and :class:`scan_library.general.get_date_from_matches`
 will use this to create a date.
@@ -300,7 +306,7 @@ will use this to create a date.
 +--------------+--------------+-------------------+
 
 
-Single letters preceded by a percentage in the regex will recursively be
+Single letters preceded by a percentage in the matcher regex will recursively be
 replaced by the corresponding regex.
 So `%X` will be replaced by `%H%M%S`. This still counts as a single matcher and
 its element name will not be changed.
@@ -311,7 +317,9 @@ place of the matcher::
 
   sst_%(time:Y:custom=\d\d:)-%(time:m)-%(time:d)
 
-**The custom regex must be terminated with a colon `:`**.
+.. warning::
+
+   The custom regex must be terminated with a colon `:`.
 
 The filename can comport varying part which are not detrimental to the
 extraction of coordinate values. They still have to be specified, but one can
@@ -322,7 +330,8 @@ specify the averaging boundaries::
   sst_%(time:Y)-%(time:Y:dummy)
   sst_%(time:Y)-%(time:Y:custom=\d\d\d\d:dummy)
 
-More use cases are presented in the :doc:`tutorial` and examples.
+More use cases are presented in the :doc:`tutorial` and `/examples
+<https://github.com/Descanonge/tomate/blob/master/examples>`__.
 
 Each scanned filename is matched again the regex constructed from the pre-regex.
 The matches are temporarily stored in the matchers of the corresponding
@@ -341,6 +350,11 @@ regex operation by setting `'FilegroupScan.file_override'` to the filename
 (relative to the filegroup root). This prevents from exploring all file tree
 from the filegroup root.
 
+.. warning::
+
+   Tomate will recursively explore the filegroup root directory and store
+   the names of **all** the files in it, up to a depth of 3 directories.
+   This limit can be changed by tweaking `FilegroupScan.MAX_DEPTH_SCAN`.
 
 .. currentmodule:: tomate.constructor
 

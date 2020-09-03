@@ -14,8 +14,8 @@ Plot objects are custom objects containing information on what data is plotted
 and how it is plotted, and ways to modify the plot once created.
 Each type of plot is represented by a subclass of
 :class:`plot_object.PlotObjectABC`.
-To easily create those objects, one can use the additional methods provided by
-:class:`DataPlot<data_plot.DataPlot>`.
+To easily create those objects, one can use the additional database methods
+provided by :class:`DataPlot<data_plot.DataPlot>`.
 
 Note that all those methods do their selection of what part of data to plot
 by value. One can still select by index by appending '_idx' to the keyword
@@ -25,12 +25,10 @@ argument of a dimension. See examples below.
 
 The plot object contains a database object, and a scope corresponding to the
 plotted data.
-To fetch data from the database, the scope should be a child of its loaded scope.
 The keyring used for selecting the data to plot (:attr:`keyring` attribute,
 which points to `scope.parent_keyring`) should yield data with the
-correct dimensions. An exception will only be raised if using class method
-:func:`create` to create the plot object.
-The scope scan be sliced, or redefined with methods:
+correct dimensions.
+The scope scan be sliced, or redefined with the methods:
 
 * :func:`reset_scope`, that will redefine all keys from the parent
   scope.
@@ -39,13 +37,17 @@ The scope scan be sliced, or redefined with methods:
 The plot is created by :func:`create_plot`.
 The artist can be removed from the axis by :func:`remove` (the figure
 might need redrawing).
-It can be updated with :func:`update_plot`,
-where keys can be specified to update the scope with `update_scope`.
+It can be updated with :func:`update_plot`.
 
 The object retains the axis it was drawn upon under the :attr:`ax` attribute.
 And whatever artist was returned by matplotlib in the
 :attr:`object` attribute. It can be accessed as a property under
 clearer names depending on the plot object (`contour` for contours for instance).
+
+The plot object also provides a colobar under the :attr:`cax` attribute. See
+:func:`add_colorbar`.
+It also can quickly set the plot limits according to the scope using
+:func:`set_limits`, and add labels with :func:`set_labels`.
 
 
 Example
@@ -78,8 +80,8 @@ proves very useful when plotting many images::
 Funkier example
 ---------------
 
-Let's look at average plot (*ie* plots where one or more dimension
-was averaged). I am going to plot an Hovmüller diagram of the SST where
+Let's look at average plot (*ie* plots where one or more dimensions
+were averaged). I am going to plot an Hovmüller diagram of the SST where
 the longitude is averaged between 100W and 0E, and
 underneath the average SST for the entire area::
 

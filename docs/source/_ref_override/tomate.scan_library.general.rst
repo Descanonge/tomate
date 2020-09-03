@@ -19,8 +19,6 @@ tomate.scan\_library.general
        get_value_from_matches
 
 
-..   
-   
-    .. autofunction:: get_date_from_matches
-    .. autofunction:: get_string_from_match
-    .. autofunction:: get_value_from_matches
+.. autofunction:: get_date_from_matches
+.. autofunction:: get_string_from_match
+.. autofunction:: get_value_from_matches

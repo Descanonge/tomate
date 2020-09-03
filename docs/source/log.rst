@@ -11,24 +11,24 @@ any potential error or mistake. Either way, they should not be ignored.
 
 Logs comes at various levels:
 
-INFO
-  Normal use feedback
 DEBUG
   Less useful information, except if you are debugging
-  your scripts. Used notably to feedback scanning.
+  your scripts. Used notably during scanning.
+INFO
+  Normal use feedback
 WARNING
   Something might not be correctly setup and could cause
   issues down the line.
 ERROR
-  Something was gone wrong. It happens to everyone.
+  Something has gone horribly wrong. It happens to everyone. Those gremlins have
+  the tendency to hide themselves just above error tracebacks, be sure to not
+  miss them!
 
 All logging related function are in :mod:`tomate.log`.
 
 Basic configuration
 -------------------
 
-
-to the stderr stream.
 Logging is activated whenever tomate is first imported.
 A top-level logger named 'tomate' is setup by
 :func:`set_logging_defaults`.
@@ -37,7 +37,8 @@ A logfile can be added by using :func:`add_file_handler`.
 
 All 'tomate' related logs can be limited to a certain level
 by using :func:`set_logging_level`. Again, it is always advised to look
-at 'INFO' outputs to check against potential errors.
+at 'INFO' outputs to check against potential errors. Especially when loading
+data.
 
 
 Advanced configuration
@@ -53,7 +54,7 @@ This is done to avoid tempering with the root logger configuration
 that users might have already setup.
 It can easily be setup to propagate again::
 
-  log = tomate.log.get_logger(``
+  log = tomate.log.get_logger()
   log.propagate = True
 
 You might want to remove the package specific stderr handler present

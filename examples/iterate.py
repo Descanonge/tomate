@@ -40,8 +40,7 @@ size_slice = 12
 
 for slice_time in db.avail.iter_slices('time', size=size_slice):
     db.load_selected(time=slice_time)
-    avg = db.mean('SST', ['lat', 'lon'])
-    average[slice_time] = avg
+    average[slice_time] = db.mean('SST', ['lat', 'lon'])
 
 
 # We could go further and do the computation on only a subpart of
@@ -49,14 +48,16 @@ for slice_time in db.avail.iter_slices('time', size=size_slice):
 db.select_by_value(var='SST', lat=slice(36, 41), lon=slice(-71, -62))
 for slice_time in db.avail.iter_slice('time', size=size_slice, time=slice(0, 50)):
     db.load_selected(time=slice_time)
+    average[slice_time] = db.mean('SST', ['lat', 'lon'])
 
 
-# or not iterate through available scope, but selected.
-# HOWEVER loading functions all operate on the available scope, and `selected.iter_slice`
-# would return a slice for the selected scope.
+# or not iterate through the available scope, but the selected one.
+# HOWEVER loading functions operate on the available scope, and
+# `selected.iter_slice` would return a slice for the selected scope.
 # Hopefully, selected is a child scope of available, so we can make this work
 # by using `iter_slice_parent`.
-db.select_by_value(var='SST', lat=slice(36, 41), lon=slice(-71, -62))
-db.selected.slice(time=slice(0, 50))
+db.select_by_value(var='SST', lat=slice(36, 41), lon=slice(-71, -62),
+                   time_idx=slice(20, 50))
 for slice_time in db.selected.iter_slice_parent('time', size=size_slice):
     db.load_selected(time=slice_time)
+    average[slice_time] = db.mean('SST', ['lat', 'lon'])

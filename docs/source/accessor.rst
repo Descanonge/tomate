@@ -9,7 +9,9 @@ disk), in a controlled fashion. This create an abstraction level, and allows to
 change the implementation of how the data is stored.
 The data is of course still directely accessible.
 
-This page describes the api for accessing data this way.
+This page describes the API for accessing data this way. This is mostly
+intended for developpers and my future self that will have forgotten everything,
+the fool.
 
 
 Selecting parts of arrays
@@ -19,14 +21,14 @@ It is often needed to select data in an array by index.
 A selection along a dimension (or any other iterable) is done using a 'key'. It
 can be an integer, a list of integers, or a slice.
 
-Finding indices corresponding to values should be easy (see below), and
-can be handled by some functions automatically (which name end in '`by_value`',
-or plotting functions).
-However, for coordinates with string values, it is easy for Tomate to switch
-from value to index (and do so unambiguously), it is done automatically in
-every function. This means for coordinates with string values (variables for
-example), you can enter either an index or a string (or a list of string),
-unless the function specify otherwise.
+As stated in :ref:`String coordinates and Variables`, Tomate expects the user
+to input integer indices in most places. The exception to that are the plotting
+function, functions ending in `*_by_value`, and when specifying keys for
+string coordinates, in which cases Tomate will handle the conversion.
+
+If this is still confusing, all methods needing keys as arguments have a
+typehint that should clear it up, refer to :doc:`Custom types
+<_references/tomate.custom_types>` for typehint details.
 
 
 Keys and keyrings
@@ -87,35 +89,35 @@ One can go from variable name to index (or vice-versa) using
 :func:`keyring.Keyring.make_str_idx` (:func:`keyring.Keyring.make_idx_str`).
 Both need one or more :class:`CoordStr<tomate.coordinates.coord_str.CoordStr>`.
 
-Note some functions are unavailable when dealing with string keys.
 
+A rant on slices
+++++++++++++++++
+
+Tomate will try to convert list of integers indices into slices as much as
+possible, since it is the most effective way to subset an array. However it
+brings some issues.
+It is impossible to obtain the length of what the slice would select before
+actually selecting it.
+Sometimes, Tomate needs that length, in last resort it will guess it using very
+smart math™, see :func:`key.guess_slice_size`. This should happen only scarcely,
+and will be logged in debug.
+
+Some functions also need to convert slices into lists of integers, and we need
+for that the size of the iterable that is going to be sliced.
+Here, no guessing, Tomate will throw an exception if it does not have that
+size at hand.
+
+The Keys object can store the size of the parent and of the selection, Tomate
+will try its best to do that when needed.
 
 .. currentmodule :: tomate
-
-
-Finding indices from values
-+++++++++++++++++++++++++++
-
-Coordinates object supply various functions to obtain the index•ices of value•s.
-The most straightforward is `get_index`, that will return the index of the
-closest value above, below, or from both sides (default) of the supplied value.
-`get_indices` does just that but for a list of indices.
-In some case one can use `get_index_exact`, it returns the index of the supplied
-value if it exists, `None` otherwise.
-
-To convert ranges of values, on may use `subset`, that will return a slice
-of indices between a minimum and maximum value. It can include those values
-(default) or exclude them.
-
-The Time coordinate has additional methods for dealing with dates, see
-:ref:`Time`.
 
 
 Accessors
 ---------
 
 Arrays can be accessed and manipulated using an
-:class:`AccessorABC<accessor.AccessorABC>` object.
+:class:`Accessor<accessor.AccessorABC>` object.
 This class is a collection of static and class methods, it does not need
 instanciation per se.
 One can subclass it to modify the implementation of data storage.
@@ -129,24 +131,21 @@ and of the filegroup class.
 Normal and advanced indexing
 ++++++++++++++++++++++++++++
 
-The package allows for indexing the array in ways that are slightly out of the
+Tomate allows for indexing the array in ways that are slightly out of the
 normal use of numpy indexing.
 Namely, asking for lists of indices for multiple dimensions is not
-straightforward in python. For instance we could think that::
+straightforward in numpy. For instance we could think that::
 
   data[[0, 1], [10, 11, 12], :]
 
 would take the first two indices of the time coordinate, and the indices [10,
 11, 12] for the latitude.
-However this won't work (see numpy doc page on indexing for more details).
+However this won't work (see `numpy doc page on indexing
+<https://numpy.org/doc/stable/user/basics.indexing.html>`__ for more details).
 
-The accessor object can take care of the distinction between normal and advanced
-indexing, and choose between two ways of accessing an array when taking values
-from the array, or assigning them a value (ie placing values), depending on the
-keyring.
-
-First way is if there is no particular issue with normal indexing.
-The keys values are then converted into a tuple and passed to the array (see
+The accessor will use two methods.
+First one is if there is no particular issue with normal indexing.
+The keys values are just converted into a tuple and passed to the array (see
 :func:`take_normal<accessor.Accessor.take_normal>` and
 :func:`place_normal<accessor.Accessor.place_normal>`).
 
@@ -186,5 +185,4 @@ dimension.
 The expection to this rule is when using
 :func:`load<db_types.data_disk.DataDisk.load>` and
 :func:`slice_data<data_base.DataBase.slice_data>` (or other functions acting on
-the data attribute). The data object will always keep the same number of
-dimensions.
+the data). The data object will always keep the same number of dimensions.

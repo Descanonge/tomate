@@ -1,3 +1,33 @@
+
+# v2.0.0
+
+  v2 brings a lot of change, such that the API is not retro-compatible in lot of places.
+  The biggest change is that each variable data is now stored in its own array.
+  Variables can now have different datatypes, dimensions, or dimensions order.
+  The scopes are still managed for all variables by the database object.
+
+  The second biggest change is the extended possibilities in the scanning process.
+  Multiple scanning functions can be used. Each function can only look for any number
+  of 'elements' (values, in-file index, or in-file dimensions for variables). Those
+  elements can be fixed to a constant value.
+  
+  There are many smaller changes, mostly internal, that fix bugs and do streamlining
+  in the VariablesInfo, load commands creation, data loading from file, post-loading
+  functions, and data writing to file.
+  Extending to other file formats should be easier, as lot of complicated operations
+  are made easier to execute, or moved to file-format agnostic parts of Tomate.
+  
+  Overall stability has decreased, since treating multiple variables with each different
+  parameters is more complicated, and at the time of release, the new version has not been
+  tested in the wild as much as the first version.
+  
+  Automatic testing has been added. For now only a handful of critical and complex
+  functions are tested.
+  
+  A function is added to immediately open the content of a single NetCDF file as a
+  database.
+  
+
 # v1.1.0
 
 - [2020-07-10] Get filegroup by index or name

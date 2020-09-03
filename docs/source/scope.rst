@@ -21,15 +21,15 @@ each corresponding to a specific range of data.
 |selected   |`selected`      |Data that is selected   |
 +-----------+----------------+------------------------+
 
-Some methods act on a specific scope. The scope by default is
-'loaded' if data has been loaded, 'available' otherwise.
+Some methods act on a specific scope. The scope by default (or `current`) is
+`loaded` if data has been loaded, `available` otherwise.
 The method docstring should contain information on the scope
 they are acting on.
 For instance,
 :func:`load<db_types.data_disk.DataDisk.load>`
 acts on available scope, such that::
 
-  db.load(None, lat=slice(10, 30))
+  db.load(lat=slice(10, 30))
 
 will load a part of the data on disk, corresponding to the index
 10 to 30 of all the **available** latitude coordinate.

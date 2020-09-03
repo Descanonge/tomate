@@ -77,9 +77,9 @@ so we will use FilegroupNetCDF::
 
 We add the first filegroup for the SSH::
 
-    coord_fg = [cstr.CSS('lat', name='latitude'),
-                cstr.CSS('lon', name='longitude'),
-                cstr.CSS('time', 'shared')]
+    coords_fg = [cstr.CSS('lat', name='latitude'),
+                 cstr.CSS('lon', name='longitude'),
+                 cstr.CSS('time', 'shared')]
     cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
 The `coords_fg` variable specify how are arranged the coordinates, we use

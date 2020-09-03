@@ -48,7 +48,7 @@ And in general:
 
 As of now, this only supports NetCDF files out of the box. But the package can be
 easily extended for other file formats. See the section
-['Expanding the package'](https://tomate.readthedocs.io/en/latest/expanding.html)
+['Expanding Tomate](https://tomate.readthedocs.io/en/latest/expanding.html)
 of the documentation.
 
 Only tested for linux.

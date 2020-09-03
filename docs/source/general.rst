@@ -19,28 +19,28 @@ The data, and all information about it, is represented by a python class
 instance, see :doc:`data`.
 This object provides:
 
-* :doc:`Coordinates<coord>` which give information on the data coordinates, (or
-  dimensions). Coordinates objects are grouped
-  in :ref:`Scopes`.
+* :doc:`Coordinates<coord>` which give information on the data coordinates.
+  Coordinates objects are grouped in :ref:`Scopes`.
 * :doc:`Variables<variable>` which store data for one variable
-* :doc:`VariablesInfo<variables_info>` which supply information about the
+* :doc:`VariablesInfo<variables_info>` which supply informations about the
   variables, and the data in general.
 * Various optional convenience functions
 * Eventually, :doc:`Filegroups<filegroup>` which inform on where to find the
-  data files, and how to load data.
+  data files, and how to load data from those files.
 
 To help construct these complex objects, a Constructor can be used. It acts as
 configuration tool.
 
 To jump right into using the package, one can immediatly go read the
 :doc:`constructing a database<tutorial>` doc page.
-You can also use :func:`tomate.scan_library.nc.scan_file` to scan
+One can also use :func:`tomate.scan_library.nc.scan_file` to scan
 everything in a NetCDF file, without needing to specify anything.
-Use examples can be found in /examples.
+More examples can be found in `/examples
+<https://github.com/Descanonge/tomate/blob/master/examples>`__.
 
 The package contains many configurable parts, that are as independant of each
 other as possible. What can be tweaked or expanded, and how to do it is
-explained (in part) in :ref:`Expanding the package`.
+explained (in part) in :ref:`Expanding Tomate`.
 
 Important details on how the data is accessed in arrays are available in
 :ref:`Accessing data`.

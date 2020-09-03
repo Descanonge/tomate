@@ -2,8 +2,8 @@
 .. currentmodule :: tomate
 
 
-Expanding the package
-=====================
+Expanding Tomate
+================
 
 Some classes can be extended, some are meant to be subclassed.
 Here are some information on where to start to expand the package.
@@ -49,13 +49,13 @@ The data object class can then be chosen from any  subclasses, or from a
 combination of thoses.
 See :ref:`Additional methods` for details.
 
-It is also possible to change how the data is stored, or accessed.
-To do that, it is necessary to modify the :ref:`Accessors` class.
-
 One can look at
 :class:`DataCompute<db_types.data_compute.DataCompute>` and
 :class:`DataPlot<db_types.plotting.data_plot.DataPlot>`
 for inspiration.
+
+It is also possible to change how the data is stored, or accessed.
+To do that, it is necessary to modify the :ref:`Accessors` class.
 
 
 Coordinates subclasses
