@@ -222,7 +222,7 @@ class CoordScan(Coord):
 
         self.scanners.append(func)
         for elt in func.returns:
-            self.fixed_elts.pop('elt', None)
+            self.fixed_elts.pop(elt, None)
         self.manual = set()
 
     def set_elements_manual(self, **elts: Sequence):
