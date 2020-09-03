@@ -106,8 +106,8 @@ class ScannerCS(Scanner):
     :attr kwargs: Dict[str, Any]: Static keyword arguments passed to the
         function when scanning.
     :attr to_scan: bool: If the function has to be called during scanning.
-    :attr restrain: Optional[List[str]]: If not None, only these elements will
-        be scanned.
+    :attr restrain: List[str]: If not empty, only these elements will be
+        scanned.
 
     Examples
     --------
@@ -127,12 +127,12 @@ class ScannerCS(Scanner):
         self.elts = elts
         self.kwargs = kwargs
         self.to_scan = True
-        self.restrain = None
+        self.restrain = []
 
     @property
     def returns(self) -> List[str]:
         """Elements returned by the scanner."""
-        if self.restrain is not None:
+        if self.restrain:
             elts = [e for e in self.elts if e in self.restrain]
         else:
             elts = self.elts.copy()
@@ -153,7 +153,7 @@ class ScannerCS(Scanner):
             raise TypeError("Scan function '{}' did not return expected"
                             " number of results. Expected {}, returned {}"
                             .format(self.func.__name__, self.elts, len(results)))
-        if self.restrain is not None:
+        if self.restrain:
             results = self.restrain_results(results)
         return dict(zip(self.returns, results))
 

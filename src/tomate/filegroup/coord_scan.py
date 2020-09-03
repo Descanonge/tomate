@@ -211,12 +211,14 @@ class CoordScan(Coord):
                                 " when supplying function '{}'"
                                 .format(func.__name__))
             func = ScannerCS(kind, func, elts, **kwargs)
-        if restrain is not None:
-            out = set(restrain) - set(func.elts)
-            if out:
-                raise KeyError("Restrain elements {} are not in scanner '{}'"
-                               " elements".format(out, func.name))
-            func.restrain = restrain
+
+        if restrain is None:
+            restrain = []
+        out = set(restrain) - set(func.elts)
+        if out:
+            raise KeyError("Restrain elements {} are not in scanner '{}'"
+                           " elements".format(out, func.name))
+        func.restrain = restrain
 
         self.scanners.append(func)
         for elt in func.returns:
