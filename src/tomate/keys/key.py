@@ -16,8 +16,8 @@ from tomate.custom_types import KeyLike, KeyLikeInt, KeyLikeValue
 
 if TYPE_CHECKING:
     from tomate.coordinates.coord import Coord
-    from tomate.coordinates.coord_str import CoordStr
     from tomate.coordinates.time import Time
+    from tomate.coordinates.coord_str import CoordStr
 
 
 log = logging.getLogger(__name__)
@@ -361,6 +361,8 @@ class KeyValue():
     Can act like a Key, but missing lot of features
     presently.
     Should not be stored in a keyring.
+
+    A Tuple is considered an 'int'.
     """
     def __init__(self, key: KeyLikeValue):
         self.value = None
@@ -370,7 +372,7 @@ class KeyValue():
 
     def set(self, key: KeyLikeValue):
         """Set value."""
-        if isinstance(key, (list, tuple, np.ndarray)):
+        if isinstance(key, (list, np.ndarray)):
             tp = 'list'
         elif isinstance(key, slice):
             tp = 'slice'
