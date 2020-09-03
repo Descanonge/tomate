@@ -47,7 +47,7 @@ class PlotObjectImage(PlotObjectImageABC):
         extent = []
         for name in self.axes[:2]:
             dim = self.scope[name]
-            if issubclass(type(dim), Time):
+            if isinstance(dim, Time):
                 extent += dim.change_units_other(dim[[0, -1]], dim.units,
                                                  'days since 01-01-01').tolist()
             else:

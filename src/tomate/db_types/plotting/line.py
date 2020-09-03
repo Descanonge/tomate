@@ -53,7 +53,7 @@ class PlotObjectLine(PlotObjectABC):
         data = self.get_data()
 
         dim = self.scope[self.axes[1-self.var_idx]]
-        if issubclass(type(dim), Time):
+        if isinstance(dim, Time):
             data_dim = dim.index2date(pydate=True)
         else:
             data_dim = dim[:]

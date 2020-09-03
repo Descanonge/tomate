@@ -179,7 +179,7 @@ class Scope():
             if dim in self.dims:
                 c = self.dims[dim]
                 key = KeyValue(key)
-                if by_day and issubclass(type(c), Time):
+                if by_day and isinstance(c, Time):
                     key = key.apply_by_day(c)
                 else:
                     key = key.apply(c)
@@ -273,7 +273,7 @@ class Scope():
         c = self[coord]
         key.set_size_coord(c)
 
-        if not issubclass(type(c), Time):
+        if not isinstance(c, Time):
             raise TypeError("'{}' is not a subclass of Time (is {})"
                             .format(coord, type(coord)))
 

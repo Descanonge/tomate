@@ -86,7 +86,7 @@ class FilegroupNetCDF(FilegroupLoad):
             key.set_size_coord(coord)
             if key.size != 0:
                 file.createDimension(ncname, key.size)
-                if issubclass(type(coord), CoordStr):
+                if isinstance(coord, CoordStr):
                     file.createVariable(ncname, 'S2', [ncname])
                     for i, v in enumerate(coord[:]):
                         file[ncname][i] = v

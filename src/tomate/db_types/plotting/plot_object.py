@@ -237,7 +237,7 @@ class PlotObjectABC():
         """
         if name in self.scope.coords:
             dim = self.scope[name]
-            if issubclass(type(dim), Time):
+            if isinstance(dim, Time):
                 limits = dim.index2date([0, -1], pydate=True)
             else:
                 limits = dim.get_limits()

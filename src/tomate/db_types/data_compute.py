@@ -49,7 +49,7 @@ class DataCompute(DataBase):
         axis = [var.dims.index(c) for c in coords]
         values = [self.loaded.coords[c][:] for c in coords]
 
-        if issubclass(type(var), VariableMasked):
+        if isinstance(var, VariableMasked):
             data = var.filled(fill)
         else:
             data = var[:]
@@ -67,7 +67,7 @@ class DataCompute(DataBase):
         grad = self.gradient(variable, coords, fill)
         magn = np.linalg.norm(grad, axis=0)
 
-        if issubclass(type(self[variable]), VariableMasked):
+        if isinstance(self[variable], VariableMasked):
             mask = self[variable].mask.copy()
             magn = np.ma.array(magn, mask=mask)
         return magn
