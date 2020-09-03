@@ -122,11 +122,8 @@ class ScannerCS(Scanner):
     """
     def __init__(self, kind: List[str], func: Callable,
                  elts: List[str], **kwargs: Any):
-        self.kind = kind
-        self.func = func
+        super().__init__(kind, func, **kwargs)
         self.elts = elts
-        self.kwargs = kwargs
-        self.to_scan = True
         self.restrain = []
 
     @property
@@ -138,7 +135,7 @@ class ScannerCS(Scanner):
             elts = self.elts.copy()
         return elts
 
-    def scan(self, *args) -> Dict[str, Any]:
+    def scan(self, *args, **kwargs) -> Dict[str, Any]:
         """Scan elements.
 
         Apply restrain if any.
@@ -146,7 +143,7 @@ class ScannerCS(Scanner):
         :param args: Arguments passed to function.
         :returns: Dictionnary of elements.
         """
-        results = super().scan(*args)
+        results = super().scan(*args, **kwargs)
         if not isinstance(results, tuple):
             results = tuple([results])
         if len(results) != len(self.elts):

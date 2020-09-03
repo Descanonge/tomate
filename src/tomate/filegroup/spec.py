@@ -30,6 +30,10 @@ class CoordScanSpec:
     name: str = None
 
     def process(self, dims: Union[Coord] = None):
+        """Process arguments.
+
+        Just apply directives as in class docstring.
+        """
         if isinstance(self.shared, str):
             self.shared = {'in': False, 'shared': True}[self.shared]
 

@@ -9,7 +9,7 @@
 import os
 import itertools
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -461,7 +461,7 @@ class FilegroupLoad(FilegroupScan):
         else:
             self.close_file(file)
 
-    def _write(file: File, cmd: Command):
+    def _write(self, file: File, cmd: Command, var_kw: Dict[str, Any]):
         """Write data in file.
 
         :param cmd: Memory acts on loaded scope.
@@ -506,7 +506,7 @@ class FilegroupLoad(FilegroupScan):
 
             file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
             try:
-                self.add_variable_to_file(file, cmd[0], **{var: kwargs})
+                self.add_variables_to_file(file, cmd[0], **{var: kwargs})
             except Exception:
                 self.close_file(file)
                 raise

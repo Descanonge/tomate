@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 from datetime import datetime, timedelta
 try:

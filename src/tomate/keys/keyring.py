@@ -17,7 +17,6 @@ from tomate.custom_types import KeyLike
 if TYPE_CHECKING:
     from tomate.coordinates.coord import Coord
     from tomate.coordinates.coord_str import CoordStr
-    from tomate.coordinates.variables import Variables
 
 log = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ from tomate.coordinates.coord import Coord
 from tomate.custom_types import File, KeyLike
 from tomate.filegroup.matcher import Matcher
 from tomate.filegroup.scanner import Scanner, ScannerCS
-from tomate.keys.key import Key
+from tomate.keys.key import Key, list2slice
 
 if TYPE_CHECKING:
     from tomate.filegroup.filegroup_load import FilegroupLoad
@@ -249,7 +249,7 @@ class CoordScan(Coord):
         for elt, value in elts.items():
             if elt not in self.elts:
                 raise KeyError(f"'{elt}' not in '{self.name}' CoordScan elements.")
-            elif elt == 'values':
+            if elt == 'values':
                 raise TypeError("Values cannot be set to a constant.")
             self.fixed_elts[elt] = value
             self.manual -= {elt}
@@ -343,7 +343,6 @@ class CoordScan(Coord):
             contains = np.array(contains)
 
             # Check
-            from tomate.keys.key import list2slice
             indices = [i for i in contains if i is not None]
             if len(indices) > 2 and isinstance(list2slice(indices), list):
                 log.warning("'%s' from '%s' contains discontinuous values "

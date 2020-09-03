@@ -8,20 +8,16 @@
 
 import inspect
 import logging
-from typing import (Any, Callable, Dict, Iterable, List, Tuple, Sequence,
-                    Type, Union)
+from typing import Any, Callable, Dict, Iterable, List, Sequence, Type, Union
 
-
-from tomate.accessor import Accessor
 from tomate.coordinates.coord import Coord
 from tomate.coordinates.variables import Variables
 from tomate.custom_types import File, KeyLike, KeyLikeValue, KeyLikeStr
 from tomate.data_base import DataBase
 from tomate.db_types.data_disk import DataDisk
-from tomate.filegroup.coord_scan import CoordScan
 from tomate.filegroup.filegroup_scan import make_filegroup
 from tomate.filegroup.filegroup_load import FilegroupLoad
-from tomate.filegroup.scanner import PostLoadingFunc, Scanner, ScannerCS
+from tomate.filegroup.scanner import PostLoadingFunc, ScannerCS
 from tomate.filegroup.spec import CoordScanSpec, VariableSpec
 from tomate.keys.key import Key, KeyValue
 from tomate.variables_info import VariablesInfo

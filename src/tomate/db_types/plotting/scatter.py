@@ -5,10 +5,9 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
+from typing import List, Optional
 
 import numpy as np
-
-from typing import List, Optional
 
 from tomate.custom_types import Array
 from tomate.db_types.plotting.plot_object import PlotObjectABC

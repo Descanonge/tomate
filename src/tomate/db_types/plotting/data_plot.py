@@ -260,7 +260,7 @@ class DataPlot(DataBase):
         if variables is None:
             variables = self.loaded.var[:].tolist()
         axes = np.array(axes)
-        for i in range(axes.size - len(variables)):
+        for _ in range(axes.size - len(variables)):
             variables.append(None)
         if kwargs is None:
             kwargs = {}

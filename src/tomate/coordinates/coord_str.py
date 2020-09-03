@@ -11,7 +11,7 @@ from typing import Iterator, List, Optional, Sequence, Union
 import numpy as np
 
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import KeyLike, KeyLikeStr
+from tomate.custom_types import KeyLike
 
 
 class CoordStr(Coord):

@@ -15,8 +15,6 @@ from tomate.custom_types import Array, KeyLike
 from tomate.accessor import Accessor
 from tomate.variable_base import Variable
 
-import tomate.util.mask
-
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +57,10 @@ class AccessorMask(Accessor):
 
 
 class VariableMasked(Variable):
+    """Variable subclass for masked data.
+
+    Rely on numpy masked array.
+    """
 
     acs = AccessorMask  #: Accessor class to use to access the data.
 

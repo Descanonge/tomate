@@ -638,6 +638,7 @@ class DataBase():
 
 
 def guess_dimensions(db: 'DataDisk', var: str):
+    """Guess variables dimensions from filegroups."""
 
     try:
         krg = Keyring(var=var)
