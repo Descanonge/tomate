@@ -194,8 +194,7 @@ class Key():
             if is_none_slice(self.value):
                 self.value = slice(None, None, -1)
             else:
-                self.make_list()
-                self.reverse()
+                self.set(self.as_list()[::-1])
                 self.simplify()
 
     def simplify(self):
