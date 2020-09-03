@@ -102,7 +102,7 @@ class PlotObjectABC():
         Acts on the parent scope of `scope` attribute.
         """
         scope = self.db.get_subscope(self._target_scope, keyring,
-                                     int2list=False)
+                                     int2list=False, **keys)
         if scope.var != self.scope.var:
             self.update_variables(scope.var[:].tolist())
         self.scope = scope
