@@ -506,7 +506,7 @@ class DataBase():
         get_subscope_by_value: select_by_value() is a wrapper around
             get_subscope_by_value().
         """
-        self.selected = self.get_subscope_by_value(scope, int2list=True,
+        self.selected = self.get_subscope_by_value(scope, int2list=False,
                                                    by_day=by_day,
                                                    name='selected', **keys)
 
