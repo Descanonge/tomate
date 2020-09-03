@@ -179,8 +179,7 @@ class PlotObjectABC():
         po = cls(db, ax, scope_obj, axes, data, **kwargs)
 
         po._target_scope = scope
-        if axes is None:
-            po.axes = po.find_axes(axes)
+        po.axes = po.find_axes(axes)
 
         return po
 
