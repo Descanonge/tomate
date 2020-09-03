@@ -11,7 +11,7 @@ Use user settings to set locales.
 
 import locale
 import logging
-from typing import List, Sequence, Union
+from typing import List, Sequence, Union, Tuple
 
 try:
     import cftime
@@ -22,7 +22,6 @@ else:
 
 from tomate.coordinates.coord import Coord
 from tomate.custom_types import KeyLike
-from tomate.keys.key import list2slice
 
 
 log = logging.getLogger(__name__)
@@ -85,12 +84,12 @@ class Time(Coord):
         return values
 
     def get_index(self, value: Union['cftime.datetime',
-                                     List[Union[int]], float],
+                                     Tuple[Union[int]], float],
                   loc: str = 'closest') -> int:
         """Return index of value.
 
         :param value: Time value, can be timestamps corresponding to
-            self units, datetime object, or a list of value that
+            self units, datetime object, or a list of values that
             can be transformed to date
             ([year, month, day [, hours, minutes, ...]])
         :param loc: {'closest', 'below', 'above'}
@@ -103,7 +102,7 @@ class Time(Coord):
         return super().get_index(value, loc)
 
     def get_index_by_day(self, value: Union['cftime.datetime',
-                                            List[Union[int, float]],
+                                            Tuple[Union[int, float]],
                                             float, int],
                          loc: str = 'closest') -> int:
         """Get index of value on the same day only.

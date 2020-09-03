@@ -40,10 +40,8 @@ class FilegroupNetCDF(FilegroupLoad):
             raise ImportError("netCDF4 package necessary to use FilegroupNetCDF.")
         super().__init__(*args, **kwargs)
 
-    def open_file(self, filename: str,
-                  mode: str = 'r',
-                  log_lvl: str = 'info',
-                  **kwargs: Any) -> 'nc.Dataset':
+    def open_file(self, filename: str, mode: str = 'r',
+                  log_lvl: str = 'info', **kwargs: Any) -> 'nc.Dataset':
         kwargs.setdefault('clobber', False)
         file = nc.Dataset(filename, mode, **kwargs)
 

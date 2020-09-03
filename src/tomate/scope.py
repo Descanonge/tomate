@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List
 import logging
 
 import numpy as np
@@ -25,7 +25,6 @@ class Scope():
     """Information on data dimension.
 
     Holds list of variables, and coordinates.
-    Give information on the scope shape and dimensions.
 
     Coordinates can be accessed as attributes:
     `Scope.name_of_coordinate`.
@@ -43,8 +42,7 @@ class Scope():
     """
 
     def __init__(self, dims: List[Coord],
-                 name: str = None,
-                 copy: bool = True):
+                 name: str = None, copy: bool = True):
         if copy:
             dims = [c.copy() for c in dims]
         self.dims = {c.name: c for c in dims}
@@ -85,10 +83,7 @@ class Scope():
         return super().__getattribute__(name)
 
     def __getitem__(self, item: str) -> Coord:
-        """Return list of var or coords.
-
-        If item is 'var', return list of present variables.
-        If item is a coordinate name, return coordinate.
+        """Return a dimension.
 
         :raises KeyError: Dimension not in scope.
         """
@@ -141,14 +136,10 @@ class Scope():
               int2list: bool = True, **keys: KeyLike):
         """Slice dimensions by index or variable name.
 
-        If a parameter is None, no change is made for
-        that parameter.
+        If a parameter is None, no change is made for that parameter.
 
-        :param keyring: [opt]
-        :param int2list: Transform int keys into lists, too make
-            sure the dimension is not squezed.
-            Default is True.
-        :param keys: [opt]
+        :param int2list: Transform int keys into lists, too make sure the
+            dimension is not squezed. Default is True.
         """
         keyring = Keyring.get_default(keyring, **keys, dims=self.dims)
         keyring.make_total()
@@ -161,14 +152,12 @@ class Scope():
         self.parent_keyring *= keyring
 
     def slice_by_value(self, int2list: bool = True,
-                       by_day: bool = True,
-                       **keys: KeyLikeValue):
+                       by_day: bool = True, **keys: KeyLikeValue):
         """Slice dimensions by values."""
         keyring = self.get_keyring_by_index(by_day=by_day, **keys)
         self.slice(keyring, int2list)
 
-    def get_keyring_by_index(self,
-                             by_day: bool = False,
+    def get_keyring_by_index(self, by_day: bool = False,
                              **keys: KeyLikeValue) -> Keyring:
         """Get indices from values.
 
@@ -177,6 +166,8 @@ class Scope():
         :param keys: Values to select.
         :param by_day: If corresponding coordinate is a subclass of
             Time, and by_day is true, limit selection to date.
+
+        :raises KeyError: A dimension is not in the scope.
 
         See also
         --------
@@ -213,8 +204,7 @@ class Scope():
                     key: KeyLikeInt = None) -> List[KeyLikeInt]:
         """Iter through slices of a coordinate.
 
-        The prescribed slice size is a maximum, the last
-        slice can be smaller.
+        The prescribed slice size is a maximum, the last slice can be smaller.
 
         :param coord: Coordinate to iterate along to.
         :param size: Size of the slices to take.
@@ -240,9 +230,8 @@ class Scope():
     def iter_slices_parent(self, coord: str, size: int = 12) -> List[KeyLikeInt]:
         """Iter through slices of parent scope.
 
-        The coordinate of the parent scope is
-        itered through. Pre-selection is made
-        by parent keyring.
+        The coordinate of the parent scope is itered through. Pre-selection is
+        made by parent keyring.
 
         :param coord: Coordinate to iterate along to.
         :param size: Size of the slices to take.
@@ -271,8 +260,7 @@ class Scope():
                           key: KeyLikeInt = None) -> List[KeyLikeInt]:
         """Iter through monthes of a time coordinate.
 
-        :param coord: Coordinate to iterate along to.
-            Must be subclass of Time.
+        :param coord: Coordinate to iterate along to. Must be subclass of Time.
 
         See also
         --------
@@ -315,14 +303,11 @@ class Scope():
         """Return limits of coordinates.
 
         Min and max values for specified coordinates.
-        Scope is loaded if not empty, available otherwise.
 
-        :param coords: Coordinates name.
-            If None, defaults to all coordinates, in the order
-            of data.
+        :param coords: Coordinates name. If None, defaults to all coordinates,
+            in the order they are stored.
         :param keyring: [opt] Subset coordinates.
-        :param keys: [opt] Subset coordinates.
-            Take precedence over keyring.
+        :param keys: [opt] Subset coordinates. Take precedence over keyring.
 
         :returns: Min and max of each coordinate. Flattened.
         """
@@ -344,12 +329,10 @@ class Scope():
 
         Return first and last value of specified coordinates.
 
-        :param coords: Coordinates name.
-            If None, defaults to all coordinates, in the order
-            of data.
+        :param coords: Coordinates name. If None, defaults to all coordinates,
+            in the order they are stored.
         :param keyring: [opt] Subset coordinates.
-        :param keys: [opt] Subset coordinates.
-            Take precedence over keyring.
+        :param keys: [opt] Subset coordinates. Take precedence over keyring.
 
         :returns: First and last values of each coordinate.
         """

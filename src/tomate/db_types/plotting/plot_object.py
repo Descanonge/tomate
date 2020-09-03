@@ -29,19 +29,23 @@ class PlotObjectABC():
     such as lines, 2D images, contours, ...
 
     :attr db: DataBase:
-    :attr ax: matplotlib.axes.Axes:
     :attr scope: Scope: Scope of plotted data.
-        If data is to be fetched from database, ought to be a
-        child of its loaded scope, its parent keyring should
-        have the correct dimension.
+        If data is to be fetched from database, ought to be a child of its
+        loaded scope, its parent keyring should have the correct dimension.
+    :attr target_scope: Union[str, Scope]: Scope to fetch data from. Can
+        be the name of a scope, in which case the corresponding scope from
+        the database is used.
+
+    :attr ax: matplotlib.axes.Axes:
+    :attr cax: matplotlib.axes.Axes: Colorbar axis.
     :attr object: Any: Object returned by matplotlib.
-    :attr data: Optional[Array]: If not None, data to use
-        (instead of fetching it from database).
+    :attr colorbar: matplotlib.colorbar.Colorbar: Colorbar object.
+
+    :attr data: Optional[Array]: If not None, data to use (instead of fetching
+        it from database).
+    :attr kwargs: Dict[Any]: Keyword arguments to use for creating plot.
     :attr axes: List[str]: Dimensions and variables name, in order of axes
         (x, y, [z], [color]).
-    :attr kwargs: Dict[Any]: Keyword arguments to use for creating plot.
-    :attr cax: matplotlib.axes.Axes: Colorbar axis.
-    :attr colorbar: matplotlib.colorbar.Colorbar: Colorbar object.
     :attr var_idx: Union[int, List[int]]: Positions of plotted variables
         in `axes` attribute.
     """
@@ -124,8 +128,7 @@ class PlotObjectABC():
     def get_data(self) -> Array:
         """Retrieve data for plot.
 
-        Either from `data` attribute if specified, or
-        from database.
+        Either from `data` attribute if specified, or from database.
         """
         if self.data is not None:
             return self.data
@@ -211,7 +214,7 @@ class PlotObjectABC():
     def update_plot(self, **keys: KeyLikeInt):
         """Update plot.
 
-        :param keys: Keys to change, as for `update_scope`.
+        :param keys: [opt] Keys to change, as for `update_scope`.
         """
         self.update_scope(**keys)
         self.remove()

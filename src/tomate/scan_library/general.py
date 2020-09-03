@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from datetime import datetime, timedelta
 try:
@@ -30,18 +30,16 @@ __all__ = [
 @make_scanner('filename', ['values'])
 def get_date_from_matches(cs: CoordScan,
                           values: Optional[List[float]],
-                          default_date: Dict = None) -> Tuple[Optional[float], None]:
+                          default_date: Dict = None) -> float:
     """Retrieve date from matched elements.
 
-    If any element is not found in the filename, it will be
-    replaced by that element in the default date.
-    If no match is found, None is returned.
+    If any element is not found in the filename, it will be replaced by the
+    element in the default date. If no match is found, None is returned.
 
     The date is converted to CoordScan units, or if not specified its parent
     Coord units.
 
-    :param default_date: Default date element.
-        Defaults to 1970-01-01 12:00:00
+    :param default_date: Default date element. Defaults to 1970-01-01 12:00:00
     """
     if not _has_cftime:
         raise ImportError("cftime package necessary for datetime handling.")
@@ -108,8 +106,9 @@ def get_date_from_matches(cs: CoordScan,
 
 
 @make_scanner('filename', ['values'])
-def get_value_from_matches(cs: CoordScan,
-                           values: Optional[List[float]]) -> Tuple[Optional[int], None]:
+def get_value_from_matches(
+        cs: CoordScan,
+        values: Optional[List[float]]) -> Optional[Union[float, int]]:
     """Retrieve value from matches."""
     elts = {z.elt: z.match for z in cs.matchers if not z.dummy}
 
@@ -126,7 +125,7 @@ def get_value_from_matches(cs: CoordScan,
 
 @make_scanner('filename', ['values'])
 def get_string_from_match(cs: CoordScan,
-                          values: Optional[List[float]]) -> Tuple[Optional[str]]:
+                          values: Optional[List[float]]) -> Optional[str]:
     """Retrieve string from match.
 
     Take first not dummy match of element 'text' or 'char'.
@@ -140,9 +139,8 @@ def get_string_from_match(cs: CoordScan,
 def _find_month_number(name: str) -> Optional[int]:
     """Find a month number from its name.
 
-    name can be the full name (January)
-    or its three letter abbreviation (jan.)
-    The casing does not matter
+    Name can be the full name (January) or its three letter abbreviation (jan).
+    The casing does not matter.
     """
     names = ['january', 'february', 'march', 'april',
              'may', 'june', 'july', 'august', 'september',
