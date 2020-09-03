@@ -1,10 +1,10 @@
 
 
 
-tomate.variables.masked
-=======================
+tomate.var\_types
+=================
 
-.. automodule:: tomate.variables.masked
+.. automodule:: tomate.var_types
 
 
 
@@ -27,8 +27,6 @@ tomate.variables.masked
    :toctree:
    :nosignatures:
 
-   
-      mask
    
       variable_masked
    

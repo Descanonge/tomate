@@ -37,7 +37,7 @@ API Reference
    
       scan_library
    
-      variables
+      var_types
    
 .. rubric:: Submodules
 .. autosummary::
@@ -58,6 +58,8 @@ API Reference
       log
    
       scope
+   
+      variable_base
    
       variables_info
    

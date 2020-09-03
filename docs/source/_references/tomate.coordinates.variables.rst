@@ -25,13 +25,3 @@ tomate.coordinates.variables
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
-
-============================
-.. autosummary::
-   :toctree:
-   :nosignatures:
-
-.. automodule:: tomate.coordinates.variables
-      :members:
-      :undoc-members:
-      :show-inheritance:

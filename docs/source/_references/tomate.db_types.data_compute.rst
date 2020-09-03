@@ -13,11 +13,6 @@ tomate.db\_types.data\_compute
        DataCompute
    
 
-.. rubric:: Functions
-.. autosummary::
-   
-       do_stack
-   
 
 
 
@@ -30,4 +25,3 @@ tomate.db\_types.data\_compute
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
-   .. autofunction:: do_stack

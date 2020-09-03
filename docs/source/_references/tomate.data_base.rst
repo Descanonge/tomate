@@ -13,6 +13,11 @@ tomate.data\_base
        DataBase
    
 
+.. rubric:: Functions
+.. autosummary::
+   
+       guess_dimensions
+   
 
 
 
@@ -25,3 +30,4 @@ tomate.data\_base
       :private-members:
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
+   .. autofunction:: guess_dimensions

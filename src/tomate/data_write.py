@@ -15,7 +15,8 @@ import json
 
 import numpy as np
 
-from tomate import VariablesInfo, Constructor
+from tomate import Constructor
+from tomate.variables_info import VariablesInfo
 
 
 log = logging.getLogger(__name__)

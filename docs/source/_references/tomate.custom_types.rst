@@ -15,40 +15,38 @@ TypeVar.
 
 .. rubric:: Contents
 
-.. py:class:: KeyLike
+.. py:class:: Array
 
-   | Key for indexing data by index or variable name.
-   | `KeyLikeInt, KeyLikeVar`
+   Multi-dimensional array similar to a numpy array.
 
-.. py:class:: KeyLikeInt
-
-   | Key for indexing array or generic coordinate.
-   | `int, List[int], slice, None`
-
-.. py:class:: KeyLikeStr
-
-   | Key for indexing named coordinates using strings.
-   | `str, List[str], slice, None`
-
-.. py:class:: KeyLikeVar
-
-   | Key for indexing Variables. Support integers and strings.
-   | `KeyLikeStr, KeyLikeVar`
-
-.. py:class:: KeyLikeFloat
-
-   | Key support for floats.
-   | `int, float, List[Union[int, float]], slice, None`
-
-.. py:class:: KeyLikeValue
-
-   | Key for indexing coordinate by value, using floats or strings.
-   | `KeyLikeInt, KeyLikeVar`
 
 .. py:class:: File
 
    Object for manipulating an open file.
 
 
+.. py:class:: KeyLike
 
-..
+   | Key for subsetting data by index or name for string coordinates.
+   | `KeyLikeInt, KeyLikeVar`
+
+.. py:class:: KeyLikeInt
+
+   | Key for subsetting arrays or generic coordinates by index.
+   | `int, List[int], slice, None`
+
+.. py:class:: KeyLikeStr
+
+   | Key for subsetting string coordinates using strings.
+   | `str, List[str], slice, None`
+
+.. py:class:: KeyLikeFloat
+
+   | Key for subsetting coordinates by float value.
+   | `int, float, List[Union[int, float]], slice, None`
+
+.. py:class:: KeyLikeValue
+
+   | Key for subsetting coordinate by value, using floats or strings.
+   | `KeyLikeInt, KeyLikeVar`
+

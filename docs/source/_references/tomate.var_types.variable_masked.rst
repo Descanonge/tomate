@@ -1,10 +1,10 @@
 
 
 
-tomate.variables.masked.variable\_masked
-========================================
+tomate.var\_types.variable\_masked
+==================================
 
-.. automodule:: tomate.variables.masked.variable_masked
+.. automodule:: tomate.var_types.variable_masked
 
 
 .. rubric:: Classes

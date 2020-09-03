@@ -24,13 +24,9 @@ tomate.keys.key
    
        is_none_slice
    
-       list2slice_complex
-   
-       list2slice_simple
+       list2slice
    
        reverse_slice_order
-   
-       simplify_key
    
 
 
@@ -53,7 +49,5 @@ tomate.keys.key
    .. autofunction:: guess_slice_size
    .. autofunction:: guess_tolist
    .. autofunction:: is_none_slice
-   .. autofunction:: list2slice_complex
-   .. autofunction:: list2slice_simple
+   .. autofunction:: list2slice
    .. autofunction:: reverse_slice_order
-   .. autofunction:: simplify_key

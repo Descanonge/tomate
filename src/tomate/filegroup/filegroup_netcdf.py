@@ -143,7 +143,7 @@ class FilegroupNetCDF(FilegroupLoad):
         :param cmd: Load command. Variables must be separated.
         :param var_kw: [opt] Variables specific argument. See
             :func:`FilegroupLoad.write
-        <tomate.filegroup.filegroup_load.FilegroupLoad.write>`.
+            <tomate.filegroup.filegroup_load.FilegroupLoad.write>`.
         :raises IndexError: If mismatch between memory keyring and in-file
             dimensions list.
         """

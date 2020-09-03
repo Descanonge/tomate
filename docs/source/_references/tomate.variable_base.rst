@@ -1,10 +1,10 @@
 
 
 
-tomate.variables.base
+tomate.variable\_base
 =====================
 
-.. automodule:: tomate.variables.base
+.. automodule:: tomate.variable_base
 
 
 .. rubric:: Classes

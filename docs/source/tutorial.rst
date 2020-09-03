@@ -83,7 +83,7 @@ We add the first filegroup for the SSH::
     cstr.add_filegroup(FilegroupNetCDF, coords_fg, name='SSH', root='SSH')
 
 The `coords_fg` variable specify how are arranged the coordinates, we use
-a :class:`Constructor.CoordScanSpec<constructor.Constructor.CoordScanSpec>`
+a :class:`CoordScanSpec<filegroup.spec.CoordScanSpec>`
 object for each scanning coordinate.
 The spatial dimensions in our files are named differently from ours, so we
 specify it. Time is found under the same name so we say nothing.
@@ -256,9 +256,9 @@ More information on logging: :doc:`log`.
 Loading data
 ------------
 
-We can now load data ! For that, we must specify what part of the data we want,
+We can now load data! For that, we must specify what part of the data we want,
 with indices (integers, lists of integers, or slices), or values with
-'*_by_value' functions. Variables can be specified by their index in the
+`*_by_value` functions. Variables can be specified by their index in the
 available scope, or their name. If a dimension is omitted, it will be taken
 entirely.
 
