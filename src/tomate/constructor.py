@@ -49,10 +49,7 @@ class Constructor():
     :attr allow_advanced: bool: If advanced Filegroups arrangement is allowed.
     """
 
-    CoordScanSpec = CoordScanSpec
     CSS = CoordScanSpec
-
-    VariableSpec = VariableSpec
     VS = VariableSpec
 
     def __init__(self, root: str, coords: List[Coord]):
