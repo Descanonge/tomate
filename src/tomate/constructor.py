@@ -196,7 +196,7 @@ class Constructor():
         in_idx = list(variables.values())
         cs.set_elements_manual(values=values, in_idx=in_idx)
 
-    def remove_scan_functions(self, kind: List[str] = None, *dims: str):
+    def remove_scan_functions(*dims: str, self, kind: List[str] = None):
         """Remove scan functions.
 
         :param dims: Dimensions to remove scan functions from.

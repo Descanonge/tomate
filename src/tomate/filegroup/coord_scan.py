@@ -175,8 +175,10 @@ class CoordScan(Coord):
         """
         if kind is None:
             kind = ['in', 'filename']
-        for k in kind:
-            self.scanners[k].clear()
+        if not isinstance(kind, list):
+            kind = [kind]
+        self.scanners = [s for s in self.scanners
+                         if s.kind not in kind]
 
     def add_scan_function(self, func: Union[Callable, ScannerCS],
                           elts: List[str] = None, kind: str = None,
