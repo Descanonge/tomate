@@ -159,7 +159,7 @@ class Variable():
         """
         self.check_loaded()
         kw_keys = self._db.get_kw_keys(*keys, **kw_keys)
-        keyring = self.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
+        keyring = self._db.loaded.get_keyring_by_index(by_day=by_day, **kw_keys)
         return self.view(keyring=keyring, order=order)
 
     def set_data(self, array: Array, keyring: Keyring = None, **keys: KeyLike):

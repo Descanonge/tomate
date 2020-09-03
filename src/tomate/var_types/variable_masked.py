@@ -119,11 +119,11 @@ class VariableMasked(Variable):
         """
         if not dims:
             dims = self.dims
-        axis = [self.coords.index(c) for c in dims]
+        axis = [self.dims.index(c) for c in dims]
 
         size = 1
         for c in dims:
-            size *= self.loaded[c].size
+            size *= self._db.loaded[c].size
 
         cover = np.sum(~self[:].mask, axis=tuple(axis))
         return cover / size * 100
