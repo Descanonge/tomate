@@ -506,13 +506,15 @@ class FilegroupLoad(FilegroupScan):
 
             file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
             try:
-                self.add_variables_to_file(file, cmd[0], **{var: kwargs})
+                self.add_variable_to_file(file, cmd[0], **{var: kwargs})
             except Exception:
                 self.close_file(file)
                 raise
             else:
                 self.close_file(file)
 
-    def add_variable_to_file(self, file: File, cmd: Command, **kwargs):
+        return True
+
+    def add_variables_to_file(self, file: File, cmd: Command, **kwargs):
         """Add variable to files."""
         raise NotImplementedError()
