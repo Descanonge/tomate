@@ -42,7 +42,7 @@ class PlotObjectAvgABC(PlotObjectABC):
         if 'DataCompute' not in self.db.bases:
             raise TypeError("DataCompute necessary for averaging.")
         keyring = self.keyring.copy()
-        var = self.scope.var.get_str_name(keyring.pop('var').value)
+        var = self.axes[self.var_idx]
         data = self.db.mean(var, self.avg_dims, **keyring.kw)
 
         # Nothing to reorder

@@ -28,5 +28,7 @@ class PlotObjectLineAvg(PlotObjectAvgABC, PlotObjectLine):
 
         if axes_[0] in self.scope.coords:
             self.var_idx = 1
+        else:
+            self.var_idx = 0
 
         return axes_
