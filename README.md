@@ -56,7 +56,8 @@ print(db)
 db.load()
 ```
 
-For a simple showcase of some of Tomate capabilities, take a look at [getstarted].
+For a simple showcase of some of Tomate capabilities, take a look at the [get_started]
+notebook.
 
 
 ## Documentation
@@ -133,4 +134,4 @@ pip install -e git+https://github.com/Descanonge/tomate.git@develop#egg=tomate-d
 
 
 [examples]: examples
-[getstarted]: examples/get_started.ipynb
+[get_started]: examples/get_started.ipynb
