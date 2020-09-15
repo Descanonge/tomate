@@ -1,3 +1,7 @@
+# v2.0.1
+
+- [2020-09-15] Fix infile keyring for variables with different dimensions
+- [2020-09-15] Take NetCDF dimensions missing values into account
 
 # v2.0.0
 
