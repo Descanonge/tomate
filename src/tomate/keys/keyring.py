@@ -172,6 +172,12 @@ class Keyring():
         return [name for name, k in self.items()
                 if k.size is None or k.size > 0]
 
+    def limit(self, dims: List[str]):
+        """Remove keys not in `dims`."""
+        for d in self.dims:
+            if d not in dims:
+                self.pop(d)
+
     def sort_by(self, order: List[str]):
         """Sort keys by order.
 
