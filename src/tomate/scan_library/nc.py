@@ -39,8 +39,11 @@ def scan_dims(cs: CoordScan, file: nc.Dataset,
     Convert time values to CS units. Variable name must
     be 'time'.
     """
-    nc_var = file[cs.name]
-    in_values = list(nc_var[:])
+    if cs.name in file.variables:
+        nc_var = file[cs.name]
+        in_values = list(nc_var[:])
+    else:
+        in_values = list(range(file.dimensions[cs.name].size))
     in_idx = list(range(len(in_values)))
     return in_values, in_idx
 
@@ -123,7 +126,7 @@ def scan_file(filename) -> 'DataBase':
         for dim in file.dimensions:
             if dim == 'time' and 'units' in file['time'].__dict__:
                 coord = Time(dim, None, units=file['time'].units)
-            elif file[dim].dtype is str:
+            elif dim in file.variables and file[dim].dtype is str:
                 coord = CoordStr(dim)
             else:
                 coord = Coord(dim)
