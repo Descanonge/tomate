@@ -2,6 +2,8 @@
 docs/_build
 tests/fixtures/
 
+examples/*.nc
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -46,14 +46,7 @@ And in general:
 - Highly modulable, can be tailored to your needs.
 - Fully documented.
 
-As of now, this only supports NetCDF files out of the box. But the package can be
-easily extended for other file formats. See the section
-['Expanding Tomate](https://tomate.readthedocs.io/en/latest/expanding.html)
-of the documentation.
-
-Only tested for linux.
-
-See [examples] for use cases. Get started up with a couple of lines and a NetCDF file:
+Get started up with a couple of lines and a NetCDF file:
 
 ``` python
 from tomate.scan_library.nc import scan_file
@@ -63,8 +56,17 @@ print(db)
 db.load()
 ```
 
+For a simple showcase of some of Tomate capabilities, take a look at [get_started].
+
 
 ## Warning
+
+As of now, this only supports NetCDF files out of the box. But the package can be
+easily extended for other file formats. See the section
+['Expanding Tomate'](https://tomate.readthedocs.io/en/latest/expanding.html)
+of the documentation.
+
+Only tested for linux.
 
 The code has not been extensively tested for all the possible use cases it
 supports, and is evolving quickly.
@@ -131,3 +133,4 @@ pip install -e git+https://github.com/Descanonge/tomate.git@develop#egg=tomate-d
 
 
 [examples]: examples
+[get_started]: examples/get_started.ipynb
