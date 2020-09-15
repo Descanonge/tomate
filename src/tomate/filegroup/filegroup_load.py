@@ -154,11 +154,10 @@ class FilegroupLoad(FilegroupScan):
 
         for cmd in commands:
             for keyrings in cmd:
-                self._process_infile(keyrings)
-
                 # Need to access variables object with their name.
                 keyrings.memory.make_idx_str(var=self.db.scope.var)
 
+                self._process_infile(keyrings)
                 self._sort_memory(keyrings)
 
                 inf, mem = keyrings
@@ -173,33 +172,26 @@ class FilegroupLoad(FilegroupScan):
 
         Fetch order of dimensions of the data array in file using CS. If a
         dimension is in order but not in keyring, take first index.
-        Remove None keys from keyring.
-
-        Sort the infile keyring with the retrieved order. Additional keys
-        not in the order are placed at the start of the keyring. It is the job
-        of `load_cmd` to treat those appropriately (for example, variables).
+        Remove keys not in the infile dimensions for that variable (except
+        'var'). Order keys in its order. Variables first.
         """
         key = self.cs['var'].in_idx.index(keyrings.infile['var'].value)
-        order = self.cs['var'].dimensions[key]
+        order_inf = self.cs['var'].dimensions[key]
         inf = keyrings.infile
-        for dim in order:
+        for dim in order_inf:
             if dim not in keyrings.infile:
                 log.warning("Additional dimension %s in file."
                             " Index 0 will be taken.", dim)
                 key = 0
             else:
-                key = keyrings.infile[dim]
+                key = inf[dim]
             inf[dim] = key
 
             if inf[dim].type == 'none':
                 raise KeyError(f"A None key was issued for '{dim}' "
                                "dimension which is present in file.")
 
-        none_keys = [d for d, k in inf.items() if k.type == 'none']
-        for d in none_keys:
-            inf.pop(d)
-
-        order = [d for d in inf if d not in order] + list(order)
+        order = ['var'] + order_inf
         keyrings.set(inf.subset(order), keyrings.memory)
 
     def _sort_memory(self, keyrings: CmdKeyrings):
