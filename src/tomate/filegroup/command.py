@@ -152,12 +152,6 @@ class Command():
             new.append(*krg.copy())
         return new
 
-    def order_keys(self, order: List[str]):
-        """Modify all keys order."""
-        for krg in self:
-            krg.infile.sort_by(order)
-            krg.memory.sort_by(order)
-
     def merge_keys(self):
         """Merge successive shared keys.
 
