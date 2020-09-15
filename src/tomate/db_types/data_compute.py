@@ -107,8 +107,9 @@ class DataCompute(DataBase):
 
         keyring = Keyring.get_default(**keys)
         keyring.make_full(var.dims)
-        keyring.make_total()
+        keyring.limit(var.dims)
         keyring.sort_by(var.dims)
+        keyring.make_total()
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
@@ -138,8 +139,9 @@ class DataCompute(DataBase):
 
         keyring = Keyring.get_default(**keys)
         keyring.make_full(var.dims)
-        keyring.make_total()
+        keyring.limit(var.dims)
         keyring.sort_by(var.dims)
+        keyring.make_total()
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
