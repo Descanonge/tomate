@@ -1,3 +1,5 @@
+- [2020-09-15] Fix some computations methods
+- [2020-09-15] Fix average plots
 # v2.0.1
 
 - [2020-09-15] Fix infile keyring for variables with different dimensions

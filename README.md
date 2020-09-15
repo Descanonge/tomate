@@ -56,7 +56,12 @@ print(db)
 db.load()
 ```
 
-For a simple showcase of some of Tomate capabilities, take a look at [get_started].
+For a simple showcase of some of Tomate capabilities, take a look at [getstarted].
+
+
+## Documentation
+
+Documentation is available online at [ReadTheDocs](https://tomate.readthedocs.io)
 
 
 ## Warning
@@ -78,11 +83,6 @@ for more information.
 Features supplied in 'data_write', that allow to save a database information in
 a json file to avoid re-scanning it each time, is to be considered very experimental,
 (and is currently heavily out-of-date).
-
-
-## Documentation
-
-Documentation is available online at [ReadTheDocs](https://tomate.readthedocs.io)
 
 
 ## Requirements
@@ -133,4 +133,4 @@ pip install -e git+https://github.com/Descanonge/tomate.git@develop#egg=tomate-d
 
 
 [examples]: examples
-[get_started]: examples/get_started.ipynb
+[getstarted]: examples/get_started.ipynb
