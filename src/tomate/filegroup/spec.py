@@ -58,9 +58,9 @@ class VariableSpec:
     :param dims: Dimensions along which the variable varies. Defaults to None.
     """
     def __init__(self, name: str,
-                 in_idx: KeyLikeStr = '__equal_as_name__',
+                 in_idx: KeyLikeStr = '__equal_to_name__',
                  dims: List[str] = None):
-        if in_idx == '__equal_as_name__':
+        if in_idx == '__equal_to_name__':
             in_idx = name
         self.name = name
         self.in_idx = in_idx
