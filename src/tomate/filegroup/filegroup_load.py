@@ -191,7 +191,7 @@ class FilegroupLoad(FilegroupScan):
                 raise KeyError(f"A None key was issued for '{dim}' "
                                "dimension which is present in file.")
 
-        order = ['var'] + order_inf
+        order = ['var'] + list(order_inf)
         keyrings.set(inf.subset(order), keyrings.memory)
 
     def _sort_memory(self, keyrings: CmdKeyrings):
