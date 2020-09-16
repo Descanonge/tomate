@@ -43,10 +43,11 @@ class Time(Coord):
 
     :attr units: str: CF-compliant time units.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name: str = 'time', array: Sequence = None,
+                 units: str = None, fullname: str = None):
         if not _has_cftime:
             raise ImportError("cftime package necessary for using Time coordinate.")
-        super().__init__(*args, **kwargs)
+        super().__init__(name, array, units=units, fullname=fullname)
         if self.units == '':
             raise ValueError("Time coordinate must be supplied"
                              " CF-compliant units.")
