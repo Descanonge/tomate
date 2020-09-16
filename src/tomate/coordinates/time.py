@@ -42,6 +42,7 @@ class Time(Coord):
     Use user settings to set locales.
 
     :attr units: str: CF-compliant time units.
+    :attr calendar: str: CF-compliant calendar. Defaults to 'standard'.
     """
     def __init__(self, name: str = 'time', array: Sequence = None,
                  units: str = None, fullname: str = None,

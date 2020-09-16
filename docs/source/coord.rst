@@ -114,7 +114,10 @@ The units are here mandatory, and must comply to CF metadata conventions
 This class relies on the `cftime <https://github.com/Unidata/cftime>`__ package.
 `cftime.datetime` objects are always used in favor of python built-in
 'datetime'.
-Support for a non-standard calendar is on its way.
+
+The Time coordinate also has a `calendar` attribute, again in line with CF
+metadata convention and cftime calendar keyword. Default calendar is 'standard'.
+Note as of now (2.1.0) this is not super heavily tested.
 
 
 .. currentmodule:: tomate.coordinates.latlon
