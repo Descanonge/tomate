@@ -44,13 +44,16 @@ class Time(Coord):
     :attr units: str: CF-compliant time units.
     """
     def __init__(self, name: str = 'time', array: Sequence = None,
-                 units: str = None, fullname: str = None):
+                 units: str = None, fullname: str = None,
+                 calendar: str = 'standard'):
         if not _has_cftime:
             raise ImportError("cftime package necessary for using Time coordinate.")
         super().__init__(name, array, units=units, fullname=fullname)
         if self.units == '':
             raise ValueError("Time coordinate must be supplied"
                              " CF-compliant units.")
+
+        self.calendar = calendar
 
     def get_extent_str(self, slc: KeyLike = None) -> str:
         if self.size == 1:
@@ -64,24 +67,25 @@ class Time(Coord):
         """Return datetimes objects corresponding to indices.
 
         :param indices: [opt] If None, all datetimes are taken.
+        :param pydate: If True, return datetime.datetime object, rather than
+            cftime objects.
         :returns: Return a list if the input was a list.
         """
         if indices is None:
             indices = slice(None, None)
 
         if pydate:
-            dates = cftime.num2pydate(self[indices], self.units,
-                                      calendar='standard')
+            dates = cftime.num2pydate(self[indices], self.units, self.calendar)
         else:
-            dates = cftime.num2date(self[indices], self.units,
-                                    calendar='standard')
+            dates = cftime.num2date(self[indices], self.units, self.calendar)
         return dates
 
     @staticmethod
-    def change_units_other(values: Sequence[float], old: str, new: str):
+    def change_units_other(values: Sequence[float], old: str, new: str,
+                           calendar: str = 'standard'):
         """Change time units."""
-        dates = cftime.num2date(values, old)
-        values = cftime.date2num(dates, new)
+        dates = cftime.num2date(values, old, calendar)
+        values = cftime.date2num(dates, new, calendar)
         return values
 
     def get_index(self, value: Union['cftime.datetime',
@@ -97,9 +101,9 @@ class Time(Coord):
             Works as for Coord.get_index.
         """
         if isinstance(value, (list, tuple)):
-            value = cftime.datetime(*value)
+            value = cftime.datetime(*value, calendar=self.calendar)
         if isinstance(value, cftime.datetime):
-            value = cftime.date2num(value, self.units)
+            value = cftime.date2num(value, self.units, self.calendar)
         return super().get_index(value, loc)
 
     def get_index_by_day(self, value: Union['cftime.datetime',
@@ -113,11 +117,11 @@ class Time(Coord):
         :raises TypeError: If `loc` is not valid.
         """
         if isinstance(value, (list, tuple)):
-            value = cftime.datetime(*value)
+            value = cftime.datetime(*value, calendar=self.calendar)
         if isinstance(value, cftime.datetime):
-            value = cftime.date2num(value, self.units)
+            value = cftime.date2num(value, self.units, self.calendar)
 
-        date = to_date(cftime.num2date(value, self.units))
+        date = to_date(cftime.num2date(value, self.units, self.calendar))
         if loc == 'below':
             idx = self.get_index(value, loc=loc)
             if to_date(self.index2date(idx)) != date:
