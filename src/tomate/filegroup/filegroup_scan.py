@@ -17,7 +17,7 @@ import numpy as np
 
 
 from tomate.coordinates.coord import Coord
-from tomate.custom_types import File
+from tomate.custom_types import File, KeyLike
 from tomate.filegroup.coord_scan import CoordScan, get_coordscan
 from tomate.filegroup.matcher import Matcher
 from tomate.filegroup.scanner import Scanner
@@ -134,6 +134,23 @@ class FilegroupScan():
 
     def __str__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
+
+    def add_variable(self, name: str, infile: KeyLike = '__equal_to_name__',
+                     dimensions: List[str] = None):
+        """Add variable to filegroup.
+
+        :param name: Name of the variable.
+        :param infile: Infile key of the variable. If None,
+        :param dimensions: Infile dimensions of the variable. If None,
+            all dimensions from variable are used.
+        """
+        if infile == '__equal_to_name__':
+            infile = name
+        if dimensions is None:
+            dimensions = self.db[name].dims
+        self.cs['var'].append_elements(values=name, in_idx=infile,
+                                       dimensions=tuple(dimensions))
+        self.cs['var'].self_update()
 
     def make_coord_scan(self, coords: CoordScanSpec):
         """Add CoordScan objects.
