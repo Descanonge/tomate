@@ -1,5 +1,15 @@
+
+# v2.1.0
+
+- [2020-09-16] Add different calendar support to Time
+- [2020-09-16] Add defaults to Time arguments
+- [2020-09-16] Add method to add variable to filegroup easily
+
+# v2.0.2
+
 - [2020-09-15] Fix some computations methods
 - [2020-09-15] Fix average plots
+
 # v2.0.1
 
 - [2020-09-15] Fix infile keyring for variables with different dimensions
