@@ -16,7 +16,7 @@ Information on the data, such as variable attributes, or coordinates values can
 be retrieved automatically during the 'scanning' process.
 
 The data, and all information about it, is represented by a python class
-instance, see :doc:`data`.
+instance, the :doc:`DataBase object<data>`.
 This object provides:
 
 * :doc:`Coordinates<coord>` which give information on the data coordinates.
@@ -36,7 +36,10 @@ To jump right into using the package, one can immediatly go read the
 One can also use :func:`tomate.scan_library.nc.scan_file` to scan
 everything in a NetCDF file, without needing to specify anything.
 More examples can be found in `/examples
-<https://github.com/Descanonge/tomate/blob/master/examples>`__.
+<https://github.com/Descanonge/tomate/blob/master/examples>`__ and a
+`showcase
+<https://github.com/Descanonge/tomate/blob/master/examples/get_started.ipynb>`__
+jupyter notebook.
 
 The package contains many configurable parts, that are as independant of each
 other as possible. What can be tweaked or expanded, and how to do it is

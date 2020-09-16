@@ -7,7 +7,7 @@ Constructing a database
 
 A data object needs a few objects to be functionnal, namely: coordinates, a vi,
 and filegroups.
-The constructor object provides ways to easily create a data object, and conduct
+The constructor object provides ways to easily create a data object, and launch
 the scanning if the data is on disk.
 
 This page will break down a typical database creation script, and present the
@@ -24,11 +24,12 @@ specific functionalities for each coordinate::
     from tomate import Time, Lat, Lon
     lat = Lat()
     lon = Lon()
-    time = Time('time', None, units='hours since 1970-01-01 00:00:00')
+    time = Time(units='hours since 1970-01-01 00:00:00')
 
     coords = [lat, lon, time]
 
-Since we do not yet have the coordinates values, we specify `None`.
+This will give default names for each coordinate ('lat', 'lon', and 'time').
+Those can be changed.
 We must include a CF-metadata compliant units for the time coordinate.
 
 We then create a Constructor object that will help in creating a database::
@@ -36,8 +37,8 @@ We then create a Constructor object that will help in creating a database::
     from tomate import Constructor
     cstr = Constructor('/Data/', coords)
 
-The variables dimension does not need to be created by the user. The constructor
-will take care of it.
+The dimension for variables (*ie* containing the list of variables) does not
+need to be created by the user. The constructor will take care of it.
 
 
 Adding filegroups
@@ -62,7 +63,8 @@ Our files are organized as such::
 
 Both group of files have a single file per time-step (an 8 day average).
 The SSH files contain information about that time-step: there are a time
-dimension and variable from which we can extract the time values for that file.
+dimension and a time variable from which we can extract the time values for that
+file.
 For the SST on the other hand, the sole information on the time value for each
 step is found in the filename.
 For both file groups, the latitude and longitude are contained in each file, and
@@ -97,15 +99,15 @@ directory from the constructor will be used.
 We must now tell where are the files, and more precisely how are constructed
 their filenames. By filename, I mean the whole string starting after the root
 directory, folders included.
-For that, a 'pre-regex' is used. It is a regular expression with a few added
+For that, a **'pre-regex'** is used. It is a regular expression with a few added
 features. It will be transformed in a standard regex that will be used to find
 the files.
 
 Any regex in the pre-regex will be matched with the first file found, and then
-*considered constant accross all files*. For instance, using ``SST/A_.*\.nc``,
-a valid regex would match all SST files, but won't work the way intended.
-The filegroup will consider that all files are in fact equal to the first
-filename that matched ('SST/A\_2007001-2007008.nc' here).
+*considered constant accross all files*. For instance, we could use
+``SST/A_.*\.nc``, a valid regex that would match all SST files, but it wouldn't
+work the way intended. The filegroup would consider that all files are in fact
+equal to the first filename that matched (``SST/A_2007001-2007008.nc`` here).
 
 For that reason, we must tell for what coordinates the filenames are varying.
 We use :class:`Matchers<filegroup.matcher.Matcher>`::
@@ -148,8 +150,8 @@ First, we notice there are two varying dates in the filename, the start and end
 of the 8-days averaging. We only want to retrieve the starting date, but must
 still specify that there is a second changing date. To discard that second part,
 we add the `dummy` flag to the end of the matchers.
-This is useful to specify variations that will be ignored by function retrieving
-coordinates values from matches::
+This is useful to specify variations that will be ignored by functions
+retrieving coordinates values from matches::
 
     pregex = ('%(prefix)_'
               '%(time:Y)%(time:j)_'
@@ -159,7 +161,7 @@ coordinates values from matches::
                     'suffix': r'\.nc'}
     cstr.set_fg_regex(pregex, **replacements)
 
-Here we used the `Y` ant `j` elements, for 'year' and 'day of year'.
+Here we used the `Y` and `j` elements, for 'year' and 'day of year'.
 Let's pretend the 'day of year' element was not anticipated within the package.
 We specify a custom regular expression that should be used to replace the
 matcher in the pre-regex ::
@@ -170,7 +172,7 @@ The regex will now expect a `j` element with three digits. Note that the custom
 regex **must end with a colon**. It can still be followed by the `dummy`
 keyword.
 
-We must again tell how the coordinate will be scanned. This time the
+We must again tell how the coordinates will be scanned. This time the
 date information will be retrieved from the filename, and we specify
 the variable by hand::
 

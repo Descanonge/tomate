@@ -38,7 +38,8 @@ Selection
 A useful feature is the selection scope. It allows to create
 a new scope and manipulate it before sending it to some methods.
 
-The scope is created from the available scope (by default) with the
+The scope is created from the current scope by default (*ie* the loaded scope
+if data is loaded, available scope otherwise) with the
 :func:`select<data_base.DataBase.select>` and
 :func:`select_by_value<data_base.DataBase.select_by_value>` methods.
 One can also use :func:`add_to_selection<data_base.DataBase.add_to_selection>`
@@ -50,7 +51,7 @@ to expand the selection, or
    Do not modify this scope using other functions than thoses. Especially not by
    directly modifying the scope coordinates objects.
 
-   Function such as `db.load_selected` rely on internal attributes to the scope
+   Functions such as `db.load_selected` rely on internal attributes to the scope
    that would be not kept in sync with the scope.
 
 We can then use functions such as
@@ -67,7 +68,7 @@ Both these methods can further slice the selection before doing their job
 Additional methods
 ^^^^^^^^^^^^^^^^^^
 
-The base type for the data object (:class:`data_base.DataBase`) provides all
+The base class for the data object (:class:`data_base.DataBase`) provides all
 functions for data manipulation (loading, slicing, viewing).
 Adding more features can easily be done by creating a subclass, and adding or
 overwritting methods.
