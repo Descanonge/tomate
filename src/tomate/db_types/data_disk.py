@@ -455,12 +455,10 @@ class DataDisk(DataBase):
     def check_regex(self):
         """Check if a pregex has been added where needed.
 
-        :raises AttributeError: If regex is empty and there is at
-            least one shared coordinate.
+        :raises AttributeError: If regex is empty and there is no file_override.
         """
         for fg in self.filegroups:
-            coords = list(fg.iter_shared(True))
-            if len(coords) > 0 and fg.regex == '':
+            if fg.regex == '' and fg.file_override == '':
                 raise AttributeError(f"Filegroup '{fg.name}' is missing a regex.")
 
     def check_scanning_functions(self):
