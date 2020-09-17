@@ -589,7 +589,8 @@ class DataBase():
         :param attrs: [opt] Attributes to put in the VI.
         """
         if variable in self.variables:
-            log.warning('%s already in variables, it will be overwritten.')
+            log.warning('%s already in variables, it will be overwritten.',
+                        variable)
 
         if dims is None:
             dims = self.vi.get_attribute_param(variable, 'dims', None)
