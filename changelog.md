@@ -1,3 +1,6 @@
+
+# v2.1.1
+
 - [2020-09-17] Fix warning in guess_dimensions
 - [2020-09-17] Add argument to choose more finely the memory keyring before
   constructing load commands.
