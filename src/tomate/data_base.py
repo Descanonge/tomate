@@ -664,15 +664,17 @@ def guess_dimensions(db: 'DataDisk', var: str):
 
     log.debug('Guessed dimensions %s for variable %s', dims, var)
 
-    warn = False
     for d in db.coords:
+        warn = False
         if d not in dims:
             for fg in db.filegroups:
                 if fg.cs[d].shared:
                     warn = True
 
-    if warn:
-        log.warning(("'%s' dimension is shared, but not in guess (%s), "
-                     "something might be wrong"), d, dims)
+        if warn:
+            log.warning(("'%s' dimension is shared, but not present in the "
+                         "guess for variable '%s' (%s) "
+                         "something might be wrong"),
+                        d, var, dims)
 
     return dims
