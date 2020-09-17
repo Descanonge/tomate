@@ -70,34 +70,40 @@ class FilegroupLoad(FilegroupScan):
 
         self.do_post_loading(keyring)
 
-    def get_fg_keyrings(self, keyring: Keyring) -> Optional[CmdKeyrings]:
+    def get_fg_keyrings(self, infile: Keyring,
+                        memory: Keyring) -> Optional[CmdKeyrings]:
         """Get filegroup specific keyring.
 
         Use `contains` attribute to translate keyring acting on available scope
         to acting on the filegroup alone.
 
-        :param keyring: Keyring acting on database available scope.
+        :param infile: Keyring acting on database available scope.
+        :param memory: Keyring acting on database loaded scope.
         :returns: Infile and memory keyrings for this filegroup.
             None if there is nothing to load in this filegroup.
         """
         krg_infile = Keyring()
         krg_memory = Keyring()
 
-        for dim, key in keyring.items_values():
+        for dim, key in infile.items_values():
             if dim not in self.cs:
                 continue
-            infile = np.array(self.contains[dim][key])
-            memory = np.arange(infile.size)
+            indices_inf = np.array(self.contains[dim][key])
+            indices_mem = np.array(memory[dim].as_list())
 
-            none = np.where(np.equal(infile, None))[0]
-            infile = np.delete(infile, none)
-            memory = np.delete(memory, none)
+            if indices_inf.size != indices_mem.size:
+                raise IndexError(f"Infile and memory keys for {dim} have "
+                                 "different sizes.")
 
-            if len(infile) == 0:
+            none = np.where(np.equal(indices_inf, None))[0]
+            indices_inf = np.delete(indices_inf, none)
+            indices_mem = np.delete(indices_mem, none)
+
+            if len(indices_inf) == 0:
                 return None
 
-            krg_infile[dim] = infile
-            krg_memory[dim] = memory
+            krg_infile[dim] = indices_inf
+            krg_memory[dim] = indices_mem
 
         krg_infile.simplify()
         krg_memory.simplify()
