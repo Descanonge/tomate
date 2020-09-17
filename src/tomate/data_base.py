@@ -645,7 +645,7 @@ def guess_dimensions(db: 'DataDisk', var: str):
         krg.make_str_idx(var=db.avail.var)
         dims_fg = []
         for fg in db.filegroups:
-            cmd = fg.get_fg_keyrings(krg)
+            cmd = fg.get_fg_keyrings(krg, krg.copy())
             if cmd is not None:
                 key = cmd.infile['var']
                 key.make_list_int()

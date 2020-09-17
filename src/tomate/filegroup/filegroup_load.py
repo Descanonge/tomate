@@ -42,7 +42,9 @@ class FilegroupLoad(FilegroupScan):
 
         :returns: False if nothing was loaded, True otherwise.
         """
-        cmd = self.get_fg_keyrings(keyring)
+        memory = Keyring(**{d: list(range(k.size))
+                            for d, k in keyring.items()})
+        cmd = self.get_fg_keyrings(keyring, memory)
         if cmd is None:
             return False
         self.load(*cmd)
@@ -167,7 +169,8 @@ class FilegroupLoad(FilegroupScan):
                 self._sort_memory(keyrings)
 
                 inf, mem = keyrings
-                if not inf.is_shape_equivalent(mem.subset(inf)):
+                keys = set(inf) & set(mem)
+                if not inf.subset(keys).is_shape_equivalent(mem.subset(keys)):
                     raise IndexError("Infile and memory keyrings have different"
                                      f" shapes ({cmd})")
 
@@ -480,8 +483,11 @@ class FilegroupLoad(FilegroupScan):
         if kwargs is None:
             kwargs = {}
 
+        memory = keyring.copy()
+        memory['var'] = var
         keyring['var'] = self.db.avail.var.get_str_index(sibling)
-        cmd = self.get_fg_keyrings(keyring)
+
+        cmd = self.get_fg_keyrings(keyring, memory)
         if cmd is None:
             return False
 
@@ -489,17 +495,8 @@ class FilegroupLoad(FilegroupScan):
 
         for cmd in commands:
             for cks in cmd:
-                # keyring argument dictates command shape
-                # help user to match `krg_inf` and `dimensions`
-                for name, input_key in keyring.items():
-                    if input_key.size == 0:
-                        cks.infile[name].make_list_int()
-                        cks.memory[name].make_list_int()
-                    else:
-                        cks.infile[name].make_int_list()
-                        cks.memory[name].make_int_list()
-                cks.memory['var'] = var
                 cks.infile['var'] = self._get_infile_name(var)
+                cks.infile.limit(cks.memory)
             log.debug('Command: %s', cmd)
 
             file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
