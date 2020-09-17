@@ -642,15 +642,12 @@ def guess_dimensions(db: 'DataDisk', var: str):
     """Guess variables dimensions from filegroups."""
 
     try:
-        krg = Keyring(var=var)
-        krg.make_str_idx(var=db.avail.var)
         dims_fg = []
         for fg in db.filegroups:
-            cmd = fg.get_fg_keyrings(krg, krg.copy())
-            if cmd is not None:
-                key = cmd.infile['var']
-                key.make_list_int()
-                dims = key.apply(fg.cs['var'].dimensions)
+            cs = fg.cs['var']
+            if var in cs:
+                idx = cs.get_str_index(var)
+                dims = cs.dimensions[idx]
                 dims = [d for d in dims if d in db.dims]
                 dims_fg.append(dims)
     except Exception:
@@ -668,7 +665,7 @@ def guess_dimensions(db: 'DataDisk', var: str):
         warn = False
         if d not in dims:
             for fg in db.filegroups:
-                if fg.cs[d].shared:
+                if var in fg.cs['var'] and d in fg.cs and fg.cs[d].shared:
                     warn = True
 
         if warn:
