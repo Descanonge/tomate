@@ -382,7 +382,7 @@ class FilegroupLoad(FilegroupScan):
             return cs.in_idx[cs.get_str_index(var)]
         return var
 
-    def write(self, filename: str, wd: str = None,
+    def write(self, filename: str, directory: str = None,
               file_kw: Dict = None, var_kw: Dict[str, Dict] = None,
               keyring: Keyring = None, **keys: KeyLike):
         """Write data to disk.
@@ -404,16 +404,16 @@ class FilegroupLoad(FilegroupScan):
         All attributes from the VariablesInfo are put in the file if their
         name do not start with an '_'.
 
-        :param wd: Directory to place the file. If None, the filegroup root is
-            used instead.
+        :param directory: Directory to place the file. If None, the filegroup
+            root is used instead.
         :param file_kw: Keywords argument to pass to `open_file`.
         :param var_kw: Variables specific arguments. Keys are variables names,
             values are dictionnary containing options. Use '_all' to add an
             option for all variables.
         """
-        if wd is None:
-            wd = self.root
-        filename = os.path.join(wd, filename)
+        if directory is None:
+            directory = self.root
+        filename = os.path.join(directory, filename)
 
         krg_mem = Keyring.get_default(keyring=keyring, **keys)
         krg_mem.set_default('var', slice(None))
