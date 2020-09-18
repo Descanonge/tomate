@@ -1,3 +1,7 @@
+- [2020-09-17] Better guess_dimensions warnings, only warn if dimension is shared in a 
+  filegroup containing the variable
+- [2020-09-17] Rename `wd` to `directory` in all writing functions.
+  
 
 # v2.1.1
 
