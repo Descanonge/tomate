@@ -63,8 +63,9 @@ class Key():
             if self.parent_size is not None:
                 self._size = len(range(*self.value.indices(self.parent_size)))
             else:
-                log.debug("Guessing slice %s size", self.value)
                 self._size = guess_slice_size(self.value)
+                log.debug("Guessing slice %s size, found %s",
+                          self.value, str(self._size))
         return self._size
 
     def set(self, key: KeyLike):
