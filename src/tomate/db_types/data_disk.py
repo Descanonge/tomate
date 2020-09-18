@@ -146,7 +146,6 @@ class DataDisk(DataBase):
         keyring = Keyring(**kw_keys)
         keyring.make_full(self.dims)
         keyring.make_total()
-        keyring.make_str_idx(**self.avail.dims)
 
         self.loaded = self.get_subscope('avail', keyring, name='loaded')
         self.remove_loaded_variables([v for v in self.loaded
