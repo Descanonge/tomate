@@ -116,6 +116,24 @@ def scan_units(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     return {'units': units}
 
 
+def scan_dimensions(file: nc.Dataset) -> List[Coord]:
+    """Scan for dimensions.
+
+    :returns: the list of coordinates objects
+    """
+    coords = []
+    for dim in file.dimensions:
+        if dim == 'time' and 'units' in file['time'].__dict__:
+            coord = Time(dim, None, units=file['time'].units)
+        elif dim in file.variables and file[dim].dtype is str:
+            coord = CoordStr(dim)
+        else:
+            coord = Coord(dim)
+        coords.append(coord)
+
+    return coords
+
+
 def scan_file(filename, datatypes: List['DataBase'] = None) -> 'DataBase':
     """Scan a single for everything.
 
