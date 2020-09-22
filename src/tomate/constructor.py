@@ -130,6 +130,16 @@ class Constructor():
             replacements = {}
         self.current_fg.set_scan_regex(pregex, **replacements)
 
+    def set_file_override(self, file: str):
+        """Override the search of files.
+
+        If using multiple files, a pregex with matchers is still necessary.
+        It just avoids walking the directory indexing all the files.
+        """
+        if isinstance(file, str):
+            file = [file]
+        self.current_fg.files = file
+
     def set_coord_selection(self, **keys: KeyLike):
         """Set selection for CoordScan of current filegroup.
 
