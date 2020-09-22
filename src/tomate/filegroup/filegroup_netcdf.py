@@ -49,9 +49,6 @@ class FilegroupNetCDF(FilegroupLoad):
         log.log(log_lvl, "Opening %s", filename)
         return file
 
-    def close_file(self, file: File):
-        file.close()
-
     def load_cmd(self, file: File, cmd: Command):
         for krg_inf, krg_mem in cmd:
             name = krg_mem.pop('var').value

@@ -61,14 +61,9 @@ class FilegroupLoad(FilegroupScan):
         commands = self.get_commands(keyring, memory)
         for cmd in commands:
             log.debug('Command: %s', str(cmd).replace('\n', '\n\t'))
-            file = self.open_file(cmd.filename, mode='r', log_lvl='info')
-            try:
+
+            with self.open_file(cmd.filename, mode='r', log_lvl='info') as file:
                 self.load_cmd(file, cmd)
-            except Exception:
-                self.close_file(file)
-                raise
-            else:
-                self.close_file(file)
 
         self.do_post_loading(keyring)
 
@@ -359,8 +354,7 @@ class FilegroupLoad(FilegroupScan):
         cmds = self.get_commands(infile, memory)
 
         for cmd in cmds:
-            file = self.open_file(cmd.filename, 'r', 'debug')
-            try:
+            with self.open_file(cmd.filename, 'r', 'debug') as file:
                 log.debug('Scanning %s for variables specific attributes.', cmd.filename)
 
                 for k in cmd:
@@ -368,12 +362,6 @@ class FilegroupLoad(FilegroupScan):
                 infile = [v for k in cmd for v in k.infile['var']]
                 memory = [v for k in cmd for v in k.memory['var']]
                 scan_attr(self, file, infile, memory)
-
-            except Exception:
-                self.close_file(file)
-                raise
-            else:
-                self.close_file(file)
 
     def _get_infile_name(self, var: str) -> str:
         """Get infile name."""
@@ -453,14 +441,8 @@ class FilegroupLoad(FilegroupScan):
         file_kw.setdefault('mode', 'w')
         file_kw.setdefault('log_lvl', 'INFO')
 
-        file = self.open_file(filename, **file_kw)
-        try:
+        with self.open_file(filename, **file_kw) as file:
             self._write(file, cmd, var_kw)
-        except Exception:
-            self.close_file(file)
-            raise
-        else:
-            self.close_file(file)
 
     def _write(self, file: File, cmd: Command, var_kw: Dict[str, Any]):
         """Write data in file.
@@ -499,14 +481,8 @@ class FilegroupLoad(FilegroupScan):
                 cks.infile.limit(cks.memory)
             log.debug('Command: %s', cmd)
 
-            file = self.open_file(cmd.filename, mode='r+', log_lvl='info')
-            try:
+            with self.open_file(cmd.filename, mode='r+', log_lvl='info') as file:
                 self.add_variables_to_file(file, cmd[0], **{var: kwargs})
-            except Exception:
-                self.close_file(file)
-                raise
-            else:
-                self.close_file(file)
 
         return True
 
