@@ -116,7 +116,7 @@ def scan_units(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     return {'units': units}
 
 
-def scan_file(filename) -> 'DataBase':
+def scan_file(filename, datatypes: List['DataBase'] = None) -> 'DataBase':
     """Scan a single for everything.
 
     You don't have to do a thing !
@@ -145,7 +145,9 @@ def scan_file(filename) -> 'DataBase':
     cstr.add_scan_variables_attributes(scan_variables_attributes)
     cstr.add_scan_variables_attributes(scan_variables_datatype)
 
-    cstr.set_data_types([dt.DataCompute, dt.DataPlot])
+    if datatypes is None:
+        datatypes = [dt.DataPlot, dt.DataCompute]
+    cstr.set_data_types(datatypes)
 
     db = cstr.make_data()
 
