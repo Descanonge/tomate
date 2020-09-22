@@ -344,11 +344,8 @@ class FilegroupScan():
         :raises AttributeError: If no regex is set.
         :raises IndexError: If no files are found.
         """
-        if self.regex == '' and self.file_override == '':
+        if self.regex == '':
             raise AttributeError(f"Filegroup '{self.name}' is missing a regex.")
-
-        if self.file_override:
-            return [self.file_override]
 
         files = []
         for root, _, files_ in os.walk(self.root):
@@ -386,7 +383,8 @@ class FilegroupScan():
                 cs.reset()
         self.found_file = False
 
-        self.find_files()
+        if not self.files:
+            self.find_files()
         for file in self.files:
             self.scan_file(file)
 
