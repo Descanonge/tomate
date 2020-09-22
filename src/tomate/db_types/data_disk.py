@@ -316,7 +316,6 @@ class DataDisk(DataBase):
         """
         if not self.filegroups:
             raise IndexError("No filegroups in database.")
-        self.check_regex()
         self.check_scanning_functions()
         for fg in self.filegroups:
             fg.scan_files()
