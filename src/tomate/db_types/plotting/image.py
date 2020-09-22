@@ -49,7 +49,7 @@ class PlotObjectImage(PlotObjectImageABC):
             dim = self.scope[name]
             if isinstance(dim, Time):
                 extent += dim.change_units_other(dim[[0, -1]], dim.units,
-                                                 'days since 01-01-01').tolist()
+                                                 'days since 1970-01-01').tolist()
             else:
                 extent += dim.get_extent()
         return extent
