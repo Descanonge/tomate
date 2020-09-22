@@ -71,6 +71,12 @@ class Constructor():
         """
         return self.filegroups[-1]
 
+    @property
+    def coords(self) -> Dict[str, Coord]:
+        coords = {name: c for name, c in self.dims.items()
+                  if name != 'var'}
+        return coords
+
     def get_filegroup(self, key: Union[int, str]):
         """Get filegroup by index or name."""
         if isinstance(key, int):
