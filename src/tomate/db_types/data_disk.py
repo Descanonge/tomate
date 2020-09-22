@@ -451,15 +451,6 @@ class DataDisk(DataBase):
                 raise ValueError("Duplicate values in filegroups {} and {}"
                                  .format(fg1.name, fg2.name))
 
-    def check_regex(self):
-        """Check if a pregex has been added where needed.
-
-        :raises AttributeError: If regex is empty and there is no file_override.
-        """
-        for fg in self.filegroups:
-            if fg.regex == '' and fg.file_override == '':
-                raise AttributeError(f"Filegroup '{fg.name}' is missing a regex.")
-
     def check_scanning_functions(self):
         """Check if CoordScan have scanning functions set.
 

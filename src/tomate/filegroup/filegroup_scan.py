@@ -339,8 +339,12 @@ class FilegroupScan():
 
         Sort files alphabetically.
 
+        :raises AttributeError: If no regex is set.
         :raises IndexError: If no files are found.
         """
+        if self.regex == '' and self.file_override == '':
+            raise AttributeError(f"Filegroup '{self.name}' is missing a regex.")
+
         if self.file_override:
             return [self.file_override]
 
