@@ -53,6 +53,7 @@ class FilegroupScan():
     :attr regex: str: Regex.
     :attr file_override: str: If filegroup consist of a single file, this is
         used (instead of a regular expression).
+    :attr files: str: List of files that will be scanned.
 
     :attr found_file: bool: If any file matching the regex has been found.
     :attr n_matcher: int: Number of matchers in the pre-regex.
@@ -86,6 +87,7 @@ class FilegroupScan():
         self.regex = ""
         self.pregex = ""
         self.file_override = ''
+        self.files = []
 
         self.found_file = False
         self.n_matcher = 0
@@ -329,7 +331,7 @@ class FilegroupScan():
             if file is not None:
                 self.close_file(file)
 
-    def find_files(self) -> List[str]:
+    def find_files(self):
         """Find files to scan.
 
         Uses os.walk. Limit search to `MAX_DEPTH_SCAN` levels of directories
@@ -362,7 +364,7 @@ class FilegroupScan():
 
         log.debug("Found %s files in %s", len(files), self.root)
 
-        return files
+        self.files = files
 
     def scan_files(self):
         """Scan files.
@@ -384,8 +386,8 @@ class FilegroupScan():
                 cs.reset()
         self.found_file = False
 
-        files = self.find_files()
-        for file in files:
+        self.find_files()
+        for file in self.files:
             self.scan_file(file)
 
         if not self.found_file:
