@@ -52,7 +52,8 @@ class FilegroupScan():
     :attr pregex: str: Pre-regex.
     :attr regex: str: Regex.
     :attr file_override: str: If filegroup consist of a single file, this is
-        used (instead of a regular expression).
+        used (instead of a regular expression). DEPRECATED in v2.3.0, use
+        Constructor.set_file_override instead.
     :attr files: str: List of files that will be scanned.
 
     :attr found_file: bool: If any file matching the regex has been found.
@@ -136,6 +137,13 @@ class FilegroupScan():
 
     def __str__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
+
+    def __setattr__(self, name, value):
+        if name == 'file_override':
+            log.warning("file_override will be deprecated in 2.3.0, "
+                        "use Constructor.set_file_override instead")
+            super().__setattr__('files', [value])
+        super().__setattr__(name, value)
 
     def add_variable(self, name: str, infile: KeyLike = '__equal_to_name__',
                      dimensions: List[str] = None):
