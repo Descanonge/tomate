@@ -87,7 +87,6 @@ class FilegroupScan():
 
         self.regex = ""
         self.pregex = ""
-        self.file_override = ''
         self.files = []
 
         self.found_file = False
