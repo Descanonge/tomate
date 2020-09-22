@@ -289,6 +289,43 @@ class FilegroupScan():
                    or any(s.kind == 'gen' for s in self.scanners))
         return to_open
 
+    def scan_dimensions(self, func, **kwargs):
+        """Scan dimensions.
+
+        If files were not already found, launch `find_files`.
+
+        Add found dimensions to `cs`.
+        """
+        if not self.files:
+            self.find_files()
+
+        if len(self.files) == 1:
+            filename = self.files[0]
+        else:
+            filename = ''
+            # We could remove non-matches from files, or they will be rematched
+            # later.
+            for f in self.files:
+                m = re.match(self.regex, f)
+                if m is not None:
+                    filename = f
+                    break
+            if not filename:
+                raise NameError("No files matching the regex.")
+
+        file = self.open_file(os.path.join(self.root, filename))
+        coords = func(file, **kwargs)
+
+        coords_names = [c.name for c in self.cs.values()]
+        coords_return = []  # Only return coords not in FG
+        for c in coords:
+            if c.name not in coords_names:
+                coords_return.append(c)
+                cs = get_coordscan(self, c, False, c.name)
+                self.cs[c.name] = cs
+
+        return coords_return
+
     def scan_general_attributes(self, file: File):
         """Scan for general attributes."""
         for s in self.scanners:

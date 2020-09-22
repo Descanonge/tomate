@@ -170,6 +170,16 @@ class Constructor():
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
 
+    def scan_dimensions(self, func: Callable, **kwargs: Any):
+        """Scan dimensions present in files.
+
+        Shared dimensions must still be indicated.
+        """
+        coords = self.current_fg.scan_dimensions(func, **kwargs)
+
+        for c in coords:
+            self.dims[c.name] = c
+
     def set_variables_elements(self, *variables: List[VariableSpec]):
         """Set variables elements.
 
