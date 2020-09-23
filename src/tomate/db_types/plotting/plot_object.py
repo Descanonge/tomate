@@ -104,10 +104,10 @@ class PlotObjectABC():
         scope = self.db.get_subscope(self._target_scope, keyring,
                                      int2list=False, **keys)
         if scope.var != self.scope.var:
-            self.update_variables(scope.var[:].tolist())
+            self._update_variables(scope.var[:].tolist())
         self.scope = scope
 
-    def update_variables(self, var: List[str]):
+    def _update_variables(self, var: List[str]):
         """Update variables plotted."""
         if isinstance(self.var_idx, int):
             var_idx = [self.var_idx]
