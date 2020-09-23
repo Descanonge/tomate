@@ -106,6 +106,15 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return e.var.view(keyring=e.keyring)
 
+    def sum(self, variable: str, dims: str = None,
+            kwargs: Dict[str, Any] = None, **keys: KeyLike):
+        try:
+            return self.apply_along_axes(np.nansum, variable,
+                                         dims, kwargs, **keys)
+        except SqueezedAxesException as e:
+            log.warning("You are summing only on squeezed dimensions."
+                        " Returning a view.")
+            return e.var.view(keyring=e.keyring)
 
     def std_dev(self, variable: str, dims: str = None,
                 kwargs: Dict[str, Any] = None,
