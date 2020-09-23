@@ -97,7 +97,6 @@ class DataCompute(DataBase):
         and all longitude. If the data is indexed on [time, lat, lon]
         `avg` is a one dimensional array (for time dimension).
         """
-
         try:
             return self.apply_along_axes(np.nanmean, variable, dims,
                                          kwargs, **keys)
@@ -106,8 +105,13 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return e.var.view(keyring=e.keyring)
 
-    def sum(self, variable: str, dims: str = None,
+    def sum(self, variable: str, dims: List[str] = None,
             kwargs: Dict[str, Any] = None, **keys: KeyLike):
+        """Compute sum on a given window.
+
+        Arguments similar to :func:`mean`.
+        Uses numpy.nansum.
+        """
         try:
             return self.apply_along_axes(np.nansum, variable,
                                          dims, kwargs, **keys)
@@ -116,12 +120,13 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return e.var.view(keyring=e.keyring)
 
-    def std_dev(self, variable: str, dims: str = None,
+    def std_dev(self, variable: str, dims: List[str] = None,
                 kwargs: Dict[str, Any] = None,
                 **keys: KeyLike):
         """Compute standard deviation on a given window.
 
         Arguments similar to :func:`mean`.
+        Uses numpy.nanstd.
         """
         try:
             return self.apply_along_axes(np.nanstd, variable,
@@ -130,6 +135,35 @@ class DataCompute(DataBase):
             log.warning("You are computing standard deviation only on "
                         "squeezed dimensions.")
             return np.zeros(e.keyring.shape, dtype='f')
+
+    def create_mean_variable(self, variable: str, dims: List[str],
+                             name: str = None,
+                             kwargs: Dict[str, Any] = None,
+                             attributes: Dict[str, Any] = None):
+        """Create a new variable that is the average of another.
+
+        :param variable: Variable to average.
+        :param dims: Dimensions to average along.
+        :param name: [opt] New variable name, default to `variable_mean`.
+        :param kwargs: [opt] Passed to numpy.nanmean.
+        :param attributes: [opt] Attributes for the new variable.
+
+        :raises IndexError: If there is no dimensions left after averaging.
+            New variable cannot be a scalar.
+        """
+        var = self[variable]
+        new_dims = [d for d in var.dims if d not in dims]
+        if len(new_dims) == 0:
+            raise IndexError("All dimensions were averaged.")
+
+        if name is None:
+            name = f'{variable}_mean'
+
+        self.add_variable(name, dims=new_dims, var_class=type(var),
+                          datatype=var.datatype, attrs=attributes)
+        self[name].set_data(self.mean(variable, dims=dims, kwargs=kwargs))
+
+        return self[name]
 
     def apply_along_axes(self, func: Callable, variable: str,
                          dims: str = None, kwargs: Dict[str, Any] = None,

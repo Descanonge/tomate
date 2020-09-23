@@ -1,3 +1,5 @@
+- [2020-09-23] Add `create_mean_variable`, to quickly create a variable that is
+  the average of another.
 - [2020-09-23] Add `apply_along_axes`, to apply an arbitrary function to specific axes.
 - [2020-09-17] Better guess_dimensions warnings, only warn if dimension is shared in a 
   filegroup containing the variable
