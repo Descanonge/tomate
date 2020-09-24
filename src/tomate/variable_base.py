@@ -6,7 +6,9 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 import logging
-from typing import Any, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
+
+import numpy as np
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
@@ -208,3 +210,46 @@ class Variable():
         """
         if not self.is_loaded():
             raise RuntimeError("Data not loaded.")
+
+    def __mul__(self, other: Union['Variable', Array]):
+        if isinstance(other, (type(self), np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self[k_self] * other[k_other]
+        return self.data * other
+
+    def _broadcast(self, other: Union['Variable', Array]):
+        if isinstance(other, type(self)):
+            var = other.name
+            shape_other = other.shape
+        else:
+            var = 'array'
+            shape_other = self.acs.shape(other)
+        shape = self.shape
+
+        if shape == shape_other:
+            return [tuple([slice(None)]*len(shape))]*2
+
+        if len(shape) > len(shape_other):
+            k_self = tuple([slice(None)]*len(shape))
+            k_other = find_broadcasting_keys(shape, shape_other)
+            log.info('Broadcasting %s to %s', var, shape_other)
+        else:
+            k_self = find_broadcasting_keys(shape_other, shape)
+            k_other = tuple([slice(None)]*len(shape_other))
+            log.info('Broadcasting %s to %s', self.name, shape)
+
+        return k_self, k_other
+
+
+def find_broadcasting_keys(shape1, shape2):
+    keys = []
+    for i, s1 in enumerate(shape1):
+        if i >= len(shape2) or s1 != shape2[i]:
+            if len(shape1) == len(shape2):
+                raise IndexError("Incompatible arrays")
+            shape2.insert(i, None)
+            keys.append(np.newaxis)
+        else:
+            keys.append(slice(None))
+
+    return tuple(keys)
