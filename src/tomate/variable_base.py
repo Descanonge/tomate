@@ -43,6 +43,8 @@ class Variable():
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
+    __array_priority__ = 2  #: So Numpy let me use reflective operators
+
     def __init__(self, name: str,
                  dims: List[str],
                  database: 'DataBase',
@@ -211,14 +213,83 @@ class Variable():
         if not self.is_loaded():
             raise RuntimeError("Data not loaded.")
 
-    def __mul__(self, other: Union['Variable', Array]):
-        if isinstance(other, (type(self), np.ndarray)):
+    def __add__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
             k_self, k_other = self._broadcast(other)
-            return self[k_self] * other[k_other]
+            return self.data[k_self] + other[k_other]
+        return self.data + other
+
+    def __sub__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] - other[k_other]
+        return self.data - other
+
+    def __mul__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] * other[k_other]
         return self.data * other
 
+    def __div__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] / other[k_other]
+        return self.data / other
+
+    def __mod__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] % other[k_other]
+        return self.data % other
+
+    def __and__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] & other[k_other]
+        return self.data & other
+
+    def __or__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] | other[k_other]
+        return self.data | other
+
+    def __xor__(self, other: Union['Variable', Array]):
+        if isinstance(other, (Variable, np.ndarray)):
+            k_self, k_other = self._broadcast(other)
+            return self.data[k_self] ^ other[k_other]
+        return self.data ^ other
+
+    def __radd__(self, other: Union['Variable', Array]):
+        return self + other
+
+    def __rsub__(self, other: Union['Variable', Array]):
+        return self - other
+
+    def __rmul__(self, other: Union['Variable', Array]):
+        return self * other
+
+    def __rdiv__(self, other: Union['Variable', Array]):
+        return self / other
+
+    def __rmod__(self, other: Union['Variable', Array]):
+        return self % other
+
+    def __rand__(self, other: Union['Variable', Array]):
+        return self & other
+
+    def __ror__(self, other: Union['Variable', Array]):
+        return self | other
+
+    def __rxor__(self, other: Union['Variable', Array]):
+        return self ^ other
+
+    def __pow__(self, value: Union[int, float]):
+        return self.data ** value
+
     def _broadcast(self, other: Union['Variable', Array]):
-        if isinstance(other, type(self)):
+        if isinstance(other, Variable):
             var = other.name
             shape_other = other.shape
         else:
