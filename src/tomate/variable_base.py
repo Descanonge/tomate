@@ -61,6 +61,20 @@ class Variable():
             self.set_data(data)
             self.datatype = self.acs.get_datatype(data)
 
+    @property
+    def attributes(self) -> VariableAttributes:
+        """Attributes for this variable.
+
+        Returns a 'VariableAttributes' that is tied to the parent database VI.
+        """
+        return self._db.vi[self.name]
+
+    @property
+    def shape(self) -> List[int]:
+        """Variable shape for current scope."""
+        scope = self._db.scope
+        return [scope[d].size for d in self.dims]
+
     def __repr__(self):
         s = [str(self),
              "Dimensions: {}".format(self.dims),
@@ -83,20 +97,6 @@ class Variable():
         if self.data is None:
             raise AttributeError(f"Data not loaded for {self.name}")
         self.data[key] = value
-
-    @property
-    def attributes(self) -> VariableAttributes:
-        """Attributes for this variable.
-
-        Returns a 'VariableAttributes' that is tied to the parent database VI.
-        """
-        return self._db.vi[self.name]
-
-    @property
-    def shape(self) -> List[int]:
-        """Variable shape for current scope."""
-        scope = self._db.scope
-        return [scope[d].size for d in self.dims]
 
     def allocate(self, shape: Iterable[int] = None):
         """Allocate data of given shape.
@@ -213,53 +213,61 @@ class Variable():
         if not self.is_loaded():
             raise RuntimeError("Data not loaded.")
 
-    def __add__(self, other: Union['Variable', Array]):
+    def _apply_op(self, op, other):
+        self.check_loaded()
+
         if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] + other[k_other]
-        return self.data + other
+            if isinstance(other, Variable):
+                var = other.name
+                shape_other = other.shape
+            else:
+                var = 'array'
+                shape_other = self.acs.shape(other)
+            shape = self.shape
+
+            if len(shape) == len(shape_other):
+                k_self = tuple([slice(None)]*len(shape))
+                k_other = tuple([slice(None)]*len(shape))
+            elif len(shape) > len(shape_other):
+                k_self = tuple([slice(None)]*len(shape))
+                k_other = find_broadcasting_keys(shape, shape_other)
+                log.info('Broadcasting %s to %s', var, shape_other)
+            else:
+                k_self = find_broadcasting_keys(shape_other, shape)
+                k_other = tuple([slice(None)]*len(shape_other))
+                log.info('Broadcasting %s to %s', self.name, shape)
+
+            a = self.data[k_self]
+            b = other[k_other]
+        else:
+            a, b = self.data, other
+
+        f = getattr(a, f'__{op}__')
+        return f(b)
+
+    def __add__(self, other: Union['Variable', Array]):
+        return self._apply_op('add', other)
 
     def __sub__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] - other[k_other]
-        return self.data - other
+        return self._apply_op('sub', other)
 
     def __mul__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] * other[k_other]
-        return self.data * other
+        return self._apply_op('mul', other)
 
     def __div__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] / other[k_other]
-        return self.data / other
+        return self._apply_op('div', other)
 
     def __mod__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] % other[k_other]
-        return self.data % other
+        return self._apply_op('mod', other)
 
     def __and__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] & other[k_other]
-        return self.data & other
+        return self._apply_op('and', other)
 
     def __or__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] | other[k_other]
-        return self.data | other
+        return self._apply_op('or', other)
 
     def __xor__(self, other: Union['Variable', Array]):
-        if isinstance(other, (Variable, np.ndarray)):
-            k_self, k_other = self._broadcast(other)
-            return self.data[k_self] ^ other[k_other]
-        return self.data ^ other
+        return self._apply_op('xor', other)
 
     def __radd__(self, other: Union['Variable', Array]):
         return self + other
@@ -287,29 +295,6 @@ class Variable():
 
     def __pow__(self, value: Union[int, float]):
         return self.data ** value
-
-    def _broadcast(self, other: Union['Variable', Array]):
-        if isinstance(other, Variable):
-            var = other.name
-            shape_other = other.shape
-        else:
-            var = 'array'
-            shape_other = self.acs.shape(other)
-        shape = self.shape
-
-        if shape == shape_other:
-            return [tuple([slice(None)]*len(shape))]*2
-
-        if len(shape) > len(shape_other):
-            k_self = tuple([slice(None)]*len(shape))
-            k_other = find_broadcasting_keys(shape, shape_other)
-            log.info('Broadcasting %s to %s', var, shape_other)
-        else:
-            k_self = find_broadcasting_keys(shape_other, shape)
-            k_other = tuple([slice(None)]*len(shape_other))
-            log.info('Broadcasting %s to %s', self.name, shape)
-
-        return k_self, k_other
 
 
 def find_broadcasting_keys(shape1, shape2):
