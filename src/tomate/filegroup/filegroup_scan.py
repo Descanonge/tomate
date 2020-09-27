@@ -283,8 +283,8 @@ class FilegroupScan():
                    or any(s.kind == 'gen' for s in self.scanners))
         return to_open
 
-    def scan_dimensions(self, func: Callable, **kwargs: Any) -> List[Coord]:
-        """Scan dimensions.
+    def scan_coordinates_objects(self, func: Callable, **kwargs: Any) -> List[Coord]:
+        """Scan coordinates objects.
 
         If files were not already found, launch `find_files`.
 
@@ -510,7 +510,7 @@ def make_filegroup(fg_type: Type, root: str, dims: Dict[str, Coord],
     return fg
 
 
-def scan_dimensions_default(file: File, **kwargs: Any):
+def scan_coordinates_objects_default(file: File, **kwargs: Any):
     """Retrieve coordinates object from a file.
 
     :param file: Object to acees file. The file is already opened by

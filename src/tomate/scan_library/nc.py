@@ -116,7 +116,7 @@ def scan_units(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     return {'units': units}
 
 
-def scan_dimensions(file: nc.Dataset) -> List[Coord]:
+def scan_coordinates_objects(file: nc.Dataset) -> List[Coord]:
     """Scan for dimensions.
 
     :returns: the list of coordinates objects

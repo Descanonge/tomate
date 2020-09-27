@@ -178,7 +178,7 @@ class Constructor():
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
 
-    def scan_dimensions(self, func: Callable, **kwargs: Any) -> List[str]:
+    def scan_coordinates_objects(self, func: Callable, **kwargs: Any) -> List[str]:
         """Scan dimensions present in current filegroup.
 
         Shared dimensions must still be indicated.
@@ -190,10 +190,10 @@ class Constructor():
 
         See also
         --------
-        tomate.filegroup.scan_dimensions_default:
+        tomate.filegroup.scan_coordinates_objects_default:
             for a better description of the function interface.
         """
-        coords = self.current_fg.scan_dimensions(func, **kwargs)
+        coords = self.current_fg.scan_coordinates_objects(func, **kwargs)
 
         coords_return = []
         for c in coords:

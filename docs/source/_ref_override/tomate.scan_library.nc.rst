@@ -13,7 +13,7 @@ tomate.scan\_library.nc
 
        scan_dims
 
-       scan_dimensions
+       scan_coordinates_objects
    
        scan_variables
 
@@ -29,7 +29,7 @@ tomate.scan\_library.nc
 
 
 .. autofunction:: scan_dims
-.. autofunction:: scan_dimensions
+.. autofunction:: scan_coordinates_objects
 .. autofunction:: scan_variables
 .. autofunction:: scan_variables_attributes
 .. autofunction:: scan_variables_datatype

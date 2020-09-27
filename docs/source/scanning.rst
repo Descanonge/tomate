@@ -106,8 +106,8 @@ are present in the file.
 
 It is possible to scan for coordinates object automatically. In order to do
 this, the user has to call the function :func:`Constructor.scan_dimensions
-<constructor.Constructor.scan_dimensions>`, and supply a function that will do
-the scanning (ex: :func:`scan_library.nc.scan_dimensions`).
+<constructor.Constructor.scan_coordinates_objects>`, and supply a function that
+will do the scanning (ex: :func:`scan_library.nc.scan_coordinates_objects`).
 At this point, the current filegroup will try to find the first file of this
 filegroup and will look into it. This means that the filegroups files must be
 setup (either by having a regex set, or by using
