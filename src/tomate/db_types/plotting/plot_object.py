@@ -181,12 +181,6 @@ class PlotObjectABC():
         po._target_scope = scope
         po.axes = po.find_axes(axes)
 
-        if data is not None:
-            if list(data.shape) != po.keyring.shape[:po.DIM]:
-                raise IndexError("Data shape ({}) mismatch keyring shape ({})"
-                                 .format(list(data.shape),
-                                         po.keyring.shape[:po.DIM]))
-
         return po
 
     def set_kwargs(self, replace: bool = True, **kwargs: Any):
