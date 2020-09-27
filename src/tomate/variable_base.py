@@ -296,6 +296,12 @@ class Variable():
     def __pow__(self, value: Union[int, float]):
         return self.data ** value
 
+    def __pos__(self):
+        return self.data
+
+    def __neg__(self):
+        return -self.data
+
 
 def find_broadcasting_keys(shape1, shape2):
     keys = []
