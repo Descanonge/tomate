@@ -53,7 +53,7 @@ class CoordStr(Coord):
 
     def get_index(self, value: str, loc: str = None) -> int:
         if value not in self._array:
-            raise KeyError(f"'{value}' not in coordinate.")
+            raise KeyError(f"'{value}' not in coordinate '{self.name}'.")
         i = np.where(self._array == value)[0][0]
         i = int(i)
         return i
