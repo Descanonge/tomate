@@ -229,10 +229,21 @@ class PostLoadingFunc():
             name = ''
         return name
 
+    def get_variables(self, loaded: List[str]) -> bool:
+        """Return variables both selected and loaded.
+
+        :param loaded: List of variables being loaded.
+        """
+        if self.variable_key.type == 'none':
+            return list(loaded)
+        loaded = set(loaded)
+        selected = set(self.variable_key.as_list())
+        return list(loaded & selected)
+
     def is_to_launch(self, loaded: List[str]) -> bool:
         """If function should be triggered.
 
-        :param loaded: List of variable being loaded.
+        :param loaded: List of variables being loaded.
         """
         if self.variable_key.type == 'none':
             return True
@@ -248,9 +259,9 @@ class PostLoadingFunc():
         s = ' - '.join([self.name])
         return s
 
-    def launch(self, database):
+    def launch(self, database: 'DataBase', loaded: List[str]):
         """Launch function."""
-        self(database, **self.kwargs)
+        self(database, self.get_variables(loaded), **self.kwargs)
 
 
 def make_scanner(kind: str, elts: List[str]) -> ScannerCS:

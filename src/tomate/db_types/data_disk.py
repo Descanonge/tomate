@@ -236,9 +236,9 @@ class DataDisk(DataBase):
     def do_post_loading(self):
         """Apply post loading functions."""
         var_loaded = self.loaded.var[:]
-        for po in self.post_loading_funcs:
-            if po.is_to_launch(var_loaded):
-                po.launch(self)
+        for plf in self.post_loading_funcs:
+            if plf.is_to_launch(var_loaded):
+                plf.launch(self, var_loaded)
 
     def write(self, filename: str, directory: str = None,
               file_kw: Dict = None, var_kw: Dict[str, Dict] = None,

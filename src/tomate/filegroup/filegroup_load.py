@@ -321,7 +321,7 @@ class FilegroupLoad(FilegroupScan):
         var_loaded = keyring['var'].apply(self.cs['var'][:])
         for plf in self.post_loading_funcs:
             if plf.is_to_launch(var_loaded):
-                plf.launch(self.db)
+                plf.launch(self.db, var_loaded)
 
     def scan_variables_attributes(self):
         """Scan for variables specific attributes.
