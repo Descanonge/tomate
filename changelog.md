@@ -1,3 +1,7 @@
+
+
+# v2.1.2
+
 - [2020-09-27] Remove shape check when supplying data to create plot object.
 - [2020-09-27] Fix `set_elements_manual`
 - [2020-09-22] Do not use fg.close_file. Instead use `with` blocks.
