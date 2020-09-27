@@ -18,6 +18,8 @@ tomate.filegroup.filegroup\_scan
    
        make_filegroup
    
+       scan_dimensions_default
+   
 
 
 
@@ -31,3 +33,4 @@ tomate.filegroup.filegroup\_scan
       :special-members:
       :exclude-members: __repr__, __str__, __init__, __weakref__
    .. autofunction:: make_filegroup
+   .. autofunction:: scan_dimensions_default

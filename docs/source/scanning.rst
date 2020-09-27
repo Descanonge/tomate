@@ -92,6 +92,31 @@ Following the same example as above::
 Note the order in which the scanning coordinates are specified dictates the
 order in which they will be scanned.
 
+To do this automatically: see below.
+
+
+Scanning coordinates objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default the user create :class:`Coord<coordinates.coord.Coord>` objects,
+and specify CoordScan objects for each filegroups.
+This allows for a lot of flexibility in the choice the Coord subclass,
+coordinate name, etc. But this can become cumbersome when a lot of dimensions
+are present in the file.
+
+It is possible to scan for coordinates object automatically. In order to do
+this, the user has to call the function :func:`Constructor.scan_dimensions
+<constructor.Constructor.scan_dimensions>`, and supply a function that will do
+the scanning (ex: :func:`scan_library.nc.scan_dimensions`).
+At this point, the current filegroup will try to find the first file of this
+filegroup and will look into it. This means that the filegroups files must be
+setup (either by having a regex set, or by using
+:func:`Constructor.set_file_override<constructor.Constructor.set_file_override>`).
+
+Found coordinates objects will be added to the filegroup and constructor (if
+they are not already present). Note this will only add 'in' coordinates,
+shared coordinates should be indicated as usual.
+
 
 Variables Coordinates
 ^^^^^^^^^^^^^^^^^^^^^
@@ -345,10 +370,10 @@ One should look into :func:`filegroup.scanner.scan_filename_default` for a
 better description of the function signature. :mod:`tomate.scan_library`
 contains some examples.
 
-If the filegroup consists of a single file, it is possible to avoid the whole
-regex operation by setting `'FilegroupScan.file_override'` to the filename
-(relative to the filegroup root). This prevents from exploring all file tree
-from the filegroup root.
+It is possible to avoid the scanning of files by using :func:`Constructor.set_file_override<constructor.Constructor.set_file_override>`.
+It allows to set a single filename, in which case the regex can be left empty,
+or a list of filenames, in which case a regex still has to be setup (it just
+avoids the process of exploring the whole file tree from the filegroup root).
 
 .. warning::
 

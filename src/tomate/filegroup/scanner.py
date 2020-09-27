@@ -278,6 +278,7 @@ def make_scanner(kind: str, elts: List[str]) -> ScannerCS:
     def decorator(func):
         scanner = ScannerCS(kind, func, elts)
         scanner.__doc__ = func.__doc__
+        scanner.__name__ = func.__name__
         return scanner
     return decorator
 

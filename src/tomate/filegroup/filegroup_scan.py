@@ -51,7 +51,9 @@ class FilegroupScan():
     :attr pregex: str: Pre-regex.
     :attr regex: str: Regex.
     :attr file_override: str: If filegroup consist of a single file, this is
-        used (instead of a regular expression).
+        used (instead of a regular expression). DEPRECATED in v2.3.0, use
+        Constructor.set_file_override instead.
+    :attr files: str: List of files that will be scanned.
 
     :attr found_file: bool: If any file matching the regex has been found.
     :attr n_matcher: int: Number of matchers in the pre-regex.
@@ -84,7 +86,7 @@ class FilegroupScan():
 
         self.regex = ""
         self.pregex = ""
-        self.file_override = ''
+        self.files = []
 
         self.found_file = False
         self.n_matcher = 0
@@ -133,6 +135,13 @@ class FilegroupScan():
 
     def __str__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
+
+    def __setattr__(self, name, value):
+        if name == 'file_override':
+            log.warning("file_override will be deprecated in 2.3.0, "
+                        "use Constructor.set_file_override instead")
+            super().__setattr__('files', [value])
+        super().__setattr__(name, value)
 
     def add_variable(self, name: str, infile: KeyLike = '__equal_to_name__',
                      dimensions: List[str] = None):
@@ -274,6 +283,44 @@ class FilegroupScan():
                    or any(s.kind == 'gen' for s in self.scanners))
         return to_open
 
+    def scan_dimensions(self, func: Callable, **kwargs: Any) -> List[Coord]:
+        """Scan dimensions.
+
+        If files were not already found, launch `find_files`.
+
+        Add found dimensions to `cs`.
+        """
+        if not self.files:
+            self.find_files()
+
+        if len(self.files) == 1:
+            filename = self.files[0]
+        else:
+            filename = ''
+            # We could remove non-matches from files, or they will be rematched
+            # later. Not a big deal.
+            for f in self.files:
+                m = re.match(self.regex, f)
+                if m is not None:
+                    filename = f
+                    break
+            if not filename:
+                raise NameError("No files matching the regex.")
+
+        with self.open_file(os.path.join(self.root, filename),
+                            log_lvl='DEBUG') as file:
+            coords = func(file, **kwargs)
+            coords_return = []  # Only return coords not already in FG
+            for c in coords:
+                log.debug("Found dimensions '%s' of class %s",
+                          c.name, c.__class__.__name__)
+                if c.name not in [c.name for c in self.cs.values()]:
+                    coords_return.append(c)
+                    cs = get_coordscan(self, c, False, c.name)
+                    self.cs[c.name] = cs
+
+        return coords_return
+
     def scan_general_attributes(self, file: File):
         """Scan for general attributes."""
         for s in self.scanners:
@@ -318,7 +365,7 @@ class FilegroupScan():
         else:
             execute_scanning(None)
 
-    def find_files(self) -> List[str]:
+    def find_files(self):
         """Find files to scan.
 
         Uses os.walk. Limit search to `MAX_DEPTH_SCAN` levels of directories
@@ -328,10 +375,11 @@ class FilegroupScan():
 
         Sort files alphabetically.
 
+        :raises AttributeError: If no regex is set.
         :raises IndexError: If no files are found.
         """
-        if self.file_override:
-            return [self.file_override]
+        if self.regex == '':
+            raise AttributeError(f"Filegroup '{self.name}' is missing a regex.")
 
         files = []
         for root, _, files_ in os.walk(self.root):
@@ -347,7 +395,7 @@ class FilegroupScan():
 
         log.debug("Found %s files in %s", len(files), self.root)
 
-        return files
+        self.files = files
 
     def scan_files(self):
         """Scan files.
@@ -369,8 +417,9 @@ class FilegroupScan():
                 cs.reset()
         self.found_file = False
 
-        files = self.find_files()
-        for file in files:
+        if not self.files:
+            self.find_files()
+        for file in self.files:
             self.scan_file(file)
 
         if not self.found_file:
@@ -459,3 +508,15 @@ def make_filegroup(fg_type: Type, root: str, dims: Dict[str, Coord],
     fg = fg_type(root_fg, None, coords_fg, vi, name, **kwargs)
 
     return fg
+
+
+def scan_dimensions_default(file: File, **kwargs: Any):
+    """Retrieve coordinates object from a file.
+
+    :param file: Object to acees file. The file is already opened by
+        FilegroupScan.open_file().
+
+    :return: List of subclass of Coord instances. Only coordinates not already
+        present in the filegroup will be kept.
+    """
+    raise NotImplementedError()

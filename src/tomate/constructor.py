@@ -71,6 +71,12 @@ class Constructor():
         """
         return self.filegroups[-1]
 
+    @property
+    def coords(self) -> Dict[str, Coord]:
+        coords = {name: c for name, c in self.dims.items()
+                  if name != 'var'}
+        return coords
+
     def get_filegroup(self, key: Union[int, str]):
         """Get filegroup by index or name."""
         if isinstance(key, int):
@@ -130,6 +136,18 @@ class Constructor():
             replacements = {}
         self.current_fg.set_scan_regex(pregex, **replacements)
 
+    def set_file_override(self, file: Union[str, List[str]]):
+        """Override the search of files of current filegroup.
+
+        Filenames are relative to the current filegroup root.
+
+        If using multiple files, a pregex with matchers is still necessary.
+        It just avoids walking the directory indexing all the files.
+        """
+        if isinstance(file, str):
+            file = [file]
+        self.current_fg.files = file
+
     def set_coord_selection(self, **keys: KeyLike):
         """Set selection for CoordScan of current filegroup.
 
@@ -159,6 +177,31 @@ class Constructor():
         fg = self.current_fg
         for dim, key in keys.items():
             fg.selection[dim] = KeyValue(key)
+
+    def scan_dimensions(self, func: Callable, **kwargs: Any) -> List[str]:
+        """Scan dimensions present in current filegroup.
+
+        Shared dimensions must still be indicated.
+        Found dimensions will be added to the Constructor and current
+        filegroup (if they are not already present).
+
+        :param func: Function that will find coordinates objects.
+        :returns: List of coordinates names found.
+
+        See also
+        --------
+        tomate.filegroup.scan_dimensions_default:
+            for a better description of the function interface.
+        """
+        coords = self.current_fg.scan_dimensions(func, **kwargs)
+
+        coords_return = []
+        for c in coords:
+            if c.name not in self.dims:
+                self.dims[c.name] = c
+                coords_return.append(c.name)
+
+        return coords_return
 
     def set_variables_elements(self, *variables: List[VariableSpec]):
         """Set variables elements.

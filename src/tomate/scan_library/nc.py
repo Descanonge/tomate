@@ -116,30 +116,35 @@ def scan_units(cs: CoordScan, file: nc.Dataset) -> Dict[str, str]:
     return {'units': units}
 
 
+def scan_dimensions(file: nc.Dataset) -> List[Coord]:
+    """Scan for dimensions.
+
+    :returns: the list of coordinates objects
+    """
+    coords = []
+    for dim in file.dimensions:
+        if dim == 'time' and 'units' in file['time'].__dict__:
+            coord = Time(dim, None, units=file['time'].units)
+        elif dim in file.variables and file[dim].dtype is str:
+            coord = CoordStr(dim)
+        else:
+            coord = Coord(dim)
+        coords.append(coord)
+
+    return coords
+
+
 def scan_file(filename, datatypes: List['DataBase'] = None) -> 'DataBase':
     """Scan a single for everything.
 
     You don't have to do a thing !
     """
-    with nc.Dataset(filename, 'r') as file:
-        coords = []
-        for dim in file.dimensions:
-            if dim == 'time' and 'units' in file['time'].__dict__:
-                coord = Time(dim, None, units=file['time'].units)
-            elif dim in file.variables and file[dim].dtype is str:
-                coord = CoordStr(dim)
-            else:
-                coord = Coord(dim)
-            coords.append(coord)
+    cstr = Constructor(path.dirname(filename), [])
+    cstr.add_filegroup(FilegroupNetCDF, [])
 
-    coords_name = [c.name for c in coords]
-
-    cstr = Constructor(path.dirname(filename), coords)
-    coords_fg = [cstr.CSS(c) for c in coords]
-    cstr.add_filegroup(FilegroupNetCDF, coords_fg)
-
-    cstr.current_fg.file_override = path.basename(filename)
-    cstr.add_scan_in_file(scan_dims, *coords_name)
+    cstr.set_file_override(path.basename(filename))
+    coords = cstr.scan_dimensions(scan_dimensions)
+    cstr.add_scan_in_file(scan_dims, *coords)
     cstr.add_scan_in_file(scan_variables, 'var')
     cstr.add_scan_general_attributes(scan_infos)
     cstr.add_scan_variables_attributes(scan_variables_attributes)
