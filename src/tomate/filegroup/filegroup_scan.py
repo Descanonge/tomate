@@ -312,10 +312,10 @@ class FilegroupScan():
             if not filename:
                 raise NameError("No files matching the regex.")
 
-        file = self.open_file(os.path.join(self.root, filename), log_lvl='DEBUG')
-        try:
+        with self.open_file(os.path.join(self.root, filename),
+                            log_lvl='DEBUG') as file:
             coords = func(file, **kwargs)
-            coords_return = []  # Only return coords not in FG
+            coords_return = []  # Only return coords not already in FG
             for c in coords:
                 log.debug("Found dimensions '%s' of class %s",
                           c.name, c.__class__.__name__)
@@ -323,11 +323,6 @@ class FilegroupScan():
                     coords_return.append(c)
                     cs = get_coordscan(self, c, False, c.name)
                     self.cs[c.name] = cs
-        except Exception:
-            self.close_file(file)
-            raise
-        else:
-            self.close_file(file)
 
         return coords_return
 
