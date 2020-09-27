@@ -288,7 +288,7 @@ class FilegroupScan():
                    or any(s.kind == 'gen' for s in self.scanners))
         return to_open
 
-    def scan_dimensions(self, func, **kwargs):
+    def scan_dimensions(self, func: Callable, **kwargs: Any) -> List[Coord]:
         """Scan dimensions.
 
         If files were not already found, launch `find_files`.
@@ -303,7 +303,7 @@ class FilegroupScan():
         else:
             filename = ''
             # We could remove non-matches from files, or they will be rematched
-            # later.
+            # later. Not a big deal.
             for f in self.files:
                 m = re.match(self.regex, f)
                 if m is not None:
@@ -519,3 +519,15 @@ def make_filegroup(fg_type: Type, root: str, dims: Dict[str, Coord],
     fg = fg_type(root_fg, None, coords_fg, vi, name, **kwargs)
 
     return fg
+
+
+def scan_dimensions_default(file: File, **kwargs: Any):
+    """Retrieve coordinates object from a file.
+
+    :param file: Object to acees file. The file is already opened by
+        FilegroupScan.open_file().
+
+    :return: List of subclass of Coord instances. Only coordinates not already
+        present in the filegroup will be kept.
+    """
+    raise NotImplementedError()
