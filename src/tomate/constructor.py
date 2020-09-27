@@ -280,7 +280,7 @@ class Constructor():
 
         fg = self.current_fg
         cs = fg.cs[dim]
-        cs.set_scan_manual(values=values, in_idx=in_idx)
+        cs.set_elements_manual(values=values, in_idx=in_idx)
 
     def add_scan_coords_attributes(self, func: Callable[[File], Dict[str, Any]],
                                    *coords: str, **kwargs: Any):
