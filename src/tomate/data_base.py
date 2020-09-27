@@ -5,7 +5,6 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
-
 import logging
 from typing import Any, Dict, List, Tuple, Type, Union, TYPE_CHECKING
 
@@ -33,7 +32,7 @@ class DataBase():
     *ie* the loaded scope if data is loaded, available scope otherwise.
     Coordinates of the current scope are available as attributes.
 
-    Tha DataBase object also contains one or more Variable object. Those are
+    The DataBase object also contains one or more Variable object. Those are
     accessible as items with `Data[name of variable]`. Data can be retrieved
     directly with the view method, eventually for multiple variable at once.
 

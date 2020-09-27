@@ -6,7 +6,9 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 import logging
-from typing import Any, Iterable, List, Optional, TYPE_CHECKING
+from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
+
+import numpy as np
 
 from tomate.accessor import Accessor
 from tomate.custom_types import Array, KeyLike, KeyLikeValue
@@ -41,6 +43,8 @@ class Variable():
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
+    __array_priority__ = 2  #: So Numpy let me use reflective operators
+
     def __init__(self, name: str,
                  dims: List[str],
                  database: 'DataBase',
@@ -56,6 +60,20 @@ class Variable():
         if data is not None:
             self.set_data(data)
             self.datatype = self.acs.get_datatype(data)
+
+    @property
+    def attributes(self) -> VariableAttributes:
+        """Attributes for this variable.
+
+        Returns a 'VariableAttributes' that is tied to the parent database VI.
+        """
+        return self._db.vi[self.name]
+
+    @property
+    def shape(self) -> List[int]:
+        """Variable shape for current scope."""
+        scope = self._db.scope
+        return [scope[d].size for d in self.dims]
 
     def __repr__(self):
         s = [str(self),
@@ -79,20 +97,6 @@ class Variable():
         if self.data is None:
             raise AttributeError(f"Data not loaded for {self.name}")
         self.data[key] = value
-
-    @property
-    def attributes(self) -> VariableAttributes:
-        """Attributes for this variable.
-
-        Returns a 'VariableAttributes' that is tied to the parent database VI.
-        """
-        return self._db.vi[self.name]
-
-    @property
-    def shape(self) -> List[int]:
-        """Variable shape for current scope."""
-        scope = self._db.scope
-        return [scope[d].size for d in self.dims]
 
     def allocate(self, shape: Iterable[int] = None):
         """Allocate data of given shape.
@@ -208,3 +212,106 @@ class Variable():
         """
         if not self.is_loaded():
             raise RuntimeError("Data not loaded.")
+
+    def _apply_op(self, op, other):
+        self.check_loaded()
+
+        if isinstance(other, (Variable, np.ndarray)):
+            if isinstance(other, Variable):
+                var = other.name
+                shape_other = other.shape
+            else:
+                var = 'array'
+                shape_other = self.acs.shape(other)
+            shape = self.shape
+
+            if len(shape) == len(shape_other):
+                k_self = tuple([slice(None)]*len(shape))
+                k_other = tuple([slice(None)]*len(shape))
+            elif len(shape) > len(shape_other):
+                k_self = tuple([slice(None)]*len(shape))
+                k_other = find_broadcasting_keys(shape, shape_other)
+                log.info('Broadcasting %s to %s', var, shape_other)
+            else:
+                k_self = find_broadcasting_keys(shape_other, shape)
+                k_other = tuple([slice(None)]*len(shape_other))
+                log.info('Broadcasting %s to %s', self.name, shape)
+
+            a = self.data[k_self]
+            b = other[k_other]
+        else:
+            a, b = self.data, other
+
+        f = getattr(a, f'__{op}__')
+        return f(b)
+
+    def __add__(self, other: Union['Variable', Array]):
+        return self._apply_op('add', other)
+
+    def __sub__(self, other: Union['Variable', Array]):
+        return self._apply_op('sub', other)
+
+    def __mul__(self, other: Union['Variable', Array]):
+        return self._apply_op('mul', other)
+
+    def __truediv__(self, other: Union['Variable', Array]):
+        return self._apply_op('truediv', other)
+
+    def __mod__(self, other: Union['Variable', Array]):
+        return self._apply_op('mod', other)
+
+    def __and__(self, other: Union['Variable', Array]):
+        return self._apply_op('and', other)
+
+    def __or__(self, other: Union['Variable', Array]):
+        return self._apply_op('or', other)
+
+    def __xor__(self, other: Union['Variable', Array]):
+        return self._apply_op('xor', other)
+
+    def __radd__(self, other: Union['Variable', Array]):
+        return self + other
+
+    def __rsub__(self, other: Union['Variable', Array]):
+        return self - other
+
+    def __rmul__(self, other: Union['Variable', Array]):
+        return self * other
+
+    def __rtruediv__(self, other: Union['Variable', Array]):
+        return self / other
+
+    def __rmod__(self, other: Union['Variable', Array]):
+        return self % other
+
+    def __rand__(self, other: Union['Variable', Array]):
+        return self & other
+
+    def __ror__(self, other: Union['Variable', Array]):
+        return self | other
+
+    def __rxor__(self, other: Union['Variable', Array]):
+        return self ^ other
+
+    def __pow__(self, value: Union[int, float]):
+        return self.data ** value
+
+    def __pos__(self):
+        return self.data
+
+    def __neg__(self):
+        return -self.data
+
+
+def find_broadcasting_keys(shape1, shape2):
+    keys = []
+    for i, s1 in enumerate(shape1):
+        if i >= len(shape2) or s1 != shape2[i]:
+            if len(shape1) == len(shape2):
+                raise IndexError("Incompatible arrays")
+            shape2.insert(i, None)
+            keys.append(np.newaxis)
+        else:
+            keys.append(slice(None))
+
+    return tuple(keys)
