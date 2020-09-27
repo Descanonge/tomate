@@ -185,10 +185,13 @@ class Constructor():
         """
         coords = self.current_fg.scan_dimensions(func, **kwargs)
 
+        coords_return = []
         for c in coords:
-            self.dims[c.name] = c
+            if c.name not in self.dims:
+                self.dims[c.name] = c
+                coords_return.append(c.name)
 
-        return [c.name for c in coords]
+        return coords_return
 
     def set_variables_elements(self, *variables: List[VariableSpec]):
         """Set variables elements.
