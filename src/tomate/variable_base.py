@@ -254,8 +254,8 @@ class Variable():
     def __mul__(self, other: Union['Variable', Array]):
         return self._apply_op('mul', other)
 
-    def __div__(self, other: Union['Variable', Array]):
-        return self._apply_op('div', other)
+    def __truediv__(self, other: Union['Variable', Array]):
+        return self._apply_op('truediv', other)
 
     def __mod__(self, other: Union['Variable', Array]):
         return self._apply_op('mod', other)
@@ -278,7 +278,7 @@ class Variable():
     def __rmul__(self, other: Union['Variable', Array]):
         return self * other
 
-    def __rdiv__(self, other: Union['Variable', Array]):
+    def __rtruediv__(self, other: Union['Variable', Array]):
         return self / other
 
     def __rmod__(self, other: Union['Variable', Array]):
