@@ -1,5 +1,5 @@
-
-
+- [2020-09-27] Send variables from a post loading function selection being loaded as
+  positionial arguments.
 # v2.1.2
 
 - [2020-09-27] Remove shape check when supplying data to create plot object.

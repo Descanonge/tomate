@@ -8,6 +8,7 @@
 
 from typing import (Any, Callable, Dict, List, Sequence, Tuple, TYPE_CHECKING,
                     Union)
+import logging
 
 from tomate.custom_types import File, KeyLikeStr
 from tomate.keys.key import Key
@@ -16,6 +17,9 @@ if TYPE_CHECKING:
     from tomate.data_base import DataBase
     from tomate.filegroup.coord_scan import CoordScan
     from tomate.filegroup.filegroup_load import FilegroupLoad
+
+
+log = logging.getLogger(__name__)
 
 
 class Scanner:
@@ -261,6 +265,7 @@ class PostLoadingFunc():
 
     def launch(self, database: 'DataBase', loaded: List[str]):
         """Launch function."""
+        log.debug("Launching '%s' post loading function.", self.name)
         self(database, self.get_variables(loaded), **self.kwargs)
 
 
