@@ -299,7 +299,6 @@ class FilegroupScan():
         Close file.
         """
         m = re.match(self.regex, filename)
-        filename = os.path.join(self.root, filename)
 
         # Discard completely non matching files
         if m is None:
@@ -312,7 +311,8 @@ class FilegroupScan():
 
         file = None
         if self.is_to_open():
-            file = self.open_file(filename, mode='r', log_lvl='debug')
+            file = self.open_file(os.path.join(self.root, filename),
+                                  mode='r', log_lvl='debug')
 
         try:
             self.scan_general_attributes(file)
