@@ -15,11 +15,7 @@ To use a new file format, one should subclass
 :class:`FilegroupLoad<filegroup.filegroup_load.FilegroupLoad>`, and
 overwrite a couple of functions.
 
-First
-:func:`open_file<filegroup.filegroup_scan.FilegroupScan.open_file>`
-and
-:func:`close_file<filegroup.filegroup_scan.FilegroupScan.close_file>`
-should be implemented.
+First :func:`open_file<filegroup.filegroup_scan.FilegroupScan.open_file>`.
 `open_file` should return a file object passed to various scanning and loading
 functions. Exception handling is already taken care of by the package.
 

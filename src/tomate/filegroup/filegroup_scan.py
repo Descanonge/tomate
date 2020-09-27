@@ -5,7 +5,6 @@
 # to the MIT License as defined in the file 'LICENSE',
 # at the root of this project. © 2020 Clément HAËCK
 
-
 import logging
 from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
                     Type, TYPE_CHECKING)
@@ -260,17 +259,13 @@ class FilegroupScan():
                   **kwargs: Any) -> File:
         """Open a file.
 
-        Exception are handled by Tomate (which should close the file in case
-        an exception is thrown).
+        Tomate does exception handling with the `with` statement.
+        The returned object should support it.
 
         :param filename: File to open.
         :param mode: Mode for opening (read only, replace, append, ...)
         :param log_lvl: {'debug', 'info', 'warning'} Level to log the opening at.
         """
-        raise NotImplementedError
-
-    def close_file(self, file: File):
-        """Close file."""
         raise NotImplementedError
 
     def is_to_open(self) -> bool:
@@ -298,6 +293,13 @@ class FilegroupScan():
 
         Close file.
         """
+        def execute_scanning(file):
+            self.scan_general_attributes(file)
+
+            for cs in self.cs.values():
+                cs.scan_attributes(file)
+                cs.scan_file(m, file)
+
         m = re.match(self.regex, filename)
 
         # Discard completely non matching files
@@ -309,25 +311,12 @@ class FilegroupScan():
 
         self.found_file = True
 
-        file = None
         if self.is_to_open():
-            file = self.open_file(os.path.join(self.root, filename),
-                                  mode='r', log_lvl='debug')
-
-        try:
-            self.scan_general_attributes(file)
-
-            for cs in self.cs.values():
-                cs.scan_attributes(file)
-                cs.scan_file(m, file)
-        except Exception:
-            if file is not None:
-                self.close_file(file)
-            log.error("Error in scanning filegroup %s", self.name)
-            raise
+            with self.open_file(os.path.join(self.root, filename),
+                                mode='r', log_lvl='debug') as file:
+                execute_scanning(file)
         else:
-            if file is not None:
-                self.close_file(file)
+            execute_scanning(None)
 
     def find_files(self) -> List[str]:
         """Find files to scan.
