@@ -212,7 +212,7 @@ class PostLoadingFunc():
     ...     for var in variables:
     ...         db[var].set_mask(~np.isfinite(db[var][:].data))
     """
-    def __init__(self, func: Callable[['DataBase'], None],
+    def __init__(self, func: Callable,
                  variable_key: KeyLikeStr = None,
                  all_variables: bool = False, **kwargs: Any):
         self.func = func
