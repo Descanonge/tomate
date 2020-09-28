@@ -2,6 +2,9 @@
 - [2020-09-27] Replace `filegroup.file_override` by `constructor.set_file_override`
 - [2020-09-27] Send variables from a post loading function selection being loaded as
   positionial arguments.
+- [2020-09-23] Add `create_mean_variable`, to quickly create a variable that is
+  the average of another.
+- [2020-09-23] Add `apply_along_axes`, to apply an arbitrary function to specific axes.
 
 # v2.1.2
 

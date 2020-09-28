@@ -9,7 +9,7 @@ All functions were not thoroughly tested, use with caution.
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 import logging
 
 import numpy as np
@@ -97,38 +97,79 @@ class DataCompute(DataBase):
         and all longitude. If the data is indexed on [time, lat, lon]
         `avg` is a one dimensional array (for time dimension).
         """
-        var = self[variable]
-        var.check_loaded()
-
-        if dims is None:
-            dims = var.dims
-        if kwargs is None:
-            kwargs = {}
-
-        keyring = Keyring.get_default(**keys)
-        keyring.make_full(var.dims)
-        keyring.limit(var.dims)
-        keyring.sort_by(var.dims)
-        keyring.make_total()
-        order = keyring.get_non_zeros()
-        axes = tuple([order.index(d) for d in dims if d in order])
-        if len(axes) == 0:
+        try:
+            return self.apply_along_axes(np.nanmean, variable, dims,
+                                         kwargs, **keys)
+        except SqueezedAxesException as e:
             log.warning("You are averaging only on squeezed dimensions."
                         " Returning a view.")
-            return var.view(keyring=keyring)
+            return e.var.view(keyring=e.keyring)
 
-        data = var.view(keyring=keyring)
-        log.debug("Averaging over axes %s", axes)
-        mean = np.nanmean(data, axes, **kwargs)
-        return mean
+    def sum(self, variable: str, dims: List[str] = None,
+            kwargs: Dict[str, Any] = None, **keys: KeyLike):
+        """Compute sum on a given window.
 
-    def std_dev(self, variable: str, dims: str = None,
+        Arguments similar to :func:`mean`.
+        Uses numpy.nansum.
+        """
+        try:
+            return self.apply_along_axes(np.nansum, variable,
+                                         dims, kwargs, **keys)
+        except SqueezedAxesException as e:
+            log.warning("You are summing only on squeezed dimensions."
+                        " Returning a view.")
+            return e.var.view(keyring=e.keyring)
+
+    def std_dev(self, variable: str, dims: List[str] = None,
                 kwargs: Dict[str, Any] = None,
                 **keys: KeyLike):
         """Compute standard deviation on a given window.
 
         Arguments similar to :func:`mean`.
+        Uses numpy.nanstd.
         """
+        try:
+            return self.apply_along_axes(np.nanstd, variable,
+                                         dims, kwargs, **keys)
+        except SqueezedAxesException as e:
+            log.warning("You are computing standard deviation only on "
+                        "squeezed dimensions.")
+            return np.zeros(e.keyring.shape, dtype='f')
+
+    def create_mean_variable(self, variable: str, dims: List[str],
+                             name: str = None,
+                             kwargs: Dict[str, Any] = None,
+                             attributes: Dict[str, Any] = None):
+        """Create a new variable that is the average of another.
+
+        :param variable: Variable to average.
+        :param dims: Dimensions to average along.
+        :param name: [opt] New variable name, default to `variable_mean`.
+        :param kwargs: [opt] Passed to numpy.nanmean.
+        :param attributes: [opt] Attributes for the new variable.
+
+        :raises IndexError: If there is no dimensions left after averaging.
+            New variable cannot be a scalar.
+        """
+        var = self[variable]
+        new_dims = [d for d in var.dims if d not in dims]
+        if len(new_dims) == 0:
+            raise IndexError("All dimensions were averaged.")
+
+        if name is None:
+            name = f'{variable}_mean'
+
+        self.add_variable(name, dims=new_dims, var_class=type(var),
+                          datatype=var.datatype, attrs=attributes)
+        self[name].set_data(self.mean(variable, dims=dims, kwargs=kwargs))
+
+        return self[name]
+
+    def apply_along_axes(self, func: Callable, variable: str,
+                         dims: str = None, kwargs: Dict[str, Any] = None,
+                         **keys):
+        """Apply a function on specific axes."""
+
         var = self[variable]
         var.check_loaded()
 
@@ -142,12 +183,21 @@ class DataCompute(DataBase):
         keyring.limit(var.dims)
         keyring.sort_by(var.dims)
         keyring.make_total()
+        keyring.set_shape(self.loaded.dims)
+
         order = keyring.get_non_zeros()
         axes = tuple([order.index(d) for d in dims if d in order])
         if len(axes) == 0:
-            log.warning("You are computing only on squeezed dimensions.")
+            raise SqueezedAxesException(var, keyring)
 
         data = var.view(keyring=keyring)
-        log.debug("Computing standard deviation over axes %s", axes)
-        std = np.nanstd(data, axes, **kwargs)
-        return std
+        log.debug("Applying '%s' over axes %s", func.__name__, axes)
+        result = func(data, axis=axes, **kwargs)
+        return result
+
+
+class SqueezedAxesException(Exception):
+    """Computing on only squeezed axes."""
+    def __init__(self, var, keyring):
+        self.var = var
+        self.keyring = keyring
