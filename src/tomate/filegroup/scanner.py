@@ -188,8 +188,10 @@ class PostLoadingFunc():
 
     Can be applied only when certain variables are loaded.
 
-    :param: func: Function to call. Should take database as
-        only positional argument.
+    :param func: Function to call. Take DataBase instance as first argument, the
+        list of variables both being loaded and corresponding to this function
+        selection (ie the intersection of loaded and selected variables) in
+        second, and optional additional keywords.
     :param variable_key: Specify which variable should trigger the function. If
         None, any variable will trigger it. Variables must be specified by name.
     :param all_variables: If False (default), loading any variables in specified
@@ -202,6 +204,13 @@ class PostLoadingFunc():
     :attr all: bool: If any or all variables from variable_key
         will trigger function.
     :attr kwargs: Dict[str, Any]: Static keyword arguments.
+
+    Examples
+    --------
+    This masks invalid values in selected variables when they are loaded.
+    >>> def post_load_func(db, variables):
+    ...     for var in variables:
+    ...         db[var].set_mask(~np.isfinite(db[var][:].data))
     """
     def __init__(self, func: Callable[['DataBase'], None],
                  variable_key: KeyLikeStr = None,

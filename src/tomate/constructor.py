@@ -414,7 +414,7 @@ class Constructor():
         :param func: Function to call. Take DataBase instance as first argument,
             the list of variables both being loaded and corresponding to this
             function selection (ie the intersection of loaded and selected
-            variables), and optional additional keywords.
+            variables) in second, and optional additional keywords.
         :param variables: Name of variables that should trigger the function.
             None will select all available variables.
         :param all_variables: True if all of variables must be loaded to launch
