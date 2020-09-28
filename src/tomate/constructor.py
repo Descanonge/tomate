@@ -411,14 +411,16 @@ class Constructor():
         See :class:`PostLoadingFunc<tomate.filegroup.scanner.PostLoadingFunc>`
         for details.
 
-        :param func: Function to call. Take DataBase as first argument, and
-            optional additional keywords.
+        :param func: Function to call. Take DataBase instance as first argument,
+            the list of variables both being loaded and corresponding to this
+            function selection (ie the intersection of loaded and selected
+            variables), and optional additional keywords.
         :param variables: Name of variables that should trigger the function.
             None will select all available variables.
         :param all_variables: True if all of variables must be loaded to launch
             function. False if any of the variables must be loaded (default).
         :param current_fg: Will apply only for current filegroup, otherwise will
-            apply for any filegroup (default). Filegroup specific function are
+            apply for any filegroup (default). Filegroup specific functions are
             applied first.
         :param kwargs: [opt] Will be passed to the function.
 
