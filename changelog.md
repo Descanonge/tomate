@@ -1,12 +1,14 @@
-- [2020-09-27] Add process to scan coordinates objects.
+# v2.2.0
+
+- [2020-09-27] Add way to scan coordinates objects infile.
 - [2020-09-27] Replace `filegroup.file_override` by `constructor.set_file_override`
-- [2020-09-27] Send variables from a post loading function selection being loaded as
-  positionial arguments.
+- [2020-09-27] Send variables being loaded and corresponding to a post loading function
+  selection, to the function as positionnal arguments. This breaks current scripts.
 - [2020-09-23] Add `create_mean_variable`, to quickly create a variable that is
   the average of another.
 - [2020-09-23] Add `apply_along_axes`, to apply an arbitrary function to specific axes.
 
-# v2.1.2
+## v2.1.2
 
 - [2020-09-27] Remove shape check when supplying data to create plot object.
 - [2020-09-27] Fix `set_elements_manual`
@@ -15,7 +17,7 @@
   filegroup containing the variable
 - [2020-09-17] Rename `wd` to `directory` in all writing functions.
 
-# v2.1.1
+## v2.1.1
 
 - [2020-09-17] Fix warning in guess_dimensions
 - [2020-09-17] Add argument to choose more finely the memory keyring before
@@ -28,12 +30,12 @@
 - [2020-09-16] Add defaults to Time arguments
 - [2020-09-16] Add method to add variable to filegroup easily
 
-# v2.0.2
+## v2.0.2
 
 - [2020-09-15] Fix some computations methods
 - [2020-09-15] Fix average plots
 
-# v2.0.1
+## v2.0.1
 
 - [2020-09-15] Fix infile keyring for variables with different dimensions
 - [2020-09-15] Take NetCDF dimensions missing values into account
