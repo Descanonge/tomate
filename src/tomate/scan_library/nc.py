@@ -143,7 +143,7 @@ def scan_file(filename, datatypes: List['DataBase'] = None) -> 'DataBase':
     cstr.add_filegroup(FilegroupNetCDF, [])
 
     cstr.set_file_override(path.basename(filename))
-    coords = cstr.scan_dimensions(scan_dimensions)
+    coords = cstr.scan_coordinates_objects(scan_coordinates_objects)
     cstr.add_scan_in_file(scan_dims, *coords)
     cstr.add_scan_in_file(scan_variables, 'var')
     cstr.add_scan_general_attributes(scan_infos)
