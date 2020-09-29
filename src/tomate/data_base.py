@@ -99,19 +99,22 @@ class DataBase():
                     z += '  (loaded)'
                 s.append(z)
             s.append('')
-        s.append("Data available: \n{}".format(repr(self.avail)))
+        s.append("Data available: ")
+        s.append('\n'.join(repr(self.avail).split('\n')[1:]))
         s.append('')
 
         if self.loaded.is_empty():
-            s.append('Data not loaded')
+            s.append('No data loaded')
         else:
-            s.append('Data loaded: \n{}'.format(repr(self.loaded)))
+            s.append("Data loaded: ")
+            s.append('\n'.join(repr(self.loaded).split('\n')[1:]))
         s.append('')
 
         if self.selected.is_empty():
             s.append('No data selected')
         else:
-            s.append('Data selected: \n{}'.format(repr(self.selected)))
+            s.append("Data selected: ")
+            s.append('\n'.join(repr(self.selected).split('\n')[1:]))
         s.append('')
 
         return '\n'.join(s)
