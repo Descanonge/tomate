@@ -1,3 +1,5 @@
+## v2.2.1
+
 - [2020-09-29] Remove broadcasting for arrays
 - [2020-09-29] Fix bug when CS values are not sorted and an element is fixed
 - [2020-09-29] Mean, sum, ... functions now accepts a single string as dimensions.
