@@ -214,28 +214,17 @@ class Variable():
             raise RuntimeError("Data not loaded.")
 
     def _apply_op(self, op, other):
+        def get_none_slices(dims):
+            return tuple([slice(None)]*len(dims))
         self.check_loaded()
 
-        if isinstance(other, (Variable, np.ndarray)):
-            if isinstance(other, Variable):
-                var = other.name
-                shape_other = other.shape
+        if isinstance(other, Variable):
+            if len(self.dims) >= len(other.dims):
+                k_self = get_none_slices(self.dims)
+                k_other = find_broadcasting_keys(self, other)
             else:
-                var = 'array'
-                shape_other = self.acs.shape(other)
-            shape = self.shape
-
-            if len(shape) == len(shape_other):
-                k_self = tuple([slice(None)]*len(shape))
-                k_other = tuple([slice(None)]*len(shape))
-            elif len(shape) > len(shape_other):
-                k_self = tuple([slice(None)]*len(shape))
-                k_other = find_broadcasting_keys(shape, shape_other)
-                log.info('Broadcasting %s to %s', var, shape_other)
-            else:
-                k_self = find_broadcasting_keys(shape_other, shape)
-                k_other = tuple([slice(None)]*len(shape_other))
-                log.info('Broadcasting %s to %s', self.name, shape)
+                k_self = find_broadcasting_keys(other.dims, self.dims)
+                k_other = get_none_slices(other.dims)
 
             a = self.data[k_self]
             b = other[k_other]
@@ -303,15 +292,24 @@ class Variable():
         return -self.data
 
 
-def find_broadcasting_keys(shape1, shape2):
+def find_broadcasting_keys(a, b):
     keys = []
-    for i, s1 in enumerate(shape1):
-        if i >= len(shape2) or s1 != shape2[i]:
-            if len(shape1) == len(shape2):
-                raise IndexError("Incompatible arrays")
-            shape2.insert(i, None)
+    dims_a = a.dims.copy()
+    dims_b = b.dims.copy()
+    broadcast = False
+    for i, d in enumerate(dims_a):
+        if i >= len(dims_b) or d != dims_b[i]:
+            if len(dims_a) == len(dims_b):
+                raise IndexError("Incompatible variables dimensions "
+                                 "({} and {})".format(a.dims, b.dims))
+            dims_b.insert(i, None)
             keys.append(np.newaxis)
+            broadcast = True
         else:
             keys.append(slice(None))
+
+    if broadcast:
+        log.info("Broadcasting '%s' (%s) to '%s' (%s)",
+                 b.name, b.dims, a.name, a.dims)
 
     return tuple(keys)
