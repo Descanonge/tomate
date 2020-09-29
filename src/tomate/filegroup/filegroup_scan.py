@@ -428,8 +428,7 @@ class FilegroupScan():
 
         for cs in self.cs.values():
             for elt, value in cs.fixed_elts.items():
-                cs.update_values(cs.values,
-                                 **{elt: [value for _ in range(len(cs.values))]})
+                cs.set_elements(**{elt: [value for _ in range(len(cs.values))]})
 
             cs.sort_elements()
 
@@ -452,7 +451,7 @@ class FilegroupScan():
             if len(cs.values) == 0:
                 raise ValueError("No values detected ({0}, {1})".format(
                     cs.name, self.name))
-            cs.update_values(cs.values)
+            cs.self_update()
 
     def add_scan_attrs_func(self, func: Callable,
                             kind: str = None, **kwargs: Any):

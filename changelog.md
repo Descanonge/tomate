@@ -1,3 +1,4 @@
+- [2020-09-29] Fix bug when CS values are not sorted and an element is fixed
 - [2020-09-29] Mean, sum, ... functions now accepts a single string as dimensions.
 - [2020-09-29] Fix chaining variables operations by setting
   array priority larger.

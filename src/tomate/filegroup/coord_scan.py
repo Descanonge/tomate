@@ -113,22 +113,28 @@ class CoordScan(Coord):
                 setattr(self, elt, [])
 
     def self_update(self):
-        """Update values and elements from its attributes."""
-        elts = {elt: getattr(self, elt) for elt in self.elts}
-        self.update_values(**elts)
+        """Update values from its attributes."""
+        self.update_values(self.values)
 
-    def update_values(self, values: Sequence, **elts: Sequence):
-        """Update values and elements.
+    def set_elements(self, **elts: Sequence):
+        """Update elements.
 
         :raises IndexError: If an element does not have same length as values.
         """
+        # Values are set first
+        if 'values' in elts:
+            self.values = elts.pop('values')
+
         for name, elt_val in elts.items():
-            if len(values) != len(elt_val):
+            if len(self.values) != len(elt_val):
                 raise IndexError("Not as much '{}' ({}) as values ({})"
-                                 .format(name, len(elt_val), len(values)))
+                                 .format(name, len(elt_val), len(self.values)))
             setattr(self, name, elt_val)
-        self.values = values
-        super().update_values(values)
+
+    def update_values(self, values: Sequence, **elts: Sequence):
+        """Update values and elements."""
+        self.set_elements(values=values, **elts)
+        super().update_values(self.values)
 
     def sort_elements(self) -> np.ndarray:
         """Sort by values.
@@ -237,7 +243,8 @@ class CoordScan(Coord):
             self.fixed_elts.pop(elt, None)
         if 'values' not in elts:
             raise TypeError("Values should be indicated when setting elements")
-        self.update_values(elts.pop('values'), **elts)
+        self.set_elements(**elts)
+        self.self_update()
 
     def set_elements_constant(self, **elts: Any):
         """Set elements as constant.
@@ -417,18 +424,6 @@ class CoordScanShared(CoordScan):
     def add_matcher(self, matcher: Matcher):
         """Add a matcher."""
         self.matchers.append(matcher)
-
-    def update_values(self, values: Sequence, matches: Sequence = None,
-                      **elts: Sequence):
-        """Update values and elements.
-
-        Make sure matcher has same dimensions.
-        """
-        super().update_values(values, **elts)
-        if matches is not None:
-            if len(values) != len(self.matches):
-                raise IndexError("Not as much values as matches.")
-            self.matches = matches
 
     def sort_elements(self) -> np.ndarray:
         order = super().sort_elements()
