@@ -9,7 +9,7 @@ All functions were not thoroughly tested, use with caution.
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple, Union
 import logging
 
 import numpy as np
@@ -80,7 +80,7 @@ class DataCompute(DataBase):
         der = self.gradient(variable, [coord])
         return der
 
-    def mean(self, variable: str, dims: List[str] = None,
+    def mean(self, variable: str, dims: Union[str, List[str]] = None,
              kwargs: Dict[str, Any] = None,
              **keys: KeyLike) -> Array:
         """Compute average on a given window.
@@ -105,7 +105,7 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return e.var.view(keyring=e.keyring)
 
-    def sum(self, variable: str, dims: List[str] = None,
+    def sum(self, variable: str, dims: Union[str, List[str]] = None,
             kwargs: Dict[str, Any] = None, **keys: KeyLike):
         """Compute sum on a given window.
 
@@ -120,7 +120,7 @@ class DataCompute(DataBase):
                         " Returning a view.")
             return e.var.view(keyring=e.keyring)
 
-    def std_dev(self, variable: str, dims: List[str] = None,
+    def std_dev(self, variable: str, dims: Union[str, List[str]] = None,
                 kwargs: Dict[str, Any] = None,
                 **keys: KeyLike):
         """Compute standard deviation on a given window.
@@ -136,7 +136,7 @@ class DataCompute(DataBase):
                         "squeezed dimensions.")
             return np.zeros(e.keyring.shape, dtype='f')
 
-    def create_mean_variable(self, variable: str, dims: List[str],
+    def create_mean_variable(self, variable: str, dims: Union[str, List[str]],
                              name: str = None,
                              kwargs: Dict[str, Any] = None,
                              attributes: Dict[str, Any] = None):
@@ -152,6 +152,9 @@ class DataCompute(DataBase):
             New variable cannot be a scalar.
         """
         var = self[variable]
+        if isinstance(dims, str):
+            dims = [dims]
+
         new_dims = [d for d in var.dims if d not in dims]
         if len(new_dims) == 0:
             raise IndexError("All dimensions were averaged.")
@@ -166,8 +169,8 @@ class DataCompute(DataBase):
         return self[name]
 
     def apply_along_axes(self, func: Callable, variable: str,
-                         dims: str = None, kwargs: Dict[str, Any] = None,
-                         **keys):
+                         dims: Union[str, List[str]] = None,
+                         kwargs: Dict[str, Any] = None, **keys):
         """Apply a function on specific axes."""
 
         var = self[variable]
@@ -175,6 +178,8 @@ class DataCompute(DataBase):
 
         if dims is None:
             dims = var.dims
+        elif isinstance(dims, str):
+            dims = [dims]
         if kwargs is None:
             kwargs = {}
 
