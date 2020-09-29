@@ -1,3 +1,5 @@
+- [2020-09-29] Make `util` submodule recognized when creating the package wheel.
+
 ## v2.2.2
 
 - [2020-09-29] Remove broadcasting for arrays
