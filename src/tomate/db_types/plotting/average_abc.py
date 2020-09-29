@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import List
+from typing import List, Union
 
 from tomate.db_types.plotting.plot_object import PlotObjectABC
 
@@ -24,11 +24,13 @@ class PlotObjectAvgABC(PlotObjectABC):
     tomate.db_types.data_compute.DataCompute.mean: Function used.
     """
 
-    def __init__(self, *args, avg_dims: List[str] = None,
+    def __init__(self, *args, avg_dims: Union[str, List[str]] = None,
                  **kwargs):
         super().__init__(*args, **kwargs)
         if avg_dims is None:
             avg_dims = []
+        elif isinstance(avg_dims, str):
+            avg_dims = [avg_dims]
         self.avg_dims = avg_dims
 
     def check_keyring(self):

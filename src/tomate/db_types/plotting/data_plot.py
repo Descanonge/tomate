@@ -6,7 +6,7 @@
 # at the root of this project. © 2020 Clément HAËCK
 
 
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import logging
 
 import numpy as np
@@ -150,7 +150,7 @@ class DataPlot(DataBase):
         return po
 
     def plot_avg(self, ax: Axes, variable: str,
-                 avg_dims: List[str] = None,
+                 avg_dims: Union[str, List[str]] = None,
                  data: Array = None, axes: List[str] = None,
                  plot: bool = True, limits: bool = True,
                  kwargs: Dict[str, Any] = None,
@@ -184,7 +184,7 @@ class DataPlot(DataBase):
 
     def imshow_avg(self, ax: Axes, variable: str,
                    data: Array = None, axes: List[str] = None,
-                   avg_dims: List[str] = None,
+                   avg_dims: Union[str, List[str]] = None,
                    plot: bool = True, limits: bool = True,
                    kwargs: Dict[str, Any] = None,
                    **keys: KeyLikeValue) -> PlotObjectImageAvg:

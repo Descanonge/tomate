@@ -58,11 +58,11 @@ db.load_by_value(time=slice((2007, 1, 1), (2007, 12, 31)))
 
 fig, [ax1, ax2] = plt.subplots(2, 1, sharex=True)
 
-im = db.imshow_avg(ax1, 'SST', avg_dims=['lon'], lon=slice(-80, 0))
+im = db.imshow_avg(ax1, 'SST', avg_dims='lon', lon=slice(-80, 0))
 im.ax.set_aspect('auto')
 im.add_colorbar()
 
-line = db.plot_avg(ax2, 'SST', avg_dims=['lon'], lon=slice(-80, 0))
+line = db.plot_avg(ax2, 'SST', avg_dims='lon', lon=slice(-80, 0))
 line.set_labels()
 
 
