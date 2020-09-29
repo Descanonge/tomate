@@ -96,7 +96,7 @@ class DataBase():
                     z += ' ({}) '.format(type(v).__name__)
                 z += ' [{}] '.format(', '.join(v.dims))
                 if v.is_loaded():
-                    z += ', (loaded)'
+                    z += '  (loaded)'
                 s.append(z)
             s.append('')
         s.append("Data available: \n{}".format(repr(self.avail)))
@@ -669,8 +669,7 @@ def guess_dimensions(db: 'DataDisk', var: str):
 
         if warn:
             log.warning(("'%s' dimension is shared, but not present in the "
-                         "guess for variable '%s' (%s) "
-                         "something might be wrong"),
+                         "guess for variable '%s' (%s)"),
                         d, var, dims)
 
     return dims

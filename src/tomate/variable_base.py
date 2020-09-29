@@ -43,7 +43,7 @@ class Variable():
 
     acs = Accessor  #: Accessor class (or subclass) to use to access the data.
 
-    __array_priority__ = 2  #: So Numpy let me use reflective operators
+    __array_priority__ = 100  #: So Numpy let me use reflective operators
 
     def __init__(self, name: str,
                  dims: List[str],

@@ -1,3 +1,6 @@
+- [2020-09-29] Fix chaining variables operations by setting
+  array priority larger.
+
 # v2.2.0
 
 - [2020-09-27] Add way to scan coordinates objects infile.
